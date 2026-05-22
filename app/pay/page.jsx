@@ -254,10 +254,15 @@ export default function PayPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to create order.');
       setOrderId(data.orderId);
+      if (data.orderAmount) {
+        setAmount(data.orderAmount.toString());
+      }
       setTimer(600); // reset 10 mins
       setStep('verify');
       if (isMobile) {
-        setTimeout(() => { window.location.href = getDeepLink(method, amount, data.orderId); }, 300);
+        // Use the dynamically generated amount for the deep link
+        const finalAmt = data.orderAmount ? data.orderAmount.toString() : amount;
+        setTimeout(() => { window.location.href = getDeepLink(method, finalAmt, data.orderId); }, 300);
       }
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');
