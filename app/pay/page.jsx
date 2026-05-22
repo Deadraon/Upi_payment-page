@@ -116,6 +116,7 @@ export default function PayPage() {
   const [mounted, setMounted]   = useState(false);
   const [copied, setCopied]     = useState(false);
   const [timer, setTimer]       = useState(300);
+  const [dynamicAmount, setDynamicAmount] = useState('');
   const amountRef = useRef(null);
 
   useEffect(() => {
@@ -145,7 +146,7 @@ export default function PayPage() {
   };
 
   const upiQrValue = orderId
-    ? `upi://pay?${buildParams(amount, orderId)}`
+    ? `upi://pay?${buildParams(dynamicAmount || amount, orderId)}`
     : '';
 
   const formatTime = (seconds) => {
@@ -185,7 +186,7 @@ export default function PayPage() {
       if (!res.ok) throw new Error(data.error || 'Failed to create order.');
       setOrderId(data.orderId);
       if (data.orderAmount) {
-        setAmount(data.orderAmount.toString());
+        setDynamicAmount(data.orderAmount.toString());
       }
       setTimer(300);
       setStep('verify');
@@ -343,7 +344,7 @@ export default function PayPage() {
                         ref={amountRef}
                         type="number"
                         inputMode="decimal"
-                        placeholder="0.00"
+                        placeholder="0"
                         min="1"
                         required
                         value={amount}
@@ -465,7 +466,7 @@ export default function PayPage() {
                     <div className="flex items-center justify-center gap-0.5">
                       <IndianRupee className="w-6 h-6 text-blue-600" />
                       <span className="text-4xl font-extrabold text-slate-900">
-                        {parseFloat(amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                        {parseFloat(amount).toLocaleString('en-IN')}
                       </span>
                     </div>
                     <p className="text-[10px] text-slate-400">
