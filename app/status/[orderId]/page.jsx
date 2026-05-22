@@ -25,24 +25,22 @@ const Background = ({ status }) => {
   const color =
     status === 'verified' ? '#10B981' :
     status === 'rejected' ? '#EF4444' :
-    '#00BAF2';
+    '#00D2FF';
 
   return (
     <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
       <div
-        className="absolute w-[600px] h-[600px] rounded-full blur-[130px]"
+        className="absolute w-[600px] h-[600px] rounded-full blur-[130px] opacity-[0.06]"
         style={{
-          background: `radial-gradient(circle, ${color}, transparent)`,
-          opacity: 0.06,
+          background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
           top: '-20%', left: '-15%',
           transition: 'background 1s ease',
         }}
       />
       <div
-        className="absolute w-[400px] h-[400px] rounded-full blur-[120px]"
+        className="absolute w-[400px] h-[400px] rounded-full blur-[120px] opacity-[0.04]"
         style={{
-          background: 'radial-gradient(circle, #a78bfa, transparent)',
-          opacity: 0.04,
+          background: 'radial-gradient(circle, #c084fc 0%, transparent 70%)',
           bottom: '-15%', right: '-10%',
         }}
       />
@@ -50,15 +48,15 @@ const Background = ({ status }) => {
         className="absolute inset-0 opacity-[0.025]"
         style={{
           backgroundImage: `
-            linear-gradient(rgba(0,186,242,0.5) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0,186,242,0.5) 1px, transparent 1px)
+            linear-gradient(rgba(0,210,255,0.4) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0,210,255,0.4) 1px, transparent 1px)
           `,
-          backgroundSize: '60px 60px',
+          backgroundSize: '50px 50px',
         }}
       />
       <div
         className="absolute inset-0"
-        style={{ background: 'radial-gradient(ellipse at 50% 50%, transparent 40%, #080C14 90%)' }}
+        style={{ background: 'radial-gradient(ellipse at 50% 50%, transparent 45%, #060814 90%)' }}
       />
     </div>
   );
@@ -144,7 +142,7 @@ export default function StatusPage() {
 
   if (!mounted || loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center" style={{ background: '#080C14' }}>
+      <div className="min-h-screen flex flex-col items-center justify-center" style={{ background: '#060814' }}>
         <Background status="pending" />
         <div className="relative z-10 flex flex-col items-center gap-5 animate-fade-in">
           <div
@@ -163,7 +161,7 @@ export default function StatusPage() {
 
   if (error || !order) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#080C14' }}>
+      <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#060814' }}>
         <Background status="rejected" />
         <div
           className="glass-card noise relative z-10 w-full max-w-sm p-8 text-center space-y-5 animate-scale-up"
@@ -200,14 +198,14 @@ export default function StatusPage() {
   /* ── VERIFIED ── */
   if (order.status === 'verified') {
     return (
-      <div className="min-h-screen flex flex-col" style={{ background: '#080C14' }}>
+      <div className="min-h-screen flex flex-col" style={{ background: '#060814' }}>
         <Background status="verified" />
 
         <header className="relative z-10 max-w-5xl mx-auto w-full px-5 pt-6 flex items-center justify-between">
           <div className="flex items-center gap-3 animate-fade-up">
             <div
               className="w-10 h-10 rounded-2xl flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #00BAF2, #0077C8)', boxShadow: '0 4px 20px rgba(0,186,242,0.4)' }}
+              style={{ background: 'linear-gradient(135deg, #00D2FF, #0077C8)', boxShadow: '0 4px 20px rgba(0,210,255,0.4)' }}
             >
               <Zap className="w-5 h-5 text-white" />
             </div>
@@ -310,12 +308,12 @@ export default function StatusPage() {
   /* ── REJECTED ── */
   if (order.status === 'rejected') {
     return (
-      <div className="min-h-screen flex flex-col" style={{ background: '#080C14' }}>
+      <div className="min-h-screen flex flex-col" style={{ background: '#060814' }}>
         <Background status="rejected" />
 
         <header className="relative z-10 max-w-5xl mx-auto w-full px-5 pt-6 flex items-center justify-between">
           <div className="flex items-center gap-3 animate-fade-up">
-            <div className="w-10 h-10 rounded-2xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #00BAF2, #0077C8)', boxShadow: '0 4px 20px rgba(0,186,242,0.4)' }}>
+            <div className="w-10 h-10 rounded-2xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #00D2FF, #0077C8)', boxShadow: '0 4px 20px rgba(0,210,255,0.4)' }}>
               <Zap className="w-5 h-5 text-white" />
             </div>
             <span className="font-extrabold text-base text-white tracking-tight">{CONFIG.businessName}</span>
@@ -390,7 +388,7 @@ export default function StatusPage() {
 
   /* ── PENDING ── */
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#080C14' }}>
+    <div className="min-h-screen flex flex-col" style={{ background: '#060814' }}>
       <Background status="pending" />
 
       {/* Progress bar */}
@@ -400,7 +398,7 @@ export default function StatusPage() {
 
       <header className="relative z-10 max-w-5xl mx-auto w-full px-5 pt-6 flex items-center justify-between">
         <div className="flex items-center gap-3 animate-fade-up">
-          <div className="w-10 h-10 rounded-2xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #00BAF2, #0077C8)', boxShadow: '0 4px 20px rgba(0,186,242,0.4)' }}>
+          <div className="w-10 h-10 rounded-2xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #00D2FF, #0077C8)', boxShadow: '0 4px 20px rgba(0,210,255,0.4)' }}>
             <Zap className="w-5 h-5 text-white" />
           </div>
           <span className="font-extrabold text-base text-white tracking-tight">{CONFIG.businessName}</span>
