@@ -59,6 +59,12 @@ const UPILogo = () => (
   </svg>
 );
 
+const BhimLogo = () => (
+  <svg viewBox="0 0 40 24" className="w-8 h-5" xmlns="http://www.w3.org/2000/svg">
+    <text x="0" y="18" fontFamily="Arial" fontWeight="900" fontSize="18" fill="#FF7A00">BHIM</text>
+  </svg>
+);
+
 /* ── Live background orbs ────────────────────────────── */
 const Background = () => (
   <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
@@ -147,8 +153,16 @@ const METHODS = [
     scheme: (p) => `paytmmp://pay?${p}`,
   },
   {
+    id: 'bhim',
+    label: 'BHIM App',
+    color: '#FF7A00',
+    bg: 'rgba(255,122,0,0.06)',
+    logo: <BhimLogo />,
+    scheme: (p) => `bhim://pay?${p}`,
+  },
+  {
     id: 'generic',
-    label: 'Any UPI App',
+    label: 'Show QR Code',
     color: '#10B981',
     bg: 'rgba(16,185,129,0.06)',
     logo: <UPILogo />,
@@ -560,26 +574,45 @@ export default function PayPage() {
                     </div>
                   </div>
 
-                  {/* Gorgeous glowing QR frame */}
-                  <div className="flex flex-col items-center justify-center py-2 relative">
-                    <div className="absolute w-[220px] h-[220px] bg-[#00D2FF]/5 rounded-full filter blur-xl animate-pulse" />
-                    
-                    <div className="qr-card relative z-10 overflow-hidden bg-white border-2 border-white/[0.08] p-4 flex flex-col items-center">
-                      <QRCode
-                        value={upiQrValue}
-                        size={170}
-                        level="H"
-                        fgColor="#0B0F19"
-                        bgColor="#FFFFFF"
-                      />
-                      <div className="flex flex-col items-center pt-3 w-full border-t border-slate-100 mt-3 text-center">
-                        <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Unified Payments Interface</span>
-                        <div className="flex gap-2 items-center mt-1">
-                          <UPILogo />
+                  {method === 'generic' ? (
+                    /* Gorgeous glowing QR frame */
+                    <div className="flex flex-col items-center justify-center py-2 relative">
+                      <div className="absolute w-[220px] h-[220px] bg-[#00D2FF]/5 rounded-full filter blur-xl animate-pulse" />
+                      
+                      <div className="qr-card relative z-10 overflow-hidden bg-white border-2 border-white/[0.08] p-4 flex flex-col items-center">
+                        <QRCode
+                          value={upiQrValue}
+                          size={170}
+                          level="H"
+                          fgColor="#0B0F19"
+                          bgColor="#FFFFFF"
+                        />
+                        <div className="flex flex-col items-center pt-3 w-full border-t border-slate-100 mt-3 text-center">
+                          <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Unified Payments Interface</span>
+                          <div className="flex gap-2 items-center mt-1">
+                            <UPILogo />
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  ) : (
+                    /* Massive Launch App Button */
+                    <div className="flex flex-col items-center justify-center py-8 relative">
+                      <div className="w-20 h-20 rounded-3xl flex items-center justify-center mb-6 shadow-2xl animate-fade-up" style={{ background: selectedMethod.bg, border: `1px solid ${selectedMethod.color}40` }}>
+                        {selectedMethod.logo}
+                      </div>
+                      <a 
+                        href={getDeepLink(method, amount, orderId)} 
+                        className="animate-scale-up px-8 py-4 rounded-2xl text-slate-900 font-extrabold text-sm uppercase tracking-wider flex items-center gap-3 transition-all hover:scale-105" 
+                        style={{ background: selectedMethod.color, boxShadow: `0 8px 32px ${selectedMethod.color}60` }}
+                      >
+                        <Smartphone className="w-5 h-5" /> Open {selectedMethod.label}
+                      </a>
+                      <p className="text-[10px] text-slate-500 mt-4 max-w-[200px] text-center">
+                        If the app doesn&apos;t open automatically, tap the button above.
+                      </p>
+                    </div>
+                  )}
 
                   {/* VPA clipboard copy indicator */}
                   <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.04] space-y-2">
@@ -602,41 +635,6 @@ export default function PayPage() {
                     <div className="text-[9px] text-slate-400 text-center leading-relaxed">
                       Payee: <strong className="text-white">{CONFIG.businessName}</strong>
                     </div>
-                  </div>
-
-                  {/* Instructions block */}
-                  <div className="text-slate-300">
-                    {isMobile ? (
-                      <div
-                        className="rounded-2xl p-3 text-center space-y-2"
-                        style={{ background: 'rgba(0,210,255,0.04)', border: '1px solid rgba(0,210,255,0.1)' }}
-                      >
-                        <p className="text-xs font-bold text-white">UPI App Trigger Initiated</p>
-                        <p className="text-[10px] text-slate-400">
-                          If your local banking applications did not launch automatically, tap below to force initiate.
-                        </p>
-                        <a
-                          href={getDeepLink(method, amount, orderId)}
-                          className="inline-flex items-center gap-1.5 text-[10px] font-bold py-2 px-4 rounded-xl text-slate-900 transition-all w-full justify-center"
-                          style={{ background: selectedMethod.color }}
-                        >
-                          <Smartphone className="w-3.5 h-3.5" />
-                          Launch {selectedMethod.label} Securely
-                        </a>
-                      </div>
-                    ) : (
-                      <div
-                        className="rounded-2xl p-3.5 space-y-2 bg-white/[0.01] border border-white/[0.04]"
-                      >
-                        <p className="text-xs font-bold text-white text-center">Scan QR Code instructions</p>
-                        <div className="grid grid-cols-2 gap-2 text-[10px] text-slate-400">
-                          <div className="flex items-center gap-1"><ChevronRight className="w-3.5 h-3.5 text-[#00D2FF]" /> 1. Open any UPI App</div>
-                          <div className="flex items-center gap-1"><ChevronRight className="w-3.5 h-3.5 text-[#00D2FF]" /> 2. Scan this QR Code</div>
-                          <div className="flex items-center gap-1"><ChevronRight className="w-3.5 h-3.5 text-[#00D2FF]" /> 3. Enter VPA amount</div>
-                          <div className="flex items-center gap-1"><ChevronRight className="w-3.5 h-3.5 text-[#00D2FF]" /> 4. Complete transaction</div>
-                        </div>
-                      </div>
-                    )}
                   </div>
 
                   {/* Verified settlement strip */}
