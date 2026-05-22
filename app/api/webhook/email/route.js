@@ -88,6 +88,7 @@ export async function POST(request) {
       .from('orders')
       .select('id')
       .eq('utr', utr)
+      .eq('status', 'verified')
       .limit(1);
 
     if (!dupError && duplicateUtr && duplicateUtr.length > 0) {

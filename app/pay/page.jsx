@@ -190,8 +190,10 @@ export default function PayPage() {
 
   const selectedMethod = METHODS.find((m) => m.id === method) || METHODS[3];
 
-  const buildParams = (amt, txnId) =>
-    `pa=${CONFIG.upiId}&pn=${encodeURIComponent(CONFIG.businessName)}&am=${amt}&tn=${txnId}&cu=INR`;
+  const buildParams = (amt, txnId) => {
+    const formattedAmt = parseFloat(amt).toFixed(2);
+    return `pa=${CONFIG.upiId}&pn=${encodeURIComponent(CONFIG.businessName)}&am=${formattedAmt}&tn=${txnId}&cu=INR`;
+  };
 
   const getDeepLink = (methodId, amt, txnId) => {
     const m = METHODS.find((x) => x.id === methodId) || METHODS[3];
