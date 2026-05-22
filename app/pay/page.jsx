@@ -25,9 +25,9 @@ const GPayLogo = () => (
     <path fill="#34A853" d="M13.2,30.6c3.6,0,6.6-1.2,8.8-3.2l-4.3-3.3c-1.2.8-2.7,1.3-4.5,1.3-3.4,0-6.4-2.3-7.4-5.5H1.4v3.4C3.7,27.8,8.2,30.6,13.2,30.6z"/>
     <path fill="#FBBC04" d="M5.8,19.9c-.6-1.6-.6-3.4,0-5.1v-3.4H1.4c-1.9,3.7-1.9,8.1,0,11.9L5.8,19.9z"/>
     <path fill="#EA4335" d="M13.2,9.4c1.9,0,3.7.7,5.1,2l3.8-3.8C19.7,5.4,16.5,4.1,13.2,4.2c-5,0-9.6,2.8-11.8,7.3l4.4,3.4C6.8,11.7,9.8,9.4,13.2,9.4z"/>
-    <path fill="#FAFAFA" d="M37.8,19.7V29h-3V6h7.8c1.9,0,3.7.7,5.1,2 1.4,1.2,2.1,3,2.1,4.9c0,1.9-.7,3.6-2.1,4.9-1.4,1.3-3.1,2-5.1,2L37.8,19.7zm0-11v8h5c1.1,0,2.2-.4,2.9-1.2 1.6-1.5,1.6-4,.1-5.5-.8-.8-1.8-1.3-2.9-1.2L37.8,8.8z"/>
-    <path fill="#FAFAFA" d="M56.7,12.8c2.2,0,3.9.6,5.2,1.8s1.9,2.8,1.9,4.8V29H61v-2.2h-.1c-1.2,1.8-2.9,2.7-4.9,2.7-1.7,0-3.2-.5-4.4-1.5-1.1-1-1.8-2.4-1.8-3.9 0-1.6.6-2.9,1.8-3.9 1.2-1,2.9-1.4,4.9-1.4 1.8,0,3.2.3,4.3,1v-.7c0-1-.4-2-1.2-2.6-.8-.7-1.8-1.1-2.9-1.1-1.7,0-3,.7-3.9,2.1L50.2,16C51.8,13.8,53.9,12.8,56.7,12.8zm-3.8,11.4c0,.8.4,1.5,1,1.9.7.5,1.5.8,2.3.8 1.2,0,2.4-.5,3.3-1.4 1-.9,1.5-2,1.5-3.2-.9-.7-2.2-1.1-3.9-1.1-1.2,0-2.2.3-3,.9-.8.6-1.2,1.3-1.2,2.1z"/>
-    <path fill="#FAFAFA" d="M80,13.3l-9.9,22.7h-3l3.7-7.9-6.5-14.7h3.2l4.7,11.3h.1l4.6-11.3H80z"/>
+    <path fill="#0F172A" d="M37.8,19.7V29h-3V6h7.8c1.9,0,3.7.7,5.1,2 1.4,1.2,2.1,3,2.1,4.9c0,1.9-.7,3.6-2.1,4.9-1.4,1.3-3.1,2-5.1,2L37.8,19.7zm0-11v8h5c1.1,0,2.2-.4,2.9-1.2 1.6-1.5,1.6-4,.1-5.5-.8-.8-1.8-1.3-2.9-1.2L37.8,8.8z"/>
+    <path fill="#0F172A" d="M56.7,12.8c2.2,0,3.9.6,5.2,1.8s1.9,2.8,1.9,4.8V29H61v-2.2h-.1c-1.2,1.8-2.9,2.7-4.9,2.7-1.7,0-3.2-.5-4.4-1.5-1.1-1-1.8-2.4-1.8-3.9 0-1.6.6-2.9,1.8-3.9 1.2-1,2.9-1.4,4.9-1.4 1.8,0,3.2.3,4.3,1v-.7c0-1-.4-2-1.2-2.6-.8-.7-1.8-1.1-2.9-1.1-1.7,0-3,.7-3.9,2.1L50.2,16C51.8,13.8,53.9,12.8,56.7,12.8zm-3.8,11.4c0,.8.4,1.5,1,1.9.7.5,1.5.8,2.3.8 1.2,0,2.4-.5,3.3-1.4 1-.9,1.5-2,1.5-3.2-.9-.7-2.2-1.1-3.9-1.1-1.2,0-2.2.3-3,.9-.8.6-1.2,1.3-1.2,2.1z"/>
+    <path fill="#0F172A" d="M80,13.3l-9.9,22.7h-3l3.7-7.9-6.5-14.7h3.2l4.7,11.3h.1l4.6-11.3H80z"/>
   </svg>
 );
 
@@ -52,7 +52,7 @@ const BhimLogo = () => (
 
 const UPILogo = () => (
   <svg viewBox="0 0 60 24" className="w-9 h-4" xmlns="http://www.w3.org/2000/svg">
-    <text x="0" y="18" fontFamily="Arial" fontWeight="800" fontSize="16" fill="#FAFAFA">UPI</text>
+    <text x="0" y="18" fontFamily="Arial" fontWeight="800" fontSize="16" fill="#0F172A">UPI</text>
     <path d="M44 2 L52 12 L44 22" stroke="#FF6600" strokeWidth="3" fill="none" strokeLinecap="round"/>
     <path d="M50 2 L58 12 L50 22" stroke="#22863A" strokeWidth="3" fill="none" strokeLinecap="round"/>
   </svg>
@@ -222,11 +222,11 @@ export default function PayPage() {
   if (!mounted) return null;
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#09090B' }}>
+    <div className="min-h-screen flex flex-col" style={{ background: '#F8FAFC' }}>
 
       {/* ── Progress bar on verify step ── */}
       {step === 'verify' && (
-        <div className="fixed top-0 left-0 right-0 z-50 h-0.5 bg-zinc-800">
+        <div className="fixed top-0 left-0 right-0 z-50 h-0.5 bg-slate-100">
           <div className="progress-bar h-full" />
         </div>
       )}
@@ -241,14 +241,14 @@ export default function PayPage() {
             <span className="text-white font-black text-sm">P</span>
           </div>
           <div>
-            <h1 className="font-bold text-sm text-white leading-none">PayDrift</h1>
-            <p className="text-[9px] mt-0.5 font-medium text-zinc-500 uppercase tracking-widest">
+            <h1 className="font-bold text-sm text-slate-900 leading-none">PayDrift</h1>
+            <p className="text-[9px] mt-0.5 font-medium text-slate-400 uppercase tracking-widest">
               Secure Checkout
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-600 border border-blue-500/20">
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-600 border border-blue-100">
           <ShieldCheck className="w-3 h-3" />
           <span>256-bit Encrypted</span>
         </div>
@@ -261,28 +261,28 @@ export default function PayPage() {
           {/* LEFT PANE */}
           <div className="lg:col-span-5 space-y-6 order-2 lg:order-1 animate-fade-up">
             <div className="space-y-3">
-              <h2 className="text-3xl lg:text-4xl font-extrabold text-white tracking-tight leading-tight">
+              <h2 className="text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
                 Instant UPI<br />
                 <span className="text-blue-600">Payment Gateway</span>
               </h2>
-              <p className="text-sm text-zinc-500 max-w-sm leading-relaxed">
+              <p className="text-sm text-slate-500 max-w-sm leading-relaxed">
                 Pay directly to the merchant&apos;s bank account. No middlemen, no fees, instant settlement.
               </p>
             </div>
 
             {/* Status Bar */}
-            <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-900 space-y-3">
+            <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="live-dot" />
-                  <span className="text-xs font-semibold text-zinc-300">Gateway Status</span>
+                  <span className="text-xs font-semibold text-slate-700">Gateway Status</span>
                 </div>
-                <span className="text-[10px] font-semibold text-green-600 bg-green-500/10 px-2.5 py-0.5 rounded-full border border-green-500/20">
+                <span className="text-[10px] font-semibold text-green-600 bg-green-50 px-2.5 py-0.5 rounded-full border border-green-100">
                   Online
                 </span>
               </div>
-              <div className="grid grid-cols-2 gap-2 text-[11px] text-zinc-500 pt-2 border-t border-zinc-800">
-                <div>UPI ID: <span className="text-zinc-300 font-medium">{CONFIG.upiId.split('@')[0]}@...</span></div>
+              <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-400 pt-2 border-t border-slate-100">
+                <div>UPI ID: <span className="text-slate-700 font-medium">{CONFIG.upiId.split('@')[0]}@...</span></div>
                 <div className="text-right">Latency: <span className="text-green-600 font-medium">12ms</span></div>
               </div>
             </div>
@@ -295,12 +295,12 @@ export default function PayPage() {
                 { icon: <IndianRupee className="w-4 h-4 text-blue-600" />, title: 'Zero Processing Fee', desc: 'Direct peer-to-peer transfer with no commissions.' },
               ].map(({ icon, title, desc }, i) => (
                 <div key={i} className="flex gap-3 items-start">
-                  <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
                     {icon}
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-zinc-100">{title}</h4>
-                    <p className="text-[11px] text-zinc-500 mt-0.5 leading-relaxed">{desc}</p>
+                    <h4 className="text-xs font-bold text-slate-800">{title}</h4>
+                    <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">{desc}</p>
                   </div>
                 </div>
               ))}
@@ -312,7 +312,7 @@ export default function PayPage() {
 
             {/* Error Banner */}
             {error && (
-              <div className="mb-4 p-3 rounded-xl flex items-start gap-2 text-xs animate-fade-up bg-red-500/10 border border-red-500/30 text-red-700">
+              <div className="mb-4 p-3 rounded-xl flex items-start gap-2 text-xs animate-fade-up bg-red-50 border border-red-200 text-red-700">
                 <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-500" />
                 <span>{error}</span>
               </div>
@@ -326,18 +326,18 @@ export default function PayPage() {
 
                 <form onSubmit={handleInitiatePayment} className="space-y-5">
                   <div className="text-center space-y-1">
-                    <h3 className="text-lg font-bold text-white">Enter Payment Details</h3>
-                    <p className="text-xs text-zinc-500">Secure UPI transfer to verified merchant</p>
+                    <h3 className="text-lg font-bold text-slate-900">Enter Payment Details</h3>
+                    <p className="text-xs text-slate-400">Secure UPI transfer to verified merchant</p>
                   </div>
 
                   {/* Amount */}
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 block">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
                       Amount (INR)
                     </label>
                     <div className="relative group">
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <IndianRupee className="w-5 h-5 text-zinc-400 group-focus-within:text-blue-600 transition-colors" />
+                        <IndianRupee className="w-5 h-5 text-slate-300 group-focus-within:text-blue-600 transition-colors" />
                       </div>
                       <input
                         ref={amountRef}
@@ -368,7 +368,7 @@ export default function PayPage() {
 
                   {/* Method Selection */}
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 block">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
                       Pay via
                     </label>
                     <div className="grid grid-cols-2 gap-2">
@@ -379,12 +379,12 @@ export default function PayPage() {
                           onClick={() => setMethod(m.id)}
                           className={`method-card flex items-center gap-2 p-2.5 text-left ${method === m.id ? 'active' : ''}`}
                         >
-                          <div className="w-7 h-7 rounded-lg bg-zinc-800/50 border border-zinc-800 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                          <div className="w-7 h-7 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
                             {m.logo}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <span className="text-[11px] font-semibold text-zinc-100 block truncate leading-none">{m.label}</span>
-                            <span className="text-[8px] text-zinc-500 block mt-1 leading-none">{method === m.id ? 'Selected' : 'UPI'}</span>
+                            <span className="text-[11px] font-semibold text-slate-800 block truncate leading-none">{m.label}</span>
+                            <span className="text-[8px] text-slate-400 block mt-1 leading-none">{method === m.id ? 'Selected' : 'UPI'}</span>
                           </div>
                           {method === m.id && (
                             <div className="w-4 h-4 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
@@ -419,7 +419,7 @@ export default function PayPage() {
                     )}
                   </button>
 
-                  <p className="text-center text-[10px] text-zinc-500">
+                  <p className="text-center text-[10px] text-slate-400">
                     🔒 Secured by UPI. Direct bank-to-bank transfer.
                   </p>
                 </form>
@@ -436,7 +436,7 @@ export default function PayPage() {
                   <div className="flex items-center justify-between">
                     <button
                       onClick={() => { setStep('input'); setError(''); }}
-                      className="text-[11px] font-medium text-zinc-500 hover:text-zinc-300 flex items-center gap-1 transition-colors"
+                      className="text-[11px] font-medium text-slate-400 hover:text-slate-700 flex items-center gap-1 transition-colors"
                     >
                       ← Back
                     </button>
@@ -445,7 +445,7 @@ export default function PayPage() {
                         <Clock className="w-3 h-3 text-amber-500" />
                         Awaiting Payment
                       </div>
-                      <span className="text-[10px] font-mono bg-zinc-800 px-2 py-1 rounded text-zinc-400 flex items-center gap-1">
+                      <span className="text-[10px] font-mono bg-slate-100 px-2 py-1 rounded text-slate-600 flex items-center gap-1">
                         <Clock className="w-3 h-3 text-blue-600" /> {formatTime(timer)}
                       </span>
                     </div>
@@ -456,12 +456,12 @@ export default function PayPage() {
                     <span className="text-[9px] uppercase tracking-widest text-blue-600 font-semibold">Pay Exactly</span>
                     <div className="flex items-center justify-center gap-0.5">
                       <IndianRupee className="w-6 h-6 text-blue-600" />
-                      <span className="text-4xl font-extrabold text-white">
+                      <span className="text-4xl font-extrabold text-slate-900">
                         {parseFloat(amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                       </span>
                     </div>
-                    <p className="text-[10px] text-zinc-500">
-                      to <span className="font-semibold text-zinc-400">{CONFIG.businessName}</span>
+                    <p className="text-[10px] text-slate-400">
+                      to <span className="font-semibold text-slate-600">{CONFIG.businessName}</span>
                     </p>
                   </div>
 
@@ -476,8 +476,8 @@ export default function PayPage() {
                           fgColor="#0F172A"
                           bgColor="#FFFFFF"
                         />
-                        <div className="flex flex-col items-center pt-3 w-full border-t border-zinc-800 mt-3 text-center">
-                          <span className="text-[9px] text-zinc-500 font-semibold uppercase tracking-wider">Scan with any UPI app</span>
+                        <div className="flex flex-col items-center pt-3 w-full border-t border-slate-100 mt-3 text-center">
+                          <span className="text-[9px] text-slate-400 font-semibold uppercase tracking-wider">Scan with any UPI app</span>
                           <div className="flex gap-2 items-center mt-1.5">
                             <UPILogo />
                           </div>
@@ -487,7 +487,7 @@ export default function PayPage() {
                   ) : (
                     /* App Launch Button */
                     <div className="flex flex-col items-center justify-center py-6">
-                      <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 bg-zinc-800/50 border border-zinc-800">
+                      <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 bg-slate-50 border border-slate-200">
                         {selectedMethod.logo}
                       </div>
                       <a
@@ -497,19 +497,19 @@ export default function PayPage() {
                       >
                         <Smartphone className="w-4 h-4" /> Open {selectedMethod.label}
                       </a>
-                      <p className="text-[10px] text-zinc-500 mt-3 text-center">
+                      <p className="text-[10px] text-slate-400 mt-3 text-center">
                         If the app doesn&apos;t open, tap the button above.
                       </p>
                     </div>
                   )}
 
                   {/* VPA Copy */}
-                  <div className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-800 space-y-1.5">
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
                     <div className="flex items-center justify-between text-[11px]">
-                      <span className="text-zinc-500 font-medium">UPI ID:</span>
+                      <span className="text-slate-500 font-medium">UPI ID:</span>
                       <button
                         onClick={handleCopyVpa}
-                        className="text-zinc-400 hover:text-blue-600 flex items-center gap-1 font-mono transition-colors border border-zinc-800 bg-zinc-900 hover:bg-blue-500/10 px-2 py-0.5 rounded text-[10px]"
+                        className="text-slate-600 hover:text-blue-600 flex items-center gap-1 font-mono transition-colors border border-slate-200 bg-white hover:bg-blue-50 px-2 py-0.5 rounded text-[10px]"
                       >
                         {copied ? (
                           <span className="text-green-600 flex items-center gap-1">
@@ -523,8 +523,8 @@ export default function PayPage() {
                         )}
                       </button>
                     </div>
-                    <div className="text-[9px] text-zinc-500 text-center">
-                      Payee: <strong className="text-zinc-300">{CONFIG.businessName}</strong>
+                    <div className="text-[9px] text-slate-400 text-center">
+                      Payee: <strong className="text-slate-700">{CONFIG.businessName}</strong>
                     </div>
                   </div>
 
@@ -546,7 +546,7 @@ export default function PayPage() {
                         </>
                       )}
                     </button>
-                    <p className="text-center text-[9px] text-zinc-500">
+                    <p className="text-center text-[9px] text-slate-400">
                       Payment will be auto-verified within seconds.
                     </p>
                   </div>
@@ -558,14 +558,14 @@ export default function PayPage() {
       </main>
 
       {/* ── Footer ── */}
-      <footer className="relative z-10 py-5 text-center border-t border-zinc-800 bg-zinc-900">
-        <p className="text-[10px] text-zinc-500">
+      <footer className="relative z-10 py-5 text-center border-t border-slate-200 bg-white">
+        <p className="text-[10px] text-slate-400">
           © 2026 PayDrift · All transactions are encrypted and secure.
         </p>
-        <p className="text-[9px] text-zinc-400 mt-1">
+        <p className="text-[9px] text-slate-300 mt-1">
           By proceeding, you agree to our Terms & Conditions and Privacy Policy.
         </p>
-        <p className="text-[10px] text-zinc-500 mt-2">
+        <p className="text-[10px] text-slate-400 mt-2">
           Built with ❤️ by MOB
         </p>
       </footer>
