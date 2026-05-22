@@ -312,7 +312,7 @@ export default function StatusPage() {
                   )}
                   <Row icon={<CreditCard className="w-3.5 h-3.5 text-slate-400" />} label="Method Selected" value={order.method} />
                   <Row icon={<Key className="w-3.5 h-3.5 text-slate-400" />} label="Transaction UTR / Ref" value={order.utr || 'SMS Confirmed'} mono accent />
-                  <Row icon={<Calendar className="w-3.5 h-3.5 text-slate-400" />} label="Settled Date" value={fmt(order.verified_at)} />
+                  <Row icon={<Calendar className="w-3.5 h-3.5 text-slate-400" />} label="Date & Time" value={fmt(order.verified_at)} />
                 </div>
 
                 <div
