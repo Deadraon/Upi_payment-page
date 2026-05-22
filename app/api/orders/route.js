@@ -3,6 +3,18 @@ import { supabaseAdmin } from '@/lib/supabase';
 
 export async function POST(request) {
   try {
+    // Debug: Check if environment variables are set
+    const hasUrl = !!process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const hasAnonKey = !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const hasServiceKey = !!process.env.SUPABASE_SERVICE_KEY;
+
+    if (!hasUrl || !hasServiceKey) {
+      console.error('Missing env vars:', { hasUrl, hasAnonKey, hasServiceKey });
+      return NextResponse.json({ 
+        error: `Server configuration error: Missing ${!hasUrl ? 'SUPABASE_URL' : ''} ${!hasServiceKey ? 'SERVICE_KEY' : ''}`.trim()
+      }, { status: 500 });
+    }
+
     const body = await request.json();
     const { amount, method, note, customer_name, customer_phone } = body;
 
@@ -34,6 +46,6 @@ export async function POST(request) {
     return NextResponse.json({ orderId: data.id }, { status: 201 });
   } catch (err) {
     console.error('API orders error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 });
   }
 }
