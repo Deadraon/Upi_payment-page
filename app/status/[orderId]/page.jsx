@@ -116,8 +116,15 @@ export default function StatusPage() {
   const [submittingUtr, setSubmittingUtr] = useState(false);
   const [utrSuccess, setUtrSuccess] = useState('');
   const [utrError, setUtrError] = useState('');
+  const [showUtr, setShowUtr] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
+
+  // Delay showing UTR manual input for 60 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => setShowUtr(true), 60000);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Poll for status updates (in case admin approves or webhook fires)
   useEffect(() => {
@@ -509,7 +516,7 @@ export default function StatusPage() {
                     Please allow 5–15 minutes for our staff to verify the funds and approve your account logs.
                   </p>
                 </div>
-              ) : (
+              ) : showUtr ? (
                 /* Input form for UTR */
                 <form onSubmit={handleUtrSubmit} className="space-y-3.5">
                   <div className="space-y-1">
@@ -576,6 +583,16 @@ export default function StatusPage() {
                     )}
                   </button>
                 </form>
+              ) : (
+                <div className="text-center space-y-2 py-3">
+                  <div className="flex items-center justify-center gap-2 text-[#00D2FF] mb-1">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Awaiting Bank Signal</span>
+                  </div>
+                  <p className="text-[9px] text-slate-400 max-w-[260px] mx-auto leading-relaxed">
+                    Our automated system is securely scanning for your bank transfer confirmation. Please keep this page open.
+                  </p>
+                </div>
               )}
             </div>
 
