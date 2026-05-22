@@ -136,7 +136,7 @@ export default function StatusPage() {
 
   /* Countdown tick for pending */
   useEffect(() => {
-    if (!order || order.status !== 'pending') return;
+    if (order?.status !== 'pending') return;
     setTick(10);
     const t = setInterval(() => setTick((p) => (p <= 1 ? 10 : p - 1)), 1000);
     return () => clearInterval(t);
@@ -177,7 +177,7 @@ export default function StatusPage() {
           <div>
             <h2 className="text-xl font-bold text-white">Order Not Found</h2>
             <p className="text-xs mt-2" style={{ color: 'var(--text-secondary)' }}>
-              We couldn't find a transaction matching this ID in our system.
+              We couldn&apos;t find a transaction matching this ID in our system.
             </p>
           </div>
           <button

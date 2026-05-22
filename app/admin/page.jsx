@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { CONFIG } from '@/lib/config';
 import { 
@@ -51,7 +51,7 @@ export default function AdminPage() {
   }, []);
 
   // Fetch orders and calculate summaries
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     if (!isLoggedIn) return;
     setLoading(true);
     try {
@@ -69,7 +69,7 @@ export default function AdminPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isLoggedIn]);
 
   // Trigger fetch when logged in or filter changes
   useEffect(() => {
@@ -83,7 +83,7 @@ export default function AdminPage() {
       
       return () => clearInterval(interval);
     }
-  }, [isLoggedIn]);
+  }, [isLoggedIn, fetchOrders]);
 
   // Handle manual verify/reject actions
   const handleOrderAction = async (orderId, action, utrVal = '') => {
@@ -314,7 +314,7 @@ export default function AdminPage() {
           <div className="bg-[#0F172A]/70 border border-slate-850/80 rounded-2xl p-5 shadow-lg relative overflow-hidden flex flex-col justify-between h-[115px]">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Today's Revenue</p>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Today&apos;s Revenue</p>
                 <h3 className="text-2xl font-black text-white mt-1.5 flex items-center gap-0.5">
                   <IndianRupee className="w-5 h-5 text-emerald-400" />
                   <span>{metrics.today.revenue.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>

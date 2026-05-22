@@ -554,7 +554,7 @@ export default function PayPage() {
                     >
                       <p className="text-sm font-semibold text-white">UPI App opened automatically</p>
                       <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                        Didn't open? Tap below to retry.
+                        Didn&apos;t open? Tap below to retry.
                       </p>
                       <a
                         href={getDeepLink(method, amount, orderId)}
@@ -614,7 +614,7 @@ export default function PayPage() {
                     ) : (
                       <>
                         <CheckCircle className="w-5 h-5" />
-                        <span>I've Paid Successfully</span>
+                        <span>I&apos;ve Paid Successfully</span>
                         <ArrowRight className="w-4 h-4" />
                       </>
                     )}
