@@ -20,7 +20,8 @@ import {
   AlertCircle,
   TrendingUp,
   SlidersHorizontal,
-  ChevronDown
+  ChevronDown,
+  Copy
 } from 'lucide-react';
 
 export default function AdminPage() {
@@ -35,6 +36,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
   
   // Modal / Action states
   const [actionLoading, setActionLoading] = useState(null); // stores order ID currently in progress
@@ -180,8 +182,23 @@ export default function AdminPage() {
 
   // Filtering orders
   const filteredOrders = orders.filter(o => {
-    if (statusFilter === 'all') return true;
-    return o.status === statusFilter;
+    // Status filter
+    if (statusFilter !== 'all' && o.status !== statusFilter) return false;
+    
+    // Search query filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      const matchId = o.id?.toLowerCase().includes(q);
+      const matchName = o.customer_name?.toLowerCase().includes(q);
+      const matchPhone = o.customer_phone?.toLowerCase().includes(q);
+      const matchUtr = o.utr?.toLowerCase().includes(q);
+      const matchNote = o.note?.toLowerCase().includes(q);
+      const matchAmount = o.amount?.toString().includes(q);
+      
+      return matchId || matchName || matchPhone || matchUtr || matchNote || matchAmount;
+    }
+    
+    return true;
   });
 
   const themeColor = CONFIG.themeColor || '#1D9E75';
@@ -374,14 +391,38 @@ export default function AdminPage() {
         {/* Filters and List view */}
         <section className="bg-[#0A0E17]/60 border border-slate-850/85 backdrop-blur-xl rounded-2xl p-6 shadow-xl space-y-6">
           
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-850">
-            <div className="space-y-1">
-              <h2 className="text-lg font-bold text-white tracking-wide">Transaction Logs</h2>
-              <p className="text-xs text-slate-400">Total: {orders.length} orders • Live Auto-refreshing 15s</p>
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 border-b border-slate-850">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-1">
+              <div className="space-y-1">
+                <h2 className="text-lg font-bold text-white tracking-wide">Transaction Logs</h2>
+                <p className="text-xs text-slate-400">Total: {orders.length} orders • Live Auto-refreshing 15s</p>
+              </div>
+              
+              {/* Search Bar */}
+              <div className="relative max-w-xs w-full sm:ml-4">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                  <Search className="w-4 h-4 text-slate-500" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search UTR, Name, Phone..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-[#0A0F1D]/80 border border-slate-800 rounded-xl py-2 pl-10 pr-8 text-xs text-white placeholder-slate-650 outline-none focus:border-slate-700 transition-all font-medium"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-white text-xs"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
             </div>
             
             {/* Filter buttons */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0">
               {[
                 { id: 'all', label: 'All Logs', color: 'rgb(241, 245, 249)' },
                 { id: 'pending', label: 'Pending', color: 'rgb(245, 158, 11)' },
@@ -415,6 +456,7 @@ export default function AdminPage() {
                   <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Amount</th>
                   <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Method</th>
                   <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Note</th>
+                  <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">UTR Reference</th>
                   <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Status</th>
                   <th className="px-6 py-4 text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">Action</th>
                 </tr>
@@ -422,8 +464,8 @@ export default function AdminPage() {
               <tbody className="divide-y divide-slate-850/50 bg-[#070B13]/30">
                 {filteredOrders.length === 0 ? (
                   <tr>
-                    <td colSpan="8" className="px-6 py-12 text-center text-sm text-slate-500">
-                      No transactions match this status filter.
+                    <td colSpan="9" className="px-6 py-12 text-center text-sm text-slate-500">
+                      No transactions match this search/status filter.
                     </td>
                   </tr>
                 ) : (
@@ -492,6 +534,31 @@ export default function AdminPage() {
                           {order.note || '-'}
                         </td>
 
+                        {/* UTR Reference */}
+                        <td className="px-6 py-4.5 whitespace-nowrap text-xs font-mono">
+                          {order.utr ? (
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-bold text-slate-200 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-lg">
+                                {order.utr}
+                              </span>
+                              <button
+                                onClick={() => {
+                                  navigator.clipboard.writeText(order.utr);
+                                  alert("Copied UTR Reference to clipboard!");
+                                }}
+                                className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white transition-colors animate-pulse"
+                                title="Copy UTR Reference"
+                              >
+                                <Copy className="w-3.5 h-3.5 text-[#00D2FF]" />
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-bold bg-amber-500/10 border border-amber-500/20 text-amber-400 animate-pulse">
+                              Awaiting Submission
+                            </span>
+                          )}
+                        </td>
+
                         {/* Status Badge */}
                         <td className="px-6 py-4.5 whitespace-nowrap text-xs">
                           {order.status === 'verified' && (
@@ -525,7 +592,7 @@ export default function AdminPage() {
                                     placeholder="Enter UTR"
                                     value={manualUtr}
                                     onChange={(e) => setManualUtr(e.target.value)}
-                                    className="px-2 py-1 rounded bg-[#0A0F1D] border border-slate-700 text-xs text-white outline-none w-[110px]"
+                                    className="px-2 py-1 rounded bg-[#0A0F1D] border border-slate-700 text-xs text-white outline-none w-[110px] font-semibold"
                                   />
                                   <button
                                     onClick={() => handleOrderAction(order.id, 'verify', manualUtr)}
@@ -548,7 +615,7 @@ export default function AdminPage() {
                                   <button
                                     onClick={() => {
                                       setUtrPromptId(order.id);
-                                      setManualUtr(`MANUAL-${Math.floor(100000 + Math.random() * 900000)}`);
+                                      setManualUtr(order.utr || `MANUAL-${Math.floor(100000 + Math.random() * 900000)}`);
                                     }}
                                     disabled={actionLoading !== null}
                                     className="px-2.5 py-1 rounded-lg text-[10px] font-bold border border-emerald-500/20 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white transition-all"
@@ -570,7 +637,7 @@ export default function AdminPage() {
                               )}
                             </div>
                           ) : (
-                            <span className="text-[11px] text-slate-500 font-mono font-medium truncate max-w-[100px] inline-block">
+                            <span className="text-[11px] text-slate-550 font-mono font-medium truncate max-w-[100px] inline-block bg-slate-900 px-2 py-0.5 rounded border border-slate-800/40">
                               {order.utr || 'Matched'}
                             </span>
                           )}
