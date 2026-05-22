@@ -344,9 +344,17 @@ export default function PayPage() {
                         type="number"
                         inputMode="decimal"
                         placeholder="0.00"
+                        min="1"
                         required
                         value={amount}
-                        onChange={(e) => { setAmount(e.target.value); setError(''); }}
+                        onKeyDown={(e) => {
+                          if (e.key === '-' || e.key === 'e') e.preventDefault();
+                        }}
+                        onChange={(e) => { 
+                          if (Number(e.target.value) < 0) return;
+                          setAmount(e.target.value); 
+                          setError(''); 
+                        }}
                         className="pay-input py-4 pl-11 pr-4 text-3xl font-extrabold"
                       />
                     </div>
