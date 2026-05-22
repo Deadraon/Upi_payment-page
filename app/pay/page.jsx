@@ -442,33 +442,7 @@ export default function PayPage() {
                     </div>
                   </div>
 
-                  {/* Optional user details */}
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                      Sender Details <span className="opacity-50">(Optional)</span>
-                    </label>
-                    <div className="grid grid-cols-2 gap-3">
-                      {[
-                        { icon: <User className="w-3.5 h-3.5" />, placeholder: 'Full Name', val: name, set: setName, type: 'text' },
-                        { icon: <Mail className="w-3.5 h-3.5" />, placeholder: 'Email Address', val: email, set: setEmail, type: 'email' },
-                        { icon: <Phone className="w-3.5 h-3.5" />, placeholder: 'Phone Number', val: phone, set: setPhone, type: 'tel' },
-                        { icon: <MessageSquare className="w-3.5 h-3.5" />, placeholder: 'Payment Note', val: note, set: setNote, type: 'text' },
-                      ].map(({ icon, placeholder, val, set, type }, i) => (
-                        <div key={i} className="relative group/input">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-[#00D2FF] transition-colors">
-                            {icon}
-                          </div>
-                          <input
-                            type={type}
-                            placeholder={placeholder}
-                            value={val}
-                            onChange={(e) => set(e.target.value)}
-                            className="pay-input py-2.5 pl-9 pr-3 text-xs"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+
 
                   {/* VPA Target Selection */}
                   <div className="space-y-2">
