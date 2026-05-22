@@ -84,20 +84,22 @@ export async function POST(request) {
     const matchedOrder = order[0];
 
     // Check for double spending UTR
-    const { data: duplicateUtr, error: dupError } = await supabaseAdmin
-      .from('orders')
-      .select('id')
-      .eq('utr', utr)
-      .eq('status', 'verified')
-      .limit(1);
+    if (utr !== 'UNKNOWN_REF') {
+      const { data: duplicateUtr, error: dupError } = await supabaseAdmin
+        .from('orders')
+        .select('id')
+        .eq('utr', utr)
+        .eq('status', 'verified')
+        .limit(1);
 
-    if (!dupError && duplicateUtr && duplicateUtr.length > 0) {
-      return NextResponse.json({
-        success: false,
-        code: 'DUPLICATE_UTR',
-        message: `Security alert: UTR ${utr} has already been verified on another invoice.`,
-        parsed: { amount, utr }
-      }, { status: 200 });
+      if (!dupError && duplicateUtr && duplicateUtr.length > 0) {
+        return NextResponse.json({
+          success: false,
+          code: 'DUPLICATE_UTR',
+          message: `Security alert: UTR ${utr} has already been verified on another invoice.`,
+          parsed: { amount, utr }
+        }, { status: 200 });
+      }
     }
 
     // Auto verify matched order
