@@ -103,11 +103,13 @@ export async function POST(request) {
     }
 
     // Auto verify matched order
+    const finalUtr = utr === 'UNKNOWN_REF' ? `UNKNOWN_REF_${matchedOrder.id}` : utr;
+    
     const { data: updatedOrder, error: updateError } = await supabaseAdmin
       .from('orders')
       .update({
         status: 'verified',
-        utr: utr,
+        utr: finalUtr,
         verified_at: new Date().toISOString()
       })
       .eq('id', matchedOrder.id)
