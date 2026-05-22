@@ -18,66 +18,23 @@ import {
   ShieldCheck,
   RefreshCw,
   Clock,
-  Zap,
   AlertCircle,
 } from 'lucide-react';
-
-/* ── Animated background (same as pay page) ─────────────── */
-const Background = ({ status }) => {
-  const color =
-    status === 'verified' ? '#10B981' :
-    status === 'rejected' ? '#EF4444' :
-    '#00D2FF';
-
-  return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-      <div
-        className="absolute w-[600px] h-[600px] rounded-full blur-[130px] opacity-[0.06]"
-        style={{
-          background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
-          top: '-20%', left: '-15%',
-          transition: 'background 1s ease',
-        }}
-      />
-      <div
-        className="absolute w-[400px] h-[400px] rounded-full blur-[120px] opacity-[0.04]"
-        style={{
-          background: 'radial-gradient(circle, #c084fc 0%, transparent 70%)',
-          bottom: '-15%', right: '-10%',
-        }}
-      />
-      <div
-        className="absolute inset-0 opacity-[0.025]"
-        style={{
-          backgroundImage: `
-            linear-gradient(rgba(0,210,255,0.4) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0,210,255,0.4) 1px, transparent 1px)
-          `,
-          backgroundSize: '50px 50px',
-        }}
-      />
-      <div
-        className="absolute inset-0"
-        style={{ background: 'radial-gradient(ellipse at 50% 50%, transparent 45%, #060814 90%)' }}
-      />
-    </div>
-  );
-};
 
 /* ── Success checkmark SVG animation ────────────────────── */
 const AnimatedCheck = () => (
   <svg viewBox="0 0 52 52" className="w-14 h-14" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="26" cy="26" r="25" fill="none" stroke="#10B981" strokeWidth="2" opacity="0.3" />
+    <circle cx="26" cy="26" r="25" fill="none" stroke="#16A34A" strokeWidth="2" opacity="0.2" />
     <circle
       cx="26" cy="26" r="25"
-      fill="none" stroke="#10B981" strokeWidth="2.5"
+      fill="none" stroke="#16A34A" strokeWidth="2.5"
       strokeDasharray="157" strokeDashoffset="157"
       style={{ animation: 'dash 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards' }}
       strokeLinecap="round"
     />
     <path
       d="M14 27 L22 35 L38 18"
-      fill="none" stroke="#10B981" strokeWidth="3"
+      fill="none" stroke="#16A34A" strokeWidth="3"
       strokeDasharray="33" strokeDashoffset="33"
       style={{ animation: 'dash 0.4s 0.5s cubic-bezier(0.65, 0, 0.45, 1) forwards' }}
       strokeLinecap="round" strokeLinejoin="round"
@@ -94,7 +51,7 @@ const Row = ({ icon, label, value, mono = false, accent = false }) => (
     </span>
     <span
       className={`receipt-value text-xs ${mono ? 'font-mono text-[11px]' : ''}`}
-      style={accent ? { color: '#00D2FF' } : {}}
+      style={accent ? { color: '#2563EB' } : {}}
     >
       {value}
     </span>
@@ -120,13 +77,11 @@ export default function StatusPage() {
 
   useEffect(() => { setMounted(true); }, []);
 
-  // Delay showing UTR manual input for 60 seconds
   useEffect(() => {
     const timer = setTimeout(() => setShowUtr(true), 60000);
     return () => clearTimeout(timer);
   }, []);
 
-  // Poll for status updates (in case admin approves or webhook fires)
   useEffect(() => {
     if (!orderId) return;
     const fetchStatus = async () => {
@@ -148,7 +103,6 @@ export default function StatusPage() {
     return () => clearInterval(interval);
   }, [orderId]);
 
-  /* Countdown tick for pending updates */
   useEffect(() => {
     if (order?.status !== 'pending') return;
     setTick(10);
@@ -176,10 +130,8 @@ export default function StatusPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to submit UTR.');
-
-      // Successfully updated order record locally
       setOrder(data.order);
-      setUtrSuccess('Transaction UTR / Ref ID submitted successfully!');
+      setUtrSuccess('Transaction UTR submitted successfully!');
     } catch (err) {
       setUtrError(err.message || 'Something went wrong. Please try again.');
     } finally {
@@ -189,17 +141,13 @@ export default function StatusPage() {
 
   if (!mounted || loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center" style={{ background: '#060814' }}>
-        <Background status="pending" />
-        <div className="relative z-10 flex flex-col items-center gap-5 animate-fade-in">
-          <div
-            className="w-16 h-16 rounded-full border-2 flex items-center justify-center animate-pulse-ring"
-            style={{ borderColor: 'rgba(0,210,255,0.3)' }}
-          >
-            <Loader2 className="w-8 h-8 animate-spin" style={{ color: '#00D2FF' }} />
+      <div className="min-h-screen flex flex-col items-center justify-center" style={{ background: '#F8FAFC' }}>
+        <div className="flex flex-col items-center gap-4 animate-fade-in">
+          <div className="w-14 h-14 rounded-full border-2 border-blue-200 flex items-center justify-center animate-pulse-ring">
+            <Loader2 className="w-7 h-7 animate-spin text-blue-600" />
           </div>
-          <p className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>
-            Retrieving Order Status...
+          <p className="text-sm font-medium text-slate-500">
+            Loading order status...
           </p>
         </div>
       </div>
@@ -208,30 +156,23 @@ export default function StatusPage() {
 
   if (error || !order) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#060814' }}>
-        <Background status="rejected" />
-        <div
-          className="glass-card noise relative z-10 w-full max-w-sm p-8 text-center space-y-5 animate-scale-up"
-        >
-          <div
-            className="w-16 h-16 rounded-full flex items-center justify-center mx-auto"
-            style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}
-          >
-            <XCircle className="w-8 h-8 text-red-400" />
+      <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#F8FAFC' }}>
+        <div className="glass-card w-full max-w-sm p-8 text-center space-y-5 animate-scale-up">
+          <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto bg-red-50 border border-red-200">
+            <XCircle className="w-7 h-7 text-red-500" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white">Invoice Not Located</h2>
+            <h2 className="text-xl font-bold text-slate-900">Order Not Found</h2>
             <p className="text-xs mt-2 text-slate-400">
-              We couldn&apos;t identify any transaction matching this record ID in the gateway.
+              We couldn&apos;t find any transaction matching this ID.
             </p>
           </div>
           <button
             onClick={() => (window.location.href = '/pay')}
-            className="w-full py-3.5 rounded-2xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all hover:bg-white/[0.04]"
-            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)' }}
+            className="w-full py-3 rounded-xl font-semibold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200"
           >
             <ArrowLeft className="w-4 h-4" />
-            Return to Gateway
+            Back to Payment
           </button>
         </div>
       </div>
@@ -242,40 +183,30 @@ export default function StatusPage() {
     ? new Date(dt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' })
     : '—';
 
-  // Check if UTR is submitted and is a valid 12-digit number
   const isUtrSubmitted = order.utr && /^\d{12}$/.test(order.utr.trim());
 
   /* ── VERIFIED STATE ── */
   if (order.status === 'verified') {
     return (
-      <div className="min-h-screen flex flex-col" style={{ background: '#060814' }}>
-        <Background status="verified" />
-
-        <header className="relative z-10 max-w-5xl mx-auto w-full px-6 pt-6 flex items-center justify-between">
-          <div className="flex items-center gap-3 animate-fade-up">
-            <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #00D2FF, #0077C8)', boxShadow: '0 4px 16px rgba(0,210,255,0.35)' }}
-            >
-              <Zap className="w-4 h-4 text-white" />
+      <div className="min-h-screen flex flex-col" style={{ background: '#F8FAFC' }}>
+        <header className="max-w-4xl mx-auto w-full px-6 pt-6 flex items-center justify-between animate-fade-up">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-600">
+              <span className="text-white font-black text-sm">P</span>
             </div>
-            <span className="font-extrabold text-sm text-white tracking-tight">{CONFIG.businessName}</span>
+            <span className="font-bold text-sm text-slate-900">PayDrift</span>
           </div>
-          <div className="status-badge verified animate-fade-up delay-100">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
-            Settled Successfully
+          <div className="status-badge verified">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+            Payment Verified
           </div>
         </header>
 
-        <main className="relative z-10 flex-1 flex items-center justify-center px-4 py-10">
+        <main className="flex-1 flex items-center justify-center px-4 py-10">
           <div className="w-full max-w-md">
-            <div className="glass-card noise animate-scale-up" style={{ padding: '30px 24px', borderColor: 'rgba(16,185,129,0.2)' }}>
-              <div
-                className="absolute top-0 left-0 right-0 h-[2px]"
-                style={{ background: 'linear-gradient(90deg, transparent, #10B981, #34d399, transparent)' }}
-              />
+            <div className="glass-card animate-scale-up" style={{ padding: '30px 24px', borderColor: '#BBF7D0' }}>
+              <div className="absolute top-0 left-0 right-0 h-[2px] bg-green-500" />
 
-              {/* Success mark */}
               <div className="text-center space-y-4 animate-fade-up">
                 <div className="flex justify-center">
                   <div className="animate-pulse-success rounded-full">
@@ -283,66 +214,51 @@ export default function StatusPage() {
                   </div>
                 </div>
                 <div>
-                  <h2 className="text-2xl font-extrabold text-white">Payment Confirmed!</h2>
-                  <p className="text-xs mt-1 text-[#34d399] font-bold">
-                    ₹{parseFloat(order.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })} settled into bank
+                  <h2 className="text-2xl font-extrabold text-slate-900">Payment Confirmed!</h2>
+                  <p className="text-xs mt-1 text-green-600 font-semibold">
+                    ₹{parseFloat(order.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })} received successfully
                   </p>
                 </div>
               </div>
 
-              {/* Receipt info */}
-              <div
-                className="mt-6 rounded-2xl p-4 animate-fade-up delay-200"
-                style={{ background: 'rgba(8,14,28,0.5)', border: '1px solid var(--border-subtle)' }}
-              >
-                <div className="text-center pb-4 mb-2 border-b border-white/[0.04]">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Receipt Settled</p>
+              <div className="mt-6 rounded-xl p-4 animate-fade-up delay-200 bg-slate-50 border border-slate-200">
+                <div className="text-center pb-3 mb-2 border-b border-slate-200">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Amount Received</p>
                   <div className="flex items-center justify-center gap-1">
-                    <IndianRupee className="w-5 h-5 text-emerald-400" />
-                    <span className="text-3xl font-extrabold text-white">
+                    <IndianRupee className="w-5 h-5 text-green-600" />
+                    <span className="text-3xl font-extrabold text-slate-900">
                       {parseFloat(order.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                     </span>
                   </div>
                 </div>
 
                 <div className="space-y-0.5">
-                  <Row icon={<User className="w-3.5 h-3.5 text-slate-400" />} label="Customer Name" value={order.customer_name || 'Generic Sender'} />
-                  {order.customer_phone && (
-                    <Row icon={<span className="w-3.5 h-3.5" />} label="Phone Reference" value={order.customer_phone} mono />
-                  )}
-                  <Row icon={<CreditCard className="w-3.5 h-3.5 text-slate-400" />} label="Method Selected" value={order.method} />
-                  <Row icon={<Key className="w-3.5 h-3.5 text-slate-400" />} label="Transaction UTR / Ref" value={order.utr || 'SMS Confirmed'} mono accent />
-                  <Row icon={<Calendar className="w-3.5 h-3.5 text-slate-400" />} label="Date & Time" value={fmt(order.verified_at)} />
+                  <Row icon={<User className="w-3.5 h-3.5 text-slate-400" />} label="Name" value={order.customer_name || 'N/A'} />
+                  <Row icon={<CreditCard className="w-3.5 h-3.5 text-slate-400" />} label="Method" value={order.method} />
+                  <Row icon={<Key className="w-3.5 h-3.5 text-slate-400" />} label="UTR / Ref" value={order.utr || 'Auto-verified'} mono accent />
+                  <Row icon={<Calendar className="w-3.5 h-3.5 text-slate-400" />} label="Date" value={fmt(order.verified_at)} />
                 </div>
 
-                <div
-                  className="mt-4 rounded-xl p-3 flex justify-between items-center text-[10px] bg-white/[0.01] border border-white/[0.03]"
-                >
-                  <span className="text-slate-500 font-bold">Transaction Reference ID</span>
-                  <span className="font-mono text-slate-400">
-                    {orderId?.slice(0, 18)}…
-                  </span>
+                <div className="mt-3 rounded-lg p-2.5 flex justify-between items-center text-[10px] bg-white border border-slate-100">
+                  <span className="text-slate-400 font-medium">Order ID</span>
+                  <span className="font-mono text-slate-500">{orderId?.slice(0, 18)}…</span>
                 </div>
               </div>
 
-              {/* Back CTA */}
               <button
                 onClick={() => (window.location.href = '/pay')}
-                className="w-full mt-6 py-3.5 rounded-2xl text-slate-900 font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.98] animate-fade-up delay-300"
-                style={{
-                  background: 'linear-gradient(135deg, #10B981, #059669)',
-                  boxShadow: '0 8px 24px rgba(16,185,129,0.25)',
-                }}
+                className="w-full mt-5 py-3 rounded-xl text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.98] animate-fade-up delay-300"
+                style={{ background: '#16A34A' }}
               >
-                <Zap className="w-4 h-4 text-slate-900" />
-                Done · Transfer Again
+                Done · New Payment
               </button>
             </div>
           </div>
         </main>
 
-        <footer className="relative z-10 py-4 text-center border-t border-white/[0.03]" style={{ background: 'rgba(6,8,20,0.85)' }}>
-          <p className="text-[10px] text-slate-500">© 2026 {CONFIG.businessName} · Secure Direct Transfer System</p>
+        <footer className="py-4 text-center border-t border-slate-200 bg-white">
+          <p className="text-[10px] text-slate-400">© 2026 PayDrift · Secure Payments</p>
+          <p className="text-[10px] text-slate-400 mt-1">Built with ❤️ by MOB</p>
         </footer>
       </div>
     );
@@ -351,76 +267,67 @@ export default function StatusPage() {
   /* ── REJECTED STATE ── */
   if (order.status === 'rejected') {
     return (
-      <div className="min-h-screen flex flex-col" style={{ background: '#060814' }}>
-        <Background status="rejected" />
-
-        <header className="relative z-10 max-w-5xl mx-auto w-full px-6 pt-6 flex items-center justify-between">
-          <div className="flex items-center gap-3 animate-fade-up">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #00D2FF, #0077C8)', boxShadow: '0 4px 16px rgba(0,210,255,0.35)' }}>
-              <Zap className="w-4 h-4 text-white" />
+      <div className="min-h-screen flex flex-col" style={{ background: '#F8FAFC' }}>
+        <header className="max-w-4xl mx-auto w-full px-6 pt-6 flex items-center justify-between animate-fade-up">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-600">
+              <span className="text-white font-black text-sm">P</span>
             </div>
-            <span className="font-extrabold text-sm text-white tracking-tight">{CONFIG.businessName}</span>
+            <span className="font-bold text-sm text-slate-900">PayDrift</span>
           </div>
-          <div className="status-badge rejected animate-fade-up delay-100">
-            <span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" />
-            Verification Declined
+          <div className="status-badge rejected">
+            <span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block" />
+            Declined
           </div>
         </header>
 
-        <main className="relative z-10 flex-1 flex items-center justify-center px-4 py-10">
+        <main className="flex-1 flex items-center justify-center px-4 py-10">
           <div className="w-full max-w-md">
-            <div className="glass-card noise animate-scale-up" style={{ padding: '30px 24px', borderColor: 'rgba(239,68,68,0.2)' }}>
-              <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: 'linear-gradient(90deg, transparent, #EF4444, #f87171, transparent)' }} />
+            <div className="glass-card animate-scale-up" style={{ padding: '30px 24px', borderColor: '#FECACA' }}>
+              <div className="absolute top-0 left-0 right-0 h-[2px] bg-red-500" />
 
               <div className="text-center space-y-4 animate-fade-up">
-                <div
-                  className="w-16 h-16 rounded-full flex items-center justify-center mx-auto"
-                  style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)' }}
-                >
-                  <XCircle className="w-8 h-8 text-red-400" />
+                <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto bg-red-50 border border-red-200">
+                  <XCircle className="w-7 h-7 text-red-500" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-extrabold text-white">Payment Declined</h2>
-                  <p className="text-xs mt-1 text-[#f87171] font-bold">
-                    Auditing logs could not confirm this transaction
+                  <h2 className="text-2xl font-extrabold text-slate-900">Payment Declined</h2>
+                  <p className="text-xs mt-1 text-red-500 font-semibold">
+                    We could not verify this transaction
                   </p>
                 </div>
               </div>
 
-              <div
-                className="mt-6 rounded-2xl p-4 animate-fade-up delay-200 text-center space-y-4 bg-white/[0.01] border border-white/[0.04]"
-              >
-                <p className="text-xs leading-relaxed text-slate-400">
-                  The payment details were rejected or could not be found on our bank accounts. If you have been debited, please contact our helpline with your invoice reference code.
+              <div className="mt-6 rounded-xl p-4 animate-fade-up delay-200 bg-slate-50 border border-slate-200 text-center space-y-3">
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  If you were debited, please contact support with your order reference.
                 </p>
                 <div className="divider" />
                 <div className="flex justify-between items-center text-[11px]">
-                  <span className="text-slate-500 font-bold">Transaction Reference ID</span>
-                  <span className="font-mono text-slate-400">{orderId?.slice(0, 18)}…</span>
+                  <span className="text-slate-400 font-medium">Order ID</span>
+                  <span className="font-mono text-slate-500">{orderId?.slice(0, 18)}…</span>
                 </div>
                 <div className="flex justify-between items-center text-[11px]">
-                  <span className="text-slate-500 font-bold">Invoice Amount</span>
-                  <span className="font-extrabold text-white">₹{parseFloat(order.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                  <span className="text-slate-400 font-medium">Amount</span>
+                  <span className="font-bold text-slate-800">₹{parseFloat(order.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                 </div>
               </div>
 
               <button
                 onClick={() => (window.location.href = '/pay')}
-                className="w-full mt-6 py-3.5 rounded-2xl text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.98] animate-fade-up delay-300"
-                style={{
-                  background: 'linear-gradient(135deg, #EF4444, #DC2626)',
-                  boxShadow: '0 8px 24px rgba(239,68,68,0.25)',
-                }}
+                className="w-full mt-5 py-3 rounded-xl text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.98] animate-fade-up delay-300"
+                style={{ background: '#DC2626' }}
               >
-                <RefreshCw className="w-4 h-4 text-white" />
-                Retry Invoice Transfer
+                <RefreshCw className="w-4 h-4" />
+                Try Again
               </button>
             </div>
           </div>
         </main>
 
-        <footer className="relative z-10 py-4 text-center border-t border-white/[0.03]" style={{ background: 'rgba(6,8,20,0.85)' }}>
-          <p className="text-[10px] text-slate-500">© 2026 {CONFIG.businessName} · Secure Direct Transfer System</p>
+        <footer className="py-4 text-center border-t border-slate-200 bg-white">
+          <p className="text-[10px] text-slate-400">© 2026 PayDrift · Secure Payments</p>
+          <p className="text-[10px] text-slate-400 mt-1">Built with ❤️ by MOB</p>
         </footer>
       </div>
     );
@@ -428,132 +335,117 @@ export default function StatusPage() {
 
   /* ── PENDING REVIEW STATE ── */
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#060814' }}>
-      <Background status="pending" />
-
-      {/* Low-profile top bar */}
-      <div className="fixed top-0 left-0 right-0 z-50 h-0.5">
+    <div className="min-h-screen flex flex-col" style={{ background: '#F8FAFC' }}>
+      <div className="fixed top-0 left-0 right-0 z-50 h-0.5 bg-slate-100">
         <div className="progress-bar h-full" />
       </div>
 
-      <header className="relative z-10 max-w-5xl mx-auto w-full px-6 pt-6 flex items-center justify-between">
-        <div className="flex items-center gap-3 animate-fade-up">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #00D2FF, #0077C8)', boxShadow: '0 4px 16px rgba(0,210,255,0.35)' }}>
-            <Zap className="w-4 h-4 text-white" />
+      <header className="max-w-4xl mx-auto w-full px-6 pt-6 flex items-center justify-between animate-fade-up">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-600">
+            <span className="text-white font-black text-sm">P</span>
           </div>
-          <span className="font-extrabold text-sm text-white tracking-tight">{CONFIG.businessName}</span>
+          <span className="font-bold text-sm text-slate-900">PayDrift</span>
         </div>
-        <div className="status-badge pending animate-fade-up delay-100">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse inline-block" />
+        <div className="status-badge pending">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse inline-block" />
           Under Review
         </div>
       </header>
 
-      <main className="relative z-10 flex-1 flex items-center justify-center px-4 py-8">
+      <main className="flex-1 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-md">
-          <div className="glass-card noise animate-scale-up" style={{ padding: '26px 20px' }}>
-            <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: 'linear-gradient(90deg, transparent, #00D2FF, #a78bfa, transparent)' }} />
+          <div className="glass-card animate-scale-up" style={{ padding: '26px 20px' }}>
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-blue-600" />
 
-            {/* Static Review Icon Header */}
+            {/* Pending Header */}
             <div className="text-center space-y-3 animate-fade-up">
-              <div className="relative inline-flex items-center justify-center">
-                <div
-                  className="w-16 h-16 rounded-full border border-dashed flex items-center justify-center"
-                  style={{ borderColor: 'rgba(0,210,255,0.25)', background: 'rgba(0,210,255,0.02)' }}
-                >
-                  <ShieldCheck className="w-7 h-7 text-[#00D2FF] animate-pulse" />
-                </div>
+              <div className="w-14 h-14 rounded-full border-2 border-dashed border-blue-200 flex items-center justify-center mx-auto bg-blue-50">
+                <ShieldCheck className="w-6 h-6 text-blue-600 animate-pulse" />
               </div>
-
               <div>
-                <h2 className="text-xl font-extrabold text-white">Verification in Progress</h2>
+                <h2 className="text-xl font-bold text-slate-900">Verifying Payment</h2>
                 <p className="text-xs text-slate-400 mt-1 max-w-[280px] mx-auto leading-relaxed">
-                  Your transfer invoice was created successfully. You can <strong className="text-[#00D2FF]">safely close</strong> this window now.
+                  Your payment is being processed. You can <strong className="text-blue-600">safely close</strong> this page.
                 </p>
               </div>
             </div>
 
-            {/* Invoice metadata */}
-            <div
-              className="mt-5 rounded-2xl p-4 animate-fade-up delay-150"
-              style={{ background: 'rgba(8,14,28,0.5)', border: '1px solid var(--border-subtle)' }}
-            >
-              <div className="text-center pb-3 border-b border-white/[0.04] mb-2">
-                <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-0.5">Amount to Audit</p>
+            {/* Order details */}
+            <div className="mt-5 rounded-xl p-4 animate-fade-up delay-150 bg-slate-50 border border-slate-200">
+              <div className="text-center pb-3 border-b border-slate-200 mb-2">
+                <p className="text-[9px] font-semibold uppercase tracking-wider text-slate-400 mb-0.5">Amount</p>
                 <div className="flex items-center justify-center gap-0.5">
-                  <IndianRupee className="w-4 h-4 text-[#00D2FF]" />
-                  <span className="text-2xl font-extrabold text-white">
+                  <IndianRupee className="w-4 h-4 text-blue-600" />
+                  <span className="text-2xl font-extrabold text-slate-900">
                     {parseFloat(order.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                   </span>
                 </div>
               </div>
-
               <div className="space-y-0.5 text-[11px] text-slate-400">
                 <div className="flex justify-between items-center py-1">
-                  <span>Method Selected</span>
-                  <span className="text-white font-semibold">{order.method || 'UPI App'}</span>
+                  <span>Method</span>
+                  <span className="text-slate-700 font-medium">{order.method || 'UPI'}</span>
                 </div>
                 <div className="flex justify-between items-center py-1">
-                  <span>Order Reference</span>
-                  <span className="font-mono text-white">{orderId?.slice(0, 16)}</span>
+                  <span>Order ID</span>
+                  <span className="font-mono text-slate-600">{orderId?.slice(0, 16)}</span>
                 </div>
               </div>
             </div>
 
-            {/* UTR Form or UTR Status Indicator */}
-            <div className="mt-5 pt-4 border-t border-white/[0.04] animate-fade-up delay-200">
+            {/* UTR Section */}
+            <div className="mt-5 pt-4 border-t border-slate-200 animate-fade-up delay-200">
               {isUtrSubmitted ? (
-                /* UTR already submitted state */
-                <div className="bg-[#10B981]/5 border border-[#10B981]/15 rounded-2xl p-4 text-center space-y-1.5">
-                  <div className="flex items-center justify-center gap-1.5 text-xs text-emerald-400 font-bold">
-                    <CheckCircle className="w-4 h-4 text-emerald-400" />
-                    <span>Transaction UTR Submitted</span>
+                <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center space-y-1.5">
+                  <div className="flex items-center justify-center gap-1.5 text-xs text-green-600 font-semibold">
+                    <CheckCircle className="w-4 h-4" />
+                    <span>UTR Submitted</span>
                   </div>
-                  <p className="text-[10px] text-slate-400 leading-normal">
-                    Reference ID: <strong className="text-white font-mono">{order.utr}</strong>
+                  <p className="text-[10px] text-slate-500">
+                    Reference: <strong className="text-slate-700 font-mono">{order.utr}</strong>
                   </p>
-                  <p className="text-[9px] text-[#10B981] leading-normal font-medium pt-1">
-                    Please allow 5–15 minutes for our staff to verify the funds and approve your account logs.
+                  <p className="text-[9px] text-green-600 font-medium pt-1">
+                    Verification in progress. Please allow a few minutes.
                   </p>
                 </div>
               ) : showUtr ? (
-                /* Input form for UTR */
-                <form onSubmit={handleUtrSubmit} className="space-y-3.5">
+                <form onSubmit={handleUtrSubmit} className="space-y-3">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-300 block">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600 block">
                       Speed Up Verification
                     </label>
                     <p className="text-[9px] text-slate-400 leading-relaxed">
-                      To facilitate instant verification, please submit your bank&apos;s 12-digit transaction UTR / Ref Number from your transaction success logs.
+                      Enter your 12-digit UTR/Ref number from your bank&apos;s transaction confirmation.
                     </p>
                   </div>
 
                   {utrError && (
-                    <div className="p-2.5 rounded-xl border border-red-500/25 bg-red-500/5 text-[10px] text-red-300 flex items-start gap-1.5">
-                      <AlertCircle className="w-3.5 h-3.5 text-red-400 flex-shrink-0 mt-0.5" />
+                    <div className="p-2 rounded-lg border border-red-200 bg-red-50 text-[10px] text-red-600 flex items-start gap-1.5">
+                      <AlertCircle className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />
                       <span>{utrError}</span>
                     </div>
                   )}
 
                   {utrSuccess && (
-                    <div className="p-2.5 rounded-xl border border-emerald-500/25 bg-emerald-500/5 text-[10px] text-emerald-300 flex items-start gap-1.5">
-                      <CheckCircle className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0 mt-0.5" />
+                    <div className="p-2 rounded-lg border border-green-200 bg-green-50 text-[10px] text-green-600 flex items-start gap-1.5">
+                      <CheckCircle className="w-3.5 h-3.5 text-green-500 flex-shrink-0 mt-0.5" />
                       <span>{utrSuccess}</span>
                     </div>
                   )}
 
                   <div className="relative group">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Key className="w-3.5 h-3.5 text-slate-400 group-focus-within:text-[#00D2FF]" />
+                      <Key className="w-3.5 h-3.5 text-slate-300 group-focus-within:text-blue-600" />
                     </div>
                     <input
                       type="text"
                       inputMode="numeric"
                       maxLength={12}
-                      placeholder="Enter 12-Digit Transaction UTR"
+                      placeholder="Enter 12-digit UTR"
                       value={utrInput}
                       onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, ''); // Numeric only
+                        const val = e.target.value.replace(/\D/g, '');
                         setUtrInput(val);
                         setUtrError('');
                       }}
@@ -564,20 +456,17 @@ export default function StatusPage() {
                   <button
                     type="submit"
                     disabled={submittingUtr || utrInput.length !== 12}
-                    className="w-full py-2.5 rounded-xl text-slate-900 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:brightness-110"
-                    style={{
-                      background: 'linear-gradient(135deg, #00D2FF 0%, #0088CC 100%)',
-                      boxShadow: utrInput.length === 12 ? '0 4px 14px rgba(0,210,255,0.2)' : 'none',
-                    }}
+                    className="w-full py-2.5 rounded-lg text-white font-semibold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ background: '#2563EB' }}
                   >
                     {submittingUtr ? (
                       <>
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        <span>Submitting Ref...</span>
+                        <span>Submitting...</span>
                       </>
                     ) : (
                       <>
-                        <span>Submit reference UTR</span>
+                        <span>Submit UTR</span>
                         <ArrowRight className="w-3.5 h-3.5" />
                       </>
                     )}
@@ -585,32 +474,31 @@ export default function StatusPage() {
                 </form>
               ) : (
                 <div className="text-center space-y-2 py-3">
-                  <div className="flex items-center justify-center gap-2 text-[#00D2FF] mb-1">
+                  <div className="flex items-center justify-center gap-2 text-blue-600 mb-1">
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider">Awaiting Bank Signal</span>
+                    <span className="text-[10px] font-semibold uppercase tracking-wider">Awaiting Confirmation</span>
                   </div>
                   <p className="text-[9px] text-slate-400 max-w-[260px] mx-auto leading-relaxed">
-                    Our automated system is securely scanning for your bank transfer confirmation. Please keep this page open.
+                    Our system is checking for your payment. Please keep this page open.
                   </p>
                 </div>
               )}
             </div>
 
-            {/* Quick WhatsApp Link Helper */}
-            <div className="mt-5 pt-3 border-t border-white/[0.04] text-center">
-              <div className="flex items-center justify-center gap-3 text-[10px] text-slate-500 font-mono">
-                <span className="flex items-center gap-1"><RefreshCw className="w-3 h-3 animate-spin" style={{ animationDuration: '4s' }} /> checking status: {tick}s</span>
+            {/* Polling indicator */}
+            <div className="mt-4 pt-3 border-t border-slate-100 text-center">
+              <div className="flex items-center justify-center gap-2 text-[10px] text-slate-400">
+                <RefreshCw className="w-3 h-3 animate-spin" style={{ animationDuration: '4s' }} />
+                <span>Next check in {tick}s</span>
               </div>
             </div>
-
           </div>
         </div>
       </main>
 
-      <footer className="relative z-10 py-4 text-center border-t border-white/[0.03]" style={{ background: 'rgba(6,8,20,0.85)' }}>
-        <p className="text-[10px] text-slate-500">
-          © 2026 {CONFIG.businessName} · Secure UPI Payments Gateway
-        </p>
+      <footer className="py-4 text-center border-t border-slate-200 bg-white">
+        <p className="text-[10px] text-slate-400">© 2026 PayDrift · Secure Payments</p>
+        <p className="text-[10px] text-slate-400 mt-1">Built with ❤️ by MOB</p>
       </footer>
     </div>
   );
