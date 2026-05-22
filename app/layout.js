@@ -1,7 +1,7 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "Kunal Chauhan | Secure UPI Payment",
+  title: "PayDrift | Secure UPI Payment",
   description: "Pay securely via UPI — Google Pay, PhonePe, Paytm, BHIM. Instant payment verification.",
 };
 

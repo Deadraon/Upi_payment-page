@@ -184,7 +184,7 @@ export default function PayPage() {
   const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted]   = useState(false);
   const [copied, setCopied]     = useState(false);
-  const [timer, setTimer]       = useState(600); // 10 minute session timer
+  const [timer, setTimer]       = useState(300); // 5 minute session timer
   const amountRef = useRef(null);
 
   useEffect(() => {
@@ -257,7 +257,7 @@ export default function PayPage() {
       if (data.orderAmount) {
         setAmount(data.orderAmount.toString());
       }
-      setTimer(600); // reset 10 mins
+      setTimer(300); // reset 5 mins
       setStep('verify');
       if (isMobile) {
         // Use the dynamically generated amount for the deep link
@@ -690,10 +690,13 @@ export default function PayPage() {
         style={{ background: 'rgba(6,8,20,0.85)', backdropFilter: 'blur(10px)' }}
       >
         <p className="text-[10px] text-slate-500">
-          © 2026 {CONFIG.businessName} · All bank routes are encrypted with bank-grade security protocols
+          © 2026 PayDrift · All bank routes are encrypted with bank-grade security protocols
         </p>
-        <p className="text-[9px] text-slate-600 mt-1 font-mono">
-          Powered by Secure Instant UPI Gateway
+        <p className="text-[9px] text-slate-600 mt-1">
+          By proceeding, you agree to our Terms & Conditions and Privacy Policy.
+        </p>
+        <p className="text-[10px] text-slate-500 mt-2">
+          Built with ❤️ by MOB
         </p>
       </footer>
     </div>

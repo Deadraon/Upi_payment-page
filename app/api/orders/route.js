@@ -25,23 +25,43 @@ export async function POST(request) {
     let finalAmount = parseFloat(amount);
     const baseAmount = Math.floor(finalAmount);
 
-    // Dynamic Pricing: Ensure no other 'pending' order has this exact amount
+    // Auto-cancel: expire all pending orders older than 5 minutes to free up price slots
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    await supabaseAdmin
+      .from('orders')
+      .update({ status: 'expired' })
+      .eq('status', 'pending')
+      .lt('created_at', fiveMinutesAgo);
+
+    // Dynamic Pricing: Use the lowest available paise value first (.01, .02, .03...)
+    // If the exact amount is available, use it. Otherwise increment from .01 upward.
     let isUnique = false;
     let attempts = 0;
-    while (!isUnique && attempts < 50) {
-      const { data: existing } = await supabaseAdmin
-        .from('orders')
-        .select('id')
-        .eq('status', 'pending')
-        .eq('amount', finalAmount)
-        .limit(1);
 
-      if (!existing || existing.length === 0) {
-        isUnique = true;
-      } else {
-        // Collision detected! Generate a new random paise amount between 0.01 and 0.99
-        const randomPaise = Math.floor(Math.random() * 99) + 1;
-        finalAmount = parseFloat((baseAmount + randomPaise / 100).toFixed(2));
+    // First try the exact base amount
+    const { data: exactMatch } = await supabaseAdmin
+      .from('orders')
+      .select('id')
+      .eq('status', 'pending')
+      .eq('amount', finalAmount)
+      .limit(1);
+
+    if (!exactMatch || exactMatch.length === 0) {
+      isUnique = true;
+    } else {
+      // Base amount is taken, try lowest paise values sequentially: .01, .02, .03...
+      for (let paise = 1; paise <= 99 && !isUnique; paise++) {
+        finalAmount = parseFloat((baseAmount + paise / 100).toFixed(2));
+        const { data: existing } = await supabaseAdmin
+          .from('orders')
+          .select('id')
+          .eq('status', 'pending')
+          .eq('amount', finalAmount)
+          .limit(1);
+
+        if (!existing || existing.length === 0) {
+          isUnique = true;
+        }
         attempts++;
       }
     }
