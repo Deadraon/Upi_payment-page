@@ -65,7 +65,7 @@ const METHODS = [
     label: 'Google Pay',
     color: '#4285F4',
     logo: <GPayLogo />,
-    scheme: (p) => `tez://pay?${p}`,
+    scheme: (p) => `gpay://upi/pay?${p}`,
   },
   {
     id: 'phonepe',
