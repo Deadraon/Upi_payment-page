@@ -28,14 +28,19 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized: Invalid secret' }, { status: 401 });
     }
 
-    // Combine subject and body text to parse
-    const textToParse = [
+    // Combine common email fields
+    let textToParse = [
       subject || '',
       text || '',
       plain || '',
       html || '',
       message || ''
     ].join(' ').trim();
+
+    // Fallback for Testmail.app or other providers with nested JSON structures
+    if (!textToParse && Object.keys(body).length > 0) {
+      textToParse = JSON.stringify(body);
+    }
 
     if (!textToParse) {
       return NextResponse.json({ error: 'No email content to parse' }, { status: 400 });
