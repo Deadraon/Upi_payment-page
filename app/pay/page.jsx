@@ -192,7 +192,7 @@ export default function PayPage() {
 
   const buildParams = (amt, txnId) => {
     const formattedAmt = parseFloat(amt).toFixed(2);
-    return `pa=${CONFIG.upiId}&pn=${encodeURIComponent(CONFIG.businessName)}&am=${formattedAmt}&tn=${txnId}&cu=INR`;
+    return `pa=${CONFIG.upiId}&pn=${encodeURIComponent(CONFIG.businessName)}&am=${formattedAmt}&tn=${txnId}&cu=INR&mc=5499`;
   };
 
   const getDeepLink = (methodId, amt, txnId) => {
