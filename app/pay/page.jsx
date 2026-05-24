@@ -40,11 +40,11 @@ const PayDriftLogo = ({ className = 'w-48 h-auto' }) => (
     <rect x="5" y="10" width="100" height="100" rx="30" fill="url(#pd-grad)" />
     
     {/* P shape */}
-    <path d="M35 35H55C66.0457 35 75 43.9543 75 55C75 66.0457 66.0457 75 55 75H35V35Z" fill="white" />
+    <path d="M35 35H50C58 35 65 42 65 50C65 58 58 65 50 65H35V35Z" fill="white" />
     <path d="M35 35V85" stroke="white" strokeWidth="12" strokeLinecap="round" />
     
     {/* D curve overlay (Arrows feel) */}
-    <path d="M55 25L80 50L55 75" stroke="#0D1117" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M48 22L78 50L48 78" stroke="#0D1117" strokeWidth="16" strokeLinecap="round" strokeLinejoin="round" fill="none" />
     
     {/* Text PAY */}
     <text x="125" y="75" fontFamily="system-ui, -apple-system, sans-serif" fontWeight="900" fontSize="68" fill="white" letterSpacing="-2">PAY</text>
