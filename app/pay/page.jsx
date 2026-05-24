@@ -36,7 +36,7 @@ const PaytmLogo   = () => <img src="/logos/paytm.svg"   alt="Paytm"       classN
 const BhimLogo    = () => <img src="/logos/bhim.svg"    alt="BHIM UPI"    className="w-8 h-8 object-contain bg-white p-1.5 rounded-xl" />;
 const PayDriftLogo = ({ className = 'w-8 h-8 object-contain' }) => (
   <img
-    src="/logos/logo_transparent.png?v=2"
+    src="/logos/new_transparent_logo.png"
     alt="PayDrift"
     className={`${className} rounded-xl transition-all duration-300 hover:scale-[1.02]`}
     style={{ filter: 'drop-shadow(0 4px 15px rgba(0, 174, 239, 0.4))' }}
@@ -72,7 +72,7 @@ const OrderPanel = ({ project, amount, orderId, timer }) => {
       <div>
         {/* Logo */}
         <div className="flex flex-col items-start gap-1 mb-9">
-          <PayDriftLogo className="w-56 h-auto object-contain -ml-2" />
+          <PayDriftLogo className="w-56 h-auto object-contain -ml-5 md:-ml-7" />
           {project && project !== CONFIG.businessName && (
             <p className="text-[10px] text-[#8B949E] font-medium ml-1">via {project}</p>
           )}
@@ -253,7 +253,7 @@ function PayPageContent() {
           <div className="order-2 md:order-1 w-full md:w-[42%] bg-[#0D1117] border-t md:border-t-0 md:border-r border-[#21262D] px-7 py-8 flex flex-col justify-between">
             <div>
               <div className="flex flex-col items-start gap-1 mb-8">
-                <PayDriftLogo className="w-64 h-auto object-contain -ml-2" />
+                <PayDriftLogo className="w-64 h-auto object-contain -ml-5 md:-ml-7" />
               </div>
               <div className="mb-8">
                 <h1 className="text-2xl font-black text-[#E6EDF3] leading-snug mb-2">
@@ -318,19 +318,7 @@ function PayPageContent() {
                   ))}
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[11px] text-[#8B949E] uppercase tracking-wider font-bold block mb-2">Name <span className="text-[#30363D] normal-case font-normal text-[10px]">(opt)</span></label>
-                  <input type="text" placeholder="Your name" value={customerName} onChange={e => setName(e.target.value)}
-                    className="w-full bg-[#21262D] border border-[#30363D] rounded-xl px-3 py-2.5 text-sm text-[#E6EDF3] placeholder-[#484F58] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/25 transition-all" />
-                </div>
-                <div>
-                  <label className="text-[11px] text-[#8B949E] uppercase tracking-wider font-bold block mb-2">Phone <span className="text-[#30363D] normal-case font-normal text-[10px]">(opt)</span></label>
-                  <input type="tel" inputMode="numeric" maxLength={10} placeholder="Mobile no." value={customerPhone}
-                    onChange={e => setPhone(e.target.value.replace(/\D/g,''))}
-                    className="w-full bg-[#21262D] border border-[#30363D] rounded-xl px-3 py-2.5 text-sm text-[#E6EDF3] placeholder-[#484F58] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/25 transition-all" />
-                </div>
-              </div>
+              
               {error && (
                 <div className="flex items-center gap-2 p-3 rounded-xl bg-red-900/25 border border-red-500/25 text-xs text-red-400">
                   <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />{error}
@@ -363,7 +351,7 @@ function PayPageContent() {
             {/* Mobile compact */}
             <div className="md:hidden flex items-center justify-between px-5 py-4 border-b border-[#21262D]">
               <div className="flex items-center">
-                <PayDriftLogo className="w-32 h-auto object-contain -ml-1" />
+                <PayDriftLogo className="w-32 h-auto object-contain -ml-3" />
               </div>
               <div className="text-right">
                 <p className="text-[9px] text-[#8B949E] uppercase tracking-wider">Total</p>
