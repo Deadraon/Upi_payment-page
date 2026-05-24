@@ -39,13 +39,17 @@ export default {
       return;
     }
 
-    // 5. Extract Credited Amount (e.g. INR 1.00)
-    const amount = cleanBody.match(/Credited\s+for\s+INR\s+([\d.]+)/i)?.[1];
+    // 5. Extract Credited Amount — supports both formats:
+    //    Format A (UPI):  "Credited for INR 2.01"
+    //    Format B (IMPS): "credited by Rs.1" or "credited by Rs. 1"
+    const amount = cleanBody.match(/Credited\s+for\s+INR\s+([\d.]+)/i)?.[1] ||
+                   cleanBody.match(/credited\s+by\s+Rs\.\s*([\d.]+)/i)?.[1];
 
     // 6. Extract unique 12-digit UTR from the UPI reference block or fallback patterns
     let utr = cleanBody.match(/UPI\/(\d{12,})\//i)?.[1] ||
+              cleanBody.match(/IMPS\s+Ref\s+no\.?\s*(\d+)/i)?.[1] ||
+              cleanBody.match(/Ref(?:\s+No)?\.?\s*[:\s]+(\d{10,})/i)?.[1] ||
               cleanBody.match(/\b(\d{12})\b/)?.[1] ||
-              cleanBody.match(/Ref(?:\s+No)?[\s:]+(\d+)/i)?.[1] ||
               cleanBody.match(/RRN[\s:]+(\d+)/i)?.[1] ||
               cleanBody.match(/Txn(?:\s+ID)?[\s:]+(\w+)/i)?.[1];
     
