@@ -43,7 +43,9 @@ const MyMobPayLogo = ({ className = 'w-48 h-auto' }) => (
     <circle cx="14" cy="28" r="4" fill="white" opacity="0.25" />
 
     {/* Single unified wordmark */}
-    <text x="38" y="42" fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" fontWeight="700" fontSize="36" fill="url(#mmp-text)" letterSpacing="-1">MyMobPay</text>
+    <text x="38" y="42" fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" fontWeight="700" fontSize="36" letterSpacing="-1">
+      <tspan fill="#FFFFFF">MyMob</tspan><tspan fill="#3B82F6">Pay</tspan>
+    </text>
 
     <defs>
       <linearGradient id="mmp-dot" x1="4" y1="18" x2="28" y2="42" gradientUnits="userSpaceOnUse">
