@@ -32,6 +32,26 @@ export async function POST(request) {
       .eq('status', 'pending')
       .lt('created_at', fifteenMinutesAgo);
 
+    // Fetch all active pending orders to ensure a unique amount offset
+    const { data: pendingOrders } = await supabaseAdmin
+      .from('orders')
+      .select('amount')
+      .eq('status', 'pending');
+
+    const pendingAmounts = new Set(pendingOrders?.map(o => parseFloat(o.amount).toFixed(2)) || []);
+
+    // Find the first unique amount by adding a paise offset (e.g., 2.00, 2.01, 2.02)
+    let offset = 0;
+    const requestedAmount = parseFloat(amount);
+    while (offset < 100) {
+      const candidate = (requestedAmount + offset / 100).toFixed(2);
+      if (!pendingAmounts.has(candidate)) {
+        finalAmount = parseFloat(candidate);
+        break;
+      }
+      offset++;
+    }
+
     // Generate a shorter, unique alphanumeric Order ID (e.g., ORD-A1B2C3D4)
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let randomPart = '';
