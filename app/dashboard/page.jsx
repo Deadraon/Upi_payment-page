@@ -36,16 +36,25 @@ export default function DashboardPage() {
         .select('*')
         .eq('id', userId)
         .single();
-      
       if (error) throw error;
+
+      // Auto-fix missing api_key for older accounts
+      if (!data.api_key) {
+        const newKey = crypto.randomUUID();
+        await supabase.from('merchants').update({ api_key: newKey }).eq('id', userId);
+        data.api_key = newKey;
+      }
+
       setProfile(data);
     } catch (error) {
       console.error('Error fetching profile:', error);
       // If profile doesn't exist, create it (fallback)
       if (error.code === 'PGRST116') {
-         const newProfile = { id: userId, business_name: 'My Business', upi_id: 'pending@upi' };
-         await supabase.from('merchants').insert(newProfile);
-         setProfile(newProfile);
+         const newKey = crypto.randomUUID();
+         const newProfile = { id: userId, business_name: 'My Business', upi_id: 'pending@upi', api_key: newKey };
+         const { data: insertedData, error: insertErr } = await supabase.from('merchants').insert(newProfile).select().single();
+         if (insertErr) throw insertErr;
+         setProfile(insertedData);
       }
     } finally {
       setLoading(false);
