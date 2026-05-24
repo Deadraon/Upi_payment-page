@@ -72,9 +72,7 @@ const OrderPanel = ({ project, amount, orderId, timer }) => {
       <div>
         {/* Logo */}
         <div className="flex flex-col items-start gap-1 mb-9">
-          <div className="bg-white/95 px-5 py-3 rounded-2xl shadow-[0_0_20px_rgba(0,174,239,0.15)] border border-white/20 mb-2">
-            <PayDriftLogo className="w-56 h-auto object-contain -ml-2" />
-          </div>
+          <PayDriftLogo className="w-56 h-auto object-contain -ml-2" />
           {project && project !== CONFIG.businessName && (
             <p className="text-[10px] text-[#8B949E] font-medium ml-1">via {project}</p>
           )}
@@ -255,9 +253,7 @@ function PayPageContent() {
           <div className="order-2 md:order-1 w-full md:w-[42%] bg-[#0D1117] border-t md:border-t-0 md:border-r border-[#21262D] px-7 py-8 flex flex-col justify-between">
             <div>
               <div className="flex flex-col items-start gap-1 mb-8">
-                <div className="bg-white/95 px-6 py-4 rounded-2xl shadow-[0_0_25px_rgba(0,174,239,0.2)] border border-white/20 mb-1">
-                  <PayDriftLogo className="w-64 h-auto object-contain -ml-2" />
-                </div>
+                <PayDriftLogo className="w-64 h-auto object-contain -ml-2" />
               </div>
               <div className="mb-8">
                 <h1 className="text-2xl font-black text-[#E6EDF3] leading-snug mb-2">
@@ -367,9 +363,7 @@ function PayPageContent() {
             {/* Mobile compact */}
             <div className="md:hidden flex items-center justify-between px-5 py-4 border-b border-[#21262D]">
               <div className="flex items-center">
-                <div className="bg-white/95 px-3 py-2 rounded-xl shadow-lg border border-white/20">
-                  <PayDriftLogo className="w-32 h-auto object-contain -ml-1" />
-                </div>
+                <PayDriftLogo className="w-32 h-auto object-contain -ml-1" />
               </div>
               <div className="text-right">
                 <p className="text-[9px] text-[#8B949E] uppercase tracking-wider">Total</p>
