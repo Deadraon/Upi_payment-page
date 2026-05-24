@@ -414,7 +414,7 @@ function PayPageContent() {
                   className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-40"
                 >
                   <CheckCircle className="w-4 h-4" />
-                  I've Paid — Verify Now
+                  I&apos;ve Paid — Verify Now
                 </button>
                 <p className="text-center text-[9px] text-gray-400 mt-2.5 leading-relaxed">
                   Tap after completing payment. Auto-verification is active.
