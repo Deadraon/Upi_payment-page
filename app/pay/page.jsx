@@ -116,7 +116,6 @@ export default function PayPage() {
   const [mounted, setMounted]   = useState(false);
   const [copied, setCopied]     = useState(false);
   const [timer, setTimer]       = useState(300);
-  const [dynamicAmount, setDynamicAmount] = useState('');
   const amountRef = useRef(null);
 
   useEffect(() => {
@@ -146,7 +145,7 @@ export default function PayPage() {
   };
 
   const upiQrValue = orderId
-    ? `upi://pay?${buildParams(dynamicAmount || amount, orderId)}`
+    ? `upi://pay?${buildParams(amount, orderId)}`
     : '';
 
   const formatTime = (seconds) => {
@@ -185,14 +184,10 @@ export default function PayPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to create order.');
       setOrderId(data.orderId);
-      if (data.orderAmount) {
-        setDynamicAmount(data.orderAmount.toString());
-      }
       setTimer(300);
       setStep('verify');
       if (isMobile) {
-        const finalAmt = data.orderAmount ? data.orderAmount.toString() : amount;
-        setTimeout(() => { window.location.href = getDeepLink(method, finalAmt, data.orderId); }, 300);
+        setTimeout(() => { window.location.href = getDeepLink(method, amount, data.orderId); }, 300);
       }
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');

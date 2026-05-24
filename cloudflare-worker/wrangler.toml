@@ -1,0 +1,9 @@
+name = "payment-email-worker"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+SUPABASE_URL = "https://kfsnpkpcojfypqmfskif.supabase.co"
+
+# Note: You must add your Supabase Service Role Key as a secret before deploying:
+# npx wrangler secret put SUPABASE_KEY

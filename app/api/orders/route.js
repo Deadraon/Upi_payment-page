@@ -23,58 +23,29 @@ export async function POST(request) {
     }
 
     let finalAmount = parseFloat(amount);
-    const baseAmount = Math.floor(finalAmount);
 
-    // Auto-cancel: expire all pending orders older than 5 minutes to free up price slots
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    // Auto-cancel: expire all pending orders older than 15 minutes
+    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
     await supabaseAdmin
       .from('orders')
       .update({ status: 'expired' })
       .eq('status', 'pending')
-      .lt('created_at', fiveMinutesAgo);
+      .lt('created_at', fifteenMinutesAgo);
 
-    // Dynamic Pricing: Use the lowest available paise value first (.01, .02, .03...)
-    // If the exact amount is available, use it. Otherwise increment from .01 upward.
-    let isUnique = false;
-    let attempts = 0;
-
-    // First try the exact base amount
-    const { data: exactMatch } = await supabaseAdmin
-      .from('orders')
-      .select('id')
-      .eq('status', 'pending')
-      .eq('amount', finalAmount)
-      .limit(1);
-
-    if (!exactMatch || exactMatch.length === 0) {
-      isUnique = true;
-    } else {
-      // Base amount is taken, try lowest paise values sequentially: .01, .02, .03...
-      for (let paise = 1; paise <= 99 && !isUnique; paise++) {
-        finalAmount = parseFloat((baseAmount + paise / 100).toFixed(2));
-        const { data: existing } = await supabaseAdmin
-          .from('orders')
-          .select('id')
-          .eq('status', 'pending')
-          .eq('amount', finalAmount)
-          .limit(1);
-
-        if (!existing || existing.length === 0) {
-          isUnique = true;
-        }
-        attempts++;
-      }
+    // Generate a shorter, unique alphanumeric Order ID (e.g., ORD-A1B2C3D4)
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let randomPart = '';
+    for (let i = 0; i < 8; i++) {
+      randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-
-    if (!isUnique) {
-      return NextResponse.json({ error: 'Gateway busy. Please try again.' }, { status: 429 });
-    }
+    const orderId = `ORD-${randomPart}`;
 
     // Insert order into Supabase
     const { data, error } = await supabaseAdmin
       .from('orders')
       .insert([
         {
+          id: orderId,
           amount: finalAmount,
           method: method || 'UPI',
           note: note || '',
