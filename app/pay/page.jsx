@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import QRCode from 'react-qr-code';
 import { CONFIG } from '@/lib/config';
+import { supabase } from '@/lib/supabase';
 import {
   IndianRupee,
   CheckCircle,
@@ -131,6 +132,36 @@ export default function PayPage() {
     }, 1000);
     return () => clearInterval(interval);
   }, [step, timer]);
+
+  useEffect(() => {
+    if (step !== 'verify' || !orderId) return;
+
+    let isActive = true;
+    const checkStatus = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('orders')
+          .select('status')
+          .eq('id', orderId)
+          .single();
+
+        if (!isActive) return;
+
+        if (data && data.status === 'verified') {
+          window.location.href = `/status/${orderId}`;
+        }
+      } catch (err) {
+        console.error('Error checking payment status:', err);
+      }
+    };
+
+    // Poll status every 2 seconds for instant detection
+    const interval = setInterval(checkStatus, 2000);
+    return () => {
+      isActive = false;
+      clearInterval(interval);
+    };
+  }, [step, orderId]);
 
   const selectedMethod = METHODS.find((m) => m.id === method) || METHODS[4];
 

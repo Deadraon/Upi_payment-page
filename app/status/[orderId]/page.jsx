@@ -80,9 +80,7 @@ export default function StatusPage() {
   useEffect(() => {
     const timer = setTimeout(() => setShowUtr(true), 60000);
     return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
+  }, []);  useEffect(() => {
     if (!orderId) return;
     const fetchStatus = async () => {
       try {
@@ -99,17 +97,9 @@ export default function StatusPage() {
       }
     };
     fetchStatus();
-    const interval = setInterval(fetchStatus, 10000);
+    const interval = setInterval(fetchStatus, 2000);
     return () => clearInterval(interval);
   }, [orderId]);
-
-  useEffect(() => {
-    if (order?.status !== 'pending') return;
-    setTick(10);
-    const t = setInterval(() => setTick((p) => (p <= 1 ? 10 : p - 1)), 1000);
-    return () => clearInterval(t);
-  }, [order?.status]);
-
   const handleUtrSubmit = async (e) => {
     e.preventDefault();
     setUtrError('');
@@ -488,8 +478,8 @@ export default function StatusPage() {
             {/* Polling indicator */}
             <div className="mt-4 pt-3 border-t border-slate-100 text-center">
               <div className="flex items-center justify-center gap-2 text-[10px] text-slate-400">
-                <RefreshCw className="w-3 h-3 animate-spin" style={{ animationDuration: '4s' }} />
-                <span>Next check in {tick}s</span>
+                <RefreshCw className="w-3 h-3 animate-spin" style={{ animationDuration: '3s' }} />
+                <span>Checking payment status in real-time...</span>
               </div>
             </div>
           </div>
