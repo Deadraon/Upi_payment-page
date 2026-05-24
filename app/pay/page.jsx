@@ -30,18 +30,17 @@ const getDeepLink = (appId, amount, orderId) => {
 };
 
 /* ── App Logos — official brand images from /public/logos/ ── */
-const GPayLogo    = () => <img src="/logos/gpay.svg"    alt="Google Pay"  className="w-8 h-8 object-contain rounded-xl" />;
-const PhonePeLogo = () => <img src="/logos/phonepe.svg" alt="PhonePe"     className="w-8 h-8 object-contain rounded-xl" />;
-const PaytmLogo   = () => <img src="/logos/paytm.svg"   alt="Paytm"       className="w-8 h-8 object-contain rounded-xl" />;
-const BhimLogo    = () => <img src="/logos/bhim.svg"    alt="BHIM UPI"    className="w-8 h-8 object-contain rounded-xl" />;
+const GPayLogo    = () => <img src="/logos/gpay.svg"    alt="Google Pay"  className="w-8 h-8 object-contain bg-white p-1.5 rounded-xl" />;
+const PhonePeLogo = () => <img src="/logos/phonepe.svg" alt="PhonePe"     className="w-8 h-8 object-contain bg-white p-1.5 rounded-xl" />;
+const PaytmLogo   = () => <img src="/logos/paytm.svg"   alt="Paytm"       className="w-8 h-8 object-contain bg-white p-1.5 rounded-xl" />;
+const BhimLogo    = () => <img src="/logos/bhim.svg"    alt="BHIM UPI"    className="w-8 h-8 object-contain bg-white p-1.5 rounded-xl" />;
 const PayDriftLogo = ({ className = 'w-8 h-8 object-contain' }) => (
-  <div className={`${className} bg-white rounded-xl p-1 flex-shrink-0 flex items-center justify-center transition-all duration-300 hover:scale-[1.02]`} style={{ filter: 'drop-shadow(0 2px 10px rgba(56, 139, 253, 0.2))' }}>
-    <img
-      src="/logos/logo.png"
-      alt="PayDrift"
-      className="w-full h-full object-contain"
-    />
-  </div>
+  <img
+    src="/logos/logo.png"
+    alt="PayDrift"
+    className={`${className} rounded-xl transition-all duration-300 hover:scale-[1.02]`}
+    style={{ filter: 'drop-shadow(0 2px 10px rgba(56, 139, 253, 0.25))' }}
+  />
 );
 
 const UPI_APPS = [
