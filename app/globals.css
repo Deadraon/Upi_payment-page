@@ -8,18 +8,18 @@
 :root {
   --bg-base:        #FFFFFF;
   --bg-card:        #FFFFFF;
-  --bg-input:       #F8FAFC;
-  --border-subtle:  #E2E8F0;
-  --border-hover:   #CBD5E1;
-  --accent:         #2563EB;
-  --accent-light:   #3B82F6;
-  --accent-glow:    rgba(37, 99, 235, 0.12);
-  --text-primary:   #0F172A;
-  --text-secondary: #64748B;
-  --text-muted:     #94A3B8;
-  --success:        #16A34A;
-  --danger:         #DC2626;
-  --warning:        #D97706;
+  --bg-input:       #F9FAFB;
+  --border-subtle:  #E5E7EB;
+  --border-hover:   #D1D5DB;
+  --accent:         #4F46E5;
+  --accent-light:   #6366F1;
+  --accent-glow:    rgba(79, 70, 229, 0.12);
+  --text-primary:   #111827;
+  --text-secondary: #6B7280;
+  --text-muted:     #9CA3AF;
+  --success:        #10B981;
+  --danger:         #EF4444;
+  --warning:        #F59E0B;
   --font-sans:      'Inter', system-ui, -apple-system, sans-serif;
   --font-mono:      'JetBrains Mono', monospace;
   --radius-card:    16px;
@@ -107,6 +107,11 @@ body {
 
 @keyframes dash {
   to { stroke-dashoffset: 0; }
+}
+
+@keyframes checkAppear {
+  from { stroke-dashoffset: 33; }
+  to   { stroke-dashoffset: 0; }
 }
 
 @keyframes live-dot {

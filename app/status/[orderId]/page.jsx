@@ -1,58 +1,35 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { CONFIG } from '@/lib/config';
 import {
-  CheckCircle,
-  XCircle,
-  Loader2,
-  IndianRupee,
-  ArrowLeft,
-  ArrowRight,
-  Calendar,
-  Key,
-  CreditCard,
-  User,
-  ShieldCheck,
-  RefreshCw,
-  Clock,
-  AlertCircle,
+  CheckCircle, XCircle, Loader2, IndianRupee,
+  Key, Calendar, CreditCard, User, ShieldCheck,
+  RefreshCw, AlertCircle, ArrowRight, ExternalLink,
 } from 'lucide-react';
 
-/* ── Success checkmark SVG animation ────────────────────── */
+/* ── Animated success check ────────────────────────────────── */
 const AnimatedCheck = () => (
-  <svg viewBox="0 0 52 52" className="w-14 h-14" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="26" cy="26" r="25" fill="none" stroke="#16A34A" strokeWidth="2" opacity="0.2" />
-    <circle
-      cx="26" cy="26" r="25"
-      fill="none" stroke="#16A34A" strokeWidth="2.5"
+  <svg viewBox="0 0 52 52" className="w-16 h-16" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="26" cy="26" r="25" fill="none" stroke="#10B981" strokeWidth="2" opacity="0.2" />
+    <circle cx="26" cy="26" r="25" fill="none" stroke="#10B981" strokeWidth="2.5"
       strokeDasharray="157" strokeDashoffset="157"
       style={{ animation: 'dash 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards' }}
-      strokeLinecap="round"
-    />
-    <path
-      d="M14 27 L22 35 L38 18"
-      fill="none" stroke="#16A34A" strokeWidth="3"
+      strokeLinecap="round" />
+    <path d="M14 27 L22 35 L38 18" fill="none" stroke="#10B981" strokeWidth="3"
       strokeDasharray="33" strokeDashoffset="33"
       style={{ animation: 'dash 0.4s 0.5s cubic-bezier(0.65, 0, 0.45, 1) forwards' }}
-      strokeLinecap="round" strokeLinejoin="round"
-    />
+      strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
-/* ── Receipt Row ─────────────────────────────────────────── */
-const Row = ({ icon, label, value, mono = false, accent = false }) => (
-  <div className="receipt-row animate-fade-up">
-    <span className="receipt-label text-xs">
-      {icon}
-      {label}
-    </span>
-    <span
-      className={`receipt-value text-xs ${mono ? 'font-mono text-[11px]' : ''}`}
-      style={accent ? { color: '#2563EB' } : {}}
-    >
+/* ── Receipt row ───────────────────────────────────────────── */
+const Row = ({ label, value, mono = false, green = false }) => (
+  <div className="flex justify-between items-center py-2.5 border-b border-gray-50 last:border-0">
+    <span className="text-xs text-gray-400 font-medium">{label}</span>
+    <span className={`text-xs font-semibold text-right ${mono ? 'font-mono' : ''} ${green ? 'text-emerald-600' : 'text-gray-800'}`}>
       {value}
     </span>
   </div>
@@ -60,29 +37,30 @@ const Row = ({ icon, label, value, mono = false, accent = false }) => (
 
 export default function StatusPage() {
   const params = useParams();
+  const router = useRouter();
   const orderId = params.orderId;
 
-  const [order, setOrder]   = useState(null);
+  const [order, setOrder]     = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError]   = useState('');
-  const [tick, setTick]     = useState(10);
+  const [error, setError]     = useState('');
   const [mounted, setMounted] = useState(false);
 
-  // UTR submission states
-  const [utrInput, setUtrInput] = useState('');
+  // UTR manual submission
+  const [utrInput, setUtrInput]         = useState('');
   const [submittingUtr, setSubmittingUtr] = useState(false);
-  const [utrSuccess, setUtrSuccess] = useState('');
-  const [utrError, setUtrError] = useState('');
-  const [showUtr, setShowUtr] = useState(false);
+  const [utrError, setUtrError]         = useState('');
+  const [utrSuccess, setUtrSuccess]     = useState('');
+
+  // Callback redirect tracking
+  const [redirecting, setRedirecting] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
 
+  // Poll + realtime
   useEffect(() => {
-    const timer = setTimeout(() => setShowUtr(true), 60000);
-    return () => clearTimeout(timer);
-  }, []);  useEffect(() => {
     if (!orderId) return;
-    const fetchStatus = async () => {
+
+    const fetch = async () => {
       try {
         const { data, error: dbErr } = await supabase
           .from('orders').select('*').eq('id', orderId).single();
@@ -90,27 +68,48 @@ export default function StatusPage() {
         setOrder(data);
         setError('');
       } catch (err) {
-        console.error(err);
         setError('Could not locate this transaction.');
       } finally {
         setLoading(false);
       }
     };
-    fetchStatus();
-    const interval = setInterval(fetchStatus, 2000);
+
+    fetch();
+    const interval = setInterval(fetch, 2000);
     return () => clearInterval(interval);
   }, [orderId]);
+
+  // Handle verified → callback redirect
+  useEffect(() => {
+    if (!order || order.status !== 'verified' || redirecting) return;
+
+    // Check localStorage for callback
+    const callback = localStorage.getItem(`callback_${orderId}`) || order.callback_url;
+    const externalRef = localStorage.getItem(`ref_${orderId}`) || order.external_ref;
+
+    if (callback) {
+      setRedirecting(true);
+      // Small delay for success animation
+      setTimeout(() => {
+        const url = new URL(callback);
+        url.searchParams.set('status', 'success');
+        url.searchParams.set('gateway_id', orderId);
+        if (order.utr) url.searchParams.set('utr', order.utr);
+        if (externalRef) url.searchParams.set('ref', externalRef);
+        window.location.href = url.toString();
+      }, 2500);
+    }
+  }, [order, orderId, redirecting]);
+
   const handleUtrSubmit = async (e) => {
     e.preventDefault();
     setUtrError('');
     setUtrSuccess('');
-
     const cleanUtr = utrInput.trim();
     if (!/^\d{12}$/.test(cleanUtr)) {
-      setUtrError('Please enter a valid 12-digit numeric UTR/Ref number.');
+      setUtrError('Please enter a valid 12-digit UTR number.');
       return;
     }
-
     setSubmittingUtr(true);
     try {
       const res = await fetch('/api/payments/utr', {
@@ -121,47 +120,46 @@ export default function StatusPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to submit UTR.');
       setOrder(data.order);
-      setUtrSuccess('Transaction UTR submitted successfully!');
+      setUtrSuccess('UTR submitted! Verification in progress.');
     } catch (err) {
-      setUtrError(err.message || 'Something went wrong. Please try again.');
+      setUtrError(err.message);
     } finally {
       setSubmittingUtr(false);
     }
   };
 
+  const fmt = (dt) => dt
+    ? new Date(dt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' })
+    : '—';
+
+  /* Loading */
   if (!mounted || loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center" style={{ background: '#F8FAFC' }}>
-        <div className="flex flex-col items-center gap-4 animate-fade-in">
-          <div className="w-14 h-14 rounded-full border-2 border-blue-200 flex items-center justify-center animate-pulse-ring">
-            <Loader2 className="w-7 h-7 animate-spin text-blue-600" />
-          </div>
-          <p className="text-sm font-medium text-slate-500">
-            Loading order status...
-          </p>
+      <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3 animate-fade-in">
+          <Loader2 className="w-8 h-8 animate-spin text-indigo-400" />
+          <p className="text-sm text-gray-400 font-medium">Loading transaction...</p>
         </div>
       </div>
     );
   }
 
+  /* Error */
   if (error || !order) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#F8FAFC' }}>
-        <div className="glass-card w-full max-w-sm p-8 text-center space-y-5 animate-scale-up">
-          <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto bg-red-50 border border-red-200">
-            <XCircle className="w-7 h-7 text-red-500" />
+      <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center px-4">
+        <div className="w-full max-w-sm bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center space-y-4 animate-scale-up">
+          <div className="w-12 h-12 rounded-full bg-red-50 border border-red-100 flex items-center justify-center mx-auto">
+            <XCircle className="w-6 h-6 text-red-500" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-slate-900">Order Not Found</h2>
-            <p className="text-xs mt-2 text-slate-400">
-              We couldn&apos;t find any transaction matching this ID.
-            </p>
+            <h2 className="text-lg font-bold text-gray-900">Order Not Found</h2>
+            <p className="text-xs text-gray-400 mt-1">We couldn&apos;t find a transaction matching this ID.</p>
           </div>
           <button
-            onClick={() => (window.location.href = '/pay')}
-            className="w-full py-3 rounded-xl font-semibold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200"
+            onClick={() => router.push('/pay')}
+            className="w-full py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-sm transition-all"
           >
-            <ArrowLeft className="w-4 h-4" />
             Back to Payment
           </button>
         </div>
@@ -169,326 +167,286 @@ export default function StatusPage() {
     );
   }
 
-  const fmt = (dt) => dt
-    ? new Date(dt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' })
-    : '—';
-
   const isUtrSubmitted = order.utr && /^\d{12}$/.test(order.utr.trim());
+  const callback = (typeof window !== 'undefined' && localStorage.getItem(`callback_${orderId}`)) || order.callback_url;
 
-  /* ── VERIFIED STATE ── */
+  /* ═══════════════════════════════════════════════════════════
+     VERIFIED
+  ═══════════════════════════════════════════════════════════ */
   if (order.status === 'verified') {
     return (
-      <div className="min-h-screen flex flex-col" style={{ background: '#F8FAFC' }}>
-        <header className="max-w-4xl mx-auto w-full px-6 pt-6 flex items-center justify-between animate-fade-up">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-600">
-              <span className="text-white font-black text-sm">P</span>
+      <div className="min-h-screen bg-[#FAFAFA] flex flex-col">
+        <header className="w-full border-b border-gray-100 bg-white px-5 py-3.5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-md bg-indigo-600 flex items-center justify-center">
+              <span className="text-white font-black text-[10px]">P</span>
             </div>
-            <span className="font-bold text-sm text-slate-900">PayDrift</span>
+            <span className="font-bold text-xs text-gray-900">PayDrift</span>
           </div>
-          <div className="status-badge verified">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
-            Payment Verified
-          </div>
+          <span className="status-badge verified">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+            Verified
+          </span>
         </header>
 
         <main className="flex-1 flex items-center justify-center px-4 py-10">
-          <div className="w-full max-w-md">
-            <div className="glass-card animate-scale-up" style={{ padding: '30px 24px', borderColor: '#BBF7D0' }}>
-              <div className="absolute top-0 left-0 right-0 h-[2px] bg-green-500" />
+          <div className="w-full max-w-sm animate-scale-up">
+            <div className="bg-white rounded-2xl border border-emerald-100 shadow-sm overflow-hidden">
+              <div className="h-1 bg-emerald-500 w-full" />
 
-              <div className="text-center space-y-4 animate-fade-up">
+              <div className="p-6 text-center space-y-3">
                 <div className="flex justify-center">
                   <div className="animate-pulse-success rounded-full">
                     <AnimatedCheck />
                   </div>
                 </div>
                 <div>
-                  <h2 className="text-2xl font-extrabold text-slate-900">Payment Confirmed!</h2>
-                  <p className="text-xs mt-1 text-green-600 font-semibold">
+                  <h2 className="text-2xl font-black text-gray-900">Payment Confirmed!</h2>
+                  <p className="text-sm text-emerald-600 font-semibold mt-1">
                     ₹{parseFloat(order.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })} received successfully
                   </p>
                 </div>
               </div>
 
-              <div className="mt-6 rounded-xl p-4 animate-fade-up delay-200 bg-slate-50 border border-slate-200">
-                <div className="text-center pb-3 mb-2 border-b border-slate-200">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Amount Received</p>
-                  <div className="flex items-center justify-center gap-1">
-                    <IndianRupee className="w-5 h-5 text-green-600" />
-                    <span className="text-3xl font-extrabold text-slate-900">
-                      {parseFloat(order.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-0.5">
-                  <Row icon={<User className="w-3.5 h-3.5 text-slate-400" />} label="Name" value={order.customer_name || 'N/A'} />
-                  <Row icon={<CreditCard className="w-3.5 h-3.5 text-slate-400" />} label="Method" value={order.method} />
-                  <Row icon={<Key className="w-3.5 h-3.5 text-slate-400" />} label="UTR / Ref" value={order.utr || 'Auto-verified'} mono accent />
-                  <Row icon={<Calendar className="w-3.5 h-3.5 text-slate-400" />} label="Date" value={fmt(order.verified_at)} />
-                </div>
-
-                <div className="mt-3 rounded-lg p-2.5 flex justify-between items-center text-[10px] bg-white border border-slate-100">
-                  <span className="text-slate-400 font-medium">Order ID</span>
-                  <span className="font-mono text-slate-500">{orderId?.slice(0, 18)}…</span>
-                </div>
+              <div className="mx-6 mb-4 rounded-xl bg-gray-50 border border-gray-100 px-4 py-1">
+                <Row label="Order ID" value={orderId} mono />
+                <Row label="Amount" value={`₹${parseFloat(order.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`} green />
+                <Row label="UTR / Ref" value={order.utr || 'Auto-verified'} mono />
+                <Row label="Verified At" value={fmt(order.verified_at)} />
+                {order.customer_name && <Row label="Customer" value={order.customer_name} />}
               </div>
 
-              <button
-                onClick={() => (window.location.href = '/pay')}
-                className="w-full mt-5 py-3 rounded-xl text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.98] animate-fade-up delay-300"
-                style={{ background: '#16A34A' }}
-              >
-                Done · New Payment
-              </button>
+              <div className="px-6 pb-6 space-y-2.5">
+                {redirecting && callback ? (
+                  <div className="w-full py-3 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-700 font-semibold text-sm flex items-center justify-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Redirecting back to {order.project || 'your app'}...
+                  </div>
+                ) : callback ? (
+                  <button
+                    onClick={() => {
+                      const url = new URL(callback);
+                      url.searchParams.set('status', 'success');
+                      url.searchParams.set('gateway_id', orderId);
+                      if (order.utr) url.searchParams.set('utr', order.utr);
+                      window.location.href = url.toString();
+                    }}
+                    className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Return to {order.project || 'App'}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => router.push('/pay')}
+                    className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all"
+                  >
+                    Done · New Payment
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </main>
-
-        <footer className="py-4 text-center border-t border-slate-200 bg-white">
-          <p className="text-[10px] text-slate-400">© 2026 PayDrift · Secure Payments</p>
-          <p className="text-[10px] text-slate-400 mt-1">Built with ❤️ by MOB</p>
+        <footer className="py-4 text-center">
+          <p className="text-[10px] text-gray-400">© 2026 PayDrift · Secure Payments</p>
         </footer>
       </div>
     );
   }
 
-  /* ── REJECTED STATE ── */
+  /* ═══════════════════════════════════════════════════════════
+     REJECTED
+  ═══════════════════════════════════════════════════════════ */
   if (order.status === 'rejected') {
     return (
-      <div className="min-h-screen flex flex-col" style={{ background: '#F8FAFC' }}>
-        <header className="max-w-4xl mx-auto w-full px-6 pt-6 flex items-center justify-between animate-fade-up">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-600">
-              <span className="text-white font-black text-sm">P</span>
+      <div className="min-h-screen bg-[#FAFAFA] flex flex-col">
+        <header className="w-full border-b border-gray-100 bg-white px-5 py-3.5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-md bg-indigo-600 flex items-center justify-center">
+              <span className="text-white font-black text-[10px]">P</span>
             </div>
-            <span className="font-bold text-sm text-slate-900">PayDrift</span>
+            <span className="font-bold text-xs text-gray-900">PayDrift</span>
           </div>
-          <div className="status-badge rejected">
+          <span className="status-badge rejected">
             <span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block" />
             Declined
-          </div>
+          </span>
         </header>
 
         <main className="flex-1 flex items-center justify-center px-4 py-10">
-          <div className="w-full max-w-md">
-            <div className="glass-card animate-scale-up" style={{ padding: '30px 24px', borderColor: '#FECACA' }}>
-              <div className="absolute top-0 left-0 right-0 h-[2px] bg-red-500" />
-
-              <div className="text-center space-y-4 animate-fade-up">
-                <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto bg-red-50 border border-red-200">
+          <div className="w-full max-w-sm animate-scale-up">
+            <div className="bg-white rounded-2xl border border-red-100 shadow-sm overflow-hidden">
+              <div className="h-1 bg-red-500 w-full" />
+              <div className="p-6 text-center space-y-3">
+                <div className="w-14 h-14 rounded-full bg-red-50 border border-red-100 flex items-center justify-center mx-auto">
                   <XCircle className="w-7 h-7 text-red-500" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-extrabold text-slate-900">Payment Declined</h2>
-                  <p className="text-xs mt-1 text-red-500 font-semibold">
-                    We could not verify this transaction
-                  </p>
+                  <h2 className="text-xl font-black text-gray-900">Payment Declined</h2>
+                  <p className="text-xs text-gray-400 mt-1">We could not verify this transaction.</p>
                 </div>
               </div>
-
-              <div className="mt-6 rounded-xl p-4 animate-fade-up delay-200 bg-slate-50 border border-slate-200 text-center space-y-3">
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  If you were debited, please contact support with your order reference.
+              <div className="mx-6 mb-4 rounded-xl bg-gray-50 border border-gray-100 px-4 py-1">
+                <Row label="Order ID" value={orderId} mono />
+                <Row label="Amount" value={`₹${parseFloat(order.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`} />
+              </div>
+              <div className="px-6 pb-6">
+                <p className="text-xs text-gray-400 text-center mb-3">
+                  If you were debited, contact support with your order reference.
                 </p>
-                <div className="divider" />
-                <div className="flex justify-between items-center text-[11px]">
-                  <span className="text-slate-400 font-medium">Order ID</span>
-                  <span className="font-mono text-slate-500">{orderId?.slice(0, 18)}…</span>
-                </div>
-                <div className="flex justify-between items-center text-[11px]">
-                  <span className="text-slate-400 font-medium">Amount</span>
-                  <span className="font-bold text-slate-800">₹{parseFloat(order.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-                </div>
+                {callback ? (
+                  <button
+                    onClick={() => {
+                      const url = new URL(callback);
+                      url.searchParams.set('status', 'failed');
+                      url.searchParams.set('gateway_id', orderId);
+                      window.location.href = url.toString();
+                    }}
+                    className="w-full py-3 rounded-xl bg-gray-800 hover:bg-gray-900 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Return to {order.project || 'App'}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => router.push('/pay')}
+                    className="w-full py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all"
+                  >
+                    <RefreshCw className="w-4 h-4" /> Try Again
+                  </button>
+                )}
               </div>
-
-              <button
-                onClick={() => (window.location.href = '/pay')}
-                className="w-full mt-5 py-3 rounded-xl text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.98] animate-fade-up delay-300"
-                style={{ background: '#DC2626' }}
-              >
-                <RefreshCw className="w-4 h-4" />
-                Try Again
-              </button>
             </div>
           </div>
         </main>
-
-        <footer className="py-4 text-center border-t border-slate-200 bg-white">
-          <p className="text-[10px] text-slate-400">© 2026 PayDrift · Secure Payments</p>
-          <p className="text-[10px] text-slate-400 mt-1">Built with ❤️ by MOB</p>
-        </footer>
       </div>
     );
   }
 
-  /* ── PENDING REVIEW STATE ── */
+  /* ═══════════════════════════════════════════════════════════
+     PENDING / UNDER REVIEW
+  ═══════════════════════════════════════════════════════════ */
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#F8FAFC' }}>
-      <div className="fixed top-0 left-0 right-0 z-50 h-0.5 bg-slate-100">
+    <div className="min-h-screen bg-[#FAFAFA] flex flex-col">
+      {/* Progress bar */}
+      <div className="fixed top-0 left-0 right-0 z-50 h-[2px] bg-gray-100">
         <div className="progress-bar h-full" />
       </div>
 
-      <header className="max-w-4xl mx-auto w-full px-6 pt-6 flex items-center justify-between animate-fade-up">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-600">
-            <span className="text-white font-black text-sm">P</span>
+      <header className="w-full border-b border-gray-100 bg-white px-5 py-3.5 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded-md bg-indigo-600 flex items-center justify-center">
+            <span className="text-white font-black text-[10px]">P</span>
           </div>
-          <span className="font-bold text-sm text-slate-900">PayDrift</span>
+          <span className="font-bold text-xs text-gray-900">PayDrift</span>
         </div>
-        <div className="status-badge pending">
+        <span className="status-badge pending">
           <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse inline-block" />
           Under Review
-        </div>
+        </span>
       </header>
 
-      <main className="flex-1 flex items-center justify-center px-4 py-8">
-        <div className="w-full max-w-md">
-          <div className="glass-card animate-scale-up" style={{ padding: '26px 20px' }}>
-            <div className="absolute top-0 left-0 right-0 h-[2px] bg-blue-600" />
+      <main className="flex-1 flex items-start justify-center px-4 py-8">
+        <div className="w-full max-w-sm animate-scale-up">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="h-0.5 bg-indigo-500 w-full" />
 
-            {/* Pending Header */}
-            <div className="text-center space-y-3 animate-fade-up">
-              <div className="w-14 h-14 rounded-full border-2 border-dashed border-blue-200 flex items-center justify-center mx-auto bg-blue-50">
-                <ShieldCheck className="w-6 h-6 text-blue-600 animate-pulse" />
+            {/* Header */}
+            <div className="p-6 text-center space-y-3 border-b border-gray-50">
+              <div className="w-12 h-12 rounded-full border-2 border-dashed border-indigo-200 bg-indigo-50 flex items-center justify-center mx-auto animate-pulse-ring">
+                <ShieldCheck className="w-5 h-5 text-indigo-500" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-slate-900">Verifying Payment</h2>
-                <p className="text-xs text-slate-400 mt-1 max-w-[280px] mx-auto leading-relaxed">
-                  Your payment is being processed. You can <strong className="text-blue-600">safely close</strong> this page.
+                <h2 className="text-lg font-bold text-gray-900">Verifying Payment</h2>
+                <p className="text-xs text-gray-400 mt-1 leading-relaxed">
+                  Your payment is being processed. You can <strong className="text-indigo-600">safely close</strong> this page.
                 </p>
               </div>
             </div>
 
             {/* Order details */}
-            <div className="mt-5 rounded-xl p-4 animate-fade-up delay-150 bg-slate-50 border border-slate-200">
-              <div className="text-center pb-3 border-b border-slate-200 mb-2">
-                <p className="text-[9px] font-semibold uppercase tracking-wider text-slate-400 mb-0.5">Amount</p>
-                <div className="flex items-center justify-center gap-0.5">
-                  <IndianRupee className="w-4 h-4 text-blue-600" />
-                  <span className="text-2xl font-extrabold text-slate-900">
-                    {parseFloat(order.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                  </span>
-                </div>
+            <div className="mx-5 mt-4 rounded-xl bg-gray-50 border border-gray-100 px-4 py-1">
+              <div className="flex justify-center items-baseline gap-0.5 py-2.5 border-b border-gray-100 mb-1">
+                <span className="text-2xl font-black text-gray-900">₹</span>
+                <span className="text-3xl font-black text-gray-900 tabular-nums">
+                  {parseFloat(order.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                </span>
               </div>
-              <div className="space-y-0.5 text-[11px] text-slate-400">
-                <div className="flex justify-between items-center py-1">
-                  <span>Method</span>
-                  <span className="text-slate-700 font-medium">{order.method || 'UPI'}</span>
-                </div>
-                <div className="flex justify-between items-center py-1">
-                  <span>Order ID</span>
-                  <span className="font-mono text-slate-600">{orderId?.slice(0, 16)}</span>
-                </div>
-              </div>
+              <Row label="Order ID" value={orderId} mono />
+              <Row label="Method" value={order.method || 'UPI'} />
+              {order.project && <Row label="Project" value={order.project} />}
             </div>
 
-            {/* UTR Section */}
-            <div className="mt-5 pt-4 border-t border-slate-200 animate-fade-up delay-200">
+            {/* UTR input — always visible */}
+            <div className="px-5 py-4 border-t border-gray-50 mt-3">
               {isUtrSubmitted ? (
-                <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center space-y-1.5">
-                  <div className="flex items-center justify-center gap-1.5 text-xs text-green-600 font-semibold">
-                    <CheckCircle className="w-4 h-4" />
-                    <span>UTR Submitted</span>
+                <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3.5 text-center space-y-1">
+                  <div className="flex items-center justify-center gap-1.5 text-xs text-emerald-700 font-semibold">
+                    <CheckCircle className="w-3.5 h-3.5" /> UTR Submitted
                   </div>
-                  <p className="text-[10px] text-slate-500">
-                    Reference: <strong className="text-slate-700 font-mono">{order.utr}</strong>
-                  </p>
-                  <p className="text-[9px] text-green-600 font-medium pt-1">
-                    Verification in progress. Please allow a few minutes.
+                  <p className="text-[10px] text-gray-500">
+                    Ref: <strong className="font-mono text-gray-700">{order.utr}</strong>
                   </p>
                 </div>
-              ) : showUtr ? (
-                <form onSubmit={handleUtrSubmit} className="space-y-3">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600 block">
+              ) : (
+                <form onSubmit={handleUtrSubmit} className="space-y-2.5">
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block mb-1">
                       Speed Up Verification
                     </label>
-                    <p className="text-[9px] text-slate-400 leading-relaxed">
-                      Enter your 12-digit UTR/Ref number from your bank&apos;s transaction confirmation.
+                    <p className="text-[9px] text-gray-400 leading-relaxed">
+                      Enter the 12-digit UTR / IMPS Ref from your bank&apos;s confirmation.
                     </p>
                   </div>
-
                   {utrError && (
-                    <div className="p-2 rounded-lg border border-red-200 bg-red-50 text-[10px] text-red-600 flex items-start gap-1.5">
-                      <AlertCircle className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />
-                      <span>{utrError}</span>
+                    <div className="flex items-center gap-1.5 p-2.5 rounded-lg bg-red-50 border border-red-100 text-[10px] text-red-600">
+                      <AlertCircle className="w-3 h-3 flex-shrink-0" /> {utrError}
                     </div>
                   )}
-
                   {utrSuccess && (
-                    <div className="p-2 rounded-lg border border-green-200 bg-green-50 text-[10px] text-green-600 flex items-start gap-1.5">
-                      <CheckCircle className="w-3.5 h-3.5 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span>{utrSuccess}</span>
+                    <div className="flex items-center gap-1.5 p-2.5 rounded-lg bg-emerald-50 border border-emerald-100 text-[10px] text-emerald-700">
+                      <CheckCircle className="w-3 h-3 flex-shrink-0" /> {utrSuccess}
                     </div>
                   )}
-
-                  <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Key className="w-3.5 h-3.5 text-slate-300 group-focus-within:text-blue-600" />
-                    </div>
+                  <div className="relative">
+                    <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-300" />
                     <input
                       type="text"
                       inputMode="numeric"
                       maxLength={12}
                       placeholder="Enter 12-digit UTR"
                       value={utrInput}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, '');
-                        setUtrInput(val);
-                        setUtrError('');
-                      }}
-                      className="pay-input py-2.5 pl-9 pr-3 text-xs tracking-wider font-mono"
+                      onChange={e => { setUtrInput(e.target.value.replace(/\D/g, '')); setUtrError(''); }}
+                      className="pay-input py-2.5 pl-9 pr-3 text-xs font-mono tracking-wider"
                     />
                   </div>
-
                   <button
                     type="submit"
                     disabled={submittingUtr || utrInput.length !== 12}
-                    className="w-full py-2.5 rounded-lg text-white font-semibold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                    style={{ background: '#2563EB' }}
+                    className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     {submittingUtr ? (
-                      <>
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        <span>Submitting...</span>
-                      </>
+                      <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Submitting...</>
                     ) : (
-                      <>
-                        <span>Submit UTR</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </>
+                      <><span>Submit UTR</span><ArrowRight className="w-3.5 h-3.5" /></>
                     )}
                   </button>
                 </form>
-              ) : (
-                <div className="text-center space-y-2 py-3">
-                  <div className="flex items-center justify-center gap-2 text-blue-600 mb-1">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span className="text-[10px] font-semibold uppercase tracking-wider">Awaiting Confirmation</span>
-                  </div>
-                  <p className="text-[9px] text-slate-400 max-w-[260px] mx-auto leading-relaxed">
-                    Our system is checking for your payment. Please keep this page open.
-                  </p>
-                </div>
               )}
             </div>
 
-            {/* Polling indicator */}
-            <div className="mt-4 pt-3 border-t border-slate-100 text-center">
-              <div className="flex items-center justify-center gap-2 text-[10px] text-slate-400">
-                <RefreshCw className="w-3 h-3 animate-spin" style={{ animationDuration: '3s' }} />
-                <span>Checking payment status in real-time...</span>
-              </div>
+            {/* Live indicator */}
+            <div className="px-5 pb-5 pt-1 flex items-center justify-center gap-1.5 text-[10px] text-gray-400">
+              <RefreshCw className="w-3 h-3 animate-spin" style={{ animationDuration: '3s' }} />
+              Checking payment status in real-time...
             </div>
           </div>
         </div>
       </main>
 
-      <footer className="py-4 text-center border-t border-slate-200 bg-white">
-        <p className="text-[10px] text-slate-400">© 2026 PayDrift · Secure Payments</p>
-        <p className="text-[10px] text-slate-400 mt-1">Built with ❤️ by MOB</p>
+      <footer className="py-4 text-center">
+        <p className="text-[10px] text-gray-400">© 2026 PayDrift · Secure Payments</p>
       </footer>
     </div>
   );

@@ -16,7 +16,8 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { amount, method, note, customer_name, customer_phone } = body;
+    const { amount, method, note, customer_name, customer_phone, project, callback_url, external_ref } = body;
+
 
     if (!amount || isNaN(parseFloat(amount))) {
       return NextResponse.json({ error: 'Valid amount is required' }, { status: 400 });
@@ -66,11 +67,14 @@ export async function POST(request) {
         {
           id: orderId,
           amount: finalAmount,
-          method: method || 'UPI',
+          method: method || 'GENERIC',
           note: note || '',
           customer_name: customer_name || '',
           customer_phone: customer_phone || '',
-          status: 'pending' // Default status is pending
+          project: project || null,
+          callback_url: callback_url || null,
+          external_ref: external_ref || null,
+          status: 'pending'
         }
       ])
       .select('id')
