@@ -34,8 +34,8 @@ const Row = ({ label, value, mono = false, green = false }) => (
   </div>
 );
 
-const MyMobPayLogo = ({ className = 'w-36 h-auto' }) => (
-  <svg viewBox="0 0 210 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
+const MyMobPayLogo = ({ className = 'w-48 h-auto' }) => (
+  <svg viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
     {/* Single unified wordmark with unique mixed fonts */}
     <text x="2" y="42" letterSpacing="0">
       {/* M of My */}

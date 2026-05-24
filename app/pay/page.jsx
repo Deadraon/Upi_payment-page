@@ -34,8 +34,8 @@ const GPayLogo    = () => <img src="/logos/gpay.svg"    alt="Google Pay"  classN
 const PhonePeLogo = () => <img src="/logos/phonepe.svg" alt="PhonePe"     className="w-8 h-8 object-contain bg-white p-1.5 rounded-xl" />;
 const PaytmLogo   = () => <img src="/logos/paytm.svg"   alt="Paytm"       className="w-8 h-8 object-contain bg-white p-1.5 rounded-xl" />;
 const BhimLogo    = () => <img src="/logos/bhim.svg"    alt="BHIM UPI"    className="w-8 h-8 object-contain bg-white p-1.5 rounded-xl" />;
-const MyMobPayLogo = ({ className = 'w-36 h-auto' }) => (
-  <svg viewBox="0 0 210 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
+const MyMobPayLogo = ({ className = 'w-48 h-auto' }) => (
+  <svg viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
     {/* Single unified wordmark with unique mixed fonts */}
     <text x="2" y="42" letterSpacing="0">
       {/* M of My */}
@@ -81,7 +81,7 @@ const OrderPanel = ({ project, amount, orderId, timer }) => {
       <div>
         {/* Logo */}
         <div className="flex flex-col items-start gap-1 mb-9">
-          <MyMobPayLogo className="w-40 h-auto object-contain" />
+          <MyMobPayLogo className="w-56 h-auto object-contain" />
           {project && project !== CONFIG.businessName && (
             <p className="text-[10px] text-[#8B949E] font-medium ml-1">via {project}</p>
           )}
@@ -262,7 +262,7 @@ function PayPageContent() {
           <div className="order-2 md:order-1 w-full md:w-[42%] bg-[#0D1117] border-t md:border-t-0 md:border-r border-[#21262D] px-7 py-8 flex flex-col justify-between">
             <div>
               <div className="flex flex-col items-start gap-1 mb-8">
-                <MyMobPayLogo className="w-48 h-auto object-contain" />
+                <MyMobPayLogo className="w-64 h-auto object-contain" />
               </div>
               <div className="mb-8">
                 <h1 className="text-2xl font-black text-[#E6EDF3] leading-snug mb-2">
@@ -360,7 +360,7 @@ function PayPageContent() {
             {/* Mobile compact */}
             <div className="md:hidden flex items-center justify-between px-5 py-4 border-b border-[#21262D]">
               <div className="flex items-center">
-                <MyMobPayLogo className="w-28 h-auto object-contain" />
+                <MyMobPayLogo className="w-36 h-auto object-contain" />
               </div>
               <div className="text-right">
                 <p className="text-[9px] text-[#8B949E] uppercase tracking-wider">Total</p>
