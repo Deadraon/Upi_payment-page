@@ -34,14 +34,45 @@ const Row = ({ label, value, mono = false, green = false }) => (
   </div>
 );
 
+const PayDriftLogo = ({ className = 'w-32 h-auto' }) => (
+  <svg viewBox="0 0 500 120" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`} style={{ filter: 'drop-shadow(0 4px 20px rgba(0, 229, 255, 0.15))' }}>
+    {/* Modern Interlocking PD Monogram */}
+    {/* P - Vertical Stem */}
+    <rect x="5" y="20" width="12" height="80" rx="6" fill="#FFFFFF" />
+    
+    {/* P - Loop */}
+    <path d="M 11 26 H 35 C 47 26 56 34 56 45.5 C 56 57 67 65 55 65 H 11" fill="none" stroke="#FFFFFF" strokeWidth="12" strokeLinecap="round" />
+    
+    {/* D - Primary Outer Speed Wave */}
+    <path d="M 32 14 C 62 14 84 36 84 65 C 84 94 62 116 32 116 H 62" fill="none" stroke="url(#pd-cyan-grad)" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round" />
+    
+    {/* D - Secondary Inner Velocity Wave */}
+    <path d="M 44 35 C 60 35 70 47 70 65 C 70 83 60 95 44 95 H 58" fill="none" stroke="url(#pd-blue-grad)" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" opacity="0.8" />
+    
+    {/* Typography - PAY (Bold, Stable) */}
+    <text x="115" y="78" fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" fontWeight="900" fontSize="56" fill="#FFFFFF" letterSpacing="-2">PAY</text>
+    
+    {/* Typography - DRIFT (Futuristic, Light, Spacious) */}
+    <text x="228" y="78" fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" fontWeight="300" fontSize="56" fill="url(#pd-cyan-grad)" letterSpacing="5">DRIFT</text>
+    
+    <defs>
+      <linearGradient id="pd-cyan-grad" x1="32" y1="14" x2="84" y2="116" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#00E5FF" />
+        <stop offset="1" stopColor="#0088FF" />
+      </linearGradient>
+      <linearGradient id="pd-blue-grad" x1="44" y1="35" x2="70" y2="95" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#0088FF" />
+        <stop offset="1" stopColor="#0056D2" />
+      </linearGradient>
+    </defs>
+  </svg>
+);
+
 /* ── Logo header ───────────────────────────────────────────── */
 const Header = ({ badge }) => (
   <header className="w-full border-b border-[#30363D] bg-[#0D0D12] px-5 py-3.5 flex items-center justify-between">
-    <div className="flex items-center gap-2">
-      <div className="w-6 h-6 rounded-md bg-indigo-600 flex items-center justify-center">
-        <span className="text-white font-black text-[10px]">P</span>
-      </div>
-      <span className="font-bold text-xs text-white">PayDrift</span>
+    <div className="flex items-center">
+      <PayDriftLogo className="h-6 w-auto object-contain" />
     </div>
     {badge}
   </header>
