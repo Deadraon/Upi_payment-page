@@ -52,10 +52,10 @@ export async function POST(request) {
       offset++;
     }
 
-    // Generate a 6-character unique alphanumeric Order ID starting with OR (e.g., ORZ20B)
+    // Generate a 4-character unique alphanumeric Order ID starting with O (e.g., O1B2)
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let orderId = 'OR';
-    for (let i = 0; i < 4; i++) {
+    let orderId = 'O';
+    for (let i = 0; i < 3; i++) {
       orderId += chars.charAt(Math.floor(Math.random() * chars.length));
     }
 
