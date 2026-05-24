@@ -36,7 +36,7 @@ const PaytmLogo   = () => <img src="/logos/paytm.svg"   alt="Paytm"       classN
 const BhimLogo    = () => <img src="/logos/bhim.svg"    alt="BHIM UPI"    className="w-8 h-8 object-contain rounded-xl" />;
 const PayDriftLogo = ({ className = 'w-8 h-8 object-contain' }) => (
   <img
-    src="/logos/logo.svg"
+    src="/logos/logo.png"
     alt="PayDrift"
     className={`${className} transition-all duration-300 hover:scale-[1.02]`}
     style={{ filter: 'drop-shadow(0 2px 10px rgba(56, 139, 253, 0.25))' }}
