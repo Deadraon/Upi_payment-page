@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 
+export const dynamic = 'force-dynamic';
+
 // This endpoint cancels all pending orders older than 5 minutes
 // Can be called via Vercel Cron or externally
 export async function GET(request) {
