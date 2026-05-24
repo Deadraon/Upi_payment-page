@@ -66,14 +66,14 @@ const METHODS = [
     label: 'Google Pay',
     color: '#4285F4',
     logo: <GPayLogo />,
-    scheme: (p) => `upi://pay?${p}`, // Bypasses GPay P2P browser security blocks
+    scheme: (p) => `gpay://upi/pay?${p}`,
   },
   {
     id: 'phonepe',
     label: 'PhonePe',
     color: '#5F259F',
     logo: <PhonePeLogo />,
-    scheme: (p) => `upi://pay?${p}`, // Bypasses PhonePe P2P browser security blocks
+    scheme: (p) => `phonepe://pay?${p}`,
   },
   {
     id: 'paytm',
@@ -84,14 +84,14 @@ const METHODS = [
         <PaytmLogo size={22} />
       </div>
     ),
-    scheme: (p) => `upi://pay?${p}`, // Bypasses Paytm P2P browser security blocks
+    scheme: (p) => `paytmmp://pay?${p}`,
   },
   {
     id: 'bhim',
     label: 'BHIM App',
     color: '#FF7A00',
     logo: <BhimLogo />,
-    scheme: (p) => `upi://pay?${p}`, // Bypasses BHIM P2P browser security blocks
+    scheme: (p) => `bhim://pay?${p}`,
   },
   {
     id: 'generic',
@@ -167,7 +167,7 @@ export default function PayPage() {
 
   const buildParams = (amt, txnId) => {
     const formattedAmt = parseFloat(amt).toFixed(2);
-    return `pa=${CONFIG.upiId}&pn=${encodeURIComponent(CONFIG.businessName)}&am=${formattedAmt}&tn=${txnId}&cu=INR&mc=5499`;
+    return `pa=${CONFIG.upiId}&pn=${encodeURIComponent(CONFIG.businessName)}&am=${formattedAmt}&tn=${txnId}&cu=INR`;
   };
 
   const getDeepLink = (methodId, amt, txnId) => {
