@@ -30,8 +30,8 @@ const getDeepLink = (appId, amount, orderId) => {
 };
 
 /* ── App Logos — official brand images from /public/logos/ ── */
-const GPayLogo    = () => <img src="/logos/gpay.png"    alt="Google Pay"  className="w-8 h-8 object-contain rounded-xl" />;
-const PhonePeLogo = () => <img src="/logos/phonepe.png" alt="PhonePe"     className="w-8 h-8 object-contain rounded-xl" />;
+const GPayLogo    = () => <img src="/logos/gpay.svg"    alt="Google Pay"  className="w-8 h-8 object-contain rounded-xl" />;
+const PhonePeLogo = () => <img src="/logos/phonepe.svg" alt="PhonePe"     className="w-8 h-8 object-contain rounded-xl" />;
 const PaytmLogo   = () => <img src="/logos/paytm.svg"   alt="Paytm"       className="w-8 h-8 object-contain rounded-xl" />;
 const BhimLogo    = () => <img src="/logos/bhim.svg"    alt="BHIM UPI"    className="w-8 h-8 object-contain rounded-xl" />;
 
