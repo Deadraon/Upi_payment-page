@@ -52,13 +52,12 @@ export async function POST(request) {
       offset++;
     }
 
-    // Generate a shorter, unique alphanumeric Order ID (e.g., ORD-A1B2C3D4)
+    // Generate a 6-character unique alphanumeric Order ID starting with OR (e.g., ORZ20B)
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let randomPart = '';
-    for (let i = 0; i < 8; i++) {
-      randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
+    let orderId = 'OR';
+    for (let i = 0; i < 4; i++) {
+      orderId += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    const orderId = `ORD-${randomPart}`;
 
     // Insert order into Supabase
     const { data, error } = await supabaseAdmin

@@ -45,8 +45,9 @@ export default {
     // 6. Extract unique 12-digit UTR from the UPI reference block
     const utr = cleanBody.match(/UPI\/(\d{12,})\//i)?.[1];
     
-    // 7. Extract the custom alphanumeric Order ID (e.g., ORD-8F9D3UMP)
-    const orderId = cleanBody.match(/(ORD-[a-zA-Z0-9]{8})/i)?.[1] || 
+    // 7. Extract the custom alphanumeric Order ID (e.g. ORZ20B, ORD-8F9D3UMP, or UUID)
+    const orderId = cleanBody.match(/\b(OR[a-zA-Z0-9]{4})\b/i)?.[1] ||
+                    cleanBody.match(/(ORD-[a-zA-Z0-9]{8})/i)?.[1] || 
                     cleanBody.match(/([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})/i)?.[1];
 
     if (!utr || !amount) {
