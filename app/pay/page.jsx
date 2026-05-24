@@ -341,7 +341,9 @@ function PayPageContent() {
                 <div className="grid grid-cols-4 gap-2 mt-2.5">
                   {[100, 500, 1000, 2000].map(a => (
                     <button key={a} type="button" onClick={() => setAmount(String(a))}
-                      className={py-2 text-[12px] font-bold rounded-xl border transition-all }>₹{a >= 1000 ? (a/1000)+'K' : a}</button>
+                      className={`py-2 text-[12px] font-bold rounded-xl border transition-all ${
+                        amount === String(a) ? 'bg-indigo-600/25 border-indigo-500 text-indigo-300' : 'bg-[#21262D] border-[#30363D] text-[#8B949E] hover:border-[#484F58] hover:text-[#C9D1D9]'
+                      }`}>₹{a >= 1000 ? ((a/1000) + 'K') : a}</button>
                   ))}
                 </div>
               </div>
