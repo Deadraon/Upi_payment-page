@@ -34,34 +34,21 @@ const GPayLogo    = () => <img src="/logos/gpay.svg"    alt="Google Pay"  classN
 const PhonePeLogo = () => <img src="/logos/phonepe.svg" alt="PhonePe"     className="w-8 h-8 object-contain bg-white p-1.5 rounded-xl" />;
 const PaytmLogo   = () => <img src="/logos/paytm.svg"   alt="Paytm"       className="w-8 h-8 object-contain bg-white p-1.5 rounded-xl" />;
 const BhimLogo    = () => <img src="/logos/bhim.svg"    alt="BHIM UPI"    className="w-8 h-8 object-contain bg-white p-1.5 rounded-xl" />;
-const MyMobPayLogo = ({ className = 'w-48 h-auto' }) => (
-  <svg viewBox="0 0 340 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
-    {/* Accent dot */}
-    <circle cx="16" cy="30" r="12" fill="url(#mmp-dot)" />
-    <circle cx="16" cy="30" r="12" fill="none" stroke="url(#mmp-dot-ring)" strokeWidth="1.5" opacity="0.3" />
-    {/* Subtle inner glow on the dot */}
-    <circle cx="14" cy="28" r="4" fill="white" opacity="0.25" />
-
-    {/* Single unified wordmark */}
-    <text x="38" y="42" fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" fontWeight="700" fontSize="36" letterSpacing="-1">
-      <tspan fill="#FFFFFF">MyMob</tspan><tspan fill="#3B82F6">Pay</tspan>
+const MyMobPayLogo = ({ className = 'w-36 h-auto' }) => (
+  <svg viewBox="0 0 210 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
+    {/* Single unified wordmark with unique mixed fonts */}
+    <text x="2" y="42" letterSpacing="0">
+      {/* M of My */}
+      <tspan fontFamily="'Orbitron', sans-serif" fontWeight="800" fontSize="38" fill="#FFFFFF">M</tspan>
+      {/* y of My */}
+      <tspan fontFamily="'Outfit', sans-serif" fontWeight="500" fontSize="34" fill="#FFFFFF" dx="1">y</tspan>
+      {/* M of Mob */}
+      <tspan fontFamily="'Orbitron', sans-serif" fontWeight="800" fontSize="38" fill="#FFFFFF" dx="2">M</tspan>
+      {/* ob of Mob */}
+      <tspan fontFamily="'Outfit', sans-serif" fontWeight="500" fontSize="34" fill="#FFFFFF" dx="1">ob</tspan>
+      {/* Pay */}
+      <tspan fontFamily="'Orbitron', sans-serif" fontWeight="900" fontStyle="italic" fontSize="36" fill="#3B82F6" dx="3">Pay</tspan>
     </text>
-
-    <defs>
-      <linearGradient id="mmp-dot" x1="4" y1="18" x2="28" y2="42" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#00E5FF" />
-        <stop offset="1" stopColor="#0066FF" />
-      </linearGradient>
-      <linearGradient id="mmp-dot-ring" x1="4" y1="18" x2="28" y2="42" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#00E5FF" />
-        <stop offset="1" stopColor="#0044CC" />
-      </linearGradient>
-      <linearGradient id="mmp-text" x1="38" y1="10" x2="340" y2="50" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#FFFFFF" />
-        <stop offset="0.7" stopColor="#FFFFFF" />
-        <stop offset="1" stopColor="#00CFFF" />
-      </linearGradient>
-    </defs>
   </svg>
 );
 
@@ -94,7 +81,7 @@ const OrderPanel = ({ project, amount, orderId, timer }) => {
       <div>
         {/* Logo */}
         <div className="flex flex-col items-start gap-1 mb-9">
-          <MyMobPayLogo className="w-64 h-auto object-contain" />
+          <MyMobPayLogo className="w-40 h-auto object-contain" />
           {project && project !== CONFIG.businessName && (
             <p className="text-[10px] text-[#8B949E] font-medium ml-1">via {project}</p>
           )}
@@ -275,7 +262,7 @@ function PayPageContent() {
           <div className="order-2 md:order-1 w-full md:w-[42%] bg-[#0D1117] border-t md:border-t-0 md:border-r border-[#21262D] px-7 py-8 flex flex-col justify-between">
             <div>
               <div className="flex flex-col items-start gap-1 mb-8">
-                <MyMobPayLogo className="w-72 h-auto object-contain" />
+                <MyMobPayLogo className="w-48 h-auto object-contain" />
               </div>
               <div className="mb-8">
                 <h1 className="text-2xl font-black text-[#E6EDF3] leading-snug mb-2">
@@ -373,7 +360,7 @@ function PayPageContent() {
             {/* Mobile compact */}
             <div className="md:hidden flex items-center justify-between px-5 py-4 border-b border-[#21262D]">
               <div className="flex items-center">
-                <MyMobPayLogo className="w-40 h-auto object-contain" />
+                <MyMobPayLogo className="w-28 h-auto object-contain" />
               </div>
               <div className="text-right">
                 <p className="text-[9px] text-[#8B949E] uppercase tracking-wider">Total</p>

@@ -34,33 +34,21 @@ const Row = ({ label, value, mono = false, green = false }) => (
   </div>
 );
 
-const MyMobPayLogo = ({ className = 'w-32 h-auto' }) => (
-  <svg viewBox="0 0 340 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
-    {/* Accent dot */}
-    <circle cx="16" cy="30" r="12" fill="url(#mmp-dot-s)" />
-    <circle cx="16" cy="30" r="12" fill="none" stroke="url(#mmp-dot-ring-s)" strokeWidth="1.5" opacity="0.3" />
-    <circle cx="14" cy="28" r="4" fill="white" opacity="0.25" />
-
-    {/* Single unified wordmark */}
-    <text x="38" y="42" fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" fontWeight="700" fontSize="36" letterSpacing="-1">
-      <tspan fill="#FFFFFF">MyMob</tspan><tspan fill="#3B82F6">Pay</tspan>
+const MyMobPayLogo = ({ className = 'w-36 h-auto' }) => (
+  <svg viewBox="0 0 210 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
+    {/* Single unified wordmark with unique mixed fonts */}
+    <text x="2" y="42" letterSpacing="0">
+      {/* M of My */}
+      <tspan fontFamily="'Orbitron', sans-serif" fontWeight="800" fontSize="38" fill="#FFFFFF">M</tspan>
+      {/* y of My */}
+      <tspan fontFamily="'Outfit', sans-serif" fontWeight="500" fontSize="34" fill="#FFFFFF" dx="1">y</tspan>
+      {/* M of Mob */}
+      <tspan fontFamily="'Orbitron', sans-serif" fontWeight="800" fontSize="38" fill="#FFFFFF" dx="2">M</tspan>
+      {/* ob of Mob */}
+      <tspan fontFamily="'Outfit', sans-serif" fontWeight="500" fontSize="34" fill="#FFFFFF" dx="1">ob</tspan>
+      {/* Pay */}
+      <tspan fontFamily="'Orbitron', sans-serif" fontWeight="900" fontStyle="italic" fontSize="36" fill="#3B82F6" dx="3">Pay</tspan>
     </text>
-
-    <defs>
-      <linearGradient id="mmp-dot-s" x1="4" y1="18" x2="28" y2="42" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#00E5FF" />
-        <stop offset="1" stopColor="#0066FF" />
-      </linearGradient>
-      <linearGradient id="mmp-dot-ring-s" x1="4" y1="18" x2="28" y2="42" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#00E5FF" />
-        <stop offset="1" stopColor="#0044CC" />
-      </linearGradient>
-      <linearGradient id="mmp-text-s" x1="38" y1="10" x2="340" y2="50" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#FFFFFF" />
-        <stop offset="0.7" stopColor="#FFFFFF" />
-        <stop offset="1" stopColor="#00CFFF" />
-      </linearGradient>
-    </defs>
   </svg>
 );
 
