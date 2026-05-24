@@ -215,10 +215,11 @@ export default function PayPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to create order.');
       setOrderId(data.orderId);
+      setAmount(data.orderAmount.toString());
       setTimer(300);
       setStep('verify');
       if (isMobile) {
-        setTimeout(() => { window.location.href = getDeepLink(method, amount, data.orderId); }, 300);
+        setTimeout(() => { window.location.href = getDeepLink(method, data.orderAmount, data.orderId); }, 300);
       }
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');
