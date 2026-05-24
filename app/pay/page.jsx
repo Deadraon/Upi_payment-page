@@ -307,16 +307,13 @@ function PayPageContent() {
               </div>
             </div>
             <div className="mt-8 pt-5 border-t border-[#21262D]">
-              <p className="text-[10px] text-[#484F58] mb-2">Works with all UPI apps</p>
-              <div className="flex items-center gap-2">
-                <div className="flex gap-1.5">
-                  {[['G','#4285F4'],['P','#5F259F'],['P','#00BAF2'],['B','#00529B']].map(([l,col],i) => (
-                    <div key={i} className="w-6 h-6 rounded-full border-2 border-[#0D1117] flex items-center justify-center" style={{background:col}}>
-                      <span className="text-white font-black text-[8px]">{l}</span>
-                    </div>
-                  ))}
-                </div>
-                <span className="text-[10px] text-[#8B949E]">&amp; any UPI app</span>
+              <p className="text-[10px] text-[#484F58] mb-3">Works with all UPI apps</p>
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl overflow-hidden border border-[#30363D] flex-shrink-0"><GPayLogo /></div>
+                <div className="w-8 h-8 rounded-xl overflow-hidden border border-[#30363D] flex-shrink-0"><PhonePeLogo /></div>
+                <div className="w-8 h-8 rounded-xl overflow-hidden border border-[#30363D] flex-shrink-0"><PaytmLogo /></div>
+                <div className="w-8 h-8 rounded-xl overflow-hidden border border-[#30363D] flex-shrink-0"><BhimLogo /></div>
+                <span className="text-[10px] text-[#8B949E]">&amp; more</span>
               </div>
             </div>
           </div>
