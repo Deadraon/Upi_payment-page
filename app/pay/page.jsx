@@ -35,35 +35,46 @@ const PhonePeLogo = () => <img src="/logos/phonepe.svg" alt="PhonePe"     classN
 const PaytmLogo   = () => <img src="/logos/paytm.svg"   alt="Paytm"       className="w-8 h-8 object-contain bg-white p-1.5 rounded-xl" />;
 const BhimLogo    = () => <img src="/logos/bhim.svg"    alt="BHIM UPI"    className="w-8 h-8 object-contain bg-white p-1.5 rounded-xl" />;
 const MyMobPayLogo = ({ className = 'w-48 h-auto' }) => (
-  <svg viewBox="0 0 520 120" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`} style={{ filter: 'drop-shadow(0 4px 20px rgba(0, 229, 255, 0.15))' }}>
-    {/* Modern M Monogram with velocity curves */}
-    {/* M - Left vertical */}
-    <rect x="5" y="20" width="12" height="80" rx="6" fill="#FFFFFF" />
-    {/* M - Right vertical */}
-    <rect x="68" y="20" width="12" height="80" rx="6" fill="#FFFFFF" />
-    {/* M - Left diagonal */}
-    <path d="M 11 26 L 42 65" fill="none" stroke="#FFFFFF" strokeWidth="12" strokeLinecap="round" />
-    {/* M - Right diagonal */}
-    <path d="M 74 26 L 43 65" fill="none" stroke="#FFFFFF" strokeWidth="12" strokeLinecap="round" />
+  <svg viewBox="0 0 480 100" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`} style={{ filter: 'drop-shadow(0 2px 12px rgba(0, 200, 255, 0.18))' }}>
 
-    {/* Velocity accent curve */}
-    <path d="M 30 14 C 60 14 82 36 82 60" fill="none" stroke="url(#mm-cyan-grad)" strokeWidth="8" strokeLinecap="round" opacity="0.7" />
-    <path d="M 55 106 C 82 106 90 84 90 60" fill="none" stroke="url(#mm-blue-grad)" strokeWidth="8" strokeLinecap="round" opacity="0.7" />
+    {/* ── Icon Mark: Rounded square with mobile + signal ── */}
+    <rect x="4" y="8" width="84" height="84" rx="22" fill="url(#mm-icon-bg)" />
+    <rect x="4" y="8" width="84" height="84" rx="22" fill="none" stroke="url(#mm-icon-border)" strokeWidth="2" opacity="0.5" />
 
-    {/* Typography - MYMOB (Bold, Stable) */}
-    <text x="115" y="78" fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" fontWeight="900" fontSize="56" fill="#FFFFFF" letterSpacing="-1">MYMOB</text>
+    {/* Phone body */}
+    <rect x="30" y="22" width="32" height="56" rx="7" fill="none" stroke="#FFFFFF" strokeWidth="3.5" />
+    {/* Phone screen highlight */}
+    <rect x="34" y="30" width="24" height="36" rx="3" fill="rgba(255,255,255,0.1)" />
+    {/* Phone home bar */}
+    <rect x="40" y="71" width="12" height="2.5" rx="1.25" fill="rgba(255,255,255,0.5)" />
 
-    {/* Typography - PAY (Futuristic, Gradient) */}
-    <text x="375" y="78" fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" fontWeight="300" fontSize="56" fill="url(#mm-cyan-grad)" letterSpacing="5">PAY</text>
+    {/* Signal arcs (payment waves emanating from phone) */}
+    <path d="M 58 38 C 64 38 69 43 69 49" fill="none" stroke="#00E5FF" strokeWidth="2.5" strokeLinecap="round" opacity="0.9" />
+    <path d="M 58 32 C 68 32 76 40 76 49" fill="none" stroke="#00C0FF" strokeWidth="2.5" strokeLinecap="round" opacity="0.65" />
+    <path d="M 58 26 C 72 26 83 37 83 49" fill="none" stroke="#0099FF" strokeWidth="2.5" strokeLinecap="round" opacity="0.4" />
+
+    {/* ── Typography ── */}
+    {/* MYMOB — solid white, heavy */}
+    <text x="108" y="66" fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" fontWeight="800" fontSize="48" fill="#FFFFFF" letterSpacing="-0.5">MYMOB</text>
+
+    {/* PAY — cyan gradient, same weight for unity */}
+    <text x="358" y="66" fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" fontWeight="800" fontSize="48" fill="url(#mm-text-grad)" letterSpacing="-0.5">PAY</text>
 
     <defs>
-      <linearGradient id="mm-cyan-grad" x1="30" y1="14" x2="90" y2="106" gradientUnits="userSpaceOnUse">
+      {/* Icon background gradient */}
+      <linearGradient id="mm-icon-bg" x1="4" y1="8" x2="88" y2="92" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#0A1628" />
+        <stop offset="1" stopColor="#0D2847" />
+      </linearGradient>
+      {/* Icon border gradient */}
+      <linearGradient id="mm-icon-border" x1="4" y1="8" x2="88" y2="92" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#00E5FF" />
+        <stop offset="1" stopColor="#0066DD" />
+      </linearGradient>
+      {/* Text gradient for PAY */}
+      <linearGradient id="mm-text-grad" x1="358" y1="30" x2="460" y2="80" gradientUnits="userSpaceOnUse">
         <stop stopColor="#00E5FF" />
         <stop offset="1" stopColor="#0088FF" />
-      </linearGradient>
-      <linearGradient id="mm-blue-grad" x1="55" y1="60" x2="90" y2="106" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#0088FF" />
-        <stop offset="1" stopColor="#0056D2" />
       </linearGradient>
     </defs>
   </svg>
