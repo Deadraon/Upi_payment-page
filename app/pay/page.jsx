@@ -95,14 +95,14 @@ const OrderPanel = ({ project, amount, orderId, timer }) => {
           <div>
             <span className="font-black text-base text-white tracking-tight">PayDrift</span>
             {project && project !== CONFIG.businessName && (
-              <p className="text-[10px] text-[#4B5563] font-medium -mt-0.5">via {project}</p>
+              <p className="text-[10px] text-[#C9D1D9] font-medium -mt-0.5">via {project}</p>
             )}
           </div>
         </div>
 
         {/* Amount */}
         <div className="mb-6">
-          <p className="text-[11px] text-[#4B5563] uppercase tracking-widest font-semibold mb-1">Total Due</p>
+          <p className="text-[11px] text-[#C9D1D9] uppercase tracking-widest font-semibold mb-1">Total Due</p>
           <div className="flex items-start gap-1">
             <span className="text-2xl font-black text-white mt-1">₹</span>
             <span className="text-5xl font-black text-white leading-none tabular-nums">
@@ -113,19 +113,19 @@ const OrderPanel = ({ project, amount, orderId, timer }) => {
 
         {/* Order info */}
         <div className="space-y-2.5">
-          <div className="flex items-center justify-between py-2 border-b border-[#ffffff08]">
-            <span className="text-[11px] text-[#4B5563]">To</span>
-            <span className="text-[11px] text-[#9CA3AF] font-semibold">{CONFIG.businessName}</span>
+          <div className="flex items-center justify-between py-2 border-b border-[#ffffff18]">
+            <span className="text-[11px] text-[#C9D1D9]">To</span>
+            <span className="text-[11px] text-[#C9D1D9] font-semibold">{CONFIG.businessName}</span>
           </div>
           {orderId && (
-            <div className="flex items-center justify-between py-2 border-b border-[#ffffff08]">
-              <span className="text-[11px] text-[#4B5563]">Order ID</span>
-              <span className="text-[11px] font-mono text-[#6B7280]">{orderId}</span>
+            <div className="flex items-center justify-between py-2 border-b border-[#ffffff18]">
+              <span className="text-[11px] text-[#C9D1D9]">Order ID</span>
+              <span className="text-[11px] font-mono text-[#C9D1D9]">{orderId}</span>
             </div>
           )}
           {timer !== undefined && (
-            <div className="flex items-center justify-between py-2 border-b border-[#ffffff08]">
-              <span className="text-[11px] text-[#4B5563]">Expires in</span>
+            <div className="flex items-center justify-between py-2 border-b border-[#ffffff18]">
+              <span className="text-[11px] text-[#C9D1D9]">Expires in</span>
               <span className="text-[11px] font-mono text-indigo-400 font-bold">{formatTime(timer)}</span>
             </div>
           )}
@@ -134,16 +134,16 @@ const OrderPanel = ({ project, amount, orderId, timer }) => {
 
       {/* Trust badges */}
       <div className="mt-8 space-y-2">
-        <div className="flex items-center gap-2 text-[10px] text-[#4B5563]">
+        <div className="flex items-center gap-2 text-[10px] text-[#C9D1D9]">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
           <span>256-bit SSL encrypted payment</span>
         </div>
-        <div className="flex items-center gap-2 text-[10px] text-[#4B5563]">
+        <div className="flex items-center gap-2 text-[10px] text-[#C9D1D9]">
           <Zap className="w-3.5 h-3.5 text-indigo-400 flex-shrink-0" />
           <span>Auto-verified via bank email</span>
         </div>
-        <div className="flex items-center gap-2 text-[10px] text-[#4B5563]">
-          <Lock className="w-3.5 h-3.5 text-[#4B5563] flex-shrink-0" />
+        <div className="flex items-center gap-2 text-[10px] text-[#C9D1D9]">
+          <Lock className="w-3.5 h-3.5 text-[#C9D1D9] flex-shrink-0" />
           <span>Secured by PayDrift</span>
         </div>
       </div>
@@ -264,10 +264,10 @@ function PayPageContent() {
      Transition screen
   ────────────────────────────────────────────────────────── */
   if (confirmed) return (
-    <div className="min-h-screen bg-[#0C0C0E] flex items-center justify-center">
+    <div className="min-h-screen bg-[#0D0D12] flex items-center justify-center">
       <div className="flex flex-col items-center gap-4 animate-fade-in">
         <AnimatedCheck />
-        <p className="text-sm font-semibold text-[#6B7280]">Redirecting to verification...</p>
+        <p className="text-sm font-semibold text-[#C9D1D9]">Redirecting to verification...</p>
       </div>
     </div>
   );
@@ -277,19 +277,19 @@ function PayPageContent() {
   ────────────────────────────────────────────────────────── */
   if (step === 'form') {
     return (
-      <div className="min-h-screen bg-[#0C0C0E] flex items-center justify-center px-4 py-8">
+      <div className="min-h-screen bg-[#0D0D12] flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-md animate-scale-up">
           {/* Card */}
-          <div className="bg-[#141416] rounded-2xl border border-[#252528] shadow-2xl overflow-hidden">
+          <div className="bg-[#18181E] rounded-2xl border border-[#35353D] shadow-2xl overflow-hidden">
             {/* Header */}
-            <div className="px-7 pt-7 pb-5 border-b border-[#1E1E22]">
+            <div className="px-7 pt-7 pb-5 border-b border-[#2A2A32]">
               <div className="flex items-center gap-2.5 mb-4">
                 <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center">
                   <span className="text-white font-black text-xs">P</span>
                 </div>
                 <span className="font-black text-sm text-white">PayDrift</span>
               </div>
-              <p className="text-[11px] text-[#4B5563] uppercase tracking-wider font-medium">
+              <p className="text-[11px] text-[#C9D1D9] uppercase tracking-wider font-medium">
                 {paramProject !== CONFIG.businessName ? `Paying · ${paramProject}` : 'Enter Payment Details'}
               </p>
             </div>
@@ -297,15 +297,15 @@ function PayPageContent() {
             <form onSubmit={handleSubmitForm} className="px-7 py-6 space-y-4">
               {/* Amount */}
               <div>
-                <label className="text-[11px] text-[#6B7280] uppercase tracking-wider font-semibold block mb-1.5">Amount (₹)</label>
+                <label className="text-[11px] text-[#C9D1D9] uppercase tracking-wider font-semibold block mb-1.5">Amount (₹)</label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#4B5563]">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#C9D1D9]">
                     <IndianRupee className="w-4 h-4" />
                   </span>
                   <input
                     type="number" step="0.01" min="1" placeholder="0.00" autoFocus
                     value={amount} onChange={e => { setAmount(e.target.value); setError(''); }}
-                    className="w-full bg-[#1C1C1F] border border-[#2E2E33] rounded-xl pl-9 pr-4 py-3 text-white text-base font-bold placeholder-[#3A3A3F] focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 transition-all"
+                    className="w-full bg-[#1E1E24] border border-[#3A3A42] rounded-xl pl-9 pr-4 py-3 text-white text-base font-bold placeholder-[#3A3A3F] focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 transition-all"
                   />
                 </div>
                 <div className="flex gap-2 mt-2">
@@ -314,7 +314,7 @@ function PayPageContent() {
                       className={`flex-1 py-1.5 text-[11px] font-semibold rounded-lg border transition-all ${
                         amount === String(a)
                           ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-400'
-                          : 'bg-[#1C1C1F] border-[#2E2E33] text-[#6B7280] hover:border-[#3E3E43]'
+                          : 'bg-[#1E1E24] border-[#3A3A42] text-[#C9D1D9] hover:border-[#3E3E43]'
                       }`}>₹{a}</button>
                   ))}
                 </div>
@@ -322,22 +322,22 @@ function PayPageContent() {
 
               {/* Name */}
               <div>
-                <label className="text-[11px] text-[#6B7280] uppercase tracking-wider font-semibold block mb-1.5">
-                  Name <span className="text-[#3A3A3F] normal-case font-normal">(optional)</span>
+                <label className="text-[11px] text-[#C9D1D9] uppercase tracking-wider font-semibold block mb-1.5">
+                  Name <span className="text-[#C9D1D9] normal-case font-normal">(optional)</span>
                 </label>
                 <input type="text" placeholder="Enter your name" value={customerName}
                   onChange={e => setName(e.target.value)}
-                  className="w-full bg-[#1C1C1F] border border-[#2E2E33] rounded-xl px-3 py-2.5 text-sm text-white placeholder-[#3A3A3F] focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 transition-all" />
+                  className="w-full bg-[#1E1E24] border border-[#3A3A42] rounded-xl px-3 py-2.5 text-sm text-white placeholder-[#3A3A3F] focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 transition-all" />
               </div>
 
               {/* Phone */}
               <div>
-                <label className="text-[11px] text-[#6B7280] uppercase tracking-wider font-semibold block mb-1.5">
-                  Phone <span className="text-[#3A3A3F] normal-case font-normal">(optional)</span>
+                <label className="text-[11px] text-[#C9D1D9] uppercase tracking-wider font-semibold block mb-1.5">
+                  Phone <span className="text-[#C9D1D9] normal-case font-normal">(optional)</span>
                 </label>
                 <input type="tel" inputMode="numeric" maxLength={10} placeholder="10-digit mobile number"
                   value={customerPhone} onChange={e => setPhone(e.target.value.replace(/\D/g, ''))}
-                  className="w-full bg-[#1C1C1F] border border-[#2E2E33] rounded-xl px-3 py-2.5 text-sm text-white placeholder-[#3A3A3F] focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 transition-all" />
+                  className="w-full bg-[#1E1E24] border border-[#3A3A42] rounded-xl px-3 py-2.5 text-sm text-white placeholder-[#3A3A3F] focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 transition-all" />
               </div>
 
               {error && (
@@ -352,7 +352,7 @@ function PayPageContent() {
               </button>
             </form>
           </div>
-          <div className="flex items-center justify-center gap-3 mt-5 text-[10px] text-[#3A3A3F]">
+          <div className="flex items-center justify-center gap-3 mt-5 text-[10px] text-[#C9D1D9]">
             <ShieldCheck className="w-3 h-3 text-emerald-600" /><span>SSL Secure</span>
             <span>·</span><Zap className="w-3 h-3 text-indigo-600" /><span>Instant Verify</span>
           </div>
@@ -367,14 +367,14 @@ function PayPageContent() {
   const displayAmt = orderAmount ?? parseFloat(paramAmount);
 
   return (
-    <div className="min-h-screen bg-[#0C0C0E] flex items-center justify-center px-2 py-4">
+    <div className="min-h-screen bg-[#0D0D12] flex items-center justify-center px-2 py-4">
       <div className="w-full max-w-3xl animate-scale-up">
-        <div className="flex flex-col md:flex-row rounded-2xl overflow-hidden border border-[#252528] shadow-2xl">
+        <div className="flex flex-col md:flex-row rounded-2xl overflow-hidden border border-[#35353D] shadow-2xl">
 
           {/* ── LEFT PANEL ── */}
-          <div className="w-full md:w-[42%] bg-[#0F0F15] border-b md:border-b-0 md:border-r border-[#1E1E22]">
+          <div className="w-full md:w-[42%] bg-[#0D0D15] border-b md:border-b-0 md:border-r border-[#2A2A32]">
             {/* Mobile: compact header */}
-            <div className="md:hidden px-5 py-4 flex items-center justify-between border-b border-[#1E1E22]">
+            <div className="md:hidden px-5 py-4 flex items-center justify-between border-b border-[#2A2A32]">
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center">
                   <span className="text-white font-black text-xs">P</span>
@@ -382,7 +382,7 @@ function PayPageContent() {
                 <span className="font-black text-sm text-white">PayDrift</span>
               </div>
               <div className="text-right">
-                <p className="text-[10px] text-[#4B5563]">Total Due</p>
+                <p className="text-[10px] text-[#C9D1D9]">Total Due</p>
                 <p className="text-base font-black text-white">
                   ₹{displayAmt ? parseFloat(displayAmt).toLocaleString('en-IN', { minimumFractionDigits: 2 }) : '—'}
                 </p>
@@ -395,25 +395,25 @@ function PayPageContent() {
           </div>
 
           {/* ── RIGHT PANEL ── */}
-          <div className="flex-1 bg-[#141416]">
+          <div className="flex-1 bg-[#18181E]">
             {/* UPI / Tab header */}
-            <div className="px-6 pt-5 pb-4 border-b border-[#1E1E22]">
+            <div className="px-6 pt-5 pb-4 border-b border-[#2A2A32]">
               <div className="flex items-center gap-3">
                 <div className="px-3 py-1.5 rounded-lg bg-indigo-600/15 border border-indigo-500/30">
                   <span className="text-[11px] font-bold text-indigo-400 uppercase tracking-wider">UPI</span>
                 </div>
-                <span className="text-[11px] text-[#3A3A3F]">Other methods coming soon</span>
+                <span className="text-[11px] text-[#C9D1D9]">Other methods coming soon</span>
               </div>
             </div>
 
             <div className="px-6 py-5">
               {/* View toggle: Apps vs QR */}
-              <div className="flex gap-1 p-1 bg-[#0C0C0E] rounded-xl mb-5 border border-[#1E1E22]">
+              <div className="flex gap-1 p-1 bg-[#0D0D12] rounded-xl mb-5 border border-[#2A2A32]">
                 <button onClick={() => setPayView('apps')}
                   className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[11px] font-bold transition-all ${
                     payView === 'apps'
                       ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
-                      : 'text-[#6B7280] hover:text-[#9CA3AF]'
+                      : 'text-[#C9D1D9] hover:text-[#C9D1D9]'
                   }`}>
                   <Smartphone className="w-3.5 h-3.5" /> UPI Apps
                 </button>
@@ -421,7 +421,7 @@ function PayPageContent() {
                   className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[11px] font-bold transition-all ${
                     payView === 'qr'
                       ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
-                      : 'text-[#6B7280] hover:text-[#9CA3AF]'
+                      : 'text-[#C9D1D9] hover:text-[#C9D1D9]'
                   }`}>
                   <QrCode className="w-3.5 h-3.5" /> Scan QR
                 </button>
@@ -430,18 +430,18 @@ function PayPageContent() {
               {/* ── APPS VIEW ── */}
               {payView === 'apps' && (
                 <div className="space-y-3 animate-fade-up">
-                  <p className="text-[10px] text-[#4B5563] uppercase tracking-wider font-semibold">Select your UPI app</p>
+                  <p className="text-[10px] text-[#C9D1D9] uppercase tracking-wider font-semibold">Select your UPI app</p>
                   <div className="grid grid-cols-2 gap-2.5">
                     {UPI_APPS.map(app => (
                       <a
                         key={app.id}
                         href={orderId ? getDeepLink(app.id, orderAmount, orderId) : '#'}
-                        className={`flex items-center gap-3 p-3.5 rounded-xl bg-[#1C1C1F] border border-[#2E2E33] ${app.ring} hover:border-opacity-100 transition-all active:scale-95 group`}
+                        className={`flex items-center gap-3 p-3.5 rounded-xl bg-[#1E1E24] border border-[#3A3A42] ${app.ring} hover:border-opacity-100 transition-all active:scale-95 group`}
                       >
                         <div className="flex-shrink-0">{app.logo}</div>
                         <div className="min-w-0">
-                          <p className="text-[11px] font-bold text-[#D1D5DB] group-hover:text-white transition-colors leading-tight">{app.label}</p>
-                          <p className="text-[9px] text-[#4B5563] mt-0.5 flex items-center gap-0.5">
+                          <p className="text-[11px] font-bold text-white group-hover:text-white transition-colors leading-tight">{app.label}</p>
+                          <p className="text-[9px] text-[#C9D1D9] mt-0.5 flex items-center gap-0.5">
                             Open app <ChevronRight className="w-2.5 h-2.5" />
                           </p>
                         </div>
@@ -452,27 +452,27 @@ function PayPageContent() {
                   {/* Divider */}
                   <div className="flex items-center gap-3 my-1">
                     <div className="flex-1 h-px bg-[#1E1E22]" />
-                    <span className="text-[10px] text-[#3A3A3F] font-medium">OR</span>
+                    <span className="text-[10px] text-[#C9D1D9] font-medium">OR</span>
                     <div className="flex-1 h-px bg-[#1E1E22]" />
                   </div>
 
                   {/* UPI ID copy row */}
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-[#0C0C0E] border border-[#1E1E22]">
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-[#0D0D12] border border-[#2A2A32]">
                     <div>
-                      <p className="text-[9px] text-[#4B5563] mb-0.5 uppercase tracking-wider">Pay to UPI ID</p>
-                      <p className="text-[11px] font-mono font-bold text-[#9CA3AF]">{CONFIG.upiId}</p>
+                      <p className="text-[9px] text-[#C9D1D9] mb-0.5 uppercase tracking-wider">Pay to UPI ID</p>
+                      <p className="text-[11px] font-mono font-bold text-[#C9D1D9]">{CONFIG.upiId}</p>
                     </div>
                     <div className="flex gap-1.5">
                       <button onClick={copyUPI}
                         className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-semibold border transition-all ${
-                          copied ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-[#1C1C1F] border-[#2E2E33] text-[#6B7280] hover:border-[#3E3E43]'
+                          copied ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-[#1E1E24] border-[#3A3A42] text-[#C9D1D9] hover:border-[#3E3E43]'
                         }`}>
                         {copied ? <CheckCircle className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                         {copied ? 'Copied' : 'Copy ID'}
                       </button>
                       <button onClick={copyAmt}
                         className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-semibold border transition-all ${
-                          copiedAmt ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-[#1C1C1F] border-[#2E2E33] text-[#6B7280] hover:border-[#3E3E43]'
+                          copiedAmt ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-[#1E1E24] border-[#3A3A42] text-[#C9D1D9] hover:border-[#3E3E43]'
                         }`}>
                         {copiedAmt ? <CheckCircle className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                         {copiedAmt ? 'Copied' : 'Copy Amt'}
@@ -485,7 +485,7 @@ function PayPageContent() {
               {/* ── QR VIEW ── */}
               {payView === 'qr' && (
                 <div className="flex flex-col items-center space-y-4 animate-fade-up">
-                  <p className="text-[10px] text-[#4B5563] uppercase tracking-wider font-semibold">Scan with any UPI app</p>
+                  <p className="text-[10px] text-[#C9D1D9] uppercase tracking-wider font-semibold">Scan with any UPI app</p>
                   {upiQrValue ? (
                     <div className="bg-white rounded-2xl p-4 shadow-xl">
                       <QRCode value={upiQrValue} size={190} level="H" fgColor="#111827" bgColor="#FFFFFF" />
@@ -504,7 +504,7 @@ function PayPageContent() {
               )}
 
               {/* ── CONFIRM BUTTON ── */}
-              <div className="mt-5 pt-4 border-t border-[#1E1E22] space-y-2">
+              <div className="mt-5 pt-4 border-t border-[#2A2A32] space-y-2">
                 <button
                   onClick={handleConfirmPaid}
                   disabled={!orderId}
@@ -513,7 +513,7 @@ function PayPageContent() {
                   <CheckCircle className="w-4 h-4" />
                   I&apos;ve Paid — Verify Now
                 </button>
-                <div className="flex items-center justify-center gap-2 text-[9px] text-[#3A3A3F]">
+                <div className="flex items-center justify-center gap-2 text-[9px] text-[#C9D1D9]">
                   <Loader2 className="w-2.5 h-2.5 animate-spin" style={{ animationDuration: '3s' }} />
                   Checking status automatically in real-time
                 </div>
@@ -523,7 +523,7 @@ function PayPageContent() {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-[10px] text-[#2A2A2E] mt-4">
+        <p className="text-center text-[10px] text-[#C9D1D9] mt-4">
           © 2026 PayDrift · Secured with 256-bit TLS encryption
         </p>
       </div>
@@ -534,7 +534,7 @@ function PayPageContent() {
 export default function PayPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-[#0C0C0E]">
+      <div className="min-h-screen flex items-center justify-center bg-[#0D0D12]">
         <Loader2 className="w-8 h-8 animate-spin text-indigo-400" />
       </div>
     }>
