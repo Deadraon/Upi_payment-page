@@ -51,8 +51,7 @@ const PayDriftLogo = ({ className = 'w-48 h-auto' }) => (
     {/* Text DRIFT */}
     <text x="265" y="75" fontFamily="system-ui, -apple-system, sans-serif" fontWeight="900" fontSize="68" fill="#00AEEF" letterSpacing="-2">DRIFT</text>
     
-    {/* Tagline */}
-    <text x="130" y="100" fontFamily="system-ui, -apple-system, sans-serif" fontWeight="700" fontSize="16" fill="#8B949E" letterSpacing="5">SECURE UPI PAYMENTS</text>
+
     
     <defs>
       <linearGradient id="pd-grad" x1="10" y1="10" x2="110" y2="110" gradientUnits="userSpaceOnUse">
