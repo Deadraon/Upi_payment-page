@@ -35,46 +35,29 @@ const PhonePeLogo = () => <img src="/logos/phonepe.svg" alt="PhonePe"     classN
 const PaytmLogo   = () => <img src="/logos/paytm.svg"   alt="Paytm"       className="w-8 h-8 object-contain bg-white p-1.5 rounded-xl" />;
 const BhimLogo    = () => <img src="/logos/bhim.svg"    alt="BHIM UPI"    className="w-8 h-8 object-contain bg-white p-1.5 rounded-xl" />;
 const MyMobPayLogo = ({ className = 'w-48 h-auto' }) => (
-  <svg viewBox="0 0 480 100" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`} style={{ filter: 'drop-shadow(0 2px 12px rgba(0, 200, 255, 0.18))' }}>
+  <svg viewBox="0 0 340 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
+    {/* Accent dot */}
+    <circle cx="16" cy="30" r="12" fill="url(#mmp-dot)" />
+    <circle cx="16" cy="30" r="12" fill="none" stroke="url(#mmp-dot-ring)" strokeWidth="1.5" opacity="0.3" />
+    {/* Subtle inner glow on the dot */}
+    <circle cx="14" cy="28" r="4" fill="white" opacity="0.25" />
 
-    {/* ── Icon Mark: Rounded square with mobile + signal ── */}
-    <rect x="4" y="8" width="84" height="84" rx="22" fill="url(#mm-icon-bg)" />
-    <rect x="4" y="8" width="84" height="84" rx="22" fill="none" stroke="url(#mm-icon-border)" strokeWidth="2" opacity="0.5" />
-
-    {/* Phone body */}
-    <rect x="30" y="22" width="32" height="56" rx="7" fill="none" stroke="#FFFFFF" strokeWidth="3.5" />
-    {/* Phone screen highlight */}
-    <rect x="34" y="30" width="24" height="36" rx="3" fill="rgba(255,255,255,0.1)" />
-    {/* Phone home bar */}
-    <rect x="40" y="71" width="12" height="2.5" rx="1.25" fill="rgba(255,255,255,0.5)" />
-
-    {/* Signal arcs (payment waves emanating from phone) */}
-    <path d="M 58 38 C 64 38 69 43 69 49" fill="none" stroke="#00E5FF" strokeWidth="2.5" strokeLinecap="round" opacity="0.9" />
-    <path d="M 58 32 C 68 32 76 40 76 49" fill="none" stroke="#00C0FF" strokeWidth="2.5" strokeLinecap="round" opacity="0.65" />
-    <path d="M 58 26 C 72 26 83 37 83 49" fill="none" stroke="#0099FF" strokeWidth="2.5" strokeLinecap="round" opacity="0.4" />
-
-    {/* ── Typography ── */}
-    {/* MYMOB — solid white, heavy */}
-    <text x="108" y="66" fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" fontWeight="800" fontSize="48" fill="#FFFFFF" letterSpacing="-0.5">MYMOB</text>
-
-    {/* PAY — cyan gradient, same weight for unity */}
-    <text x="358" y="66" fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" fontWeight="800" fontSize="48" fill="url(#mm-text-grad)" letterSpacing="-0.5">PAY</text>
+    {/* Single unified wordmark */}
+    <text x="38" y="42" fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" fontWeight="700" fontSize="36" fill="url(#mmp-text)" letterSpacing="-1">MyMobPay</text>
 
     <defs>
-      {/* Icon background gradient */}
-      <linearGradient id="mm-icon-bg" x1="4" y1="8" x2="88" y2="92" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#0A1628" />
-        <stop offset="1" stopColor="#0D2847" />
-      </linearGradient>
-      {/* Icon border gradient */}
-      <linearGradient id="mm-icon-border" x1="4" y1="8" x2="88" y2="92" gradientUnits="userSpaceOnUse">
+      <linearGradient id="mmp-dot" x1="4" y1="18" x2="28" y2="42" gradientUnits="userSpaceOnUse">
         <stop stopColor="#00E5FF" />
-        <stop offset="1" stopColor="#0066DD" />
+        <stop offset="1" stopColor="#0066FF" />
       </linearGradient>
-      {/* Text gradient for PAY */}
-      <linearGradient id="mm-text-grad" x1="358" y1="30" x2="460" y2="80" gradientUnits="userSpaceOnUse">
+      <linearGradient id="mmp-dot-ring" x1="4" y1="18" x2="28" y2="42" gradientUnits="userSpaceOnUse">
         <stop stopColor="#00E5FF" />
-        <stop offset="1" stopColor="#0088FF" />
+        <stop offset="1" stopColor="#0044CC" />
+      </linearGradient>
+      <linearGradient id="mmp-text" x1="38" y1="10" x2="340" y2="50" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#FFFFFF" />
+        <stop offset="0.7" stopColor="#FFFFFF" />
+        <stop offset="1" stopColor="#00CFFF" />
       </linearGradient>
     </defs>
   </svg>
