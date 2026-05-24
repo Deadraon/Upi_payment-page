@@ -7,8 +7,8 @@ import { CONFIG } from '@/lib/config';
 import { supabase } from '@/lib/supabase';
 import {
   Copy, CheckCircle, Loader2, ShieldCheck,
-  IndianRupee, Lock, Smartphone, ArrowRight,
-  AlertCircle, ExternalLink, Zap,
+  IndianRupee, Lock, ArrowRight,
+  AlertCircle, Zap,
 } from 'lucide-react';
 
 /* ── UPI Logo ──────────────────────────────────────────────── */
@@ -35,36 +35,43 @@ const AnimatedCheck = () => (
   </svg>
 );
 
+/* ── Dark reusable input ────────────────────────────────────── */
+const DarkInput = ({ icon, ...props }) => (
+  <div className="relative">
+    {icon && <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#4B5563]">{icon}</div>}
+    <input
+      {...props}
+      className={`w-full bg-[#1C1C1F] border border-[#2E2E33] rounded-xl text-sm text-white placeholder-[#4B5563] focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/40 transition-all ${icon ? 'pl-9 pr-4' : 'px-3'} py-2.5`}
+    />
+  </div>
+);
+
 function PayPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Read URL params (universal gateway interface)
-  const paramAmount    = searchParams.get('amount') || '';
-  const paramProject   = searchParams.get('project') || CONFIG.businessName;
-  const paramCallback  = searchParams.get('callback') || '';
-  const paramName      = searchParams.get('name') || '';
-  const paramPhone     = searchParams.get('phone') || '';
-  const paramRef       = searchParams.get('ref') || '';
+  const paramAmount   = searchParams.get('amount') || '';
+  const paramProject  = searchParams.get('project') || CONFIG.businessName;
+  const paramCallback = searchParams.get('callback') || '';
+  const paramName     = searchParams.get('name') || '';
+  const paramPhone    = searchParams.get('phone') || '';
+  const paramRef      = searchParams.get('ref') || '';
 
-  // Form state
-  const [amount, setAmount]         = useState(paramAmount);
-  const [customerName, setName]     = useState(paramName);
-  const [customerPhone, setPhone]   = useState(paramPhone);
-  const [note, setNote]             = useState('');
+  const [amount, setAmount]       = useState(paramAmount);
+  const [customerName, setName]   = useState(paramName);
+  const [customerPhone, setPhone] = useState(paramPhone);
+  const [note]                    = useState('');
 
-  // Flow state: 'form' | 'paying' | 'done'
-  const [step, setStep]     = useState(paramAmount ? 'paying' : 'form');
-  const [orderId, setOrderId]   = useState(null);
+  const [step, setStep]               = useState(paramAmount ? 'paying' : 'form');
+  const [orderId, setOrderId]         = useState(null);
   const [orderAmount, setOrderAmount] = useState(null);
-  const [loading, setLoading]   = useState(false);
-  const [error, setError]       = useState('');
-  const [copied, setCopied]     = useState(false);
-  const [copiedAmt, setCopiedAmt] = useState(false);
-  const [confirmed, setConfirmed] = useState(false);
-  const [timer, setTimer]       = useState(600); // 10 min
+  const [loading, setLoading]         = useState(false);
+  const [error, setError]             = useState('');
+  const [copied, setCopied]           = useState(false);
+  const [copiedAmt, setCopiedAmt]     = useState(false);
+  const [confirmed, setConfirmed]     = useState(false);
+  const [timer, setTimer]             = useState(600);
 
-  // If amount pre-filled from URL, immediately create order on mount
   const autoCreated = useRef(false);
   useEffect(() => {
     if (paramAmount && !autoCreated.current) {
@@ -73,14 +80,12 @@ function PayPageContent() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Countdown timer
   useEffect(() => {
     if (step !== 'paying') return;
     const id = setInterval(() => setTimer(t => Math.max(0, t - 1)), 1000);
     return () => clearInterval(id);
   }, [step]);
 
-  // Real-time listener — auto-redirect when verified
   useEffect(() => {
     if (!orderId) return;
     const channel = supabase
@@ -89,9 +94,7 @@ function PayPageContent() {
         event: 'UPDATE', schema: 'public', table: 'orders',
         filter: `id=eq.${orderId}`,
       }, (payload) => {
-        if (payload.new.status === 'verified') {
-          router.push(`/status/${orderId}`);
-        }
+        if (payload.new.status === 'verified') router.push(`/status/${orderId}`);
       })
       .subscribe();
     return () => supabase.removeChannel(channel);
@@ -121,13 +124,8 @@ function PayPageContent() {
       if (!res.ok) throw new Error(data.error || 'Failed to create order');
       setOrderId(data.orderId);
       setOrderAmount(data.orderAmount);
-      // Store callback in localStorage for status page
-      if (paramCallback) {
-        localStorage.setItem(`callback_${data.orderId}`, paramCallback);
-      }
-      if (paramRef) {
-        localStorage.setItem(`ref_${data.orderId}`, paramRef);
-      }
+      if (paramCallback) localStorage.setItem(`callback_${data.orderId}`, paramCallback);
+      if (paramRef) localStorage.setItem(`ref_${data.orderId}`, paramRef);
       setStep('paying');
     } catch (err) {
       setError(err.message);
@@ -145,7 +143,7 @@ function PayPageContent() {
     createOrder(amount);
   };
 
-  const handleConfirmPaid = async () => {
+  const handleConfirmPaid = () => {
     if (!orderId) return;
     setConfirmed(true);
     setTimeout(() => router.push(`/status/${orderId}`), 800);
@@ -169,20 +167,20 @@ function PayPageContent() {
   };
 
   /* ═══════════════════════════════════════════════════════════
-     STEP 1: Amount Entry Form (when no amount in URL)
+     STEP 1: Form
   ═══════════════════════════════════════════════════════════ */
   if (step === 'form') {
     return (
-      <div className="min-h-screen bg-[#FAFAFA] flex flex-col">
-        {/* Top bar */}
-        <header className="w-full border-b border-gray-100 bg-white px-6 py-4 flex items-center justify-between">
+      <div className="min-h-screen bg-[#0C0C0E] flex flex-col">
+        {/* Header */}
+        <header className="w-full border-b border-[#1E1E22] bg-[#0C0C0E] px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center">
               <span className="text-white font-black text-xs">P</span>
             </div>
-            <span className="font-bold text-sm text-gray-900">PayDrift</span>
+            <span className="font-bold text-sm text-white">PayDrift</span>
           </div>
-          <div className="flex items-center gap-1.5 text-[11px] text-gray-400 font-medium">
+          <div className="flex items-center gap-1.5 text-[11px] text-[#4B5563] font-medium">
             <Lock className="w-3 h-3" />
             <span>Secured by PayDrift</span>
           </div>
@@ -190,34 +188,31 @@ function PayPageContent() {
 
         <main className="flex-1 flex items-center justify-center px-4 py-10">
           <div className="w-full max-w-sm animate-fade-up">
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="bg-[#141416] rounded-2xl border border-[#252528] overflow-hidden shadow-2xl">
               {/* Card header */}
-              <div className="px-6 pt-6 pb-5 border-b border-gray-50">
-                <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wider mb-1">
+              <div className="px-6 pt-6 pb-5 border-b border-[#1E1E22]">
+                <p className="text-[11px] text-[#4B5563] font-medium uppercase tracking-wider mb-1">
                   {paramProject !== CONFIG.businessName ? `Paying · ${paramProject}` : 'Payment Details'}
                 </p>
-                <h1 className="text-xl font-bold text-gray-900">Enter Amount</h1>
+                <h1 className="text-xl font-bold text-white">Enter Amount</h1>
               </div>
 
               <form onSubmit={handleSubmitForm} className="px-6 py-5 space-y-4">
                 {/* Amount */}
                 <div>
-                  <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider block mb-1.5">
+                  <label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider block mb-1.5">
                     Amount (₹)
                   </label>
-                  <div className="relative">
-                    <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="1"
-                      placeholder="0.00"
-                      value={amount}
-                      onChange={e => { setAmount(e.target.value); setError(''); }}
-                      className="pay-input pl-9 pr-4 py-3 text-base font-semibold"
-                      autoFocus
-                    />
-                  </div>
+                  <DarkInput
+                    icon={<IndianRupee className="w-4 h-4" />}
+                    type="number"
+                    step="0.01"
+                    min="1"
+                    placeholder="0.00"
+                    value={amount}
+                    onChange={e => { setAmount(e.target.value); setError(''); }}
+                    autoFocus
+                  />
                   {/* Quick amounts */}
                   <div className="flex gap-2 mt-2">
                     {[100, 500, 1000, 2000].map(a => (
@@ -227,8 +222,8 @@ function PayPageContent() {
                         onClick={() => setAmount(String(a))}
                         className={`flex-1 py-1.5 text-[11px] font-semibold rounded-lg border transition-all ${
                           amount === String(a)
-                            ? 'bg-indigo-50 border-indigo-300 text-indigo-700'
-                            : 'bg-gray-50 border-gray-200 text-gray-500 hover:border-gray-300'
+                            ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-400'
+                            : 'bg-[#1C1C1F] border-[#2E2E33] text-[#6B7280] hover:border-[#3E3E43]'
                         }`}
                       >
                         ₹{a}
@@ -239,36 +234,34 @@ function PayPageContent() {
 
                 {/* Name */}
                 <div>
-                  <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider block mb-1.5">
-                    Your Name <span className="text-gray-300 normal-case font-normal">(optional)</span>
+                  <label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider block mb-1.5">
+                    Your Name <span className="text-[#3A3A3F] normal-case font-normal">(optional)</span>
                   </label>
-                  <input
+                  <DarkInput
                     type="text"
-                    placeholder="John Doe"
+                    placeholder="Enter your name"
                     value={customerName}
                     onChange={e => setName(e.target.value)}
-                    className="pay-input px-3 py-2.5 text-sm"
                   />
                 </div>
 
                 {/* Phone */}
                 <div>
-                  <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider block mb-1.5">
-                    Phone <span className="text-gray-300 normal-case font-normal">(optional)</span>
+                  <label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider block mb-1.5">
+                    Phone <span className="text-[#3A3A3F] normal-case font-normal">(optional)</span>
                   </label>
-                  <input
+                  <DarkInput
                     type="tel"
                     inputMode="numeric"
                     maxLength={10}
                     placeholder="10-digit mobile number"
                     value={customerPhone}
                     onChange={e => setPhone(e.target.value.replace(/\D/g, ''))}
-                    className="pay-input px-3 py-2.5 text-sm"
                   />
                 </div>
 
                 {error && (
-                  <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 border border-red-100 text-xs text-red-600">
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400">
                     <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
                     {error}
                   </div>
@@ -277,7 +270,7 @@ function PayPageContent() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-60"
+                  className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
                     <><span>Proceed to Pay</span><ArrowRight className="w-4 h-4" /></>
@@ -287,11 +280,11 @@ function PayPageContent() {
             </div>
 
             {/* Trust footer */}
-            <div className="flex items-center justify-center gap-4 mt-5 text-[10px] text-gray-400">
+            <div className="flex items-center justify-center gap-4 mt-5 text-[10px] text-[#4B5563]">
               <span className="flex items-center gap-1"><ShieldCheck className="w-3 h-3" /> SSL Secure</span>
-              <span className="text-gray-200">|</span>
+              <span className="text-[#2A2A2E]">|</span>
               <span className="flex items-center gap-1"><Zap className="w-3 h-3" /> Instant Verify</span>
-              <span className="text-gray-200">|</span>
+              <span className="text-[#2A2A2E]">|</span>
               <UPILogo />
             </div>
           </div>
@@ -301,58 +294,59 @@ function PayPageContent() {
   }
 
   /* ═══════════════════════════════════════════════════════════
-     STEP 2: Payment / QR Screen
+     STEP 2: QR / Payment Screen
   ═══════════════════════════════════════════════════════════ */
   if (step === 'paying' && !confirmed) {
     const displayAmt = orderAmount ?? parseFloat(paramAmount);
 
     return (
-      <div className="min-h-screen bg-[#FAFAFA] flex flex-col">
-        {/* Top bar */}
-        <header className="w-full border-b border-gray-100 bg-white px-5 py-3.5 flex items-center justify-between">
+      <div className="min-h-screen bg-[#0C0C0E] flex flex-col">
+        {/* Header */}
+        <header className="w-full border-b border-[#1E1E22] bg-[#0C0C0E] px-5 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-md bg-indigo-600 flex items-center justify-center">
               <span className="text-white font-black text-[10px]">P</span>
             </div>
-            <span className="font-bold text-xs text-gray-900">PayDrift</span>
+            <span className="font-bold text-xs text-white">PayDrift</span>
           </div>
           <div className="flex items-center gap-3">
             {paramProject && paramProject !== CONFIG.businessName && (
-              <span className="text-[10px] text-gray-400 font-medium">for <strong className="text-gray-600">{paramProject}</strong></span>
+              <span className="text-[10px] text-[#4B5563] font-medium">
+                for <strong className="text-[#9CA3AF]">{paramProject}</strong>
+              </span>
             )}
-            <div className="flex items-center gap-1 text-[10px] text-gray-400">
-              <Lock className="w-2.5 h-2.5" />
-              <span>Secure</span>
+            <div className="flex items-center gap-1 text-[10px] text-[#4B5563]">
+              <Lock className="w-2.5 h-2.5" /><span>Secure</span>
             </div>
           </div>
         </header>
 
         <main className="flex-1 flex items-start justify-center px-4 py-6">
           <div className="w-full max-w-sm animate-scale-up">
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="bg-[#141416] rounded-2xl border border-[#252528] shadow-2xl overflow-hidden">
 
               {/* Amount hero */}
-              <div className="px-6 pt-6 pb-5 text-center border-b border-gray-50">
-                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-2">Pay Exactly</p>
+              <div className="px-6 pt-6 pb-5 text-center border-b border-[#1E1E22]">
+                <p className="text-[10px] font-semibold text-[#4B5563] uppercase tracking-widest mb-2">Pay Exactly</p>
                 <div className="flex items-center justify-center gap-1">
-                  <span className="text-3xl font-black text-gray-900">₹</span>
-                  <span className="text-4xl font-black text-gray-900 tabular-nums">
+                  <span className="text-3xl font-black text-white">₹</span>
+                  <span className="text-4xl font-black text-white tabular-nums">
                     {displayAmt ? parseFloat(displayAmt).toLocaleString('en-IN', { minimumFractionDigits: 2 }) : '—'}
                   </span>
                 </div>
-                <div className="flex items-center justify-center gap-3 mt-2.5 text-[10px] text-gray-400">
-                  <span>to <strong className="text-gray-600">{CONFIG.businessName}</strong></span>
-                  <span className="text-gray-200">·</span>
+                <div className="flex items-center justify-center gap-3 mt-2.5 text-[10px] text-[#4B5563]">
+                  <span>to <strong className="text-[#9CA3AF]">{CONFIG.businessName}</strong></span>
+                  <span className="text-[#252528]">·</span>
                   <span className="font-mono text-[9px]">{orderId}</span>
-                  <span className="text-gray-200">·</span>
-                  <span className="font-mono text-indigo-500">{formatTime(timer)}</span>
+                  <span className="text-[#252528]">·</span>
+                  <span className="font-mono text-indigo-400">{formatTime(timer)}</span>
                 </div>
               </div>
 
-              {/* QR Code */}
+              {/* QR Code — white background always */}
               <div className="flex flex-col items-center py-6 px-6">
                 {upiQrValue ? (
-                  <div className="qr-card p-4 flex flex-col items-center">
+                  <div className="rounded-2xl p-4 bg-white shadow-lg flex flex-col items-center">
                     <QRCode
                       value={upiQrValue}
                       size={180}
@@ -361,26 +355,28 @@ function PayPageContent() {
                       bgColor="#FFFFFF"
                     />
                     <div className="mt-3 pt-3 border-t border-gray-100 w-full text-center">
-                      <p className="text-[9px] text-gray-400 font-medium uppercase tracking-wider">Open any UPI app → Scan → Pay</p>
+                      <p className="text-[9px] text-gray-400 font-medium uppercase tracking-wider">
+                        Open any UPI app → Scan → Pay
+                      </p>
                       <div className="flex justify-center mt-1.5">
                         <UPILogo />
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center h-[200px]">
+                  <div className="flex items-center justify-center h-[220px]">
                     <Loader2 className="w-8 h-8 animate-spin text-indigo-400" />
                   </div>
                 )}
 
-                {/* Copy row */}
+                {/* Copy buttons */}
                 <div className="grid grid-cols-2 gap-2.5 w-full mt-4">
                   <button
                     onClick={copyUPI}
                     className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[11px] font-semibold border transition-all active:scale-95 ${
                       copied
-                        ? 'bg-green-50 border-green-200 text-green-700'
-                        : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-gray-300'
+                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                        : 'bg-[#1C1C1F] border-[#2E2E33] text-[#9CA3AF] hover:border-[#3E3E43]'
                     }`}
                   >
                     {copied ? <CheckCircle className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
@@ -390,8 +386,8 @@ function PayPageContent() {
                     onClick={copyAmount}
                     className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[11px] font-semibold border transition-all active:scale-95 ${
                       copiedAmt
-                        ? 'bg-green-50 border-green-200 text-green-700'
-                        : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-gray-300'
+                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                        : 'bg-[#1C1C1F] border-[#2E2E33] text-[#9CA3AF] hover:border-[#3E3E43]'
                     }`}
                   >
                     {copiedAmt ? <CheckCircle className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
@@ -399,33 +395,33 @@ function PayPageContent() {
                   </button>
                 </div>
 
-                {/* UPI ID display */}
-                <div className="w-full mt-2 px-3 py-2 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-between">
-                  <span className="text-[10px] text-gray-400">UPI ID</span>
-                  <span className="text-[11px] font-mono font-semibold text-gray-700">{CONFIG.upiId}</span>
+                {/* UPI ID pill */}
+                <div className="w-full mt-2 px-3 py-2 rounded-xl bg-[#1C1C1F] border border-[#2E2E33] flex items-center justify-between">
+                  <span className="text-[10px] text-[#4B5563]">UPI ID</span>
+                  <span className="text-[11px] font-mono font-semibold text-[#9CA3AF]">{CONFIG.upiId}</span>
                 </div>
               </div>
 
-              {/* Confirm button */}
+              {/* Confirm */}
               <div className="px-6 pb-6">
                 <button
                   onClick={handleConfirmPaid}
                   disabled={!orderId}
-                  className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-40"
+                  className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-40"
                 >
                   <CheckCircle className="w-4 h-4" />
                   I&apos;ve Paid — Verify Now
                 </button>
-                <p className="text-center text-[9px] text-gray-400 mt-2.5 leading-relaxed">
+                <p className="text-center text-[9px] text-[#4B5563] mt-2.5 leading-relaxed">
                   Tap after completing payment. Auto-verification is active.
                 </p>
               </div>
             </div>
 
             {/* Trust strip */}
-            <div className="flex items-center justify-center gap-4 mt-4 text-[10px] text-gray-400">
+            <div className="flex items-center justify-center gap-4 mt-4 text-[10px] text-[#4B5563]">
               <span className="flex items-center gap-1"><ShieldCheck className="w-3 h-3" /> 256-bit SSL</span>
-              <span className="text-gray-200">|</span>
+              <span className="text-[#252528]">|</span>
               <span className="flex items-center gap-1"><Zap className="w-3 h-3" /> Live auto-verify</span>
             </div>
           </div>
@@ -434,12 +430,12 @@ function PayPageContent() {
     );
   }
 
-  /* ── Confirmed transition ── */
+  /* Transition */
   return (
-    <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center">
+    <div className="min-h-screen bg-[#0C0C0E] flex items-center justify-center">
       <div className="flex flex-col items-center gap-4 animate-fade-in">
         <AnimatedCheck />
-        <p className="text-sm font-semibold text-gray-600">Redirecting to verification...</p>
+        <p className="text-sm font-semibold text-[#6B7280]">Redirecting to verification...</p>
       </div>
     </div>
   );
@@ -448,7 +444,7 @@ function PayPageContent() {
 export default function PayPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA]">
+      <div className="min-h-screen flex items-center justify-center bg-[#0C0C0E]">
         <Loader2 className="w-8 h-8 animate-spin text-indigo-400" />
       </div>
     }>
