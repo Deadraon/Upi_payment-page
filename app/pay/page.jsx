@@ -34,7 +34,7 @@ const GPayLogo    = () => <img src="/logos/gpay.svg"    alt="Google Pay"  classN
 const PhonePeLogo = () => <img src="/logos/phonepe.svg" alt="PhonePe"     className="w-8 h-8 object-contain rounded-xl" />;
 const PaytmLogo   = () => <img src="/logos/paytm.svg"   alt="Paytm"       className="w-8 h-8 object-contain rounded-xl" />;
 const BhimLogo    = () => <img src="/logos/bhim.svg"    alt="BHIM UPI"    className="w-8 h-8 object-contain rounded-xl" />;
-const PayDriftLogo = ({ size = 'w-8 h-8' }) => <img src="/logos/paydrift.png" alt="PayDrift" className={`${size} object-contain rounded-xl shadow-lg shadow-indigo-500/10`} />;
+const PayDriftLogo = ({ size = 'w-8 h-8' }) => <img src="/logos/logo.png" alt="PayDrift" className={`${size} object-contain rounded-xl shadow-lg shadow-indigo-500/10`} />;
 
 const UPI_APPS = [
   { id: 'gpay',    label: 'Google Pay',  sub: 'Pay via GPay',    logo: <GPayLogo />,    accent: '#4285F4' },
