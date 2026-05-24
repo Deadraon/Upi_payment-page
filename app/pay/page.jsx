@@ -34,13 +34,33 @@ const GPayLogo    = () => <img src="/logos/gpay.svg"    alt="Google Pay"  classN
 const PhonePeLogo = () => <img src="/logos/phonepe.svg" alt="PhonePe"     className="w-8 h-8 object-contain bg-white p-1.5 rounded-xl" />;
 const PaytmLogo   = () => <img src="/logos/paytm.svg"   alt="Paytm"       className="w-8 h-8 object-contain bg-white p-1.5 rounded-xl" />;
 const BhimLogo    = () => <img src="/logos/bhim.svg"    alt="BHIM UPI"    className="w-8 h-8 object-contain bg-white p-1.5 rounded-xl" />;
-const PayDriftLogo = ({ className = 'w-8 h-8 object-contain' }) => (
-  <img
-    src="/logos/new_transparent_logo.png"
-    alt="PayDrift"
-    className={`${className} rounded-xl transition-all duration-300 hover:scale-[1.02]`}
-    style={{ filter: 'drop-shadow(0 4px 15px rgba(0, 174, 239, 0.4))' }}
-  />
+const PayDriftLogo = ({ className = 'w-48 h-auto' }) => (
+  <svg viewBox="0 0 520 120" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`} style={{ filter: 'drop-shadow(0 4px 15px rgba(0, 174, 239, 0.2))' }}>
+    {/* Shield/Icon Background */}
+    <rect x="5" y="10" width="100" height="100" rx="30" fill="url(#pd-grad)" />
+    
+    {/* P shape */}
+    <path d="M35 35H55C66.0457 35 75 43.9543 75 55C75 66.0457 66.0457 75 55 75H35V35Z" fill="white" />
+    <path d="M35 35V85" stroke="white" strokeWidth="12" strokeLinecap="round" />
+    
+    {/* D curve overlay (Arrows feel) */}
+    <path d="M55 25L80 50L55 75" stroke="#0D1117" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round" />
+    
+    {/* Text PAY */}
+    <text x="125" y="75" fontFamily="system-ui, -apple-system, sans-serif" fontWeight="900" fontSize="68" fill="white" letterSpacing="-2">PAY</text>
+    {/* Text DRIFT */}
+    <text x="265" y="75" fontFamily="system-ui, -apple-system, sans-serif" fontWeight="900" fontSize="68" fill="#00AEEF" letterSpacing="-2">DRIFT</text>
+    
+    {/* Tagline */}
+    <text x="130" y="100" fontFamily="system-ui, -apple-system, sans-serif" fontWeight="700" fontSize="16" fill="#8B949E" letterSpacing="5">SECURE UPI PAYMENTS</text>
+    
+    <defs>
+      <linearGradient id="pd-grad" x1="10" y1="10" x2="110" y2="110" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#00AEEF" />
+        <stop offset="1" stopColor="#0056D2" />
+      </linearGradient>
+    </defs>
+  </svg>
 );
 
 const UPI_APPS = [
@@ -72,7 +92,7 @@ const OrderPanel = ({ project, amount, orderId, timer }) => {
       <div>
         {/* Logo */}
         <div className="flex flex-col items-start gap-1 mb-9">
-          <PayDriftLogo className="w-56 h-auto object-contain -ml-5 md:-ml-7" />
+          <PayDriftLogo className="w-64 h-auto object-contain" />
           {project && project !== CONFIG.businessName && (
             <p className="text-[10px] text-[#8B949E] font-medium ml-1">via {project}</p>
           )}
@@ -253,7 +273,7 @@ function PayPageContent() {
           <div className="order-2 md:order-1 w-full md:w-[42%] bg-[#0D1117] border-t md:border-t-0 md:border-r border-[#21262D] px-7 py-8 flex flex-col justify-between">
             <div>
               <div className="flex flex-col items-start gap-1 mb-8">
-                <PayDriftLogo className="w-64 h-auto object-contain -ml-5 md:-ml-7" />
+                <PayDriftLogo className="w-72 h-auto object-contain" />
               </div>
               <div className="mb-8">
                 <h1 className="text-2xl font-black text-[#E6EDF3] leading-snug mb-2">
@@ -351,7 +371,7 @@ function PayPageContent() {
             {/* Mobile compact */}
             <div className="md:hidden flex items-center justify-between px-5 py-4 border-b border-[#21262D]">
               <div className="flex items-center">
-                <PayDriftLogo className="w-32 h-auto object-contain -ml-3" />
+                <PayDriftLogo className="w-40 h-auto object-contain" />
               </div>
               <div className="text-right">
                 <p className="text-[9px] text-[#8B949E] uppercase tracking-wider">Total</p>
