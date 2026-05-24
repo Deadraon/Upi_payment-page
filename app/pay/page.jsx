@@ -270,7 +270,7 @@ function PayPageContent() {
         <div className="flex flex-col md:flex-row rounded-2xl overflow-hidden border border-[#30363D] shadow-2xl shadow-black/60">
 
           {/* LEFT branding panel */}
-          <div className="w-full md:w-[42%] bg-[#0D1117] border-b md:border-b-0 md:border-r border-[#21262D] px-7 py-8 flex flex-col justify-between">
+          <div className="order-2 md:order-1 w-full md:w-[42%] bg-[#0D1117] border-t md:border-t-0 md:border-r border-[#21262D] px-7 py-8 flex flex-col justify-between">
             <div>
               <div className="flex items-center gap-3 mb-10">
                 <div className="w-11 h-11 rounded-2xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-600/40">
@@ -319,7 +319,7 @@ function PayPageContent() {
           </div>
 
           {/* RIGHT form panel */}
-          <div className="flex-1 bg-[#161B22] px-7 py-8">
+          <div className="order-1 md:order-2 flex-1 bg-[#161B22] px-7 py-8">
             <div className="mb-6">
               <p className="text-[10px] text-[#484F58] uppercase tracking-widest font-bold mb-1">
                 {paramProject !== CONFIG.businessName ? ('Paying via ' + paramProject) : 'New Payment'}
