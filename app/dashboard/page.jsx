@@ -29,6 +29,17 @@ export default function DashboardPage() {
     fetchSession();
   }, [router]);
 
+  // Safe UUID generator that works on non-HTTPS connections
+  const generateUUID = () => {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  };
+
   const fetchProfile = async (userId) => {
     try {
       const { data, error } = await supabase
@@ -40,7 +51,7 @@ export default function DashboardPage() {
 
       // Auto-fix missing api_key for older accounts
       if (!data.api_key) {
-        const newKey = crypto.randomUUID();
+        const newKey = generateUUID();
         await supabase.from('merchants').update({ api_key: newKey }).eq('id', userId);
         data.api_key = newKey;
       }
@@ -50,7 +61,7 @@ export default function DashboardPage() {
       console.error('Error fetching profile:', error);
       // If profile doesn't exist, create it (fallback)
       if (error.code === 'PGRST116') {
-         const newKey = crypto.randomUUID();
+         const newKey = generateUUID();
          const newProfile = { id: userId, business_name: 'My Business', upi_id: 'pending@upi', api_key: newKey };
          const { data: insertedData, error: insertErr } = await supabase.from('merchants').insert(newProfile).select().single();
          if (insertErr) throw insertErr;
