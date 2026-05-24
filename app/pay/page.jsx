@@ -34,9 +34,9 @@ const GPayLogo    = () => <img src="/logos/gpay.svg"    alt="Google Pay"  classN
 const PhonePeLogo = () => <img src="/logos/phonepe.svg" alt="PhonePe"     className="w-8 h-8 object-contain bg-white p-1 rounded-xl shadow-sm border border-slate-100" />;
 const PaytmLogo   = () => <img src="/logos/paytm.svg"   alt="Paytm"       className="w-8 h-8 object-contain bg-white p-1 rounded-xl shadow-sm border border-slate-100" />;
 const BhimLogo    = () => <img src="/logos/bhim.svg"    alt="BHIM UPI"    className="w-8 h-8 object-contain bg-white p-1 rounded-xl shadow-sm border border-slate-100" />;
-const PayDriftLogo = ({ className = 'w-48 h-auto mix-blend-multiply object-contain' }) => (
+const PayDriftLogo = ({ className = 'w-full max-w-[240px] h-auto object-contain' }) => (
   <img
-    src="/logos/logo.png?v=5"
+    src="/logos/logo.png?v=6"
     alt="PayDrift"
     className={`${className} transition-transform duration-300 hover:scale-[1.02]`}
   />
@@ -71,7 +71,7 @@ const OrderPanel = ({ project, amount, orderId, timer }) => {
       <div>
         {/* Logo */}
         <div className="flex flex-col items-start gap-1 mb-9">
-          <PayDriftLogo className="w-48 md:w-52 h-auto mix-blend-multiply object-contain -ml-2" />
+          <PayDriftLogo className="w-64 h-auto object-contain" />
           {project && project !== CONFIG.businessName && (
             <p className="text-[10px] text-slate-500 font-medium ml-1">via {project}</p>
           )}
@@ -90,18 +90,18 @@ const OrderPanel = ({ project, amount, orderId, timer }) => {
 
         {/* Order details */}
         <div className="space-y-0 rounded-xl overflow-hidden border border-slate-200 divide-y divide-slate-100">
-          <div className="flex justify-between items-center px-3.5 py-2.5 bg-white">
+          <div className="flex justify-between items-center px-3.5 py-2.5 bg-slate-50">
             <span className="text-[11px] text-slate-500">Paying to</span>
             <span className="text-[11px] font-semibold text-slate-900">{CONFIG.businessName}</span>
           </div>
           {orderId && (
-            <div className="flex justify-between items-center px-3.5 py-2.5 bg-white">
+            <div className="flex justify-between items-center px-3.5 py-2.5 bg-slate-50">
               <span className="text-[11px] text-slate-500">Order ID</span>
               <span className="text-[11px] font-mono text-slate-700">{orderId}</span>
             </div>
           )}
           {timer !== undefined && (
-            <div className="flex justify-between items-center px-3.5 py-2.5 bg-white">
+            <div className="flex justify-between items-center px-3.5 py-2.5 bg-slate-50">
               <span className="text-[11px] text-slate-500">Expires in</span>
               <span className="text-[11px] font-mono font-bold text-cyan-600">{fmt(timer)}</span>
             </div>
@@ -249,11 +249,10 @@ function PayPageContent() {
         <div className="flex flex-col md:flex-row rounded-2xl overflow-hidden border border-slate-200 shadow-2xl shadow-slate-200/50">
 
           {/* LEFT branding panel */}
-          <div className="order-2 md:order-1 w-full md:w-[42%] bg-slate-50 border-t md:border-t-0 md:border-r border-slate-100 px-7 py-8 flex flex-col justify-between">
+          <div className="order-2 md:order-1 w-full md:w-[42%] bg-white border-t md:border-t-0 md:border-r border-slate-100 px-7 py-8 flex flex-col justify-between">
             <div>
-              <div className="flex flex-col items-start gap-1 mb-10">
-                <PayDriftLogo className="w-56 md:w-64 h-auto mix-blend-multiply object-contain -ml-2" />
-                <p className="text-[11px] text-slate-500 font-medium tracking-wide ml-1">Universal Payment Gateway</p>
+              <div className="flex flex-col items-start mb-8">
+                <PayDriftLogo className="w-full max-w-[260px] h-auto object-contain" />
               </div>
               <div className="mb-8">
                 <h1 className="text-2xl font-black text-slate-900 leading-snug mb-2">
@@ -293,7 +292,7 @@ function PayPageContent() {
           </div>
 
           {/* RIGHT form panel */}
-          <div className="order-1 md:order-2 flex-1 bg-white px-7 py-8">
+          <div className="order-1 md:order-2 flex-1 bg-slate-50 px-7 py-8">
             <div className="mb-6">
               <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-1">
                 {paramProject !== CONFIG.businessName ? ('Paying via ' + paramProject) : 'New Payment'}
@@ -307,13 +306,13 @@ function PayPageContent() {
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-black text-slate-400 select-none">₹</span>
                   <input type="number" step="0.01" min="1" autoFocus placeholder="0.00" value={amount}
                     onChange={e => { setAmount(e.target.value); setError(''); }}
-                    className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl pl-9 pr-4 py-4 text-slate-900 text-2xl font-black placeholder-slate-300 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all tabular-nums" />
+                    className="w-full bg-white border-2 border-slate-200 rounded-xl pl-9 pr-4 py-4 text-slate-900 text-2xl font-black placeholder-slate-300 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all tabular-nums" />
                 </div>
                 <div className="grid grid-cols-4 gap-2 mt-2.5">
                   {[100, 500, 1000, 2000].map(a => (
                     <button key={a} type="button" onClick={() => setAmount(String(a))}
                       className={`py-2 text-[12px] font-bold rounded-xl border transition-all ${
-                        amount === String(a) ? 'bg-cyan-50 border-cyan-500 text-cyan-700' : 'bg-slate-100 border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700'
+                        amount === String(a) ? 'bg-cyan-50 border-cyan-500 text-cyan-700' : 'bg-white border-slate-200 text-slate-500 shadow-sm hover:border-slate-300 hover:text-slate-700'
                       }`}>₹{a >= 1000 ? ((a/1000) + 'K') : a}</button>
                   ))}
                 </div>
@@ -322,13 +321,13 @@ function PayPageContent() {
                 <div>
                   <label className="text-[11px] text-slate-500 uppercase tracking-wider font-bold block mb-2">Name <span className="text-slate-400 normal-case font-normal text-[10px]">(opt)</span></label>
                   <input type="text" placeholder="Your name" value={customerName} onChange={e => setName(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/25 transition-all" />
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/25 transition-all" />
                 </div>
                 <div>
                   <label className="text-[11px] text-slate-500 uppercase tracking-wider font-bold block mb-2">Phone <span className="text-slate-400 normal-case font-normal text-[10px]">(opt)</span></label>
                   <input type="tel" inputMode="numeric" maxLength={10} placeholder="Mobile no." value={customerPhone}
                     onChange={e => setPhone(e.target.value.replace(/\D/g,''))}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/25 transition-all" />
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/25 transition-all" />
                 </div>
               </div>
               {error && (
@@ -359,11 +358,11 @@ function PayPageContent() {
         <div className="flex flex-col md:flex-row rounded-2xl overflow-hidden border border-slate-200 shadow-2xl shadow-slate-200/50">
 
           {/* ── LEFT PANEL (order summary) ── */}
-          <div className="w-full md:w-[40%] bg-slate-50 border-b md:border-b-0 md:border-r border-slate-100">
+          <div className="w-full md:w-[40%] bg-white border-b md:border-b-0 md:border-r border-slate-100">
             {/* Mobile compact */}
             <div className="md:hidden flex items-center justify-between px-5 py-4 border-b border-slate-100">
               <div className="flex items-center">
-                <PayDriftLogo className="w-32 h-auto mix-blend-multiply object-contain -ml-1" />
+                <PayDriftLogo className="w-40 h-auto object-contain" />
               </div>
               <div className="text-right">
                 <p className="text-[9px] text-slate-500 uppercase tracking-wider">Total</p>
@@ -379,7 +378,7 @@ function PayPageContent() {
           </div>
 
           {/* ── RIGHT PANEL (payment methods) ── */}
-          <div className="flex-1 bg-white">
+          <div className="flex-1 bg-[#F8FAFC]">
             {/* Tab header */}
             <div className="flex items-center gap-3 px-6 pt-5 pb-4 border-b border-slate-100">
               <div className="px-3 py-1 rounded-lg bg-cyan-50 border border-cyan-200">
@@ -390,7 +389,7 @@ function PayPageContent() {
 
             <div className="px-6 py-5">
               {/* Apps / QR toggle */}
-              <div className="flex p-1 bg-slate-50 rounded-xl mb-5 border border-slate-100">
+              <div className="flex p-1 bg-white rounded-xl mb-5 border border-slate-100">
                 {[
                   { id: 'apps', icon: <Smartphone className="w-3.5 h-3.5" />, label: 'UPI Apps' },
                   { id: 'qr',   icon: <QrCode className="w-3.5 h-3.5" />,   label: 'Scan QR'  },
