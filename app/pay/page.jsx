@@ -262,80 +262,119 @@ function PayPageContent() {
     </div>
   );
 
-  /* ════════════════════════════════════════════════════════════
-     FORM (no amount in URL)
-  ════════════════════════════════════════════════════════════ */
+
+  /* FORM (no amount in URL) */
   if (step === 'form') return (
     <div className="min-h-screen bg-[#0D1117] flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-[420px] animate-scale-up">
-        <div className="bg-[#161B22] rounded-2xl border border-[#30363D] shadow-2xl overflow-hidden">
-          <div className="px-7 pt-7 pb-5 border-b border-[#21262D]">
-            <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center">
-                <span className="text-white font-black text-xs">P</span>
-              </div>
-              <span className="font-black text-[15px] text-[#E6EDF3]">PayDrift</span>
-            </div>
-            <p className="text-[11px] text-[#8B949E] uppercase tracking-wider font-semibold">
-              {paramProject !== CONFIG.businessName ? `Paying · ${paramProject}` : 'Enter Payment Details'}
-            </p>
-          </div>
+      <div className="w-full max-w-3xl animate-scale-up">
+        <div className="flex flex-col md:flex-row rounded-2xl overflow-hidden border border-[#30363D] shadow-2xl shadow-black/60">
 
-          <form onSubmit={handleSubmit} className="px-7 py-6 space-y-4">
+          {/* LEFT branding panel */}
+          <div className="w-full md:w-[42%] bg-[#0D1117] border-b md:border-b-0 md:border-r border-[#21262D] px-7 py-8 flex flex-col justify-between">
             <div>
-              <label className="text-[11px] text-[#8B949E] uppercase tracking-wider font-semibold block mb-1.5">Amount (₹)</label>
-              <div className="relative">
-                <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8B949E]" />
-                <input type="number" step="0.01" min="1" placeholder="0.00" autoFocus value={amount}
-                  onChange={e => { setAmount(e.target.value); setError(''); }}
-                  className="w-full bg-[#21262D] border border-[#30363D] rounded-xl pl-9 pr-4 py-3 text-[#E6EDF3] text-lg font-bold placeholder-[#484F58] focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 transition-all" />
+              <div className="flex items-center gap-3 mb-10">
+                <div className="w-11 h-11 rounded-2xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-600/40">
+                  <span className="text-white font-black text-lg">P</span>
+                </div>
+                <div>
+                  <p className="font-black text-[17px] text-[#E6EDF3] tracking-tight">PayDrift</p>
+                  <p className="text-[10px] text-[#484F58] font-medium">Universal Payment Gateway</p>
+                </div>
               </div>
-              <div className="flex gap-2 mt-2">
-                {[100, 500, 1000, 2000].map(a => (
-                  <button key={a} type="button" onClick={() => setAmount(String(a))}
-                    className={`flex-1 py-1.5 text-[11px] font-bold rounded-lg border transition-all ${
-                      amount === String(a) ? 'bg-indigo-600/20 border-indigo-500 text-indigo-400' : 'bg-[#21262D] border-[#30363D] text-[#8B949E] hover:border-[#484F58] hover:text-[#C9D1D9]'
-                    }`}>₹{a}</button>
+              <div className="mb-8">
+                <h1 className="text-2xl font-black text-[#E6EDF3] leading-snug mb-2">
+                  Fast &amp; Secure<br />
+                  <span className="text-indigo-400">UPI Payments</span>
+                </h1>
+                <p className="text-[13px] text-[#8B949E] leading-relaxed">
+                  Pay via GPay, PhonePe, Paytm or scan a QR code — auto-verified in seconds.
+                </p>
+              </div>
+              <div className="space-y-3">
+                {[
+                  { icon: <ShieldCheck className="w-4 h-4 text-emerald-400" />, title: '256-bit SSL encryption', sub: 'Bank-grade security' },
+                  { icon: <Zap className="w-4 h-4 text-indigo-400" />, title: 'Auto-verified instantly', sub: 'No manual confirmation' },
+                  { icon: <Lock className="w-4 h-4 text-[#8B949E]" />, title: 'All UPI apps supported', sub: 'GPay, PhonePe, Paytm & more' },
+                ].map((feat, i) => (
+                  <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-[#161B22] border border-[#21262D]">
+                    <div className="mt-0.5 flex-shrink-0">{feat.icon}</div>
+                    <div>
+                      <p className="text-[12px] font-semibold text-[#C9D1D9]">{feat.title}</p>
+                      <p className="text-[10px] text-[#484F58] mt-0.5">{feat.sub}</p>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
-
-            <div>
-              <label className="text-[11px] text-[#8B949E] uppercase tracking-wider font-semibold block mb-1.5">
-                Name <span className="text-[#484F58] normal-case font-normal">(optional)</span>
-              </label>
-              <input type="text" placeholder="Enter your name" value={customerName} onChange={e => setName(e.target.value)}
-                className="w-full bg-[#21262D] border border-[#30363D] rounded-xl px-3 py-2.5 text-sm text-[#E6EDF3] placeholder-[#484F58] focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 transition-all" />
-            </div>
-
-            <div>
-              <label className="text-[11px] text-[#8B949E] uppercase tracking-wider font-semibold block mb-1.5">
-                Phone <span className="text-[#484F58] normal-case font-normal">(optional)</span>
-              </label>
-              <input type="tel" inputMode="numeric" maxLength={10} placeholder="10-digit mobile number" value={customerPhone}
-                onChange={e => setPhone(e.target.value.replace(/\D/g,''))}
-                className="w-full bg-[#21262D] border border-[#30363D] rounded-xl px-3 py-2.5 text-sm text-[#E6EDF3] placeholder-[#484F58] focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 transition-all" />
-            </div>
-
-            {error && (
-              <div className="flex items-center gap-2 p-3 rounded-xl bg-red-900/30 border border-red-500/30 text-xs text-red-400">
-                <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />{error}
+            <div className="mt-8 pt-5 border-t border-[#21262D]">
+              <p className="text-[10px] text-[#484F58] mb-2">Works with all UPI apps</p>
+              <div className="flex items-center gap-2">
+                <div className="flex gap-1.5">
+                  {[['G','#4285F4'],['P','#5F259F'],['P','#00BAF2'],['B','#00529B']].map(([l,col],i) => (
+                    <div key={i} className="w-6 h-6 rounded-full border-2 border-[#0D1117] flex items-center justify-center" style={{background:col}}>
+                      <span className="text-white font-black text-[8px]">{l}</span>
+                    </div>
+                  ))}
+                </div>
+                <span className="text-[10px] text-[#8B949E]">&amp; any UPI app</span>
               </div>
-            )}
-            <button type="submit" disabled={loading}
-              className="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50">
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Continue</span><ArrowRight className="w-4 h-4" /></>}
-            </button>
-          </form>
+            </div>
+          </div>
+
+          {/* RIGHT form panel */}
+          <div className="flex-1 bg-[#161B22] px-7 py-8">
+            <div className="mb-6">
+              <p className="text-[10px] text-[#484F58] uppercase tracking-widest font-bold mb-1">
+                {paramProject !== CONFIG.businessName ? Paying via  : 'New Payment'}
+              </p>
+              <h2 className="text-xl font-black text-[#E6EDF3]">Enter Details</h2>
+            </div>
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label className="text-[11px] text-[#8B949E] uppercase tracking-wider font-bold block mb-2">Amount</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-black text-[#484F58] select-none">₹</span>
+                  <input type="number" step="0.01" min="1" autoFocus placeholder="0.00" value={amount}
+                    onChange={e => { setAmount(e.target.value); setError(''); }}
+                    className="w-full bg-[#0D1117] border-2 border-[#30363D] rounded-xl pl-9 pr-4 py-4 text-[#E6EDF3] text-2xl font-black placeholder-[#30363D] focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all tabular-nums" />
+                </div>
+                <div className="grid grid-cols-4 gap-2 mt-2.5">
+                  {[100, 500, 1000, 2000].map(a => (
+                    <button key={a} type="button" onClick={() => setAmount(String(a))}
+                      className={py-2 text-[12px] font-bold rounded-xl border transition-all }>₹{a >= 1000 ? (a/1000)+'K' : a}</button>
+                  ))}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] text-[#8B949E] uppercase tracking-wider font-bold block mb-2">Name <span className="text-[#30363D] normal-case font-normal text-[10px]">(opt)</span></label>
+                  <input type="text" placeholder="Your name" value={customerName} onChange={e => setName(e.target.value)}
+                    className="w-full bg-[#21262D] border border-[#30363D] rounded-xl px-3 py-2.5 text-sm text-[#E6EDF3] placeholder-[#484F58] focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/25 transition-all" />
+                </div>
+                <div>
+                  <label className="text-[11px] text-[#8B949E] uppercase tracking-wider font-bold block mb-2">Phone <span className="text-[#30363D] normal-case font-normal text-[10px]">(opt)</span></label>
+                  <input type="tel" inputMode="numeric" maxLength={10} placeholder="Mobile no." value={customerPhone}
+                    onChange={e => setPhone(e.target.value.replace(/\D/g,''))}
+                    className="w-full bg-[#21262D] border border-[#30363D] rounded-xl px-3 py-2.5 text-sm text-[#E6EDF3] placeholder-[#484F58] focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/25 transition-all" />
+                </div>
+              </div>
+              {error && (
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-red-900/25 border border-red-500/25 text-xs text-red-400">
+                  <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />{error}
+                </div>
+              )}
+              <button type="submit" disabled={loading}
+                className="w-full py-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-base flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 shadow-xl shadow-indigo-600/25">
+                {loading ? <><Loader2 className="w-5 h-5 animate-spin" /><span>Creating order...</span></> : <><IndianRupee className="w-5 h-5" /><span>Continue to Pay</span><ArrowRight className="w-5 h-5" /></>}
+              </button>
+              <p className="text-center text-[10px] text-[#484F58]">Secured by 256-bit TLS · Powered by PayDrift</p>
+            </form>
+          </div>
         </div>
-        <div className="flex items-center justify-center gap-3 mt-5 text-[11px] text-[#484F58]">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /><span>SSL Secure</span>
-          <span>·</span><Zap className="w-3.5 h-3.5 text-indigo-500" /><span>Auto-verified</span>
-        </div>
+        <p className="text-center text-[10px] text-[#30363D] mt-4">© 2026 PayDrift · All transactions are encrypted</p>
       </div>
     </div>
   );
-
   /* ════════════════════════════════════════════════════════════
      PAYMENT SCREEN — Razorpay two-panel
   ════════════════════════════════════════════════════════════ */
