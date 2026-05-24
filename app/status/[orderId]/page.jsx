@@ -34,33 +34,34 @@ const Row = ({ label, value, mono = false, green = false }) => (
   </div>
 );
 
-const PayDriftLogo = ({ className = 'w-32 h-auto' }) => (
-  <svg viewBox="0 0 500 120" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`} style={{ filter: 'drop-shadow(0 4px 20px rgba(0, 229, 255, 0.15))' }}>
-    {/* Modern Interlocking PD Monogram */}
-    {/* P - Vertical Stem */}
+const MyMobPayLogo = ({ className = 'w-32 h-auto' }) => (
+  <svg viewBox="0 0 520 120" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`} style={{ filter: 'drop-shadow(0 4px 20px rgba(0, 229, 255, 0.15))' }}>
+    {/* Modern M Monogram with velocity curves */}
+    {/* M - Left vertical */}
     <rect x="5" y="20" width="12" height="80" rx="6" fill="#FFFFFF" />
-    
-    {/* P - Loop */}
-    <path d="M 11 26 H 35 C 47 26 56 34 56 45.5 C 56 57 67 65 55 65 H 11" fill="none" stroke="#FFFFFF" strokeWidth="12" strokeLinecap="round" />
-    
-    {/* D - Primary Outer Speed Wave */}
-    <path d="M 32 14 C 62 14 84 36 84 65 C 84 94 62 116 32 116 H 62" fill="none" stroke="url(#pd-cyan-grad)" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round" />
-    
-    {/* D - Secondary Inner Velocity Wave */}
-    <path d="M 44 35 C 60 35 70 47 70 65 C 70 83 60 95 44 95 H 58" fill="none" stroke="url(#pd-blue-grad)" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" opacity="0.8" />
-    
-    {/* Typography - PAY (Bold, Stable) */}
-    <text x="115" y="78" fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" fontWeight="900" fontSize="56" fill="#FFFFFF" letterSpacing="-2">PAY</text>
-    
-    {/* Typography - DRIFT (Futuristic, Light, Spacious) */}
-    <text x="228" y="78" fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" fontWeight="300" fontSize="56" fill="url(#pd-cyan-grad)" letterSpacing="5">DRIFT</text>
-    
+    {/* M - Right vertical */}
+    <rect x="68" y="20" width="12" height="80" rx="6" fill="#FFFFFF" />
+    {/* M - Left diagonal */}
+    <path d="M 11 26 L 42 65" fill="none" stroke="#FFFFFF" strokeWidth="12" strokeLinecap="round" />
+    {/* M - Right diagonal */}
+    <path d="M 74 26 L 43 65" fill="none" stroke="#FFFFFF" strokeWidth="12" strokeLinecap="round" />
+
+    {/* Velocity accent curve */}
+    <path d="M 30 14 C 60 14 82 36 82 60" fill="none" stroke="url(#mm-cyan-grad-s)" strokeWidth="8" strokeLinecap="round" opacity="0.7" />
+    <path d="M 55 106 C 82 106 90 84 90 60" fill="none" stroke="url(#mm-blue-grad-s)" strokeWidth="8" strokeLinecap="round" opacity="0.7" />
+
+    {/* Typography - MYMOB (Bold, Stable) */}
+    <text x="115" y="78" fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" fontWeight="900" fontSize="56" fill="#FFFFFF" letterSpacing="-1">MYMOB</text>
+
+    {/* Typography - PAY (Futuristic, Gradient) */}
+    <text x="375" y="78" fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" fontWeight="300" fontSize="56" fill="url(#mm-cyan-grad-s)" letterSpacing="5">PAY</text>
+
     <defs>
-      <linearGradient id="pd-cyan-grad" x1="32" y1="14" x2="84" y2="116" gradientUnits="userSpaceOnUse">
+      <linearGradient id="mm-cyan-grad-s" x1="30" y1="14" x2="90" y2="106" gradientUnits="userSpaceOnUse">
         <stop stopColor="#00E5FF" />
         <stop offset="1" stopColor="#0088FF" />
       </linearGradient>
-      <linearGradient id="pd-blue-grad" x1="44" y1="35" x2="70" y2="95" gradientUnits="userSpaceOnUse">
+      <linearGradient id="mm-blue-grad-s" x1="55" y1="60" x2="90" y2="106" gradientUnits="userSpaceOnUse">
         <stop stopColor="#0088FF" />
         <stop offset="1" stopColor="#0056D2" />
       </linearGradient>
@@ -72,7 +73,7 @@ const PayDriftLogo = ({ className = 'w-32 h-auto' }) => (
 const Header = ({ badge }) => (
   <header className="w-full border-b border-[#30363D] bg-[#0D0D12] px-5 py-3.5 flex items-center justify-between">
     <div className="flex items-center">
-      <PayDriftLogo className="h-6 w-auto object-contain" />
+      <MyMobPayLogo className="h-6 w-auto object-contain" />
     </div>
     {badge}
   </header>
@@ -254,7 +255,7 @@ export default function StatusPage() {
         </div>
       </main>
       <footer className="py-4 text-center">
-        <p className="text-[10px] text-[#E6EDF3]">© 2026 PayDrift · Secure Payments</p>
+        <p className="text-[10px] text-[#E6EDF3]">© 2026 MyMobPay · Secure Payments</p>
       </footer>
     </div>
   );
@@ -424,7 +425,7 @@ export default function StatusPage() {
         </div>
       </main>
       <footer className="py-4 text-center">
-        <p className="text-[10px] text-[#E6EDF3]">© 2026 PayDrift · Secure Payments</p>
+        <p className="text-[10px] text-[#E6EDF3]">© 2026 MyMobPay · Secure Payments</p>
       </footer>
     </div>
   );

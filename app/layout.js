@@ -1,7 +1,7 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "PayDrift | Secure UPI Payment",
+  title: "MyMobPay | Secure UPI Payment",
   description: "Pay securely via UPI — Google Pay, PhonePe, Paytm, BHIM. Instant payment verification.",
 };
 
