@@ -18,8 +18,10 @@ import {
 ═══════════════════════════════════════════════════════════════ */
 
 /* ── Deep Link builder ─────────────────────────────────────── */
-const getDeepLink = (appId, amount, orderId) => {
-  const params = `pa=${CONFIG.upiId}&pn=${encodeURIComponent(CONFIG.businessName)}&am=${amount}&cu=INR&tn=${orderId}`;
+const getDeepLink = (appId, amount, orderId, merchant) => {
+  const upiId = merchant?.upi_id || CONFIG.upiId;
+  const businessName = merchant?.business_name || CONFIG.businessName;
+  const params = `pa=${upiId}&pn=${encodeURIComponent(businessName)}&am=${amount}&cu=INR&tn=${orderId}`;
   const map = {
     gpay:    `gpay://upi/pay?${params}`,
     phonepe: `phonepe://pay?${params}`,
@@ -74,15 +76,17 @@ const AnimatedCheck = () => (
 );
 
 /* ── Left Order Panel ──────────────────────────────────────── */
-const OrderPanel = ({ project, amount, orderId, timer }) => {
+const OrderPanel = ({ project, amount, orderId, timer, merchant }) => {
   const fmt = (s) => `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+  const activeBusinessName = merchant?.business_name || CONFIG.businessName;
+
   return (
     <div className="flex flex-col justify-between h-full px-7 py-7">
       <div>
         {/* Logo */}
         <div className="flex flex-col items-start gap-1 mb-9">
           <MyMobPayLogo className="w-56 h-auto object-contain" />
-          {project && project !== CONFIG.businessName && (
+          {project && project !== activeBusinessName && (
             <p className="text-[10px] text-[#8B949E] font-medium ml-1">via {project}</p>
           )}
         </div>
@@ -102,7 +106,7 @@ const OrderPanel = ({ project, amount, orderId, timer }) => {
         <div className="space-y-0 rounded-xl overflow-hidden border border-[#30363D] divide-y divide-[#21262D]">
           <div className="flex justify-between items-center px-3.5 py-2.5 bg-[#161B22]">
             <span className="text-[11px] text-[#8B949E]">Paying to</span>
-            <span className="text-[11px] font-semibold text-[#E6EDF3]">{CONFIG.businessName}</span>
+            <span className="text-[11px] font-semibold text-[#E6EDF3]">{activeBusinessName}</span>
           </div>
           {orderId && (
             <div className="flex justify-between items-center px-3.5 py-2.5 bg-[#161B22]">
@@ -145,12 +149,18 @@ function PayPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
+  const paramApiKey   = searchParams.get('api_key') || searchParams.get('key') || '';
   const paramAmount   = searchParams.get('amount') || '';
-  const paramProject  = searchParams.get('project') || CONFIG.businessName;
+  const paramProject  = searchParams.get('project') || '';
   const paramCallback = searchParams.get('callback') || '';
   const paramName     = searchParams.get('name') || '';
   const paramPhone    = searchParams.get('phone') || '';
   const paramRef      = searchParams.get('ref') || '';
+  const paramNote     = searchParams.get('note') || '';
+
+  const [merchant, setMerchant]   = useState(null);
+  const [initLoading, setInitLoading] = useState(true);
+  const [initError, setInitError] = useState('');
 
   const [amount, setAmount]       = useState(paramAmount);
   const [customerName, setName]   = useState(paramName);
@@ -171,12 +181,34 @@ function PayPageContent() {
   const [copiedAmt, setCopiedAmt]   = useState(false);
 
   const autoCreated = useRef(false);
+
   useEffect(() => {
-    if (paramAmount && !autoCreated.current) {
+    async function fetchMerchant() {
+      if (!paramApiKey) {
+        setInitError('Invalid payment link. Missing API Key.');
+        setInitLoading(false);
+        return;
+      }
+      try {
+        const res = await fetch(`/api/merchant?key=${encodeURIComponent(paramApiKey)}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to load merchant details');
+        setMerchant(data);
+      } catch (err) {
+        setInitError(err.message);
+      } finally {
+        setInitLoading(false);
+      }
+    }
+    fetchMerchant();
+  }, [paramApiKey]);
+
+  useEffect(() => {
+    if (paramAmount && merchant && !autoCreated.current && !initLoading && !initError) {
       autoCreated.current = true;
       createOrder(paramAmount);
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [merchant, initLoading, initError]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (step !== 'paying') return;
@@ -200,10 +232,11 @@ function PayPageContent() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          api_key: paramApiKey,
           amount: parseFloat(amt), method: 'GENERIC',
           customer_name: customerName, customer_phone: customerPhone,
-          note: paramRef || '',
-          project: paramProject !== CONFIG.businessName ? paramProject : undefined,
+          note: paramNote || paramRef || '',
+          project: paramProject || undefined,
           callback_url: paramCallback || undefined,
           external_ref: paramRef || undefined,
         }),
@@ -230,16 +263,41 @@ function PayPageContent() {
     setTimeout(() => router.push(`/status/${orderId}`), 600);
   };
 
+  if (initLoading) {
+    return (
+      <div className="min-h-screen bg-[#0D1117] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+          <p className="text-sm text-[#8B949E]">Loading payment gateway...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (initError) {
+    return (
+      <div className="min-h-screen bg-[#0D1117] flex items-center justify-center px-4">
+        <div className="bg-[#161B22] p-8 rounded-2xl max-w-md w-full border border-red-500/20 text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-white mb-2">Checkout Unavailable</h2>
+          <p className="text-[#8B949E] text-sm">{initError}</p>
+        </div>
+      </div>
+    );
+  }
+
+  const activeBusinessName = paramProject || merchant.business_name;
+
   const upiQrValue = orderAmount
-    ? `upi://pay?pa=${CONFIG.upiId}&pn=${encodeURIComponent(CONFIG.businessName)}&am=${orderAmount}&cu=INR&tn=${orderId}`
+    ? `upi://pay?pa=${merchant.upi_id}&pn=${encodeURIComponent(activeBusinessName)}&am=${orderAmount}&cu=INR&tn=${orderId}`
     : '';
 
-  const copyUPI = () => { navigator.clipboard.writeText(CONFIG.upiId); setCopied(true); setTimeout(() => setCopied(false), 2000); };
+  const copyUPI = () => { navigator.clipboard.writeText(merchant.upi_id); setCopied(true); setTimeout(() => setCopied(false), 2000); };
   const copyAmt = () => { if (!orderAmount) return; navigator.clipboard.writeText(orderAmount.toFixed(2)); setCopiedAmt(true); setTimeout(() => setCopiedAmt(false), 2000); };
 
   const openApp = (app) => {
     if (!orderId || !orderAmount) return;
-    window.location.href = getDeepLink(app.id, orderAmount, orderId);
+    window.location.href = getDeepLink(app.id, orderAmount, orderId, merchant);
   };
 
   /* ── Transition ── */
@@ -371,7 +429,7 @@ function PayPageContent() {
             </div>
             {/* Desktop full */}
             <div className="hidden md:block h-full">
-              <OrderPanel project={paramProject} amount={displayAmt} orderId={orderId} timer={timer} />
+              <OrderPanel project={paramProject} amount={displayAmt} orderId={orderId} timer={timer} merchant={merchant} />
             </div>
           </div>
 

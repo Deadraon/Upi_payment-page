@@ -5,70 +5,53 @@ import { CONFIG } from '@/lib/config';
 
 export async function POST(request) {
   try {
-    const contentType = request.headers.get('content-type') || '';
-    let body = {};
+    const { api_key, body: emailBody } = await request.json();
+
+    if (!api_key || !emailBody) {
+      return NextResponse.json({ error: 'Missing API key or email body' }, { status: 400 });
+    }
+
+    // 1. Authenticate the merchant
+    const { data: merchant, error: merchantError } = await supabaseAdmin
+      .from('merchants')
+      .select('id, subscription_status')
+      .eq('api_key', api_key)
+      .single();
+
+    if (merchantError || !merchant) {
+      return NextResponse.json({ error: 'Unauthorized: Invalid API Key' }, { status: 401 });
+    }
+
+    if (merchant.subscription_status !== 'active') {
+      return NextResponse.json({ error: 'Merchant subscription is inactive' }, { status: 403 });
+    }
+
+    // 2. Parse the email text to extract UTR and Amount
+    // We reuse the robust transaction parsing engine
+    const parsed = parseTransactionText(emailBody);
     
-    if (contentType.includes('application/json')) {
-      body = await request.json();
-    } else {
-      // Parse form-data if sent that way
-      const formData = await request.formData();
-      for (const [key, value] of formData.entries()) {
-        body[key] = value;
-      }
-    }
-
-    const { secret, subject, text, html, plain, message } = body;
-
-    // Validate webhook secret
-    const validSecret = process.env.WEBHOOK_SECRET || CONFIG.webhookSecret;
-    const providedSecret = secret || request.nextUrl.searchParams.get('secret');
-
-    if (!providedSecret || providedSecret !== validSecret) {
-      return NextResponse.json({ error: 'Unauthorized: Invalid secret' }, { status: 401 });
-    }
-
-    // Combine common email fields
-    let textToParse = [
-      subject || '',
-      text || '',
-      plain || '',
-      html || '',
-      message || ''
-    ].join(' ').trim();
-
-    // Fallback for Testmail.app or other providers with nested JSON structures
-    if (!textToParse && Object.keys(body).length > 0) {
-      textToParse = JSON.stringify(body);
-    }
-
-    if (!textToParse) {
-      return NextResponse.json({ error: 'No email content to parse' }, { status: 400 });
-    }
-
-    // Parse transaction details
-    const parsed = parseTransactionText(textToParse);
-    if (!parsed) {
+    if (!parsed || !parsed.amount || !parsed.utr) {
       return NextResponse.json({
         success: false,
         code: 'EMAIL_NOT_PARSED',
-        message: 'Email text did not match credit parameters or had no UTR/amount.'
-      }, { status: 200 });
+        message: 'Could not extract valid Amount and UTR from the email body.'
+      }, { status: 200 }); // Return 200 so Cloudflare doesn't retry
     }
 
     const { amount, utr } = parsed;
 
-    // Search for matching pending order
+    // 3. Find the most recent pending order matching the amount FOR THIS MERCHANT
     const { data: order, error: findError } = await supabaseAdmin
       .from('orders')
       .select('*')
       .eq('status', 'pending')
       .eq('amount', amount)
+      .eq('merchant_id', merchant.id)
       .order('created_at', { ascending: false })
       .limit(1);
 
     if (findError) {
-      console.error('Error finding matching order:', findError);
+      console.error('Error searching for matching order:', findError);
       return NextResponse.json({ error: findError.message }, { status: 500 });
     }
 
@@ -76,59 +59,82 @@ export async function POST(request) {
       return NextResponse.json({
         success: false,
         code: 'ORDER_NOT_FOUND',
-        message: `No matching pending order found for amount ₹${amount}`,
+        message: `No matching pending order found for amount ${amount} on this merchant account.`,
         parsed: { amount, utr }
       }, { status: 200 });
     }
 
     const matchedOrder = order[0];
 
-    // Check for double spending UTR
-    if (utr !== 'UNKNOWN_REF') {
-      const { data: duplicateUtr, error: dupError } = await supabaseAdmin
-        .from('orders')
-        .select('id')
-        .eq('utr', utr)
-        .eq('status', 'verified')
-        .limit(1);
+    // 4. Check for duplicate UTR fraud
+    const { data: duplicateUtr, error: dupError } = await supabaseAdmin
+      .from('orders')
+      .select('id')
+      .eq('utr', utr)
+      .limit(1);
 
-      if (!dupError && duplicateUtr && duplicateUtr.length > 0) {
-        return NextResponse.json({
-          success: false,
-          code: 'DUPLICATE_UTR',
-          message: `Security alert: UTR ${utr} has already been verified on another invoice.`,
-          parsed: { amount, utr }
-        }, { status: 200 });
-      }
+    if (!dupError && duplicateUtr && duplicateUtr.length > 0) {
+      return NextResponse.json({
+        success: false,
+        code: 'DUPLICATE_UTR',
+        message: `Fraud warning: UTR ${utr} has already been used.`,
+        parsed: { amount, utr }
+      }, { status: 200 });
     }
 
-    // Auto verify matched order
-    const finalUtr = utr === 'UNKNOWN_REF' ? `UNKNOWN_REF_${matchedOrder.id}` : utr;
-    
+    // 5. Update the matched order to verified
     const { data: updatedOrder, error: updateError } = await supabaseAdmin
       .from('orders')
       .update({
         status: 'verified',
-        utr: finalUtr,
+        utr: utr,
         verified_at: new Date().toISOString()
       })
       .eq('id', matchedOrder.id)
       .select()
       .single();
 
+
     if (updateError) {
-      console.error('Error updating order:', updateError);
+      console.error('Error updating order status:', updateError);
       return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
 
+    // 6. SaaS Subscription Renewal Logic
+    // If the merchant receiving this payment is the Platform Admin AND it is a subscription renewal
+    if (api_key === CONFIG.platformApiKey && matchedOrder.note === 'Subscription_Renewal' && matchedOrder.external_ref) {
+      const targetMerchantId = matchedOrder.external_ref;
+      
+      const newExpiry = new Date();
+      newExpiry.setDate(newExpiry.getDate() + 30); // Add 30 days
+
+      const { error: subUpdateError } = await supabaseAdmin
+        .from('merchants')
+        .update({
+          subscription_status: 'active',
+          subscription_expires_at: newExpiry.toISOString()
+        })
+        .eq('id', targetMerchantId);
+
+      if (subUpdateError) {
+        console.error('Failed to update subscription status for merchant:', targetMerchantId);
+      } else {
+        console.log(`Successfully renewed subscription for merchant: ${targetMerchantId}`);
+      }
+    }
+
+    // 7. Optional: Trigger merchant webhook if they configured one
+    // if (merchant.webhook_url) { ... fire outbound webhook ... }
+
     return NextResponse.json({
       success: true,
-      code: 'EMAIL_VERIFIED',
-      message: `Verified transaction ${matchedOrder.id} for Rs. ${amount} via email credit alert.`,
+      code: 'ORDER_VERIFIED',
+      message: `Successfully verified order ${matchedOrder.id} for Rs. ${amount}`,
       order: updatedOrder
     });
+
   } catch (err) {
-    console.error('API webhook email error:', err);
-    return NextResponse.json({ error: 'Internal server error.' }, { status: 500 });
+    console.error('API Email Webhook error:', err);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -3,45 +3,62 @@ import { supabaseAdmin } from '@/lib/supabase';
 
 export async function POST(request) {
   try {
-    // Debug: Check if environment variables are set
     const hasUrl = !!process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const hasAnonKey = !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     const hasServiceKey = !!process.env.SUPABASE_SERVICE_KEY;
 
     if (!hasUrl || !hasServiceKey) {
-      console.error('Missing env vars:', { hasUrl, hasAnonKey, hasServiceKey });
       return NextResponse.json({ 
         error: `Server configuration error: Missing ${!hasUrl ? 'SUPABASE_URL' : ''} ${!hasServiceKey ? 'SERVICE_KEY' : ''}`.trim()
       }, { status: 500 });
     }
 
     const body = await request.json();
-    const { amount, method, note, customer_name, customer_phone, project, callback_url, external_ref } = body;
+    const { api_key, amount, method, note, customer_name, customer_phone, project, callback_url, external_ref } = body;
 
+    if (!api_key) {
+      return NextResponse.json({ error: 'API Key is required to create an order.' }, { status: 400 });
+    }
 
     if (!amount || isNaN(parseFloat(amount))) {
       return NextResponse.json({ error: 'Valid amount is required' }, { status: 400 });
     }
 
+    // 1. Authenticate the merchant using the API Key
+    const { data: merchant, error: merchantError } = await supabaseAdmin
+      .from('merchants')
+      .select('id, subscription_status')
+      .eq('api_key', api_key)
+      .single();
+
+    if (merchantError || !merchant) {
+      return NextResponse.json({ error: 'Invalid API Key or Merchant not found.' }, { status: 401 });
+    }
+
+    if (merchant.subscription_status !== 'active') {
+      return NextResponse.json({ error: 'Merchant account is inactive. Please renew subscription.' }, { status: 403 });
+    }
+
     let finalAmount = parseFloat(amount);
 
-    // Auto-cancel: expire all pending orders older than 15 minutes
+    // 2. Auto-cancel: expire all pending orders older than 15 minutes FOR THIS MERCHANT
     const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
     await supabaseAdmin
       .from('orders')
       .update({ status: 'expired' })
       .eq('status', 'pending')
+      .eq('merchant_id', merchant.id)
       .lt('created_at', fifteenMinutesAgo);
 
-    // Fetch all active pending orders to ensure a unique amount offset
+    // 3. Fetch all active pending orders FOR THIS MERCHANT to ensure a unique amount offset
     const { data: pendingOrders } = await supabaseAdmin
       .from('orders')
       .select('amount')
-      .eq('status', 'pending');
+      .eq('status', 'pending')
+      .eq('merchant_id', merchant.id);
 
     const pendingAmounts = new Set(pendingOrders?.map(o => parseFloat(o.amount).toFixed(2)) || []);
 
-    // Find the first unique amount by adding a paise offset (e.g., 2.00, 2.01, 2.02)
+    // 4. Find the first unique amount by adding a paise offset (e.g., 2.00, 2.01, 2.02)
     let offset = 0;
     const requestedAmount = parseFloat(amount);
     while (offset < 100) {
@@ -53,25 +70,26 @@ export async function POST(request) {
       offset++;
     }
 
-    // Generate a 4-character unique alphanumeric Order ID starting with O (e.g., O1B2)
+    // 5. Generate a 4-character unique alphanumeric Order ID starting with O (e.g., O1B2)
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let orderId = 'O';
     for (let i = 0; i < 3; i++) {
       orderId += chars.charAt(Math.floor(Math.random() * chars.length));
     }
 
-    // Insert order into Supabase
+    // 6. Insert order into Supabase linked to the merchant
     const { data, error } = await supabaseAdmin
       .from('orders')
       .insert([
         {
           id: orderId,
+          merchant_id: merchant.id,
           amount: finalAmount,
           method: method || 'GENERIC',
           note: note || '',
           customer_name: customer_name || '',
           customer_phone: customer_phone || '',
-          project: project || null,
+          project: project || merchant.business_name,
           callback_url: callback_url || null,
           external_ref: external_ref || null,
           status: 'pending'
