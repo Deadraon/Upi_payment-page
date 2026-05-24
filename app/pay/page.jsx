@@ -71,7 +71,7 @@ const OrderPanel = ({ project, amount, orderId, timer }) => {
       <div>
         {/* Logo */}
         <div className="flex flex-col items-start gap-1 mb-9">
-          <PayDriftLogo className="w-64 h-auto object-contain" />
+          <PayDriftLogo className="w-64 h-auto object-contain -ml-5 md:-ml-7" />
           {project && project !== CONFIG.businessName && (
             <p className="text-[10px] text-slate-500 font-medium ml-1">via {project}</p>
           )}
@@ -252,7 +252,7 @@ function PayPageContent() {
           <div className="order-2 md:order-1 w-full md:w-[42%] bg-slate-50 border-t md:border-t-0 md:border-r border-slate-100 px-7 py-8 flex flex-col justify-between">
             <div>
               <div className="flex flex-col items-start mb-8">
-                <PayDriftLogo className="w-full max-w-[260px] h-auto object-contain" />
+                <PayDriftLogo className="w-full max-w-[260px] h-auto object-contain -ml-5 md:-ml-7" />
               </div>
               <div className="mb-8">
                 <h1 className="text-2xl font-black text-slate-900 leading-snug mb-2">
@@ -362,7 +362,7 @@ function PayPageContent() {
             {/* Mobile compact */}
             <div className="md:hidden flex items-center justify-between px-5 py-4 border-b border-slate-100">
               <div className="flex items-center">
-                <PayDriftLogo className="w-40 h-auto object-contain" />
+                <PayDriftLogo className="w-40 h-auto object-contain -ml-3" />
               </div>
               <div className="text-right">
                 <p className="text-[9px] text-slate-500 uppercase tracking-wider">Total</p>
