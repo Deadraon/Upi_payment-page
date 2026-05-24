@@ -572,7 +572,7 @@ export default function PayPage() {
                         <div className="p-3.5 rounded-xl bg-blue-50/50 border border-blue-100/70 text-center space-y-2.5">
                           <span className="text-[9px] uppercase font-bold text-blue-600 block leading-none">Step 3: Open UPI App & Pay</span>
                           <p className="text-[10px] text-slate-500 leading-normal px-2">
-                            Open <strong>{selectedMethod.label}</strong> (or any UPI app), choose <strong>"Pay to UPI ID"</strong>, paste the copied ID and exact amount, then complete the transfer!
+                            Open <strong>{selectedMethod.label}</strong> (or any UPI app), choose <strong>&quot;Pay to UPI ID&quot;</strong>, paste the copied ID and exact amount, then complete the transfer!
                           </p>
                           <a
                             href={getDeepLink(method, amount, orderId)}
