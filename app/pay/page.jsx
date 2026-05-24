@@ -34,6 +34,7 @@ const GPayLogo    = () => <img src="/logos/gpay.svg"    alt="Google Pay"  classN
 const PhonePeLogo = () => <img src="/logos/phonepe.svg" alt="PhonePe"     className="w-8 h-8 object-contain rounded-xl" />;
 const PaytmLogo   = () => <img src="/logos/paytm.svg"   alt="Paytm"       className="w-8 h-8 object-contain rounded-xl" />;
 const BhimLogo    = () => <img src="/logos/bhim.svg"    alt="BHIM UPI"    className="w-8 h-8 object-contain rounded-xl" />;
+const PayDriftLogo = ({ size = 'w-8 h-8' }) => <img src="/logos/paydrift.png" alt="PayDrift" className={`${size} object-contain rounded-xl shadow-lg shadow-indigo-500/10`} />;
 
 const UPI_APPS = [
   { id: 'gpay',    label: 'Google Pay',  sub: 'Pay via GPay',    logo: <GPayLogo />,    accent: '#4285F4' },
@@ -64,9 +65,7 @@ const OrderPanel = ({ project, amount, orderId, timer }) => {
       <div>
         {/* Logo */}
         <div className="flex items-center gap-3 mb-9">
-          <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-600/40">
-            <span className="text-white font-black text-sm">P</span>
-          </div>
+          <PayDriftLogo size="w-10 h-10" />
           <div>
             <p className="font-black text-[15px] text-[#E6EDF3]">PayDrift</p>
             {project && project !== CONFIG.businessName && (
@@ -250,9 +249,7 @@ function PayPageContent() {
           <div className="order-2 md:order-1 w-full md:w-[42%] bg-[#0D1117] border-t md:border-t-0 md:border-r border-[#21262D] px-7 py-8 flex flex-col justify-between">
             <div>
               <div className="flex items-center gap-3 mb-10">
-                <div className="w-11 h-11 rounded-2xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-600/40">
-                  <span className="text-white font-black text-lg">P</span>
-                </div>
+                <PayDriftLogo size="w-11 h-11" />
                 <div>
                   <p className="font-black text-[17px] text-[#E6EDF3] tracking-tight">PayDrift</p>
                   <p className="text-[10px] text-[#484F58] font-medium">Universal Payment Gateway</p>
@@ -366,9 +363,7 @@ function PayPageContent() {
             {/* Mobile compact */}
             <div className="md:hidden flex items-center justify-between px-5 py-4 border-b border-[#21262D]">
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center">
-                  <span className="text-white font-black text-xs">P</span>
-                </div>
+                <PayDriftLogo size="w-7 h-7" />
                 <span className="font-black text-sm text-[#E6EDF3]">PayDrift</span>
               </div>
               <div className="text-right">
