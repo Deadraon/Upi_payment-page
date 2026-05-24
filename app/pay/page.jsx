@@ -325,7 +325,7 @@ function PayPageContent() {
           <div className="flex-1 bg-[#161B22] px-7 py-8">
             <div className="mb-6">
               <p className="text-[10px] text-[#484F58] uppercase tracking-widest font-bold mb-1">
-                {paramProject !== CONFIG.businessName ? Paying via  : 'New Payment'}
+                {paramProject !== CONFIG.businessName ? ('Paying via ' + paramProject) : 'New Payment'}
               </p>
               <h2 className="text-xl font-black text-[#E6EDF3]">Enter Details</h2>
             </div>
