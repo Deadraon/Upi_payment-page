@@ -116,6 +116,7 @@ export default function PayPage() {
   const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted]   = useState(false);
   const [copied, setCopied]     = useState(false);
+  const [copiedAmount, setCopiedAmount] = useState(false);
   const [timer, setTimer]       = useState(300);
   const amountRef = useRef(null);
 
@@ -189,6 +190,12 @@ export default function PayPage() {
     navigator.clipboard.writeText(CONFIG.upiId);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleCopyAmount = () => {
+    navigator.clipboard.writeText(parseFloat(amount).toFixed(2));
+    setCopiedAmount(true);
+    setTimeout(() => setCopiedAmount(false), 2000);
   };
 
   const handleInitiatePayment = async (e) => {
@@ -521,48 +528,62 @@ export default function PayPage() {
                       </div>
                     </div>
                   ) : (
-                    /* App Launch Button */
-                    <div className="flex flex-col items-center justify-center py-6">
-                      <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 bg-slate-50 border border-slate-200">
-                        {selectedMethod.logo}
-                      </div>
-                      <a
-                        href={getDeepLink(method, amount, orderId)}
-                        className="px-6 py-3 rounded-xl text-white font-bold text-sm flex items-center gap-2 transition-all hover:opacity-90"
-                        style={{ background: selectedMethod.color }}
-                      >
-                        <Smartphone className="w-4 h-4" /> Open {selectedMethod.label}
-                      </a>
-                      <p className="text-[10px] text-slate-500 mt-3 text-center px-4 leading-relaxed">
-                        If your payment app blocks the direct link, simply <strong>copy our UPI ID below</strong>, open your app, and transfer exactly <strong className="text-blue-600">₹{amount}</strong> manually.
-                      </p>
-                    </div>
-                  )}
+                      /* App Launch & Step-by-Step Payment Guide */
+                      <div className="space-y-4 pt-1">
+                        {/* Step 1: Copy UPI ID */}
+                        <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
+                          <div className="space-y-0.5">
+                            <span className="text-[9px] uppercase font-bold text-slate-400 block leading-none">Step 1: Copy UPI ID</span>
+                            <span className="text-[11px] font-mono font-bold text-slate-700 block">{CONFIG.upiId}</span>
+                          </div>
+                          <button
+                            onClick={handleCopyVpa}
+                            type="button"
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all bg-white border-slate-200 hover:bg-slate-50 active:scale-95"
+                          >
+                            {copied ? (
+                              <span className="text-green-600 flex items-center gap-1"><CheckCircle className="w-3.5 h-3.5" /> Copied!</span>
+                            ) : (
+                              <><Copy className="w-3.5 h-3.5 text-blue-600" /> Copy ID</>
+                            )}
+                          </button>
+                        </div>
 
-                  {/* VPA Copy */}
-                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
-                    <div className="flex items-center justify-between text-[11px]">
-                      <span className="text-slate-500 font-medium">UPI ID:</span>
-                      <button
-                        onClick={handleCopyVpa}
-                        className="text-slate-600 hover:text-blue-600 flex items-center gap-1 font-mono transition-colors border border-slate-200 bg-white hover:bg-blue-50 px-2 py-0.5 rounded text-[10px]"
-                      >
-                        {copied ? (
-                          <span className="text-green-600 flex items-center gap-1">
-                            <CheckCircle className="w-3 h-3" /> Copied!
-                          </span>
-                        ) : (
-                          <>
-                            <Copy className="w-3 h-3 text-blue-600" />
-                            <span className="truncate max-w-[150px]">{CONFIG.upiId}</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                    <div className="text-[9px] text-slate-400 text-center">
-                      Payee: <strong className="text-slate-700">{CONFIG.businessName}</strong>
-                    </div>
-                  </div>
+                        {/* Step 2: Copy Exact Amount */}
+                        <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
+                          <div className="space-y-0.5">
+                            <span className="text-[9px] uppercase font-bold text-slate-400 block leading-none">Step 2: Copy Exact Amount</span>
+                            <span className="text-sm font-extrabold text-blue-600 block">₹{parseFloat(amount).toFixed(2)}</span>
+                          </div>
+                          <button
+                            onClick={handleCopyAmount}
+                            type="button"
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all bg-white border-slate-200 hover:bg-slate-50 active:scale-95"
+                          >
+                            {copiedAmount ? (
+                              <span className="text-green-600 flex items-center gap-1"><CheckCircle className="w-3.5 h-3.5" /> Copied!</span>
+                            ) : (
+                              <><Copy className="w-3.5 h-3.5 text-blue-600" /> Copy Amount</>
+                            )}
+                          </button>
+                        </div>
+
+                        {/* Step 3: Open & Pay */}
+                        <div className="p-3.5 rounded-xl bg-blue-50/50 border border-blue-100/70 text-center space-y-2.5">
+                          <span className="text-[9px] uppercase font-bold text-blue-600 block leading-none">Step 3: Open UPI App & Pay</span>
+                          <p className="text-[10px] text-slate-500 leading-normal px-2">
+                            Open <strong>{selectedMethod.label}</strong> (or any UPI app), choose <strong>"Pay to UPI ID"</strong>, paste the copied ID and exact amount, then complete the transfer!
+                          </p>
+                          <a
+                            href={getDeepLink(method, amount, orderId)}
+                            className="inline-flex items-center gap-1.5 px-4.5 py-2 rounded-lg text-white font-bold text-[10px] uppercase tracking-wider transition-all hover:opacity-90 active:scale-95 mt-1"
+                            style={{ background: selectedMethod.color }}
+                          >
+                            <Smartphone className="w-3.5 h-3.5" /> Try Open {selectedMethod.label}
+                          </a>
+                        </div>
+                      </div>
+                  )}
 
                   {/* Confirm Button */}
                   <div className="space-y-2">
