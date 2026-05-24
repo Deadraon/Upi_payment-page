@@ -42,8 +42,19 @@ export default {
     // 5. Extract Credited Amount (e.g. INR 1.00)
     const amount = cleanBody.match(/Credited\s+for\s+INR\s+([\d.]+)/i)?.[1];
 
-    // 6. Extract unique 12-digit UTR from the UPI reference block
-    const utr = cleanBody.match(/UPI\/(\d{12,})\//i)?.[1];
+    // 6. Extract unique 12-digit UTR from the UPI reference block or fallback patterns
+    let utr = cleanBody.match(/UPI\/(\d{12,})\//i)?.[1] ||
+              cleanBody.match(/\b(\d{12})\b/)?.[1] ||
+              cleanBody.match(/Ref(?:\s+No)?[\s:]+(\d+)/i)?.[1] ||
+              cleanBody.match(/RRN[\s:]+(\d+)/i)?.[1] ||
+              cleanBody.match(/Txn(?:\s+ID)?[\s:]+(\w+)/i)?.[1];
+    
+    // Fallback: If no UTR is found at all, generate a unique reference to prevent database block
+    if (!utr) {
+      const uniqueSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+      utr = `AUTO_REF_${Date.now()}_${uniqueSuffix}`;
+      console.log(`ℹ️ No standard UTR found in email. Generated mock reference: ${utr}`);
+    }
     
     // 7. Extract the custom alphanumeric Order ID (e.g. O1B2, ORZ20B, ORD-8F9D3UMP, or UUID)
     const orderId = cleanBody.match(/\b(O[a-zA-Z0-9]{3})\b/i)?.[1] ||
@@ -51,8 +62,8 @@ export default {
                     cleanBody.match(/(ORD-[a-zA-Z0-9]{8})/i)?.[1] || 
                     cleanBody.match(/([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})/i)?.[1];
 
-    if (!utr || !amount) {
-      console.log('❌ Could not extract UTR reference or Amount from body.');
+    if (!amount) {
+      console.log('❌ Could not extract Amount from body.');
       return;
     }
 
