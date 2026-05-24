@@ -71,7 +71,7 @@ const OrderPanel = ({ project, amount, orderId, timer }) => {
       <div>
         {/* Logo */}
         <div className="flex flex-col items-start gap-1 mb-9">
-          <PayDriftLogo className="w-36 h-auto mix-blend-multiply object-contain -ml-1" />
+          <PayDriftLogo className="w-48 md:w-52 h-auto mix-blend-multiply object-contain -ml-2" />
           {project && project !== CONFIG.businessName && (
             <p className="text-[10px] text-slate-500 font-medium ml-1">via {project}</p>
           )}
@@ -252,7 +252,7 @@ function PayPageContent() {
           <div className="order-2 md:order-1 w-full md:w-[42%] bg-slate-50 border-t md:border-t-0 md:border-r border-slate-100 px-7 py-8 flex flex-col justify-between">
             <div>
               <div className="flex flex-col items-start gap-1 mb-10">
-                <PayDriftLogo className="w-44 h-auto mix-blend-multiply object-contain -ml-2" />
+                <PayDriftLogo className="w-56 md:w-64 h-auto mix-blend-multiply object-contain -ml-2" />
                 <p className="text-[11px] text-slate-500 font-medium tracking-wide ml-1">Universal Payment Gateway</p>
               </div>
               <div className="mb-8">
@@ -363,7 +363,7 @@ function PayPageContent() {
             {/* Mobile compact */}
             <div className="md:hidden flex items-center justify-between px-5 py-4 border-b border-slate-100">
               <div className="flex items-center">
-                <PayDriftLogo className="w-24 h-auto mix-blend-multiply object-contain -ml-1" />
+                <PayDriftLogo className="w-32 h-auto mix-blend-multiply object-contain -ml-1" />
               </div>
               <div className="text-right">
                 <p className="text-[9px] text-slate-500 uppercase tracking-wider">Total</p>
