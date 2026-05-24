@@ -66,14 +66,14 @@ const METHODS = [
     label: 'Google Pay',
     color: '#4285F4',
     logo: <GPayLogo />,
-    scheme: (p) => `gpay://upi/pay?${p}`,
+    scheme: (p) => `upi://pay?${p}`, // Bypasses GPay P2P browser security blocks
   },
   {
     id: 'phonepe',
     label: 'PhonePe',
     color: '#5F259F',
     logo: <PhonePeLogo />,
-    scheme: (p) => `phonepe://pay?${p}`,
+    scheme: (p) => `upi://pay?${p}`, // Bypasses PhonePe P2P browser security blocks
   },
   {
     id: 'paytm',
@@ -84,14 +84,14 @@ const METHODS = [
         <PaytmLogo size={22} />
       </div>
     ),
-    scheme: (p) => `paytmmp://pay?${p}`,
+    scheme: (p) => `upi://pay?${p}`, // Bypasses Paytm P2P browser security blocks
   },
   {
     id: 'bhim',
     label: 'BHIM App',
     color: '#FF7A00',
     logo: <BhimLogo />,
-    scheme: (p) => `bhim://pay?${p}`,
+    scheme: (p) => `upi://pay?${p}`, // Bypasses BHIM P2P browser security blocks
   },
   {
     id: 'generic',
@@ -533,8 +533,8 @@ export default function PayPage() {
                       >
                         <Smartphone className="w-4 h-4" /> Open {selectedMethod.label}
                       </a>
-                      <p className="text-[10px] text-slate-400 mt-3 text-center">
-                        If the app doesn&apos;t open, tap the button above.
+                      <p className="text-[10px] text-slate-500 mt-3 text-center px-4 leading-relaxed">
+                        If your payment app blocks the direct link, simply <strong>copy our UPI ID below</strong>, open your app, and transfer exactly <strong className="text-blue-600">₹{amount}</strong> manually.
                       </p>
                     </div>
                   )}
