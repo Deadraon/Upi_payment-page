@@ -29,34 +29,11 @@ const getDeepLink = (appId, amount, orderId) => {
   return map[appId] || `upi://pay?${params}`;
 };
 
-/* ── App Logos ─────────────────────────────────────────────── */
-const GPayLogo = () => (
-  <svg viewBox="0 0 48 48" className="w-8 h-8" xmlns="http://www.w3.org/2000/svg">
-    <path fill="#4285F4" d="M24 9.5c3.5 0 6.6 1.3 9 3.4l6.7-6.7C35.5 2.4 30.1 0 24 0 14.7 0 6.7 5.4 2.6 13.3l7.8 6C12 13.8 17.5 9.5 24 9.5z"/>
-    <path fill="#34A853" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8C43.8 37.5 46.5 31.4 46.5 24.5z"/>
-    <path fill="#FBBC05" d="M10.4 28.7A14.6 14.6 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.8-6A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7l7.8-6z"/>
-    <path fill="#EA4335" d="M24 48c6.1 0 11.3-2 15-5.5l-7.5-5.8c-2 1.4-4.6 2.2-7.5 2.2-6.5 0-12-4.3-14-10.3l-7.8 6C6.7 42.6 14.7 48 24 48z"/>
-  </svg>
-);
-const PhonePeLogo = () => (
-  <svg viewBox="0 0 48 48" className="w-8 h-8" xmlns="http://www.w3.org/2000/svg">
-    <rect width="48" height="48" rx="12" fill="#5F259F"/>
-    <path fill="white" d="M30 10H18a4 4 0 00-4 4v20a4 4 0 004 4h12a4 4 0 004-4V14a4 4 0 00-4-4zm-6 24a2 2 0 110-4 2 2 0 010 4zm6-8H18V14h12v12z"/>
-  </svg>
-);
-const PaytmLogo = () => (
-  <svg viewBox="0 0 48 48" className="w-8 h-8" xmlns="http://www.w3.org/2000/svg">
-    <rect width="48" height="48" rx="12" fill="#00BAF2"/>
-    <text x="5" y="31" fontFamily="Arial" fontWeight="900" fontSize="14" fill="#00294F">pay</text>
-    <text x="26" y="31" fontFamily="Arial" fontWeight="900" fontSize="14" fill="white">tm</text>
-  </svg>
-);
-const BhimLogo = () => (
-  <svg viewBox="0 0 48 48" className="w-8 h-8" xmlns="http://www.w3.org/2000/svg">
-    <rect width="48" height="48" rx="12" fill="#00529B"/>
-    <text x="4" y="32" fontFamily="Arial" fontWeight="900" fontSize="15" fill="white">BHIM</text>
-  </svg>
-);
+/* ── App Logos — official brand images from /public/logos/ ── */
+const GPayLogo    = () => <img src="/logos/gpay.png"    alt="Google Pay"  className="w-8 h-8 object-contain rounded-xl" />;
+const PhonePeLogo = () => <img src="/logos/phonepe.png" alt="PhonePe"     className="w-8 h-8 object-contain rounded-xl" />;
+const PaytmLogo   = () => <img src="/logos/paytm.svg"   alt="Paytm"       className="w-8 h-8 object-contain rounded-xl" />;
+const BhimLogo    = () => <img src="/logos/bhim.svg"    alt="BHIM UPI"    className="w-8 h-8 object-contain rounded-xl" />;
 
 const UPI_APPS = [
   { id: 'gpay',    label: 'Google Pay',  sub: 'Pay via GPay',    logo: <GPayLogo />,    accent: '#4285F4' },

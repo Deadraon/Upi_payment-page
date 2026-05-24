@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- BHIM UPI Official Logo Recreation -->
+  <!-- Blue background circle -->
+  <circle cx="100" cy="100" r="100" fill="#00529B"/>
+  <!-- White BHIM text -->
+  <text x="100" y="115" font-family="Arial,sans-serif" font-weight="900" font-size="52" fill="white" text-anchor="middle">BHIM</text>
+  <!-- Orange accent bar at bottom -->
+  <rect x="30" y="148" width="140" height="8" rx="4" fill="#FF6600"/>
+</svg>
