@@ -54,6 +54,7 @@ export default function DashboardPage() {
   const [stepTestResult, setStepTestResult] = useState(null); // null | 'testing' | 'pass' | 'fail'
   const [stepTestMsg, setStepTestMsg] = useState('');
   const [stepTestDetail, setStepTestDetail] = useState('');
+  const [wizardWebhookUrl, setWizardWebhookUrl] = useState('');
 
   // Automatically reset setup wizard + test state when target/step changes
   useEffect(() => {
@@ -125,6 +126,8 @@ export default function DashboardPage() {
       }
 
       setProfile(data);
+      // Pre-fill wizard webhook URL from saved profile
+      if (data.webhook_url) setWizardWebhookUrl(data.webhook_url);
       // Fetch orders for this merchant
       fetchOrders(userId);
     } catch (error) {
@@ -230,11 +233,12 @@ export default function DashboardPage() {
   };
 
   const handleTestWebhook = async (fromWizard = false) => {
-    if (!profile?.webhook_url) {
+    const webhookTarget = fromWizard ? wizardWebhookUrl : profile?.webhook_url;
+    if (!webhookTarget) {
       if (fromWizard) {
         setStepTestResult('fail');
-        setStepTestMsg('No webhook URL configured');
-        setStepTestDetail('Go to Settings tab and set your Outbound Webhook URL first.');
+        setStepTestMsg('No webhook URL entered');
+        setStepTestDetail('Enter your server webhook URL in the field above to test delivery.');
       } else {
         alert("Please configure an Outbound Webhook URL in your Settings tab first!");
       }
@@ -252,7 +256,7 @@ export default function DashboardPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           api_key: profile.api_key,
-          webhook_url: profile.webhook_url,
+          webhook_url: webhookTarget,
           amount: linkAmount,
           note: linkNote
         })
@@ -262,7 +266,7 @@ export default function DashboardPage() {
       const newLog = {
         id: Date.now(),
         timestamp: new Date().toLocaleTimeString(),
-        url: profile.webhook_url,
+        url: webhookTarget,
         status: data.status,
         statusText: data.statusText,
         latency: data.latency,
@@ -274,12 +278,17 @@ export default function DashboardPage() {
 
       if (fromWizard) {
         if (data.success) {
+          // Save the tested webhook URL to profile automatically
+          if (wizardWebhookUrl && wizardWebhookUrl !== profile?.webhook_url) {
+            await supabase.from('merchants').update({ webhook_url: wizardWebhookUrl }).eq('id', user.id);
+            setProfile(prev => ({ ...prev, webhook_url: wizardWebhookUrl }));
+          }
           setStepTestResult('pass');
-          setStepTestMsg(`✓ Webhook delivered → HTTP ${data.status} in ${data.latency}ms`);
-          setStepTestDetail('Your server responded correctly. HMAC signature delivery confirmed.');
+          setStepTestMsg(`\u2713 Webhook delivered \u2192 HTTP ${data.status} in ${data.latency}ms`);
+          setStepTestDetail('Your server responded correctly. HMAC signature delivery confirmed. URL saved to your profile.');
         } else {
           setStepTestResult('fail');
-          setStepTestMsg(`✗ Webhook failed → HTTP ${data.status || 'ERR'} (${data.latency}ms)`);
+          setStepTestMsg(`\u2717 Webhook failed \u2192 HTTP ${data.status || 'ERR'} (${data.latency}ms)`);
           setStepTestDetail('Your endpoint returned an error. Check that the URL is publicly reachable and your server is running.');
         }
       }
@@ -2095,26 +2104,34 @@ async function checkOrderStatus(orderId) {
                                     📡 Step 4: Webhook Outbound Verification
                                   </h4>
                                   <p className="text-xs text-slate-500 font-semibold leading-relaxed">
-                                    Never rely solely on client-side status polling! Set up a secure Webhook URL in your Settings tab. Our servers will post encrypted webhook handshakes when a payment is matched.
+                                    Our servers will POST a cryptographically signed <code className="bg-slate-100 px-1 rounded text-[10px]">payment.verified</code> event to your server URL each time a payment is matched.
                                   </p>
                                 </div>
 
-                                <div className="p-4 bg-emerald-50/70 border border-emerald-250 rounded-2xl text-[11px] text-emerald-800 font-semibold leading-normal space-y-1.5 animate-fadeIn">
-                                  <p className="font-bold flex items-center gap-1.5 uppercase text-[9.5px] tracking-wider text-emerald-700">🔒 Multi-layered Security Best Practice</p>
-                                  <p>1. Client mobile app triggers scanning and initiates lightweight status polling loops to update the visual UI immediately.</p>
-                                  <p>2. Backend server listens for raw HMAC signed `payment.verified` callbacks to safely update database records and fulfill digital purchases.</p>
+                                {/* Inline Webhook URL input — no need to go to Settings */}
+                                <div className="space-y-1.5">
+                                  <label className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">
+                                    Your Server Webhook Endpoint URL
+                                  </label>
+                                  <input
+                                    type="url"
+                                    value={wizardWebhookUrl}
+                                    onChange={e => setWizardWebhookUrl(e.target.value)}
+                                    placeholder="https://your-server.com/api/webhook"
+                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-3 focus:outline-none focus:border-blue-500 text-xs font-mono font-semibold text-slate-900 placeholder:text-slate-400 placeholder:font-sans"
+                                  />
+                                  {wizardWebhookUrl && !wizardWebhookUrl.startsWith('https://') && (
+                                    <p className="text-[9.5px] text-amber-600 font-bold flex items-center gap-1">
+                                      <AlertCircle className="w-3 h-3" /> Use HTTPS for production. For local testing: run <code className="bg-amber-50 px-1 rounded">ngrok http &lt;port&gt;</code>
+                                    </p>
+                                  )}
                                 </div>
 
-                                <button
-                                  onClick={() => {
-                                    setSelectedDiagnostic('hmac');
-                                    document.getElementById('diagnostic-hub-view')?.scrollIntoView({ behavior: 'smooth' });
-                                  }}
-                                  className="w-full py-2.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 rounded-xl transition-all text-xs font-bold flex items-center justify-center gap-1.5"
-                                >
-                                  <span>Inspect HMAC Verification Steps</span>
-                                  <ChevronRight className="w-4 h-4" />
-                                </button>
+                                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-[10.5px] text-slate-700 font-semibold leading-normal space-y-1.5">
+                                  <p className="font-black flex items-center gap-1.5 uppercase text-[9px] tracking-wider text-slate-500">🔒 What your server receives</p>
+                                  <p>A <strong>POST</strong> request with JSON body <code className="bg-slate-100 px-1 rounded">{'{ event, orderId, amount, utr }'}</code> and header <code className="bg-slate-100 px-1 rounded">X-MyMobPay-Signature: sha256_hmac_hex</code>.</p>
+                                  <p>Verify the HMAC using your raw API key (without <code className="bg-slate-100 px-1 rounded">test_</code>/<code className="bg-slate-100 px-1 rounded">live_</code> prefix).</p>
+                                </div>
                               </div>
                             )}
 
