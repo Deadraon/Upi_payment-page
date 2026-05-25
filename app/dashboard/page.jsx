@@ -2437,31 +2437,6 @@ ngrok http 5000
                 </div>
 
               </div>
-            )}whitespace-pre-wrap block bg-slate-950/50 p-1.5 rounded border border-slate-900/60 font-semibold break-all text-[8px]">
-                                    {log.response || 'Empty payload response returned.'}
-                                  </code>
-                                </div>
-                              </div>
-
-                            </div>
-                          ))
-                        )}
-
-                      </div>
-
-                      {/* Terminal Footer */}
-                      <div className="border-t border-slate-900 pt-1.5 mt-2 flex justify-between items-center text-[8px] text-slate-600 font-mono select-none">
-                        <span>Simulator status: Online</span>
-                        <span>Session cache size: {webhookLogs.length} attempts</span>
-                      </div>
-
-                    </div>
-
-                  </div>
-
-                </div>
-
-              </div>
             )}
 
             {/* ═══════════════════════════════════════════════════════════
