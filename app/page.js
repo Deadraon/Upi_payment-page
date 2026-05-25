@@ -230,9 +230,14 @@ print("Checkout Link generated:", data.get("orderId"))`
          ──────────────────────────────────────────────────────── */}
       <section className="relative pt-12 pb-24 md:pt-20 md:pb-32 overflow-hidden bg-white">
         
-        {/* Glow Effects */}
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-200/35 rounded-full filter blur-[120px] pointer-events-none -z-10" />
-        <div className="absolute top-[300px] -left-12 w-[350px] h-[350px] bg-indigo-150/20 rounded-full filter blur-[90px] pointer-events-none -z-10" />
+        {/* Glow Effects (Slow Mesh Rotations) */}
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-200/25 rounded-full filter blur-[120px] pointer-events-none -z-10 animate-mesh-rotate" />
+        <div className="absolute top-[300px] -left-12 w-[350px] h-[350px] bg-indigo-150/15 rounded-full filter blur-[90px] pointer-events-none -z-10 animate-mesh-rotate" style={{ animationDelay: '-5s' }} />
+
+        {/* Floating background particle shapes for premium parallax effect */}
+        <div className="absolute top-[12%] left-[8%] w-3 h-3 bg-blue-500/20 rounded-full animate-float pointer-events-none -z-10" />
+        <div className="absolute top-[48%] left-[45%] w-4 h-4 bg-indigo-400/25 rounded-full animate-float pointer-events-none -z-10" style={{ animationDelay: '-2.5s', animationDuration: '6s' }} />
+        <div className="absolute top-[72%] right-[10%] w-5 h-5 bg-sky-300/15 rounded-full animate-float pointer-events-none -z-10" style={{ animationDelay: '-4.5s', animationDuration: '7s' }} />
 
         {/* Decorative Grid Line Background */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-35 -z-20" />
@@ -355,12 +360,8 @@ print("Checkout Link generated:", data.get("orderId"))`
                   {/* QR Code Container */}
                   <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col items-center justify-center space-y-3 relative overflow-hidden group">
                     
-                    {/* Futuristic Scanning line */}
-                    <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent top-0 animate-pulse" 
-                         style={{
-                           animation: 'float 3s ease-in-out infinite'
-                         }} 
-                    />
+                    {/* Futuristic Scanning Laser line */}
+                    <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent top-0 animate-laser" />
 
                     {/* Highly stylized SVG vector QR Code */}
                     <svg viewBox="0 0 100 100" className="w-32 h-32 text-slate-800" fill="currentColor">
@@ -804,45 +805,45 @@ print("Checkout Link generated:", data.get("orderId"))`
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             
             {/* Feature 1 */}
-            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-6 space-y-4 hover:border-blue-300 transition-all group">
+            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-6 space-y-4 hover:border-blue-300 transition-all hover:shadow-lg hover:-translate-y-1.5 duration-350 ease-out group animate-fade-up">
               <div className="w-10 h-10 rounded-xl bg-blue-500 text-white flex items-center justify-center shadow-md shadow-blue-500/10 group-hover:scale-105 transition-transform">
                 <Landmark className="w-5 h-5" />
               </div>
               <h3 className="font-bold text-slate-900 text-base">Direct Bank P2P Route</h3>
-              <p className="text-xs text-slate-500 leading-relaxed font-medium">
+              <p className="text-xs text-slate-550 leading-relaxed font-medium">
                 Eliminate transaction holdings. Customer scans transfer directly into your private UPI bank accounts instantly.
               </p>
             </div>
 
             {/* Feature 2 */}
-            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-6 space-y-4 hover:border-blue-300 transition-all group">
+            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-6 space-y-4 hover:border-blue-300 transition-all hover:shadow-lg hover:-translate-y-1.5 duration-350 ease-out group animate-fade-up delay-100">
               <div className="w-10 h-10 rounded-xl bg-indigo-500 text-white flex items-center justify-center shadow-md shadow-indigo-500/10 group-hover:scale-105 transition-transform">
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <h3 className="font-bold text-slate-900 text-base">HMAC SHA-256 Webhooks</h3>
-              <p className="text-xs text-slate-500 leading-relaxed font-medium">
+              <p className="text-xs text-slate-550 leading-relaxed font-medium">
                 Every outbound callback carrying transaction matches is signed with a merchant secret key using industry standards.
               </p>
             </div>
 
             {/* Feature 3 */}
-            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-6 space-y-4 hover:border-blue-300 transition-all group">
+            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-6 space-y-4 hover:border-blue-300 transition-all hover:shadow-lg hover:-translate-y-1.5 duration-350 ease-out group animate-fade-up delay-150">
               <div className="w-10 h-10 rounded-xl bg-violet-500 text-white flex items-center justify-center shadow-md shadow-violet-500/10 group-hover:scale-105 transition-transform">
                 <Layers className="w-5 h-5" />
               </div>
               <h3 className="font-bold text-slate-900 text-base">Isolated Developer Sandbox</h3>
-              <p className="text-xs text-slate-500 leading-relaxed font-medium">
+              <p className="text-xs text-slate-550 leading-relaxed font-medium">
                 Test checkout redirection flows, callback API dispatches, and logs securely using prefix-locked test credential sets.
               </p>
             </div>
 
             {/* Feature 4 */}
-            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-6 space-y-4 hover:border-blue-300 transition-all group">
+            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-6 space-y-4 hover:border-blue-300 transition-all hover:shadow-lg hover:-translate-y-1.5 duration-350 ease-out group animate-fade-up delay-200">
               <div className="w-10 h-10 rounded-xl bg-sky-500 text-white flex items-center justify-center shadow-md shadow-sky-500/10 group-hover:scale-105 transition-transform">
                 <Zap className="w-5 h-5" />
               </div>
               <h3 className="font-bold text-slate-900 text-base">0-Second Settlements</h3>
-              <p className="text-xs text-slate-500 leading-relaxed font-medium">
+              <p className="text-xs text-slate-550 leading-relaxed font-medium">
                 Your company gains immediate liquidity. No escrow holds or intermediary bank delays on successful verified client payouts.
               </p>
             </div>
