@@ -7,7 +7,7 @@ import { CONFIG } from '@/lib/config';
 import { 
   ArrowRight, CheckCircle2, ChevronRight, Menu, X, 
   ArrowUpRight, ShieldCheck, Zap, Layers, RefreshCw, 
-  Key, Landmark, Code, Play, Star, Plus, Minus, Info
+  Key, Landmark, Code, Play, Star, Plus, Minus, Info, Lock
 } from 'lucide-react';
 
 const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = '#0f172a' }) => (
