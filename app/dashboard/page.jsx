@@ -8,7 +8,8 @@ import {
   LogOut, Save, Key, User, Briefcase, Link as LinkIcon, 
   Loader2, Copy, CheckCircle, CreditCard, Mail, X, 
   LayoutDashboard, Search, Download, RefreshCw, IndianRupee,
-  Clock, CheckCircle2, XCircle, Code, ChevronRight, BookOpen
+  Clock, CheckCircle2, XCircle, Code, ChevronRight, BookOpen,
+  Menu
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -20,6 +21,7 @@ export default function DashboardPage() {
   const [message, setMessage] = useState('');
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Transaction States
   const [orders, setOrders] = useState([]);
@@ -409,16 +411,79 @@ echo "Order Created: " . $data['orderId'];
       <main className="flex-1 flex flex-col min-w-0 min-h-screen">
         
         {/* Mobile Header Bar */}
-        <header className="md:hidden h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-10 shadow-sm">
+        <header className="md:hidden h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-40 shadow-sm">
           <h1 className="text-xl font-black tracking-tight text-slate-900">
             MyMob<span className="text-blue-600 italic">Pay</span>
           </h1>
           <div className="flex items-center gap-2">
-            <button onClick={handleSignOut} className="p-2 text-slate-500 hover:text-slate-900 transition-colors">
-              <LogOut className="w-5 h-5" />
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-colors"
+              title="Menu"
+            >
+              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </header>
+
+        {/* Mobile Navigation Drawer (Razorpay Style) */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden fixed inset-x-0 bottom-0 top-[64px] z-30 bg-white/95 backdrop-blur-md flex flex-col pt-6 px-6 pb-6 animate-fadeIn">
+            {/* Drawer Header Info */}
+            <div className="flex items-center gap-3 mb-6 p-3 bg-slate-50 border border-slate-100 rounded-2xl">
+              <div 
+                className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-sm"
+                style={{ backgroundColor: profile?.theme_color || '#3B82F6' }}
+              >
+                {profile?.business_name ? profile.business_name.charAt(0).toUpperCase() : 'B'}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-slate-900 truncate">{profile?.business_name || 'My Business'}</p>
+                <p className="text-[10px] font-medium text-slate-500 truncate">{user?.email}</p>
+              </div>
+            </div>
+
+            {/* Navigation Options */}
+            <div className="flex flex-col space-y-2">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 mb-1">Menu Navigation</p>
+              {[
+                { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+                { id: 'transactions', label: 'Transactions', icon: CreditCard },
+                { id: 'developer', label: 'Developer API', icon: BookOpen },
+                { id: 'settings', label: 'Settings', icon: Briefcase },
+                { id: 'api', label: 'API Keys', icon: Key },
+              ].map(tab => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => {
+                      setActiveTab(tab.id);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl text-xs font-bold transition-all border ${activeTab === tab.id ? 'bg-blue-50/60 text-blue-600 border-blue-100 shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 border-transparent'}`}
+                  >
+                    <Icon className="w-4.5 h-4.5" />
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="flex-1"></div>
+
+            {/* Drawer Sign Out */}
+            <div className="pt-6 border-t border-slate-100">
+              <button 
+                onClick={handleSignOut}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-2xl transition-all text-xs font-bold text-slate-700 shadow-sm"
+              >
+                <LogOut className="w-4 h-4 text-slate-500" />
+                <span>Sign Out Account</span>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Main Body */}
         <div className="flex-1 p-4 md:p-10 overflow-y-auto">
