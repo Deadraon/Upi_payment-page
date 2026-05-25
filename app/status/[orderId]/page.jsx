@@ -26,8 +26,8 @@ const AnimatedCheck = () => (
 
 /* ── Receipt row ───────────────────────────────────────────── */
 const Row = ({ label, value, mono = false, green = false }) => (
-  <div className="flex justify-between items-center py-2.5 border-b border-[#30363D] last:border-0">
-    <span className="text-xs text-[#E6EDF3] font-medium">{label}</span>
+  <div className="flex justify-between items-center py-2.5 border-b border-slate-200 last:border-0">
+    <span className="text-xs text-slate-900 font-medium">{label}</span>
     <span className={`text-xs font-semibold text-right max-w-[55%] break-all ${mono ? 'font-mono' : ''} ${green ? 'text-emerald-400' : 'text-white'}`}>
       {value}
     </span>
@@ -54,7 +54,7 @@ const MyMobPayLogo = ({ className = 'w-48 h-auto' }) => (
 
 /* ── Logo header ───────────────────────────────────────────── */
 const Header = ({ badge }) => (
-  <header className="w-full border-b border-[#30363D] bg-[#0D0D12] px-5 py-3.5 flex items-center justify-between">
+  <header className="w-full border-b border-slate-200 bg-[#0D0D12] px-5 py-3.5 flex items-center justify-between">
     <div className="flex items-center">
       <MyMobPayLogo className="h-6 w-auto object-contain" />
     </div>
@@ -149,27 +149,27 @@ export default function StatusPage() {
 
   /* Loading */
   if (!mounted || loading) return (
-    <div className="min-h-screen bg-[#0D0D12] flex items-center justify-center">
+    <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center">
       <div className="flex flex-col items-center gap-3">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-400" />
-        <p className="text-sm text-[#E6EDF3] font-medium">Loading transaction...</p>
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <p className="text-sm text-slate-500 font-medium">Loading transaction...</p>
       </div>
     </div>
   );
 
   /* Error */
   if (error || !order) return (
-    <div className="min-h-screen bg-[#0D0D12] flex items-center justify-center px-4">
-      <div className="w-full max-w-sm bg-[#161B22] rounded-2xl border border-[#21262D] p-8 text-center space-y-4 animate-scale-up">
-        <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto">
-          <XCircle className="w-6 h-6 text-red-400" />
+    <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center px-4">
+      <div className="w-full max-w-sm bg-white rounded-3xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-8 text-center space-y-4 animate-scale-up">
+        <div className="w-12 h-12 rounded-full bg-red-50 border border-red-100 flex items-center justify-center mx-auto">
+          <XCircle className="w-6 h-6 text-red-500" />
         </div>
         <div>
-          <h2 className="text-lg font-bold text-white">Order Not Found</h2>
-          <p className="text-xs text-[#E6EDF3] mt-1">We couldn&apos;t find a transaction matching this ID.</p>
+          <h2 className="text-lg font-bold text-slate-900">Order Not Found</h2>
+          <p className="text-xs text-slate-500 mt-1">We couldn&apos;t find a transaction matching this ID.</p>
         </div>
         <button onClick={() => router.push('/pay')}
-          className="w-full py-2.5 rounded-xl bg-[#21262D] hover:bg-[#252528] text-[#E6EDF3] font-semibold text-sm transition-all">
+          className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-900 font-semibold text-sm transition-all">
           Back to Payment
         </button>
       </div>
@@ -183,28 +183,28 @@ export default function StatusPage() {
      VERIFIED
   ═══════════════════════════════════════════════════════════ */
   if (order.status === 'verified') return (
-    <div className="min-h-screen bg-[#0D0D12] flex flex-col">
+    <div className="min-h-screen bg-[#f8fafc] flex flex-col">
       <Header badge={
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />Verified
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />Verified
         </span>
       } />
       <main className="flex-1 flex items-center justify-center px-4 py-10">
         <div className="w-full max-w-sm animate-scale-up">
-          <div className="bg-[#161B22] rounded-2xl border border-emerald-500/20 shadow-2xl overflow-hidden">
-            <div className="h-0.5 bg-emerald-500 w-full" />
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
+            <div className="h-1 bg-emerald-500 w-full" />
             <div className="p-6 text-center space-y-3">
               <div className="flex justify-center">
                 <div className="animate-pulse-success rounded-full"><AnimatedCheck /></div>
               </div>
               <div>
-                <h2 className="text-2xl font-black text-white">Payment Confirmed!</h2>
-                <p className="text-sm text-emerald-400 font-semibold mt-1">
+                <h2 className="text-2xl font-black text-slate-900">Payment Confirmed!</h2>
+                <p className="text-sm text-emerald-600 font-semibold mt-1">
                   ₹{parseFloat(order.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })} received successfully
                 </p>
               </div>
             </div>
-            <div className="mx-5 mb-4 rounded-xl bg-[#0D0D12] border border-[#30363D] px-4 py-1">
+            <div className="mx-5 mb-4 rounded-xl bg-slate-50 border border-slate-100 px-4 py-1">
               <Row label="Order ID" value={orderId} mono />
               <Row label="Amount" value={`₹${parseFloat(order.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`} green />
               <Row label="UTR / Ref" value={order.utr || 'Auto-verified'} mono />
@@ -213,7 +213,7 @@ export default function StatusPage() {
             </div>
             <div className="px-5 pb-6 space-y-2.5">
               {redirecting && callback ? (
-                <div className="w-full py-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-semibold text-sm flex items-center justify-center gap-2">
+                <div className="w-full py-3 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 font-semibold text-sm flex items-center justify-center gap-2">
                   <Loader2 className="w-4 h-4 animate-spin" />
                   Redirecting back to {order.project || 'your app'}...
                 </div>
@@ -224,12 +224,12 @@ export default function StatusPage() {
                   url.searchParams.set('gateway_id', orderId);
                   if (order.utr) url.searchParams.set('utr', order.utr);
                   window.location.href = url.toString();
-                }} className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all">
+                }} className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all">
                   <ExternalLink className="w-4 h-4" /> Return to {order.project || 'App'}
                 </button>
               ) : (
                 <button onClick={() => router.push('/pay')}
-                  className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all">
+                  className="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all">
                   Done · New Payment
                 </button>
               )}
@@ -238,7 +238,7 @@ export default function StatusPage() {
         </div>
       </main>
       <footer className="py-4 text-center">
-        <p className="text-[10px] text-[#E6EDF3]">© 2026 MyMobPay · Secure Payments</p>
+        <p className="text-[10px] text-slate-400">© 2026 MyMobPay · Secure Payments</p>
       </footer>
     </div>
   );
@@ -247,31 +247,31 @@ export default function StatusPage() {
      REJECTED
   ═══════════════════════════════════════════════════════════ */
   if (order.status === 'rejected') return (
-    <div className="min-h-screen bg-[#0D0D12] flex flex-col">
+    <div className="min-h-screen bg-[#f8fafc] flex flex-col">
       <Header badge={
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-red-500/10 text-red-400 border border-red-500/20">
-          <span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" />Declined
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-red-50 text-red-600 border border-red-200">
+          <span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block" />Declined
         </span>
       } />
       <main className="flex-1 flex items-center justify-center px-4 py-10">
         <div className="w-full max-w-sm animate-scale-up">
-          <div className="bg-[#161B22] rounded-2xl border border-red-500/20 shadow-2xl overflow-hidden">
-            <div className="h-0.5 bg-red-500 w-full" />
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
+            <div className="h-1 bg-red-500 w-full" />
             <div className="p-6 text-center space-y-3">
-              <div className="w-14 h-14 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto">
-                <XCircle className="w-7 h-7 text-red-400" />
+              <div className="w-14 h-14 rounded-full bg-red-50 border border-red-100 flex items-center justify-center mx-auto">
+                <XCircle className="w-7 h-7 text-red-500" />
               </div>
               <div>
-                <h2 className="text-xl font-black text-white">Payment Declined</h2>
-                <p className="text-xs text-[#E6EDF3] mt-1">We could not verify this transaction.</p>
+                <h2 className="text-xl font-black text-slate-900">Payment Declined</h2>
+                <p className="text-xs text-slate-500 mt-1">We could not verify this transaction.</p>
               </div>
             </div>
-            <div className="mx-5 mb-4 rounded-xl bg-[#0D0D12] border border-[#30363D] px-4 py-1">
+            <div className="mx-5 mb-4 rounded-xl bg-slate-50 border border-slate-100 px-4 py-1">
               <Row label="Order ID" value={orderId} mono />
               <Row label="Amount" value={`₹${parseFloat(order.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`} />
             </div>
             <div className="px-5 pb-6">
-              <p className="text-xs text-[#E6EDF3] text-center mb-3">
+              <p className="text-xs text-slate-500 text-center mb-3">
                 If you were debited, contact support with your order reference.
               </p>
               {callback ? (
@@ -280,12 +280,12 @@ export default function StatusPage() {
                   url.searchParams.set('status', 'failed');
                   url.searchParams.set('gateway_id', orderId);
                   window.location.href = url.toString();
-                }} className="w-full py-3 rounded-xl bg-[#21262D] hover:bg-[#252528] text-[#E6EDF3] font-bold text-sm flex items-center justify-center gap-2 transition-all">
+                }} className="w-full py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-sm flex items-center justify-center gap-2 transition-all">
                   <ExternalLink className="w-4 h-4" /> Return to {order.project || 'App'}
                 </button>
               ) : (
                 <button onClick={() => router.push('/pay')}
-                  className="w-full py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all">
+                  className="w-full py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all">
                   <RefreshCw className="w-4 h-4" /> Try Again
                 </button>
               )}
@@ -300,41 +300,41 @@ export default function StatusPage() {
      PENDING
   ═══════════════════════════════════════════════════════════ */
   return (
-    <div className="min-h-screen bg-[#0D0D12] flex flex-col">
-      <div className="fixed top-0 left-0 right-0 z-50 h-[2px] bg-[#21262D]">
-        <div className="progress-bar h-full" />
+    <div className="min-h-screen bg-[#f8fafc] flex flex-col">
+      <div className="fixed top-0 left-0 right-0 z-50 h-[2px] bg-slate-200">
+        <div className="progress-bar bg-blue-600 h-full" />
       </div>
 
       <Header badge={
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse inline-block" />Under Review
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-600 border border-amber-200">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse inline-block" />Under Review
         </span>
       } />
 
       <main className="flex-1 flex items-start justify-center px-4 py-8">
         <div className="w-full max-w-sm animate-scale-up">
-          <div className="bg-[#161B22] rounded-2xl border border-[#21262D] shadow-2xl overflow-hidden">
-            <div className="h-0.5 bg-indigo-600 w-full" />
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
+            <div className="h-1 bg-blue-600 w-full" />
 
             {/* Header */}
-            <div className="p-6 text-center space-y-3 border-b border-[#30363D]">
-              <div className="w-12 h-12 rounded-full border-2 border-dashed border-indigo-500/30 bg-indigo-500/10 flex items-center justify-center mx-auto animate-pulse-ring">
-                <ShieldCheck className="w-5 h-5 text-indigo-400" />
+            <div className="p-6 text-center space-y-3 border-b border-slate-100">
+              <div className="w-12 h-12 rounded-full border-2 border-dashed border-blue-200 bg-blue-50 flex items-center justify-center mx-auto animate-pulse-ring">
+                <ShieldCheck className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-white">Verifying Payment</h2>
-                <p className="text-xs text-[#E6EDF3] mt-1 leading-relaxed">
+                <h2 className="text-lg font-bold text-slate-900">Verifying Payment</h2>
+                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
                   Your payment is being processed. You can{' '}
-                  <strong className="text-indigo-400">safely close</strong> this page.
+                  <strong className="text-blue-600">safely close</strong> this page.
                 </p>
               </div>
             </div>
 
             {/* Order summary */}
-            <div className="mx-5 mt-4 rounded-xl bg-[#0D0D12] border border-[#30363D] px-4 py-1">
-              <div className="flex justify-center items-baseline gap-0.5 py-2.5 border-b border-[#30363D] mb-1">
-                <span className="text-2xl font-black text-white">₹</span>
-                <span className="text-3xl font-black text-white tabular-nums">
+            <div className="mx-5 mt-4 rounded-xl bg-slate-50 border border-slate-100 px-4 py-1">
+              <div className="flex justify-center items-baseline gap-0.5 py-2.5 border-b border-slate-200 mb-1">
+                <span className="text-2xl font-black text-slate-400">₹</span>
+                <span className="text-3xl font-black text-slate-900 tabular-nums">
                   {parseFloat(order.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </span>
               </div>
@@ -344,38 +344,38 @@ export default function StatusPage() {
             </div>
 
             {/* UTR input */}
-            <div className="px-5 py-4 border-t border-[#30363D] mt-3">
+            <div className="px-5 py-4 border-t border-slate-100 mt-3">
               {isUtrSubmitted ? (
-                <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3.5 text-center space-y-1">
-                  <div className="flex items-center justify-center gap-1.5 text-xs text-emerald-400 font-semibold">
+                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 text-center space-y-1">
+                  <div className="flex items-center justify-center gap-1.5 text-xs text-emerald-600 font-semibold">
                     <CheckCircle className="w-3.5 h-3.5" /> UTR Submitted
                   </div>
-                  <p className="text-[10px] text-[#E6EDF3]">
-                    Ref: <strong className="font-mono text-[#E6EDF3]">{order.utr}</strong>
+                  <p className="text-[10px] text-slate-500">
+                    Ref: <strong className="font-mono text-slate-700">{order.utr}</strong>
                   </p>
                 </div>
               ) : (
                 <form onSubmit={handleUtrSubmit} className="space-y-2.5">
                   <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-[#E6EDF3] block mb-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">
                       Speed Up Verification
                     </label>
-                    <p className="text-[9px] text-[#E6EDF3] leading-relaxed">
+                    <p className="text-[9px] text-slate-400 leading-relaxed">
                       Enter the 12-digit UTR / IMPS Ref from your bank&apos;s confirmation.
                     </p>
                   </div>
                   {utrError && (
-                    <div className="flex items-center gap-1.5 p-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-[10px] text-red-400">
+                    <div className="flex items-center gap-1.5 p-2.5 rounded-lg bg-red-50 border border-red-200 text-[10px] text-red-600">
                       <AlertCircle className="w-3 h-3 flex-shrink-0" /> {utrError}
                     </div>
                   )}
                   {utrSuccess && (
-                    <div className="flex items-center gap-1.5 p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[10px] text-emerald-400">
+                    <div className="flex items-center gap-1.5 p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-[10px] text-emerald-600">
                       <CheckCircle className="w-3 h-3 flex-shrink-0" /> {utrSuccess}
                     </div>
                   )}
                   <div className="relative">
-                    <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#E6EDF3]" />
+                    <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
                     <input
                       type="text"
                       inputMode="numeric"
@@ -383,13 +383,13 @@ export default function StatusPage() {
                       placeholder="Enter 12-digit UTR"
                       value={utrInput}
                       onChange={e => { setUtrInput(e.target.value.replace(/\D/g, '')); setUtrError(''); }}
-                      className="w-full bg-[#21262D] border border-[#3A3A42] rounded-xl text-xs font-mono tracking-wider text-white placeholder-[#3A3A3F] focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/40 py-2.5 pl-9 pr-3 transition-all"
+                      className="w-full bg-white border border-slate-300 rounded-xl text-xs font-mono tracking-wider text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/40 py-2.5 pl-9 pr-3 transition-all"
                     />
                   </div>
                   <button
                     type="submit"
                     disabled={submittingUtr || utrInput.length !== 12}
-                    className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     {submittingUtr
                       ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Submitting...</>
@@ -400,15 +400,15 @@ export default function StatusPage() {
             </div>
 
             {/* Live indicator */}
-            <div className="px-5 pb-5 pt-1 flex items-center justify-center gap-1.5 text-[10px] text-[#E6EDF3]">
-              <RefreshCw className="w-3 h-3 animate-spin" style={{ animationDuration: '3s' }} />
+            <div className="px-5 pb-5 pt-1 flex items-center justify-center gap-1.5 text-[10px] text-slate-500">
+              <RefreshCw className="w-3 h-3 animate-spin text-blue-500" style={{ animationDuration: '3s' }} />
               Checking payment status in real-time...
             </div>
           </div>
         </div>
       </main>
       <footer className="py-4 text-center">
-        <p className="text-[10px] text-[#E6EDF3]">© 2026 MyMobPay · Secure Payments</p>
+        <p className="text-[10px] text-slate-400">© 2026 MyMobPay · Secure Payments</p>
       </footer>
     </div>
   );

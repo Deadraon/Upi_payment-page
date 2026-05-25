@@ -2,16 +2,58 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { parseBankSms } from '@/lib/parseSms';
 import { CONFIG } from '@/lib/config';
+import { triggerMerchantWebhook } from '@/lib/webhook';
 
 export async function POST(request) {
   try {
     const body = await request.json();
     const { secret, message } = body;
 
-    // Validate webhook secret
     const validSecret = process.env.WEBHOOK_SECRET || CONFIG.webhookSecret;
-    if (!secret || secret !== validSecret) {
-      return NextResponse.json({ error: 'Unauthorized: Invalid secret' }, { status: 401 });
+    const apiKey = body.api_key || request.headers.get('x-api-key') || request.headers.get('X-MyMobPay-API-Key');
+    
+    let merchant = null;
+    let isAuthorized = false;
+
+    // Check if the global secret is provided
+    if (secret && secret === validSecret) {
+      isAuthorized = true;
+    }
+
+    // Authenticate merchant using api_key if provided
+    if (apiKey) {
+      const { data, error } = await supabaseAdmin
+        .from('merchants')
+        .select('id, subscription_status')
+        .eq('api_key', apiKey)
+        .single();
+      
+      if (!error && data) {
+        merchant = data;
+        isAuthorized = true;
+      }
+    }
+
+    // Fallback: Check if the 'secret' sent is actually a merchant's private API Key
+    if (!merchant && secret && secret !== validSecret) {
+      const { data, error } = await supabaseAdmin
+        .from('merchants')
+        .select('id, subscription_status')
+        .eq('api_key', secret)
+        .single();
+        
+      if (!error && data) {
+        merchant = data;
+        isAuthorized = true;
+      }
+    }
+
+    if (!isAuthorized) {
+      return NextResponse.json({ error: 'Unauthorized: Invalid secret or API Key' }, { status: 401 });
+    }
+
+    if (merchant && merchant.subscription_status !== 'active') {
+      return NextResponse.json({ error: 'Merchant subscription is inactive' }, { status: 403 });
     }
 
     if (!message) {
@@ -31,12 +73,18 @@ export async function POST(request) {
 
     const { amount, utr } = parsed;
 
-    // Find the most recent pending order matching the amount
-    const { data: order, error: findError } = await supabaseAdmin
+    // Find the most recent pending order matching the amount (isolated by merchant if authenticated)
+    let orderQuery = supabaseAdmin
       .from('orders')
       .select('*')
       .eq('status', 'pending')
-      .eq('amount', amount)
+      .eq('amount', amount);
+      
+    if (merchant) {
+      orderQuery = orderQuery.eq('merchant_id', merchant.id);
+    }
+
+    const { data: order, error: findError } = await orderQuery
       .order('created_at', { ascending: false })
       .limit(1);
 
@@ -89,6 +137,9 @@ export async function POST(request) {
       console.error('Error updating order status:', updateError);
       return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
+
+    // Trigger outbound webhook safely
+    await triggerMerchantWebhook(matchedOrder.id);
 
     return NextResponse.json({
       success: true,

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { triggerMerchantWebhook } from '@/lib/webhook';
 
 export async function POST(request) {
   try {
@@ -44,6 +45,11 @@ export async function POST(request) {
     if (error) {
       console.error('Error modifying order:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // Trigger outbound webhook for the merchant upon verification
+    if (action === 'verify') {
+      await triggerMerchantWebhook(orderId);
     }
 
     return NextResponse.json({ success: true, order: data });

@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { parseTransactionText } from '@/lib/parseSms';
+import { parseBankSms } from '@/lib/parseSms';
 import { CONFIG } from '@/lib/config';
+import { triggerMerchantWebhook } from '@/lib/webhook';
 
 export async function POST(request) {
   try {
@@ -22,13 +23,29 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized: Invalid API Key' }, { status: 401 });
     }
 
-    if (merchant.subscription_status !== 'active') {
+    if (merchant.subscription_status !== 'active' && api_key !== CONFIG.platformApiKey) {
       return NextResponse.json({ error: 'Merchant subscription is inactive' }, { status: 403 });
     }
 
+    // -- NEW: Intercept Gmail Forwarding Confirmation Link --
+    const gmailLinkMatch = emailBody.match(/(https:\/\/(?:mail|mail-settings)\.google\.com\/mail\/vf-[^"'\s<>]+)/i);
+    if (gmailLinkMatch) {
+      const link = gmailLinkMatch[1];
+      
+      // Save the link to the merchant's database row (reusing the same column name for simplicity, or we can use it as the link)
+      await supabaseAdmin
+        .from('merchants')
+        .update({ gmail_verification_code: link })
+        .eq('id', merchant.id);
+        
+      console.log(`✅ Intercepted Gmail verification link for merchant ${merchant.id}`);
+      return NextResponse.json({ success: true, message: 'Saved Gmail verification link' }, { status: 200 });
+    }
+
+
     // 2. Parse the email text to extract UTR and Amount
     // We reuse the robust transaction parsing engine
-    const parsed = parseTransactionText(emailBody);
+    const parsed = parseBankSms(emailBody);
     
     if (!parsed || !parsed.amount || !parsed.utr) {
       return NextResponse.json({
@@ -123,8 +140,8 @@ export async function POST(request) {
       }
     }
 
-    // 7. Optional: Trigger merchant webhook if they configured one
-    // if (merchant.webhook_url) { ... fire outbound webhook ... }
+    // 7. Trigger merchant outbound webhook safely
+    await triggerMerchantWebhook(matchedOrder.id);
 
     return NextResponse.json({
       success: true,
