@@ -1,6 +1,9 @@
 # Premium Next.js UPI Payment Gateway 🚀
 
-A highly responsive, standalone, and reusable UPI Payment Gateway designed for modern businesses. Built with **Next.js 14 (App Router)**, **Tailwind CSS**, and **Supabase**, this gateway supports mobile deep-linking, desktop QR codes, secure manual administration, and **automated bank SMS webhook verification** out-of-the-box!
+> 🌐 **Live Platform Console**: [mymob.tech](https://mymob.tech)  
+> 📊 **Merchant Dashboard**: [mymob.tech/dashboard](https://mymob.tech/dashboard)
+
+A highly responsive, standalone, and reusable B2B UPI Payment Gateway designed for modern businesses. Built with **Next.js 14 (App Router)**, **Tailwind CSS**, and **Supabase**, this gateway supports mobile direct deep-linking, desktop QR codes, secure merchant administration, a dynamic **Interactive Setup & Integration Wizard** (Web checkouts & Mobile App SDKs), and **automated bank SMS webhook verification** out-of-the-box!
 
 ---
 
