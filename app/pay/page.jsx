@@ -23,7 +23,7 @@ const getDeepLink = (appId, amount, orderId, merchant) => {
   const businessName = merchant?.business_name || CONFIG.businessName;
   const params = `pa=${upiId}&pn=${encodeURIComponent(businessName)}&am=${amount}&cu=INR&tn=${orderId}`;
   const map = {
-    gpay:    `gpay://upi/pay?${params}`,
+    gpay:    `intent://upi/pay?${params}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end;`,
     phonepe: `phonepe://pay?${params}`,
     paytm:   `paytmmp://upi/pay?${params}`,
     bhim:    `upi://pay?${params}`,

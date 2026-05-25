@@ -42,3 +42,4 @@ WITH CHECK (true);
 CREATE POLICY "Anyone can view order status" 
 ON public.orders FOR SELECT 
 USING (true);
+
