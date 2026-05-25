@@ -22,13 +22,27 @@ const getDeepLink = (appId, amount, orderId, merchant) => {
   const upiId = merchant?.upi_id || CONFIG.upiId;
   const businessName = merchant?.business_name || CONFIG.businessName;
   const params = `pa=${upiId}&pn=${encodeURIComponent(businessName)}&am=${amount}&cu=INR&tn=${orderId}`;
-  const map = {
-    gpay:    `intent://upi/pay?${params}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end;`,
-    phonepe: `phonepe://pay?${params}`,
-    paytm:   `paytmmp://upi/pay?${params}`,
-    bhim:    `upi://pay?${params}`,
-  };
-  return map[appId] || `upi://pay?${params}`;
+  
+  const isAndroid = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
+  
+  if (isAndroid) {
+    const androidMap = {
+      gpay:    `intent://upi/pay?${params}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end;`,
+      phonepe: `intent://upi/pay?${params}#Intent;scheme=upi;package=com.phonepe.app;end;`,
+      paytm:   `intent://upi/pay?${params}#Intent;scheme=upi;package=net.one97.paytm;end;`,
+      bhim:    `intent://upi/pay?${params}#Intent;scheme=upi;package=in.org.npci.upiapp;end;`,
+    };
+    return androidMap[appId] || `intent://upi/pay?${params}#Intent;scheme=upi;end;`;
+  } else {
+    // iOS and other fallback deep links
+    const iosMap = {
+      gpay:    `gpay://upi/pay?${params}`,
+      phonepe: `phonepe://pay?${params}`,
+      paytm:   `paytmmp://upi/pay?${params}`,
+      bhim:    `upi://pay?${params}`,
+    };
+    return iosMap[appId] || `upi://pay?${params}`;
+  }
 };
 
 /* ── App Logos — official brand images from /public/logos/ ── */
