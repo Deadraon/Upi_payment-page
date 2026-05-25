@@ -13,7 +13,6 @@ import {
   Search, 
   RefreshCw, 
   LogOut, 
-  Dumbbell, 
   User, 
   Phone, 
   FileText,
@@ -352,48 +351,38 @@ export default function AdminPage() {
     });
   }, [merchants, merchantSearchQuery]);
 
-  const themeColor = '#10B981'; // SaaS Emerald Accent
+  const brandColor = '#3B82F6'; // Unified Website Blue Brand Color
 
   if (!isLoggedIn) {
-    /* LUXURY LOGIN WALL SCREEN */
+    /* LUXURY LIGHT THEME LOGIN WALL SCREEN */
     return (
-      <div className="min-h-screen bg-[#050811] text-slate-100 flex flex-col justify-center items-center p-4 font-sans selection:bg-emerald-500/30">
+      <div className="min-h-screen bg-[#f8fafc] text-slate-900 flex flex-col justify-center items-center px-4 font-sans selection:bg-blue-500/10">
         
-        {/* Soft radial glow */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-[25%] left-[25%] w-[50%] h-[50%] rounded-full opacity-[0.03] blur-[120px]" style={{ backgroundColor: themeColor }}></div>
-        </div>
-
-        <div className="max-w-md w-full bg-[#0a0f1d]/75 backdrop-blur-2xl border border-slate-900 rounded-[2rem] p-8 shadow-2xl relative space-y-7 overflow-hidden">
+        <div className="max-w-md w-full bg-white border border-slate-200 rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative space-y-7 overflow-hidden">
           
-          <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ backgroundColor: themeColor }}></div>
+          <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ backgroundColor: brandColor }}></div>
 
           {/* Branding */}
-          <div className="text-center space-y-4">
-            <div className="w-16 h-16 bg-[#0E1528] border border-slate-800 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
-              <Dumbbell className="w-8 h-8 text-emerald-400" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-black tracking-tight text-white">
-                MyMob<span className="text-emerald-500 italic">Pay</span> SaaS
-              </h2>
-              <p className="text-[10px] text-slate-400 font-bold tracking-widest uppercase mt-0.5">Super Admin Dashboard</p>
-            </div>
+          <div className="text-center space-y-2">
+            <h1 className="text-3xl font-black tracking-tight text-slate-900">
+              MyMob<span className="text-blue-600 italic">Pay</span>
+            </h1>
+            <p className="text-[10px] text-slate-400 font-bold tracking-widest uppercase mt-0.5">SaaS Super Admin Console</p>
           </div>
 
           {authError && (
-            <div className="p-3.5 bg-red-500/10 border border-red-500/25 rounded-xl text-red-200 text-xs flex items-center gap-2.5">
-              <AlertCircle className="w-4.5 h-4.5 text-red-400 flex-shrink-0" />
+            <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-red-650 text-xs flex items-center gap-2.5">
+              <AlertCircle className="w-4.5 h-4.5 text-red-500 flex-shrink-0" />
               <span className="font-semibold">{authError}</span>
             </div>
           )}
 
-          <form onSubmit={handleLoginSubmit} className="space-y-5">
+          <form onSubmit={handleLoginSubmit} className="space-y-5 font-semibold text-xs text-slate-700">
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Access Password</label>
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Access Password</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                  <Lock className="w-4 h-4 text-slate-500" />
+                  <Lock className="w-4 h-4 text-slate-400" />
                 </div>
                 <input
                   type="password"
@@ -401,7 +390,7 @@ export default function AdminPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-[#03060E] border border-slate-800 rounded-xl py-3.5 pl-10 pr-4 text-sm text-white placeholder-slate-700 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500/20 transition-all font-semibold"
+                  className="w-full bg-white border border-slate-300 rounded-xl py-3.5 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/40 transition-all font-semibold"
                 />
               </div>
             </div>
@@ -409,10 +398,9 @@ export default function AdminPage() {
             <button
               type="submit"
               disabled={authLoading}
-              className="w-full py-3.5 rounded-xl text-white font-bold text-sm tracking-wide flex items-center justify-center gap-2.5 transition-transform active:scale-[0.99] disabled:opacity-50 shadow-lg"
+              className="w-full py-3.5 rounded-xl text-white font-bold text-sm tracking-wide flex items-center justify-center gap-2.5 transition-transform active:scale-[0.99] disabled:opacity-50 shadow-sm shadow-blue-500/20"
               style={{
-                backgroundColor: themeColor,
-                boxShadow: `0 6px 20px rgba(16, 185, 129, 0.15)`
+                backgroundColor: brandColor
               }}
             >
               {authLoading ? (
@@ -432,28 +420,25 @@ export default function AdminPage() {
 
   /* LOGGED IN DASHBOARD */
   return (
-    <div className="min-h-screen bg-[#03060d] text-slate-200 font-sans flex flex-col justify-between selection:bg-emerald-500/20">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-700 font-sans flex flex-col justify-between selection:bg-blue-500/10">
       
       {/* Top Header bar */}
-      <header className="bg-[#080d19]/80 backdrop-blur-md border-b border-slate-900/60 sticky top-0 z-40">
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-[0_2px_15px_rgb(0,0,0,0.015)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-slate-900 border border-slate-850 flex items-center justify-center">
-              <Dumbbell className="w-5 h-5 text-emerald-400" />
-            </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="font-black text-lg tracking-tight text-white">
-                  MyMob<span className="text-emerald-400 italic">Pay</span>
+                <h1 className="font-black text-xl tracking-tight text-slate-900">
+                  MyMob<span className="text-blue-650 italic">Pay</span>
                 </h1>
-                <span className="px-2 py-0.5 text-[9px] rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold uppercase">SaaS OWNER</span>
+                <span className="px-2 py-0.5 text-[9px] rounded bg-blue-50 text-blue-600 border border-blue-100 font-bold uppercase">SaaS OWNER</span>
               </div>
-              <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Gateway Platform Admin</p>
+              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Gateway Platform Admin</p>
             </div>
           </div>
 
           {/* Tab Selection (Desktop Only) */}
-          <nav className="hidden md:flex bg-[#040810] border border-slate-850 p-1.5 rounded-2xl gap-1">
+          <nav className="hidden md:flex bg-slate-50 border border-slate-200 p-1.5 rounded-2xl gap-1">
             {[
               { id: 'overview', label: 'Platform Stats', icon: Activity },
               { id: 'transactions', label: 'Global Orders', icon: FileText },
@@ -465,9 +450,9 @@ export default function AdminPage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === tab.id ? 'bg-[#0E1729] text-white shadow-sm border border-slate-800' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/40 border border-transparent'}`}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === tab.id ? 'bg-white text-slate-900 shadow-sm border border-slate-200/80' : 'text-slate-550 hover:text-slate-900 border border-transparent'}`}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-4 h-4 text-blue-600" />
                   <span>{tab.label}</span>
                 </button>
               );
@@ -479,16 +464,16 @@ export default function AdminPage() {
             <button 
               onClick={handleRefreshAll}
               disabled={loading || merchantsLoading}
-              className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800 disabled:opacity-50 transition-colors"
+              className="p-2.5 rounded-xl bg-white border border-slate-250 text-slate-500 hover:text-slate-900 hover:bg-slate-50 disabled:opacity-50 transition-colors shadow-sm"
               title="Sync Platform Data"
             >
               <RefreshCw className={`w-4 h-4 ${loading || merchantsLoading ? 'animate-spin' : ''}`} />
             </button>
             <button 
               onClick={handleLogout}
-              className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-red-950/15 border border-red-900/20 text-red-400 hover:text-red-300 hover:bg-red-950/25 transition-colors text-xs font-bold"
+              className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 transition-colors text-xs font-bold shadow-sm"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-4 h-4 text-slate-550" />
               <span>Log Out</span>
             </button>
           </div>
@@ -498,17 +483,17 @@ export default function AdminPage() {
             <button 
               onClick={handleRefreshAll}
               disabled={loading || merchantsLoading}
-              className="p-2 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white disabled:opacity-50 transition-colors"
+              className="p-2 py-2 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-slate-900 disabled:opacity-50 transition-colors shadow-sm"
               title="Sync"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${loading || merchantsLoading ? 'animate-spin' : ''}`} />
             </button>
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition-colors"
+              className="p-2 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-slate-900 transition-colors shadow-sm"
               title="Menu"
             >
-              {isMobileMenuOpen ? <X className="w-4 h-4 text-white" /> : <Menu className="w-4 h-4 text-white" />}
+              {isMobileMenuOpen ? <X className="w-4 h-4 text-slate-900" /> : <Menu className="w-4 h-4 text-slate-950" />}
             </button>
           </div>
         </div>
@@ -516,9 +501,9 @@ export default function AdminPage() {
 
       {/* Mobile Drawer Slide-out overlay Navigation (Mobile Only) */}
       {isMobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-30 bg-[#03060d]/95 backdrop-blur-xl flex flex-col pt-24 px-6 pb-8 space-y-8 animate-fadeIn">
+        <div className="md:hidden fixed inset-x-0 bottom-0 top-[64px] z-30 bg-white/95 backdrop-blur-xl flex flex-col pt-6 px-6 pb-8 space-y-8 animate-fadeIn">
           <div className="flex flex-col space-y-3">
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3">Navigation Menu</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3">Navigation Menu</p>
             {[
               { id: 'overview', label: 'Platform Stats', icon: Activity },
               { id: 'transactions', label: 'Global Orders', icon: FileText },
@@ -533,9 +518,9 @@ export default function AdminPage() {
                     setActiveTab(tab.id);
                     setIsMobileMenuOpen(false);
                   }}
-                  className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all border ${activeTab === tab.id ? 'bg-[#0E1729] text-white border-slate-800 shadow-sm' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/20 border-transparent'}`}
+                  className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all border ${activeTab === tab.id ? 'bg-blue-50/60 text-blue-600 border-blue-100 shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 border-transparent'}`}
                 >
-                  <Icon className="w-4.5 h-4.5 text-emerald-400" />
+                  <Icon className="w-4.5 h-4.5 text-blue-600" />
                   <span>{tab.label}</span>
                 </button>
               );
@@ -545,19 +530,19 @@ export default function AdminPage() {
           <div className="flex-1"></div>
 
           {/* Mobile Drawer Actions */}
-          <div className="space-y-4 pt-6 border-t border-slate-900">
+          <div className="space-y-4 pt-6 border-t border-slate-100">
             <div className="flex justify-between items-center px-2">
-              <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Gateway Platform Admin</span>
-              <span className="text-[8px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded font-black uppercase">v1.1</span>
+              <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Gateway Platform Admin</span>
+              <span className="text-[8px] bg-blue-55 text-blue-600 border border-blue-100 px-2 py-0.5 rounded font-black uppercase">v1.1</span>
             </div>
             <button 
               onClick={() => {
                 handleLogout();
                 setIsMobileMenuOpen(false);
               }}
-              className="w-full flex items-center justify-center gap-2.5 px-4 py-3.5 rounded-2xl bg-red-950/20 border border-red-900/35 text-red-400 hover:bg-red-900 hover:text-white transition-all text-sm font-bold shadow-md"
+              className="w-full flex items-center justify-center gap-2.5 px-4 py-3.5 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 transition-all text-sm font-bold shadow-sm"
             >
-              <LogOut className="w-4.5 h-4.5" />
+              <LogOut className="w-4.5 h-4.5 text-slate-500" />
               <span>Log Out Platform</span>
             </button>
           </div>
@@ -569,8 +554,8 @@ export default function AdminPage() {
         
         {/* Error warning */}
         {error && (
-          <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-200 text-sm flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 flex-shrink-0 text-red-400" />
+          <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 flex-shrink-0 text-red-500" />
             <p className="font-semibold">{error}</p>
           </div>
         )}
@@ -584,61 +569,61 @@ export default function AdminPage() {
             <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               
               {/* Platform volume */}
-              <div className="bg-[#090E1B]/70 border border-slate-900 rounded-2xl p-5 shadow-lg relative overflow-hidden flex flex-col justify-between h-[120px]">
+              <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-[0_4px_15px_rgb(0,0,0,0.01)] flex flex-col justify-between h-[120px]">
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Platform Sales Volume</p>
-                    <h3 className="text-2xl font-black text-white mt-2 flex items-baseline">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Platform Sales Volume</p>
+                    <h3 className="text-2xl font-black text-slate-900 mt-2 flex items-baseline">
                       <span className="text-sm font-bold text-slate-400 mr-0.5">₹</span>
                       <span>{platformMetrics.totalVolume.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
                     </h3>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  <div className="p-2.5 rounded-xl bg-blue-50 text-blue-600 border border-blue-100">
                     <TrendingUp className="w-5 h-5" />
                   </div>
                 </div>
-                <p className="text-[10px] text-slate-400 font-semibold">{platformMetrics.verifiedCount} aggregate payments processed</p>
+                <p className="text-[10px] text-slate-500 font-semibold">{platformMetrics.verifiedCount} aggregate payments processed</p>
               </div>
 
               {/* Today's Sales */}
-              <div className="bg-[#090E1B]/70 border border-slate-900 rounded-2xl p-5 shadow-lg relative overflow-hidden flex flex-col justify-between h-[120px]">
+              <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-[0_4px_15px_rgb(0,0,0,0.01)] flex flex-col justify-between h-[120px]">
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Today&apos;s Revenue</p>
-                    <h3 className="text-2xl font-black text-white mt-2 flex items-baseline">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Today&apos;s Revenue</p>
+                    <h3 className="text-2xl font-black text-slate-900 mt-2 flex items-baseline">
                       <span className="text-sm font-bold text-slate-400 mr-0.5">₹</span>
                       <span>{platformMetrics.today.revenue.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
                     </h3>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  <div className="p-2.5 rounded-xl bg-blue-50 text-blue-600 border border-blue-100">
                     <ArrowUpRight className="w-5 h-5" />
                   </div>
                 </div>
-                <p className="text-[10px] text-emerald-400 font-bold">+{platformMetrics.today.count} global checkouts today</p>
+                <p className="text-[10px] text-emerald-600 font-bold">+{platformMetrics.today.count} global checkouts today</p>
               </div>
 
               {/* Total SaaS Tenants */}
-              <div className="bg-[#090E1B]/70 border border-slate-900 rounded-2xl p-5 shadow-lg relative overflow-hidden flex flex-col justify-between h-[120px]">
+              <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-[0_4px_15px_rgb(0,0,0,0.01)] flex flex-col justify-between h-[120px]">
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Registered Merchants</p>
-                    <h3 className="text-3xl font-black text-white mt-2">{platformMetrics.totalMerchants}</h3>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Registered Merchants</p>
+                    <h3 className="text-3xl font-black text-slate-900 mt-2">{platformMetrics.totalMerchants}</h3>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                  <div className="p-2.5 rounded-xl bg-blue-50 text-blue-600 border border-blue-100">
                     <Store className="w-5 h-5" />
                   </div>
                 </div>
-                <p className="text-[10px] text-slate-400 font-semibold">{platformMetrics.activeMerchants} active subscriptions</p>
+                <p className="text-[10px] text-slate-500 font-semibold">{platformMetrics.activeMerchants} active subscriptions</p>
               </div>
 
               {/* Awaiting Match */}
-              <div className="bg-[#090E1B]/70 border border-slate-900 rounded-2xl p-5 shadow-lg relative overflow-hidden flex flex-col justify-between h-[120px]">
+              <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-[0_4px_15px_rgb(0,0,0,0.01)] flex flex-col justify-between h-[120px]">
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Awaiting Verification</p>
-                    <h3 className="text-3xl font-black text-white mt-2">{platformMetrics.pendingCount}</h3>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Awaiting Verification</p>
+                    <h3 className="text-3xl font-black text-slate-900 mt-2">{platformMetrics.pendingCount}</h3>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 animate-pulse">
+                  <div className="p-2.5 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 animate-pulse">
                     <Clock className="w-5 h-5" />
                   </div>
                 </div>
@@ -651,25 +636,25 @@ export default function AdminPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               
               {/* Leaderboard Table */}
-              <div className="bg-[#070b13]/80 border border-slate-900 rounded-2xl p-6 shadow-xl lg:col-span-2 space-y-4">
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm lg:col-span-2 space-y-4">
                 <div className="flex justify-between items-center pb-2">
-                  <h4 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 text-emerald-400" /> Top Performing Merchants
+                  <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-blue-600" /> Top Performing Merchants
                   </h4>
-                  <span className="text-[10px] bg-slate-900 border border-slate-800 px-2 py-0.5 rounded text-slate-400 font-bold uppercase">SaaS STATS</span>
+                  <span className="text-[10px] bg-slate-50 border border-slate-200 px-2 py-0.5 rounded text-slate-500 font-bold uppercase">SaaS STATS</span>
                 </div>
 
-                <div className="overflow-x-auto rounded-xl border border-slate-850">
-                  <table className="min-w-full divide-y divide-slate-850/80">
-                    <thead className="bg-[#0A0F1D]/55">
+                <div className="overflow-x-auto rounded-xl border border-slate-200">
+                  <table className="min-w-full divide-y divide-slate-200">
+                    <thead className="bg-slate-50">
                       <tr>
-                        <th className="px-5 py-3 text-left text-[9px] font-bold text-slate-400 uppercase tracking-wider">Business Name</th>
-                        <th className="px-5 py-3 text-left text-[9px] font-bold text-slate-400 uppercase tracking-wider">UPI ID Address</th>
-                        <th className="px-5 py-3 text-center text-[9px] font-bold text-slate-400 uppercase tracking-wider">Verified Orders</th>
-                        <th className="px-5 py-3 text-right text-[9px] font-bold text-slate-400 uppercase tracking-wider">Volume (INR)</th>
+                        <th className="px-5 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-wider">Business Name</th>
+                        <th className="px-5 py-3 text-left text-[9px] font-bold text-slate-500 uppercase tracking-wider">UPI ID Address</th>
+                        <th className="px-5 py-3 text-center text-[9px] font-bold text-slate-500 uppercase tracking-wider">Verified Orders</th>
+                        <th className="px-5 py-3 text-right text-[9px] font-bold text-slate-500 uppercase tracking-wider">Volume (INR)</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-850/40 bg-[#040810]/40">
+                    <tbody className="divide-y divide-slate-200 bg-white">
                       {merchantsLoading ? (
                         <tr>
                           <td colSpan="4" className="px-5 py-6 text-center text-xs text-slate-500">
@@ -684,23 +669,23 @@ export default function AdminPage() {
                         </tr>
                       ) : (
                         merchantLeaderboard.map((m, idx) => (
-                          <tr key={m.id} className="hover:bg-slate-900/30 transition-colors">
+                          <tr key={m.id} className="hover:bg-slate-50/50 transition-colors">
                             <td className="px-5 py-3.5 whitespace-nowrap text-xs">
                               <div className="flex items-center gap-2">
-                                <span className={`w-5 h-5 rounded-full flex items-center justify-center font-bold text-[9px] ${idx === 0 ? 'bg-amber-400/20 text-amber-400 border border-amber-400/30' : idx === 1 ? 'bg-slate-350/20 text-slate-300 border border-slate-300/30' : 'bg-slate-900 text-slate-400'}`}>
+                                <span className={`w-5 h-5 rounded-full flex items-center justify-center font-bold text-[9px] ${idx === 0 ? 'bg-amber-100 text-amber-600 border border-amber-200' : idx === 1 ? 'bg-slate-100 text-slate-600 border border-slate-200' : 'bg-slate-50 text-slate-500'}`}>
                                   {idx + 1}
                                 </span>
-                                <span className="font-bold text-white">{m.businessName}</span>
+                                <span className="font-bold text-slate-900">{m.businessName}</span>
                               </div>
                             </td>
-                            <td className="px-5 py-3.5 whitespace-nowrap text-xs font-mono font-medium text-slate-450">
+                            <td className="px-5 py-3.5 whitespace-nowrap text-xs font-mono font-medium text-slate-600">
                               {m.upiId}
                             </td>
-                            <td className="px-5 py-3.5 whitespace-nowrap text-xs font-bold text-center text-slate-300">
+                            <td className="px-5 py-3.5 whitespace-nowrap text-xs font-bold text-center text-slate-700">
                               {m.ordersCount}
                             </td>
-                            <td className="px-5 py-3.5 whitespace-nowrap text-xs font-black text-right text-emerald-450 flex items-center justify-end gap-0.5">
-                              <span className="text-[10px] text-slate-500 font-bold">₹</span>
+                            <td className="px-5 py-3.5 whitespace-nowrap text-xs font-black text-right text-blue-600 flex items-center justify-end gap-0.5">
+                              <span className="text-[10px] text-slate-400 font-bold">₹</span>
                               <span>{m.salesVolume.toFixed(2)}</span>
                             </td>
                           </tr>
@@ -712,9 +697,9 @@ export default function AdminPage() {
               </div>
 
               {/* Platform Health / Webhook Diagnostics */}
-              <div className="bg-[#070b13]/80 border border-slate-900 rounded-2xl p-6 shadow-xl space-y-6">
-                <h4 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                  <Activity className="w-4.5 h-4.5 text-emerald-400" /> Platform Services
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
+                <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                  <Activity className="w-4.5 h-4.5 text-blue-600" /> Platform Services
                 </h4>
 
                 <div className="space-y-4">
@@ -724,13 +709,13 @@ export default function AdminPage() {
                     { name: 'Bank Notification Hub', desc: 'Gmail IMAP parsing system', status: 'operational', val: 'Active' },
                     { name: 'Platform Billing System', desc: 'Zero-Fee billing routers', status: 'operational', val: 'Active' }
                   ].map((service, idx) => (
-                    <div key={idx} className="flex justify-between items-center p-3 bg-slate-950 rounded-xl border border-slate-900">
+                    <div key={idx} className="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-250">
                       <div>
-                        <p className="text-xs font-bold text-white">{service.name}</p>
+                        <p className="text-xs font-bold text-slate-900">{service.name}</p>
                         <p className="text-[10px] text-slate-500 font-semibold mt-0.5">{service.desc}</p>
                       </div>
                       <div className="text-right">
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-extrabold uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-extrabold uppercase bg-blue-50 text-blue-600 border border-blue-100">
                           ✓ {service.val}
                         </span>
                       </div>
@@ -747,35 +732,35 @@ export default function AdminPage() {
            TAB 2: GLOBAL TRANSACTION LOGS
            ═══════════════════════════════════════════════════════════ */}
         {activeTab === 'transactions' && (
-          <section className="bg-[#070b13]/80 border border-slate-900 backdrop-blur-xl rounded-2xl p-6 shadow-xl space-y-6 animate-fadeIn">
+          <section className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6 animate-fadeIn">
             
             {/* Filters and Searches */}
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 border-b border-slate-900">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 border-b border-slate-200">
               <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-1">
                 <div className="space-y-1">
-                  <h2 className="text-lg font-bold text-white tracking-wide">Global Transaction Logs</h2>
+                  <h2 className="text-lg font-bold text-slate-900 tracking-wide">Global Transaction Logs</h2>
                   <p className="text-xs text-slate-400">Total: {filteredOrders.length} filtered checkouts • Auto-refresh active</p>
                 </div>
                 
                 {/* Search Bar */}
                 <div className="relative max-w-xs w-full sm:ml-4">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                    <Search className="w-4 h-4 text-slate-500" />
+                    <Search className="w-4 h-4 text-slate-400" />
                   </div>
                   <input
                     type="text"
                     placeholder="Search UTR, Customer, Note..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-[#03060E] border border-slate-800 rounded-xl py-2 pl-10 pr-8 text-xs text-white placeholder-slate-700 outline-none focus:border-slate-700 transition-all font-semibold"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 pl-10 pr-8 text-xs text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 transition-all font-semibold"
                   />
                   {searchQuery && (
                     <button
                       onClick={() => setSearchQuery('')}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-white text-xs"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-950 text-xs"
                     >
                       ✕
-                    </button>
+                  </button>
                   )}
                 </div>
 
@@ -784,14 +769,14 @@ export default function AdminPage() {
                   <select
                     value={selectedMerchantFilter}
                     onChange={(e) => setSelectedMerchantFilter(e.target.value)}
-                    className="w-full bg-[#03060E] border border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-350 outline-none focus:border-slate-700 appearance-none font-bold cursor-pointer"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-650 outline-none focus:border-blue-500 appearance-none font-bold cursor-pointer"
                   >
                     <option value="all">All Stores (SaaS)</option>
                     {merchants.map(m => (
                       <option key={m.id} value={m.id}>{m.business_name}</option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-3 top-2.5 w-4 h-4 text-slate-500 pointer-events-none" />
+                  <ChevronDown className="absolute right-3 top-2.5 w-4 h-4 text-slate-450 pointer-events-none" />
                 </div>
               </div>
               
@@ -808,9 +793,9 @@ export default function AdminPage() {
                     onClick={() => setStatusFilter(filt.id)}
                     className="px-3.5 py-2 rounded-xl text-xs font-extrabold border transition-all flex-shrink-0"
                     style={{
-                      backgroundColor: statusFilter === filt.id ? 'rgba(16, 185, 129, 0.1)' : '#03060E',
-                      borderColor: statusFilter === filt.id ? themeColor : 'rgb(30, 41, 59)',
-                      color: statusFilter === filt.id ? 'white' : 'rgb(148, 163, 184)'
+                      backgroundColor: statusFilter === filt.id ? 'rgba(59, 130, 246, 0.1)' : '#ffffff',
+                      borderColor: statusFilter === filt.id ? brandColor : 'rgb(226, 232, 240)',
+                      color: statusFilter === filt.id ? '#1e40af' : 'rgb(100, 116, 139)'
                     }}
                   >
                     {filt.label}
@@ -820,26 +805,26 @@ export default function AdminPage() {
             </div>
 
             {/* Table */}
-            <div className="overflow-x-auto rounded-xl border border-slate-850">
-              <table className="min-w-full divide-y divide-slate-850/80">
-                <thead className="bg-[#0A0F1D]/55">
+            <div className="overflow-x-auto rounded-xl border border-slate-200">
+              <table className="min-w-full divide-y divide-slate-200">
+                <thead className="bg-slate-50">
                   <tr>
-                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Merchant Store</th>
-                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Order ID</th>
-                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Date & Time</th>
-                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Customer</th>
-                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Amount</th>
-                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Note</th>
-                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">UTR Reference</th>
-                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-4 text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">Action Override</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Merchant Store</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Order ID</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Date & Time</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Customer</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Amount</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Note</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">UTR Reference</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-4 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider">Action Override</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-850/40 bg-[#040810]/30">
+                <tbody className="divide-y divide-slate-200 bg-white">
                   {loading && orders.length === 0 ? (
                     <tr>
-                      <td colSpan="9" className="px-6 py-12 text-center text-xs text-slate-500">
-                        <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-emerald-450" />
+                      <td colSpan="9" className="px-6 py-12 text-center text-xs text-slate-550">
+                        <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-blue-500" />
                         Fetching global transaction history...
                       </td>
                     </tr>
@@ -862,12 +847,12 @@ export default function AdminPage() {
                       const merchantName = merchantObj ? merchantObj.business_name : 'Primary Account';
 
                       return (
-                        <tr key={order.id} className="hover:bg-slate-900/25 transition-colors">
+                        <tr key={order.id} className="hover:bg-slate-50/50 transition-colors">
                           
                           {/* Merchant name */}
                           <td className="px-6 py-4 whitespace-nowrap text-xs">
-                            <span className="font-extrabold text-white flex items-center gap-1.5">
-                              <Store className="w-3.5 h-3.5 text-slate-500" />
+                            <span className="font-extrabold text-slate-900 flex items-center gap-1.5">
+                              <Store className="w-3.5 h-3.5 text-slate-400" />
                               {merchantName}
                             </span>
                           </td>
@@ -875,7 +860,7 @@ export default function AdminPage() {
                           {/* Order ID */}
                           <td className="px-6 py-4 whitespace-nowrap text-xs font-mono font-bold text-slate-500">
                             <span 
-                              className="cursor-pointer hover:text-emerald-400 flex items-center gap-1"
+                              className="cursor-pointer hover:text-blue-600 flex items-center gap-1"
                               onClick={() => {
                                 navigator.clipboard.writeText(order.id);
                                 alert("Copied full Order ID!");
@@ -888,34 +873,34 @@ export default function AdminPage() {
                           </td>
 
                           {/* Date */}
-                          <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-400 font-semibold">
+                          <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-600 font-semibold">
                             {localTime}
                           </td>
 
                           {/* Customer */}
-                          <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-200">
+                          <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-900">
                             {order.customer_name || order.customer_phone ? (
                               <div className="space-y-0.5">
                                 <div className="font-bold flex items-center gap-1">
-                                  <User className="w-3.5 h-3.5 text-slate-650" />
+                                  <User className="w-3.5 h-3.5 text-slate-400" />
                                   <span>{order.customer_name || 'N/A'}</span>
                                 </div>
                                 {order.customer_phone && (
                                   <div className="text-[10px] font-bold text-slate-500 font-mono flex items-center gap-1">
-                                    <Phone className="w-3 h-3 text-slate-700" />
+                                    <Phone className="w-3 h-3 text-slate-400" />
                                     <span>{order.customer_phone}</span>
                                   </div>
                                 )}
                               </div>
                             ) : (
-                              <span className="text-slate-650 font-medium">Anonymous</span>
+                              <span className="text-slate-400 font-medium">Anonymous</span>
                             )}
                           </td>
 
                           {/* Amount */}
-                          <td className="px-6 py-4 whitespace-nowrap text-xs font-bold text-slate-100">
+                          <td className="px-6 py-4 whitespace-nowrap text-xs font-bold text-slate-900">
                             <div className="flex items-center gap-0.5 font-extrabold text-sm">
-                              <IndianRupee className="w-3.5 h-3.5 text-slate-500" />
+                              <IndianRupee className="w-3.5 h-3.5 text-slate-450" />
                               <span>{parseFloat(order.amount).toFixed(2)}</span>
                             </div>
                           </td>
@@ -929,7 +914,7 @@ export default function AdminPage() {
                           <td className="px-6 py-4 whitespace-nowrap text-xs font-mono">
                             {order.utr ? (
                               <div className="flex items-center gap-1.5">
-                                <span className="font-bold text-slate-200 bg-slate-900 border border-slate-800 px-2 py-0.5 rounded-lg">
+                                <span className="font-bold text-slate-800 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-lg">
                                   {order.utr}
                                 </span>
                                 <button
@@ -937,14 +922,14 @@ export default function AdminPage() {
                                     navigator.clipboard.writeText(order.utr);
                                     alert("Copied UTR Reference!");
                                   }}
-                                  className="p-1 hover:bg-slate-800 rounded text-slate-450 hover:text-white transition-colors"
+                                  className="p-1 hover:bg-slate-100 rounded text-slate-450 hover:text-slate-950 transition-colors"
                                   title="Copy UTR Reference"
                                 >
                                   <Copy className="w-3.5 h-3.5" />
                                 </button>
                               </div>
                             ) : (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[9px] font-bold bg-amber-500/10 border border-amber-500/20 text-amber-400">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[9px] font-bold bg-amber-50 text-amber-600 border border-amber-200">
                                 Awaiting Match
                               </span>
                             )}
@@ -953,20 +938,20 @@ export default function AdminPage() {
                           {/* Status */}
                           <td className="px-6 py-4 whitespace-nowrap text-xs">
                             {order.status === 'verified' && (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-250">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                 <span>Verified</span>
                               </span>
                             )}
                             {order.status === 'pending' && (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 border border-amber-500/20 text-amber-400">
-                                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-255">
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span>
                                 <span>Pending</span>
                               </span>
                             )}
                             {order.status === 'rejected' && (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 border border-red-500/20 text-red-400">
-                                <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-red-700 border border-red-250">
+                                <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
                                 <span>Rejected</span>
                               </span>
                             )}
@@ -983,19 +968,19 @@ export default function AdminPage() {
                                       placeholder="Enter UTR"
                                       value={manualUtr}
                                       onChange={(e) => setManualUtr(e.target.value)}
-                                      className="px-2 py-1 rounded bg-[#03060E] border border-slate-700 text-xs text-white outline-none w-[110px] font-semibold"
+                                      className="px-2 py-1 rounded bg-white border border-slate-350 text-xs text-slate-900 outline-none w-[110px] font-semibold focus:border-blue-500"
                                     />
                                     <button
                                       onClick={() => handleOrderAction(order.id, 'verify', manualUtr)}
                                       disabled={actionLoading === order.id}
-                                      className="p-1 text-emerald-400 hover:bg-slate-800 rounded transition-colors font-bold"
+                                      className="p-1 text-emerald-600 hover:bg-slate-100 rounded transition-colors font-bold"
                                       title="Confirm"
                                     >
                                       ✓
                                     </button>
                                     <button
                                       onClick={() => setUtrPromptId(null)}
-                                      className="p-1 text-slate-500 hover:bg-slate-800 rounded transition-colors"
+                                      className="p-1 text-slate-400 hover:bg-slate-100 rounded transition-colors"
                                       title="Cancel"
                                     >
                                       ✕
@@ -1009,7 +994,7 @@ export default function AdminPage() {
                                         setManualUtr(order.utr || `MANUAL-${Math.floor(100000 + Math.random() * 900000)}`);
                                       }}
                                       disabled={actionLoading !== null}
-                                      className="px-2.5 py-1 rounded-lg text-[10px] font-bold border border-emerald-500/20 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white transition-all"
+                                      className="px-2.5 py-1 rounded-lg text-[10px] font-bold border border-emerald-200 bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-all"
                                     >
                                       Verify
                                     </button>
@@ -1020,7 +1005,7 @@ export default function AdminPage() {
                                         }
                                       }}
                                       disabled={actionLoading !== null}
-                                      className="px-2.5 py-1 rounded-lg text-[10px] font-bold border border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all"
+                                      className="px-2.5 py-1 rounded-lg text-[10px] font-bold border border-red-200 bg-red-50 text-red-650 hover:bg-red-500 hover:text-white transition-all"
                                     >
                                       Reject
                                     </button>
@@ -1028,7 +1013,7 @@ export default function AdminPage() {
                                 )}
                               </div>
                             ) : (
-                              <span className="text-[10px] text-slate-550 font-mono font-medium truncate max-w-[100px] inline-block bg-slate-900 px-2 py-0.5 rounded border border-slate-800/40">
+                              <span className="text-[10px] text-slate-500 font-mono font-medium truncate max-w-[100px] inline-block bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
                                 {order.utr || 'Matched'}
                               </span>
                             )}
@@ -1049,31 +1034,31 @@ export default function AdminPage() {
            TAB 3: MERCHANTS DIRECTORY (SaaS ACCOUNT CONTROLS)
            ═══════════════════════════════════════════════════════════ */}
         {activeTab === 'merchants' && (
-          <section className="bg-[#070b13]/80 border border-slate-900 backdrop-blur-xl rounded-2xl p-6 shadow-xl space-y-6 animate-fadeIn">
+          <section className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6 animate-fadeIn">
             
             {/* Header controls */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-900">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-200">
               <div className="space-y-1">
-                <h2 className="text-lg font-bold text-white tracking-wide">SaaS Registered Merchants</h2>
+                <h2 className="text-lg font-bold text-slate-900 tracking-wide">SaaS Registered Merchants</h2>
                 <p className="text-xs text-slate-400">Total Merchants: {merchants.length} • Manage subscriptions and API keys instantly</p>
               </div>
 
               {/* Search Merchants */}
               <div className="relative max-w-xs w-full">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                  <Search className="w-4 h-4 text-slate-500" />
+                  <Search className="w-4 h-4 text-slate-450" />
                 </div>
                 <input
                   type="text"
                   placeholder="Search Merchant Name, UPI..."
                   value={merchantSearchQuery}
                   onChange={(e) => setMerchantSearchQuery(e.target.value)}
-                  className="w-full bg-[#03060E] border border-slate-800 rounded-xl py-2 pl-10 pr-8 text-xs text-white placeholder-slate-700 outline-none focus:border-slate-700 transition-all font-semibold"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 pl-10 pr-8 text-xs text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 transition-all font-semibold"
                 />
                 {merchantSearchQuery && (
                   <button
                     onClick={() => setMerchantSearchQuery('')}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-white text-xs"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-450 hover:text-slate-950 text-xs"
                   >
                     ✕
                   </button>
@@ -1082,24 +1067,24 @@ export default function AdminPage() {
             </div>
 
             {/* Merchants List Table */}
-            <div className="overflow-x-auto rounded-xl border border-slate-850">
-              <table className="min-w-full divide-y divide-slate-850/80">
-                <thead className="bg-[#0A0F1D]/55">
+            <div className="overflow-x-auto rounded-xl border border-slate-200">
+              <table className="min-w-full divide-y divide-slate-200">
+                <thead className="bg-slate-50">
                   <tr>
-                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Merchant Profile</th>
-                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Business UPI ID</th>
-                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">API Key (Sensitive)</th>
-                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Registered On</th>
-                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Webhook Route</th>
-                    <th className="px-6 py-4 text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">SaaS Status</th>
-                    <th className="px-6 py-4 text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">Access Toggle</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Merchant Profile</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Business UPI ID</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">API Key (Sensitive)</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Registered On</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Webhook Route</th>
+                    <th className="px-6 py-4 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider">SaaS Status</th>
+                    <th className="px-6 py-4 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider">Access Toggle</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-850/40 bg-[#040810]/30">
+                <tbody className="divide-y divide-slate-200 bg-white">
                   {merchantsLoading ? (
                     <tr>
-                      <td colSpan="7" className="px-6 py-12 text-center text-xs text-slate-500">
-                        <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-emerald-450" />
+                      <td colSpan="7" className="px-6 py-12 text-center text-xs text-slate-550">
+                        <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-blue-500" />
                         Fetching SaaS merchants database records...
                       </td>
                     </tr>
@@ -1119,76 +1104,76 @@ export default function AdminPage() {
                       const isKeyCopied = copiedKeyId === merchant.id;
 
                       return (
-                        <tr key={merchant.id} className="hover:bg-slate-900/25 transition-colors">
+                        <tr key={merchant.id} className="hover:bg-slate-50/50 transition-colors">
                           
                           {/* Business profile */}
                           <td className="px-6 py-4.5 whitespace-nowrap text-xs">
                             <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-xs text-white" style={{ backgroundColor: merchant.theme_color || '#3B82F6' }}>
+                              <div className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-xs text-white shadow-sm" style={{ backgroundColor: merchant.theme_color || '#3B82F6' }}>
                                 {merchant.business_name ? merchant.business_name.charAt(0).toUpperCase() : 'B'}
                               </div>
                               <div>
-                                <p className="font-extrabold text-white">{merchant.business_name}</p>
-                                <p className="text-[9px] font-mono text-slate-500 tracking-tight mt-0.5">{merchant.id}</p>
+                                <p className="font-extrabold text-slate-900">{merchant.business_name}</p>
+                                <p className="text-[9px] font-mono text-slate-400 tracking-tight mt-0.5">{merchant.id}</p>
                               </div>
                             </div>
                           </td>
 
                           {/* UPI ID */}
-                          <td className="px-6 py-4.5 whitespace-nowrap text-xs font-mono font-bold text-slate-200">
+                          <td className="px-6 py-4.5 whitespace-nowrap text-xs font-mono font-bold text-slate-800">
                             {merchant.upi_id}
                           </td>
 
                           {/* API Key */}
                           <td className="px-6 py-4.5 whitespace-nowrap text-xs font-mono">
-                            <div className="flex items-center gap-1.5 bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-900 w-[180px] justify-between">
-                              <span className="font-semibold text-slate-400 select-all">
+                            <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200 w-[180px] justify-between">
+                              <span className="font-semibold text-slate-600 select-all">
                                 {isKeyRevealed ? merchant.api_key : '••••-••••-••••'}
                               </span>
                               <div className="flex items-center gap-1">
                                 <button
                                   onClick={() => toggleKeyVisibility(merchant.id)}
-                                  className="text-slate-500 hover:text-white transition-colors"
+                                  className="text-slate-450 hover:text-slate-900 transition-colors"
                                   title={isKeyRevealed ? "Hide Key" : "Show Key"}
                                 >
                                   {isKeyRevealed ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                                 </button>
                                 <button
                                   onClick={() => handleCopyKey(merchant.id, merchant.api_key)}
-                                  className="text-slate-500 hover:text-white transition-colors"
+                                  className="text-slate-450 hover:text-slate-900 transition-colors"
                                   title="Copy Key"
                                 >
-                                  {isKeyCopied ? <Check className="w-3.5 h-3.5 text-emerald-400 animate-scale-up" /> : <Copy className="w-3.5 h-3.5" />}
+                                  {isKeyCopied ? <Check className="w-3.5 h-3.5 text-emerald-500 animate-scale-up" /> : <Copy className="w-3.5 h-3.5" />}
                                 </button>
                               </div>
                             </div>
                           </td>
 
                           {/* Reg Date */}
-                          <td className="px-6 py-4.5 whitespace-nowrap text-xs text-slate-400 font-semibold">
+                          <td className="px-6 py-4.5 whitespace-nowrap text-xs text-slate-500 font-semibold">
                             {regDate}
                           </td>
 
                           {/* Webhook Url */}
                           <td className="px-6 py-4.5 whitespace-nowrap text-xs font-mono max-w-[150px] truncate" title={merchant.webhook_url || 'Not configured'}>
                             {merchant.webhook_url ? (
-                              <a href={merchant.webhook_url} target="_blank" rel="noreferrer" className="text-blue-400 hover:underline flex items-center gap-1.5">
+                              <a href={merchant.webhook_url} target="_blank" rel="noreferrer" className="text-blue-500 hover:underline flex items-center gap-1.5">
                                 <span>{merchant.webhook_url}</span>
                                 <ExternalLink className="w-3 h-3 flex-shrink-0" />
                               </a>
                             ) : (
-                              <span className="text-slate-650 italic">None</span>
+                              <span className="text-slate-400 italic">None</span>
                             )}
                           </td>
 
                           {/* Sub Status */}
                           <td className="px-6 py-4.5 whitespace-nowrap text-xs text-center">
                             {merchant.subscription_status === 'active' ? (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-extrabold uppercase bg-emerald-500/10 text-emerald-450 border border-emerald-500/25">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-extrabold uppercase bg-emerald-55 text-emerald-600 border border-emerald-100">
                                 Active
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-extrabold uppercase bg-red-500/10 text-red-400 border border-red-500/25">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-extrabold uppercase bg-red-50 text-red-600 border border-red-100">
                                 Suspended
                               </span>
                             )}
@@ -1203,7 +1188,7 @@ export default function AdminPage() {
                                   handleToggleSubscription(merchant.id, merchant.subscription_status);
                                 }
                               }}
-                              className={`px-3 py-1.5 rounded-xl text-[10px] font-extrabold border transition-all ${merchant.subscription_status === 'active' ? 'bg-red-950/10 border-red-900/20 text-red-400 hover:bg-red-500 hover:text-white' : 'bg-emerald-950/10 border-emerald-900/20 text-emerald-400 hover:bg-emerald-500 hover:text-white'}`}
+                              className={`px-3 py-1.5 rounded-xl text-[10px] font-extrabold border transition-all ${merchant.subscription_status === 'active' ? 'bg-red-50 border-red-200 text-red-600 hover:bg-red-500 hover:text-white' : 'bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-500 hover:text-white'}`}
                             >
                               {merchant.subscription_status === 'active' ? 'SUSPEND' : 'ACTIVATE'}
                             </button>
@@ -1224,17 +1209,17 @@ export default function AdminPage() {
            TAB 4: DEVELOPER & SYSTEM DIAGNOSTICS
            ═══════════════════════════════════════════════════════════ */}
         {activeTab === 'config' && (
-          <section className="bg-[#070b13]/80 border border-slate-900 backdrop-blur-xl rounded-2xl p-6 shadow-xl space-y-6 animate-fadeIn">
-            <div className="pb-4 border-b border-slate-900 space-y-1">
-              <h2 className="text-lg font-bold text-white tracking-wide">Developer & System Diagnostics</h2>
+          <section className="bg-white border border-slate-200 backdrop-blur-xl rounded-2xl p-6 shadow-sm space-y-6 animate-fadeIn">
+            <div className="pb-4 border-b border-slate-200 space-y-1">
+              <h2 className="text-lg font-bold text-slate-900 tracking-wide">Developer & System Diagnostics</h2>
               <p className="text-xs text-slate-400">Configure global configurations, inspect environment integration, and monitor server diagnostics</p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               
               {/* Env variable health */}
-              <div className="p-6 bg-slate-950 rounded-2xl border border-slate-900 space-y-4">
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+              <div className="p-6 bg-slate-55 rounded-2xl border border-slate-200 space-y-4">
+                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
                   <ShieldAlert className="w-4 h-4 text-amber-500" /> Platform Key Credentials
                 </h4>
 
@@ -1245,9 +1230,9 @@ export default function AdminPage() {
                     { name: 'ADMIN_PASSWORD', status: 'Active (Protected)' },
                     { name: 'SUPABASE_SERVICE_KEY', status: 'Active (RLS Bypassed)' }
                   ].map((env, idx) => (
-                    <div key={idx} className="flex justify-between items-center py-2 border-b border-slate-900/60 last:border-b-0 text-xs">
+                    <div key={idx} className="flex justify-between items-center py-2 border-b border-slate-200 last:border-b-0 text-xs">
                       <span className="font-mono text-slate-500 font-bold">{env.name}</span>
-                      <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${env.status.includes('Missing') ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-emerald-500/10 text-emerald-450 border border-emerald-500/20'}`}>
+                      <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${env.status.includes('Missing') ? 'bg-red-50 text-red-500 border border-red-100' : 'bg-blue-50 text-blue-600 border border-blue-105'}`}>
                         {env.status}
                       </span>
                     </div>
@@ -1256,27 +1241,27 @@ export default function AdminPage() {
               </div>
 
               {/* DLT Templates Config */}
-              <div className="p-6 bg-slate-950 rounded-2xl border border-slate-900 space-y-4">
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-emerald-450" /> TRAI DLT Templates Configuration
+              <div className="p-6 bg-slate-55 rounded-2xl border border-slate-200 space-y-4">
+                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-blue-600" /> TRAI DLT Templates Configuration
                 </h4>
 
                 <div className="space-y-3 text-xs">
-                  <div className="flex justify-between items-start py-2 border-b border-slate-900/60">
+                  <div className="flex justify-between items-start py-2 border-b border-slate-200">
                     <div>
-                      <p className="font-bold text-white">SMS Webhook Listener</p>
-                      <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Listens for notifications from bank forwarders</p>
+                      <p className="font-bold text-slate-900">SMS Webhook Listener</p>
+                      <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Listens for notifications from bank forwarders</p>
                     </div>
-                    <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-slate-900 border border-slate-800 text-slate-400">
+                    <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-slate-100 border border-slate-200 text-slate-650">
                       /api/webhook/sms
                     </span>
                   </div>
-                  <div className="flex justify-between items-start py-2 border-b border-slate-900/60">
+                  <div className="flex justify-between items-start py-2 border-b border-slate-200">
                     <div>
-                      <p className="font-bold text-white">Email Webhook Listener</p>
-                      <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Receives transactional bank alerts via Cloudflare</p>
+                      <p className="font-bold text-slate-900">Email Webhook Listener</p>
+                      <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Receives transactional bank alerts via Cloudflare</p>
                     </div>
-                    <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-slate-900 border border-slate-800 text-slate-400">
+                    <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-slate-100 border border-slate-200 text-slate-650">
                       /api/webhook/email
                     </span>
                   </div>
@@ -1290,9 +1275,9 @@ export default function AdminPage() {
       </main>
 
       {/* Footer */}
-      <footer className="py-6 text-center text-[10px] text-slate-550 border-t border-slate-900 bg-[#070b13]/85 mt-10">
+      <footer className="py-6 text-center text-[10px] text-slate-400 border-t border-slate-200 bg-[#070b13]/85 mt-10" style={{ backgroundColor: '#ffffff' }}>
         <p>&copy; 2026 {CONFIG.businessName} SaaS Gateway Platform. All rights reserved.</p>
-        <p className="mt-1 text-[9px] text-slate-650">Protected Dashboard • Session ID: {Math.floor(1000000000 + Math.random() * 9000000000)}</p>
+        <p className="mt-1 text-[9px] text-slate-500">Protected Dashboard • Session ID: {Math.floor(1000000000 + Math.random() * 9000000000)}</p>
       </footer>
 
     </div>
