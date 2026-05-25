@@ -44,6 +44,6 @@ ON public.orders FOR SELECT
 USING (true);
 
 -- 6. Developer Sandbox / Test Mode Additions
-ALTER TABLE public.merchants ADD COLUMN IF NOT EXISTS sandbox_mode BOOLEAN DEFAULT false;
+ALTER TABLE public.merchants ADD COLUMN IF NOT EXISTS sandbox_mode BOOLEAN DEFAULT true;
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS mode TEXT DEFAULT 'live';
 

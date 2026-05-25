@@ -103,7 +103,7 @@ export async function POST(request) {
           callback_url: callback_url || null,
           external_ref: external_ref || null,
           status: 'pending',
-          mode: (isTestFromKey || merchant.sandbox_mode) ? 'test' : 'live'
+          mode: (isTestFromKey || merchant.sandbox_mode !== false) ? 'test' : 'live'
         }
       ])
       .select('id')
@@ -114,7 +114,7 @@ export async function POST(request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ orderId: data.id, orderAmount: finalAmount, mode: (isTestFromKey || merchant.sandbox_mode) ? 'test' : 'live' }, { status: 201 });
+    return NextResponse.json({ orderId: data.id, orderAmount: finalAmount, mode: (isTestFromKey || merchant.sandbox_mode !== false) ? 'test' : 'live' }, { status: 201 });
   } catch (err) {
     console.error('API orders error:', err);
     return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 });

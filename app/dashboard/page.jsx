@@ -170,7 +170,8 @@ export default function DashboardPage() {
 
   const toggleSandboxMode = async () => {
     if (!user || !profile) return;
-    const nextSandbox = !profile.sandbox_mode;
+    const currentSandbox = profile.sandbox_mode !== false;
+    const nextSandbox = !currentSandbox;
     try {
       const { error } = await supabase
         .from('merchants')
@@ -192,7 +193,8 @@ export default function DashboardPage() {
 
   const copyApiKey = () => {
     if (!profile?.api_key) return;
-    const prefix = profile.sandbox_mode ? 'test_' : 'live_';
+    const isSandbox = profile.sandbox_mode !== false;
+    const prefix = isSandbox ? 'test_' : 'live_';
     navigator.clipboard.writeText(prefix + profile.api_key);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -216,7 +218,7 @@ export default function DashboardPage() {
     return orders.filter(o => {
       // Separator filter based on environment mode
       const isTestOrder = o.mode === 'test';
-      const activeSandbox = !!profile?.sandbox_mode;
+      const activeSandbox = profile?.sandbox_mode !== false;
       if (isTestOrder !== activeSandbox) return false;
 
       // Status filter
@@ -240,7 +242,7 @@ export default function DashboardPage() {
 
   // Calculations for Metrics Cards
   const stats = useMemo(() => {
-    const activeSandbox = !!profile?.sandbox_mode;
+    const activeSandbox = profile?.sandbox_mode !== false;
     const modeFiltered = orders.filter(o => (o.mode === 'test') === activeSandbox);
     const verified = modeFiltered.filter(o => o.status === 'verified');
     const totalVolume = verified.reduce((sum, o) => sum + parseFloat(o.amount), 0);
@@ -264,7 +266,7 @@ export default function DashboardPage() {
 
   // Compile Time-Series Data for Area Chart over last 7 days
   const chartData = useMemo(() => {
-    const activeSandbox = !!profile?.sandbox_mode;
+    const activeSandbox = profile?.sandbox_mode !== false;
     const modeFiltered = orders.filter(o => (o.mode === 'test') === activeSandbox);
     const verified = modeFiltered.filter(o => o.status === 'verified');
     const days = [];
@@ -602,15 +604,15 @@ echo "Order Created: " . $data['orderId'];
 
               {/* Sandbox Toggle Switch */}
               <div className="flex items-center gap-3 bg-white border border-slate-200 px-4 py-2.5 rounded-2xl shadow-sm select-none">
-                <span className={`text-[10px] font-extrabold uppercase tracking-wider ${profile?.sandbox_mode ? 'text-amber-600' : 'text-slate-400'}`}>
-                  {profile?.sandbox_mode ? 'Sandbox Mode' : 'Live Mode'}
+                <span className={`text-[10px] font-extrabold uppercase tracking-wider ${profile?.sandbox_mode !== false ? 'text-amber-600' : 'text-slate-400'}`}>
+                  {profile?.sandbox_mode !== false ? 'Sandbox Mode' : 'Live Mode'}
                 </span>
                 <button
                   onClick={toggleSandboxMode}
-                  className={`w-11 h-6 rounded-full transition-all duration-300 relative flex items-center px-1 focus:outline-none ${profile?.sandbox_mode ? 'bg-amber-400 shadow-sm shadow-amber-400/20' : 'bg-slate-200'}`}
+                  className={`w-11 h-6 rounded-full transition-all duration-300 relative flex items-center px-1 focus:outline-none ${profile?.sandbox_mode !== false ? 'bg-amber-400 shadow-sm shadow-amber-400/20' : 'bg-slate-200'}`}
                   title="Toggle Sandbox/Live Mode"
                 >
-                  <div className={`w-4 h-4 bg-white rounded-full transition-transform duration-300 ${profile?.sandbox_mode ? 'translate-x-5' : 'translate-x-0'}`} />
+                  <div className={`w-4 h-4 bg-white rounded-full transition-transform duration-300 ${profile?.sandbox_mode !== false ? 'translate-x-5' : 'translate-x-0'}`} />
                 </button>
             </div>
 
@@ -679,7 +681,7 @@ echo "Order Created: " . $data['orderId'];
               <div className="space-y-6">
                 
                 {/* Sandbox Mode Warning Banner */}
-                {profile?.sandbox_mode && (
+                {profile?.sandbox_mode !== false && (
                   <div className="p-5 bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl shadow-sm flex items-start gap-4">
                     <div className="p-2 bg-amber-100 rounded-xl text-amber-600 border border-amber-200">
                       <AlertCircle className="w-5 h-5 animate-pulse" />
@@ -1140,17 +1142,17 @@ echo "Order Created: " . $data['orderId'];
                ═══════════════════════════════════════════════════════════ */}
             {activeTab === 'api' && (
               <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
-                <h3 className="text-[10px] font-bold uppercase tracking-wider mb-2 flex items-center gap-2" style={{ color: profile?.sandbox_mode ? '#f59e0b' : '#2563eb' }}>
-                  <Key className="w-3.5 h-3.5" /> {profile?.sandbox_mode ? 'Sandbox Private API Key' : 'Live Private API Key'}
+                <h3 className="text-[10px] font-bold uppercase tracking-wider mb-2 flex items-center gap-2" style={{ color: profile?.sandbox_mode !== false ? '#f59e0b' : '#2563eb' }}>
+                  <Key className="w-3.5 h-3.5" /> {profile?.sandbox_mode !== false ? 'Sandbox Private API Key' : 'Live Private API Key'}
                 </h3>
                 <p className="text-xs text-slate-500 mb-5 font-medium">
-                  {profile?.sandbox_mode 
+                  {profile?.sandbox_mode !== false 
                     ? 'Use this test API key to authorize simulated checkout creations. Keep sandbox transactions isolated from real bank payouts.' 
                     : 'Use this live API key to authorize production checkout creations. Keep it secure and never share it publicly.'}
                 </p>
                 <div className="flex items-center gap-2">
                   <code className="flex-1 bg-slate-50 border border-slate-200 px-4 py-2.5 rounded-xl text-xs font-mono break-all text-slate-700 font-bold">
-                    {profile?.sandbox_mode ? `test_${profile?.api_key || 'Loading...'}` : `live_${profile?.api_key || 'Loading...'}`}
+                    {profile?.sandbox_mode !== false ? `test_${profile?.api_key || 'Loading...'}` : `live_${profile?.api_key || 'Loading...'}`}
                   </code>
                   <button 
                     onClick={copyApiKey}
