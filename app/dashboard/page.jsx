@@ -52,6 +52,18 @@ export default function DashboardPage() {
     fetchSession();
   }, [router]);
 
+  // Lock scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isMobileMenuOpen]);
+
   // Safe UUID generator
   const generateUUID = () => {
     if (typeof crypto !== 'undefined' && crypto.randomUUID) {

@@ -79,6 +79,18 @@ export default function AdminPage() {
     }
   }, []);
 
+  // Lock scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isMobileMenuOpen]);
+
   // Fetch all registered merchants (bypassing RLS via our secure API)
   const fetchMerchants = useCallback(async () => {
     if (!isLoggedIn) return;
