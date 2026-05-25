@@ -360,7 +360,7 @@ export default function AdminPage() {
         
         <div className="max-w-md w-full bg-white border border-slate-200 rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative space-y-7 overflow-hidden">
           
-          <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ backgroundColor: brandColor }}></div>
+          <div className="absolute top-0 left-0 right-0 h-[3px] bg-blue-600"></div>
 
           {/* Branding */}
           <div className="text-center space-y-2">
@@ -371,7 +371,7 @@ export default function AdminPage() {
           </div>
 
           {authError && (
-            <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-red-650 text-xs flex items-center gap-2.5">
+            <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs flex items-center gap-2.5">
               <AlertCircle className="w-4.5 h-4.5 text-red-500 flex-shrink-0" />
               <span className="font-semibold">{authError}</span>
             </div>
@@ -398,10 +398,7 @@ export default function AdminPage() {
             <button
               type="submit"
               disabled={authLoading}
-              className="w-full py-3.5 rounded-xl text-white font-bold text-sm tracking-wide flex items-center justify-center gap-2.5 transition-transform active:scale-[0.99] disabled:opacity-50 shadow-sm shadow-blue-500/20"
-              style={{
-                backgroundColor: brandColor
-              }}
+              className="w-full py-3.5 rounded-xl text-white font-bold text-sm tracking-wide bg-blue-600 hover:bg-blue-700 flex items-center justify-center gap-2.5 transition-transform active:scale-[0.99] disabled:opacity-50 shadow-sm shadow-blue-500/20"
             >
               {authLoading ? (
                 <RefreshCw className="w-4 h-4 animate-spin" />
@@ -429,7 +426,7 @@ export default function AdminPage() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="font-black text-xl tracking-tight text-slate-900">
-                  MyMob<span className="text-blue-650 italic">Pay</span>
+                  MyMob<span className="text-blue-600 italic">Pay</span>
                 </h1>
                 <span className="px-2 py-0.5 text-[9px] rounded bg-blue-50 text-blue-600 border border-blue-100 font-bold uppercase">SaaS OWNER</span>
               </div>
@@ -450,7 +447,7 @@ export default function AdminPage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === tab.id ? 'bg-white text-slate-900 shadow-sm border border-slate-200/80' : 'text-slate-550 hover:text-slate-900 border border-transparent'}`}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === tab.id ? 'bg-blue-50 text-blue-700 shadow-sm shadow-blue-500/10' : 'text-slate-500 hover:text-slate-900 border border-transparent'}`}
                 >
                   <Icon className="w-4 h-4 text-blue-600" />
                   <span>{tab.label}</span>
@@ -464,7 +461,7 @@ export default function AdminPage() {
             <button 
               onClick={handleRefreshAll}
               disabled={loading || merchantsLoading}
-              className="p-2.5 rounded-xl bg-white border border-slate-250 text-slate-500 hover:text-slate-900 hover:bg-slate-50 disabled:opacity-50 transition-colors shadow-sm"
+              className="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-50 disabled:opacity-50 transition-colors shadow-sm"
               title="Sync Platform Data"
             >
               <RefreshCw className={`w-4 h-4 ${loading || merchantsLoading ? 'animate-spin' : ''}`} />
@@ -473,7 +470,7 @@ export default function AdminPage() {
               onClick={handleLogout}
               className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 transition-colors text-xs font-bold shadow-sm"
             >
-              <LogOut className="w-4 h-4 text-slate-550" />
+              <LogOut className="w-4 h-4 text-slate-500" />
               <span>Log Out</span>
             </button>
           </div>
@@ -533,7 +530,7 @@ export default function AdminPage() {
           <div className="space-y-4 pt-6 border-t border-slate-100">
             <div className="flex justify-between items-center px-2">
               <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Gateway Platform Admin</span>
-              <span className="text-[8px] bg-blue-55 text-blue-600 border border-blue-100 px-2 py-0.5 rounded font-black uppercase">v1.1</span>
+              <span className="text-[8px] bg-blue-50 text-blue-600 border border-blue-100 px-2 py-0.5 rounded font-black uppercase">v1.1</span>
             </div>
             <button 
               onClick={() => {
@@ -709,7 +706,7 @@ export default function AdminPage() {
                     { name: 'Bank Notification Hub', desc: 'Gmail IMAP parsing system', status: 'operational', val: 'Active' },
                     { name: 'Platform Billing System', desc: 'Zero-Fee billing routers', status: 'operational', val: 'Active' }
                   ].map((service, idx) => (
-                    <div key={idx} className="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-250">
+                    <div key={idx} className="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-200">
                       <div>
                         <p className="text-xs font-bold text-slate-900">{service.name}</p>
                         <p className="text-[10px] text-slate-500 font-semibold mt-0.5">{service.desc}</p>
@@ -769,14 +766,14 @@ export default function AdminPage() {
                   <select
                     value={selectedMerchantFilter}
                     onChange={(e) => setSelectedMerchantFilter(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-650 outline-none focus:border-blue-500 appearance-none font-bold cursor-pointer"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-500 outline-none focus:border-blue-500 appearance-none font-bold cursor-pointer"
                   >
                     <option value="all">All Stores (SaaS)</option>
                     {merchants.map(m => (
                       <option key={m.id} value={m.id}>{m.business_name}</option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-3 top-2.5 w-4 h-4 text-slate-450 pointer-events-none" />
+                  <ChevronDown className="absolute right-3 top-2.5 w-4 h-4 text-slate-400 pointer-events-none" />
                 </div>
               </div>
               
@@ -791,12 +788,7 @@ export default function AdminPage() {
                   <button
                     key={filt.id}
                     onClick={() => setStatusFilter(filt.id)}
-                    className="px-3.5 py-2 rounded-xl text-xs font-extrabold border transition-all flex-shrink-0"
-                    style={{
-                      backgroundColor: statusFilter === filt.id ? 'rgba(59, 130, 246, 0.1)' : '#ffffff',
-                      borderColor: statusFilter === filt.id ? brandColor : 'rgb(226, 232, 240)',
-                      color: statusFilter === filt.id ? '#1e40af' : 'rgb(100, 116, 139)'
-                    }}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-extrabold border transition-all flex-shrink-0 ${statusFilter === filt.id ? 'bg-blue-50 border-blue-500 text-blue-700 shadow-sm' : 'bg-white border-slate-200 text-slate-500 hover:text-slate-900'}`}
                   >
                     {filt.label}
                   </button>
@@ -823,7 +815,7 @@ export default function AdminPage() {
                 <tbody className="divide-y divide-slate-200 bg-white">
                   {loading && orders.length === 0 ? (
                     <tr>
-                      <td colSpan="9" className="px-6 py-12 text-center text-xs text-slate-550">
+                      <td colSpan="9" className="px-6 py-12 text-center text-xs text-slate-500">
                         <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-blue-500" />
                         Fetching global transaction history...
                       </td>
@@ -900,7 +892,7 @@ export default function AdminPage() {
                           {/* Amount */}
                           <td className="px-6 py-4 whitespace-nowrap text-xs font-bold text-slate-900">
                             <div className="flex items-center gap-0.5 font-extrabold text-sm">
-                              <IndianRupee className="w-3.5 h-3.5 text-slate-450" />
+                              <IndianRupee className="w-3.5 h-3.5 text-slate-400" />
                               <span>{parseFloat(order.amount).toFixed(2)}</span>
                             </div>
                           </td>
@@ -922,7 +914,7 @@ export default function AdminPage() {
                                     navigator.clipboard.writeText(order.utr);
                                     alert("Copied UTR Reference!");
                                   }}
-                                  className="p-1 hover:bg-slate-100 rounded text-slate-450 hover:text-slate-950 transition-colors"
+                                  className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-950 transition-colors"
                                   title="Copy UTR Reference"
                                 >
                                   <Copy className="w-3.5 h-3.5" />
@@ -938,19 +930,19 @@ export default function AdminPage() {
                           {/* Status */}
                           <td className="px-6 py-4 whitespace-nowrap text-xs">
                             {order.status === 'verified' && (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-250">
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                 <span>Verified</span>
                               </span>
                             )}
                             {order.status === 'pending' && (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-255">
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
                                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span>
                                 <span>Pending</span>
                               </span>
                             )}
                             {order.status === 'rejected' && (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-red-700 border border-red-250">
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-red-700 border border-red-200">
                                 <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
                                 <span>Rejected</span>
                               </span>
@@ -968,7 +960,7 @@ export default function AdminPage() {
                                       placeholder="Enter UTR"
                                       value={manualUtr}
                                       onChange={(e) => setManualUtr(e.target.value)}
-                                      className="px-2 py-1 rounded bg-white border border-slate-350 text-xs text-slate-900 outline-none w-[110px] font-semibold focus:border-blue-500"
+                                      className="px-2 py-1 rounded bg-white border border-slate-300 text-xs text-slate-900 outline-none w-[110px] font-semibold focus:border-blue-500"
                                     />
                                     <button
                                       onClick={() => handleOrderAction(order.id, 'verify', manualUtr)}
@@ -1005,7 +997,7 @@ export default function AdminPage() {
                                         }
                                       }}
                                       disabled={actionLoading !== null}
-                                      className="px-2.5 py-1 rounded-lg text-[10px] font-bold border border-red-200 bg-red-50 text-red-650 hover:bg-red-500 hover:text-white transition-all"
+                                      className="px-2.5 py-1 rounded-lg text-[10px] font-bold border border-red-200 bg-red-50 text-red-600 hover:bg-red-500 hover:text-white transition-all"
                                     >
                                       Reject
                                     </button>
@@ -1252,7 +1244,7 @@ export default function AdminPage() {
                       <p className="font-bold text-slate-900">SMS Webhook Listener</p>
                       <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Listens for notifications from bank forwarders</p>
                     </div>
-                    <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-slate-100 border border-slate-200 text-slate-650">
+                    <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-slate-100 border border-slate-200 text-slate-500">
                       /api/webhook/sms
                     </span>
                   </div>
@@ -1261,7 +1253,7 @@ export default function AdminPage() {
                       <p className="font-bold text-slate-900">Email Webhook Listener</p>
                       <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Receives transactional bank alerts via Cloudflare</p>
                     </div>
-                    <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-slate-100 border border-slate-200 text-slate-650">
+                    <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-slate-100 border border-slate-200 text-slate-500">
                       /api/webhook/email
                     </span>
                   </div>
