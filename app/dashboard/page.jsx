@@ -2384,16 +2384,6 @@ async function checkOrderStatus(orderId) {
 
                 </div>
 
-# https://a1b2-c3d4.ngrok-free.app/api/webhook`}</code>
-                              </pre>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
               </div>
             )}
 
