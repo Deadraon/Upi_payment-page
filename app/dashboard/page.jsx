@@ -50,10 +50,25 @@ export default function DashboardPage() {
   const [wizardStep, setWizardStep] = useState(0);
   const [selectedDiagnostic, setSelectedDiagnostic] = useState('cors');
 
-  // Automatically reset setup wizard to step 0 when target changes
+  // Real-time step test states
+  const [stepTestResult, setStepTestResult] = useState(null); // null | 'testing' | 'pass' | 'fail'
+  const [stepTestMsg, setStepTestMsg] = useState('');
+  const [stepTestDetail, setStepTestDetail] = useState('');
+
+  // Automatically reset setup wizard + test state when target/step changes
   useEffect(() => {
     setWizardStep(0);
+    setStepTestResult(null);
+    setStepTestMsg('');
+    setStepTestDetail('');
   }, [integrationTarget, mobileSdk]);
+
+  // Reset test result when step changes
+  useEffect(() => {
+    setStepTestResult(null);
+    setStepTestMsg('');
+    setStepTestDetail('');
+  }, [wizardStep]);
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -214,10 +229,21 @@ export default function DashboardPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleTestWebhook = async () => {
+  const handleTestWebhook = async (fromWizard = false) => {
     if (!profile?.webhook_url) {
-      alert("Please configure an Outbound Webhook URL in your Settings tab first!");
+      if (fromWizard) {
+        setStepTestResult('fail');
+        setStepTestMsg('No webhook URL configured');
+        setStepTestDetail('Go to Settings tab and set your Outbound Webhook URL first.');
+      } else {
+        alert("Please configure an Outbound Webhook URL in your Settings tab first!");
+      }
       return;
+    }
+    if (fromWizard) {
+      setStepTestResult('testing');
+      setStepTestMsg('Dispatching signed HMAC event to your webhook URL...');
+      setStepTestDetail('');
     }
     setTestingWebhook(true);
     try {
@@ -244,12 +270,134 @@ export default function DashboardPage() {
         response: data.response
       };
       
-      setWebhookLogs(prev => [newLog, ...prev].slice(0, 10)); // keep last 10 logs
+      setWebhookLogs(prev => [newLog, ...prev].slice(0, 10));
+
+      if (fromWizard) {
+        if (data.success) {
+          setStepTestResult('pass');
+          setStepTestMsg(`✓ Webhook delivered → HTTP ${data.status} in ${data.latency}ms`);
+          setStepTestDetail('Your server responded correctly. HMAC signature delivery confirmed.');
+        } else {
+          setStepTestResult('fail');
+          setStepTestMsg(`✗ Webhook failed → HTTP ${data.status || 'ERR'} (${data.latency}ms)`);
+          setStepTestDetail('Your endpoint returned an error. Check that the URL is publicly reachable and your server is running.');
+        }
+      }
     } catch (err) {
       console.error("Webhook test dispatch failed:", err);
-      alert("Failed to send webhook test event: " + err.message);
+      if (fromWizard) {
+        setStepTestResult('fail');
+        setStepTestMsg('✗ Connection failed — endpoint unreachable');
+        setStepTestDetail('Use ngrok to expose your local server: ngrok http <port>');
+      } else {
+        alert("Failed to send webhook test event: " + err.message);
+      }
     } finally {
       setTestingWebhook(false);
+    }
+  };
+
+  // Step-specific live tests
+  const runStepTest = async () => {
+    setStepTestResult('testing');
+    setStepTestMsg('');
+    setStepTestDetail('');
+
+    // Step 1: Verify API key is valid by hitting /api/merchant
+    if (wizardStep === 1) {
+      setStepTestMsg('Validating API key against gateway...');
+      try {
+        const isSandbox = profile?.sandbox_mode !== false;
+        // /api/merchant expects the RAW uuid (no prefix) since DB stores it without prefix
+        const rawKey = profile?.api_key || '';
+        const res = await fetch(`/api/merchant?key=${encodeURIComponent(rawKey)}`);
+        const data = await res.json();
+        if (res.ok && data.business_name) {
+          setStepTestResult('pass');
+          setStepTestMsg(`\u2713 API key verified \u2014 merchant: "${data.business_name}"`);
+          setStepTestDetail(`Environment: ${isSandbox ? 'Sandbox' : 'Live'} \u00b7 UPI: ${data.upi_id}`);
+        } else {
+          setStepTestResult('fail');
+          setStepTestMsg(`\u2717 Key validation failed: ${data.error || 'Unknown error'}`);
+          setStepTestDetail('Check your API key prefix matches the active environment toggle.');
+        }
+      } catch (e) {
+        setStepTestResult('fail');
+        setStepTestMsg('\u2717 Network error: ' + e.message);
+        setStepTestDetail('Could not reach the gateway API. Check your connection.');
+      }
+      return;
+    }
+
+    // Step 2: Fire a real test order creation
+    if (wizardStep === 2) {
+      setStepTestMsg('Creating live test order via POST /api/orders...');
+      try {
+        const isSandbox = profile?.sandbox_mode !== false;
+        const prefix = isSandbox ? 'test_' : 'live_';
+        const res = await fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            api_key: prefix + profile.api_key,
+            amount: parseFloat(linkAmount) || 500,
+            customer_name: 'Wizard Test',
+            customer_phone: '9000000000',
+            note: linkNote || 'wizard_test',
+          })
+        });
+        const data = await res.json();
+        if (res.ok && data.orderId) {
+          setStepTestResult('pass');
+          setStepTestMsg(`✓ Order created — ID: ${data.orderId.slice(0, 18)}...`);
+          setStepTestDetail(`Amount: ₹${data.orderAmount} · Mode: ${data.mode} · Use this orderId in the redirect URL.`);
+        } else {
+          setStepTestResult('fail');
+          setStepTestMsg(`✗ Order creation failed: ${data.error || 'Unknown'}`);
+          setStepTestDetail('Make sure your API key is correct and your merchant account is active.');
+        }
+      } catch (e) {
+        setStepTestResult('fail');
+        setStepTestMsg('✗ Network error: ' + e.message);
+        setStepTestDetail('Could not reach /api/orders endpoint.');
+      }
+      return;
+    }
+
+    // Step 3: Fetch latest order status from /api/orders
+    if (wizardStep === 3) {
+      setStepTestMsg('Fetching latest order status from /api/orders...');
+      try {
+        const latestOrder = orders[0];
+        if (!latestOrder) {
+          setStepTestResult('fail');
+          setStepTestMsg('\u2717 No orders found to poll');
+          setStepTestDetail('Complete Step 2 first to create a test order, then come back to test polling.');
+          return;
+        }
+        const res = await fetch(`/api/orders?id=${latestOrder.id}`);
+        const data = await res.json();
+        if (res.ok && data.orderId) {
+          setStepTestResult('pass');
+          setStepTestMsg(`\u2713 Status polled \u2014 order is: "${data.status}"`);
+          setStepTestDetail(`Order ID: ${data.orderId} \u00b7 Amount: \u20b9${data.amount} \u00b7 Polling endpoint confirmed working.`);
+        } else {
+          setStepTestResult('fail');
+          setStepTestMsg(`\u2717 Status fetch failed: ${data.error || 'Unknown'}`);
+          setStepTestDetail('The /api/orders?id= endpoint returned an error. Check your API and database connection.');
+        }
+      } catch (e) {
+        setStepTestResult('fail');
+        setStepTestMsg('\u2717 Network error: ' + e.message);
+        setStepTestDetail('Could not reach /api/orders endpoint.');
+      }
+      return;
+    }
+
+    // Step 4: Test webhook dispatch
+    if (wizardStep === 4) {
+      await handleTestWebhook(true);
+      return;
     }
   };
 
@@ -1975,8 +2123,64 @@ async function checkOrderStatus(orderId) {
 
                       </div>
 
+                      {/* Real-time Step Test Panel */}
+                      <div className="mt-4 space-y-2">
+                        {/* Run Test Button */}
+                        <button
+                          onClick={runStepTest}
+                          disabled={stepTestResult === 'testing'}
+                          className={`w-full py-2.5 rounded-xl text-[11px] font-black border transition-all flex items-center justify-center gap-2 ${
+                            stepTestResult === 'pass'
+                              ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                              : stepTestResult === 'fail'
+                                ? 'bg-red-50 border-red-200 text-red-700'
+                                : 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100'
+                          }`}
+                        >
+                          {stepTestResult === 'testing' && (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          )}
+                          {stepTestResult === 'pass' && <CheckCircle className="w-3.5 h-3.5" />}
+                          {stepTestResult === 'fail' && <AlertCircle className="w-3.5 h-3.5" />}
+                          {stepTestResult === 'testing'
+                            ? 'Running live test...'
+                            : stepTestResult === 'pass'
+                              ? 'Test Passed — Re-run Test'
+                              : stepTestResult === 'fail'
+                                ? 'Test Failed — Retry'
+                                : wizardStep === 1
+                                  ? '▶ Run Test: Verify API Key'
+                                  : wizardStep === 2
+                                    ? '▶ Run Test: Create Live Order'
+                                    : wizardStep === 3
+                                      ? '▶ Run Test: Poll Order Status'
+                                      : '▶ Run Test: Fire Webhook Event'}
+                        </button>
+
+                        {/* Inline result line — red/green with solution */}
+                        {stepTestResult && stepTestResult !== 'testing' && (
+                          <div className={`border-l-4 rounded-r-xl px-3 py-2.5 animate-fadeIn ${
+                            stepTestResult === 'pass'
+                              ? 'border-emerald-500 bg-emerald-50'
+                              : 'border-red-500 bg-red-50'
+                          }`}>
+                            <p className={`text-[10px] font-black ${
+                              stepTestResult === 'pass' ? 'text-emerald-700' : 'text-red-700'
+                            }`}>{stepTestMsg}</p>
+                            {stepTestDetail && (
+                              <p className={`text-[9.5px] font-semibold mt-0.5 ${
+                                stepTestResult === 'pass' ? 'text-emerald-600' : 'text-red-600'
+                              }`}>
+                                {stepTestResult === 'fail' && <span className="font-black">Fix: </span>}
+                                {stepTestDetail}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
                       {/* Stepper Footer Navigation Controls */}
-                      <div className="border-t border-slate-100 pt-4 flex items-center justify-between mt-5 select-none">
+                      <div className="border-t border-slate-100 pt-4 flex items-center justify-between mt-4 select-none">
                         {wizardStep > 1 ? (
                           <button
                             onClick={() => setWizardStep(wizardStep - 1)}
@@ -1990,17 +2194,31 @@ async function checkOrderStatus(orderId) {
 
                         {wizardStep < 4 ? (
                           <button
-                            onClick={() => setWizardStep(wizardStep + 1)}
-                            className="px-5 py-2.5 bg-blue-600 hover:bg-blue-750 text-white rounded-xl transition-all text-[11px] font-black shadow-md shadow-blue-500/10 flex items-center gap-1.5"
+                            onClick={() => {
+                              setWizardStep(wizardStep + 1);
+                            }}
+                            disabled={stepTestResult !== 'pass'}
+                            title={stepTestResult !== 'pass' ? 'Run the step test above to unlock next step' : ''}
+                            className={`px-5 py-2.5 rounded-xl transition-all text-[11px] font-black shadow-md flex items-center gap-1.5 ${
+                              stepTestResult === 'pass'
+                                ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/10 cursor-pointer'
+                                : 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none border border-slate-200'
+                            }`}
                           >
-                            Mark Completed & Next Step →
+                            {stepTestResult === 'pass' ? 'Next Step →' : '🔒 Run Test to Unlock'}
                           </button>
                         ) : (
                           <button
                             onClick={() => setWizardStep(5)}
-                            className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-755 text-white rounded-xl transition-all text-[11px] font-black shadow-md shadow-emerald-500/10 flex items-center gap-1.5 animate-bounce"
+                            disabled={stepTestResult !== 'pass'}
+                            title={stepTestResult !== 'pass' ? 'Run the webhook test above to finish' : ''}
+                            className={`px-5 py-2.5 rounded-xl transition-all text-[11px] font-black shadow-md flex items-center gap-1.5 ${
+                              stepTestResult === 'pass'
+                                ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/10 animate-bounce'
+                                : 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none border border-slate-200'
+                            }`}
                           >
-                            ✓ Finish Onboarding Configuration
+                            {stepTestResult === 'pass' ? '✓ Finish Onboarding' : '🔒 Test Webhook First'}
                           </button>
                         )}
                       </div>
@@ -2149,283 +2367,6 @@ async function checkOrderStatus(orderId) {
 
                 </div>
 
-                {/* DIAGNOSTIC TROUBLESHOOTING HUB */}
-                <div id="diagnostic-hub-view" className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm space-y-6">
-                  <div className="border-b border-slate-100 pb-3 select-none">
-                    <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-                      <AlertCircle className="w-5 h-5 text-red-500 animate-pulse" />
-                      🛠️ Real-time Diagnostic Troubleshooting Hub
-                    </h3>
-                    <p className="text-xs text-slate-500 font-semibold mt-1">
-                      Simulate and browse common real-world integration errors, inspect line failure points, and apply production-ready resolutions.
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                    {/* Error Selector Buttons */}
-                    <div className="flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0 select-none">
-                      {[
-                        { id: 'cors', label: 'CORS Policy Blocked', icon: '🔒' },
-                        { id: 'apikey', label: 'Invalid API Key Format', icon: '🔑' },
-                        { id: 'hmac', label: 'HMAC Signature Mismatch', icon: '📡' },
-                        { id: 'vpa', label: 'UPI Account VPA Pending', icon: '❌' },
-                        { id: 'timeout', label: 'Webhook Timeout Error', icon: '🌐' }
-                      ].map(err => (
-                        <button
-                          key={err.id}
-                          onClick={() => setSelectedDiagnostic(err.id)}
-                          className={`w-full text-left px-4 py-3 rounded-2xl text-xs font-bold border transition-all duration-300 flex items-center gap-2 whitespace-nowrap lg:whitespace-normal ${
-                            selectedDiagnostic === err.id 
-                              ? 'bg-red-50 border-red-200 text-red-700 shadow-sm shadow-red-550/5' 
-                              : 'bg-slate-50 border-slate-200/60 text-slate-550 hover:text-slate-800'
-                          }`}
-                        >
-                          <span className="text-base">{err.icon}</span>
-                          <span>{err.label}</span>
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Detailed Diagnostic Viewer Card */}
-                    <div className="lg:col-span-3 bg-slate-50 border border-slate-200 p-5 rounded-3xl space-y-4">
-                      {selectedDiagnostic === 'cors' && (
-                        <div className="space-y-4 animate-fadeIn">
-                          <div className="flex justify-between items-center text-xs font-black uppercase text-red-700 select-none">
-                            <span>Diagnostic Case: CORS Blocked Access</span>
-                            <span className="bg-red-50 border border-red-250 px-2 py-0.5 rounded text-[8px]">Security Block</span>
-                          </div>
-                          
-                          <div className="space-y-1">
-                            <span className="text-[9px] text-slate-400 font-extrabold uppercase select-none block">Real Console Error string</span>
-                            <code className="block bg-[#0B0F19] text-rose-400 font-mono text-[9px] p-3 rounded-xl border border-slate-800 leading-normal select-all">
-                              Access to fetch at &apos;https://mymob.tech/api/orders&apos; from origin &apos;http://localhost:3500&apos; has been blocked by CORS policy: No &apos;Access-Control-Allow-Origin&apos; header is present on the requested resource.
-                            </code>
-                          </div>
-
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold text-slate-600 leading-normal select-none">
-                            <div>
-                              <span className="text-[9px] text-slate-400 font-extrabold uppercase block">Failure Location Vector</span>
-                              <p className="text-slate-800 font-bold mt-0.5 font-mono text-[10px]">Browser Frontend: `fetch(&quot;api/orders&quot;)`</p>
-                            </div>
-                            <div>
-                              <span className="text-[9px] text-slate-400 font-extrabold uppercase block">Underlying Cause</span>
-                              <p className="text-slate-505 mt-0.5">Attempting to call payments creation directly from browser HTML/JS code. We block client-side order dispatches to prevent attackers from reading private secrets.</p>
-                            </div>
-                          </div>
-
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-center select-none">
-                              <span className="text-[9px] text-slate-400 font-extrabold uppercase">Resolution Action & Production Code Fix</span>
-                              <span className="text-[8.5px] font-bold text-slate-400 font-mono">Node.js Express Controller Proxy</span>
-                            </div>
-                            
-                            <div className="rounded-2xl border border-slate-200 bg-[#0B0F19] overflow-hidden shadow-md">
-                              <pre className="p-3 text-[9px] font-mono text-slate-200 overflow-x-auto leading-relaxed max-h-[150px]">
-                                <code>{`// 1. Move the order creation call to your secure node server
-app.post('/api/create-payment-order', async (req, res) => {
-  try {
-    const apiRes = await fetch("https://mymob.tech/api/orders", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        api_key: process.env.MYMOBPAY_PRIVATE_KEY, // test_... or live_...
-        amount: req.body.amount,
-        note: req.body.note,
-        callback_url: "https://your-domain.com/api/callback"
-      })
-    });
-    const data = await apiRes.json();
-    res.status(200).json(data); // Send orderId safely back to frontend
-  } catch (err) {
-    res.status(500).json({ error: "Failed to dispatch order" });
-  }
-});`}</code>
-                              </pre>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {selectedDiagnostic === 'apikey' && (
-                        <div className="space-y-4 animate-fadeIn">
-                          <div className="flex justify-between items-center text-xs font-black uppercase text-red-700 select-none">
-                            <span>Diagnostic Case: Invalid API Key Format</span>
-                            <span className="bg-red-50 border border-red-250 px-2 py-0.5 rounded text-[8px]">Authentication</span>
-                          </div>
-                          
-                          <div className="space-y-1">
-                            <span className="text-[9px] text-slate-400 font-extrabold uppercase select-none block">Real Console Error string</span>
-                            <code className="block bg-[#0B0F19] text-rose-400 font-mono text-[9.5px] p-3 rounded-xl border border-slate-800 leading-normal select-all">
-                              &#123; &quot;success&quot;: false, &quot;error&quot;: &quot;Invalid API Key prefix. Must begin with live_ or test_&quot; &#125;
-                            </code>
-                          </div>
-
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold text-slate-600 leading-normal select-none">
-                            <div>
-                              <span className="text-[9px] text-slate-400 font-extrabold uppercase block">Failure Location Vector</span>
-                              <p className="text-slate-800 font-bold mt-0.5 font-mono text-[10px]">API Request Payload: `api_key` parameter</p>
-                            </div>
-                            <div>
-                              <span className="text-[9px] text-slate-400 font-extrabold uppercase block">Underlying Cause</span>
-                              <p className="text-slate-500 mt-0.5">Submitting the raw database API Key UUID directly, or omitting the required environment prefix matching your active Sandbox / Live setting.</p>
-                            </div>
-                          </div>
-
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-center select-none">
-                              <span className="text-[9px] text-slate-400 font-extrabold uppercase">Resolution Action & Production Code Fix</span>
-                              <span className="text-[8.5px] font-bold text-slate-400 font-mono">Prefix-aware Template String</span>
-                            </div>
-                            
-                            <div className="rounded-2xl border border-slate-200 bg-[#0B0F19] overflow-hidden shadow-md">
-                              <pre className="p-3 text-[9.5px] font-mono text-slate-200 overflow-x-auto leading-relaxed max-h-[150px]">
-                                <code>{`// 1. Fetch from console profile. Incorporate the active prefix format
-const getPrefixedApiKey = (rawKey, isSandbox) => {
-  const prefix = isSandbox ? "test_" : "live_";
-  return \`\${prefix}\${rawKey}\`; // Outputs: test_a1b2c3d4-e5f6...
-};
-
-// 2. Dispatch the correct payload
-const apiKey = getPrefixedApiKey(profile.api_key, profile.sandbox_mode);`}</code>
-                              </pre>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {selectedDiagnostic === 'hmac' && (
-                        <div className="space-y-4 animate-fadeIn">
-                          <div className="flex justify-between items-center text-xs font-black uppercase text-red-700 select-none">
-                            <span>Diagnostic Case: Webhook HMAC Signature Mismatch</span>
-                            <span className="bg-red-50 border border-red-250 px-2 py-0.5 rounded text-[8px]">Security & Webhooks</span>
-                          </div>
-                          
-                          <div className="space-y-1">
-                            <span className="text-[9px] text-slate-400 font-extrabold uppercase select-none block">Real Console Error string</span>
-                            <code className="block bg-[#0B0F19] text-rose-400 font-mono text-[9px] p-3 rounded-xl border border-slate-800 leading-normal select-all">
-                              Webhook signature verification failed. Computed HMAC: e3b0c442... Received: 4f89a223... HTTP Status: 401 Unauthorized
-                            </code>
-                          </div>
-
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold text-slate-650 leading-normal select-none">
-                            <div>
-                              <span className="text-[9px] text-slate-400 font-extrabold uppercase block">Failure Location Vector</span>
-                              <p className="text-slate-800 font-bold mt-0.5 font-mono text-[10px]">Server Webhook Router Middleware</p>
-                            </div>
-                            <div>
-                              <span className="text-[9px] text-slate-400 font-extrabold uppercase block">Underlying Cause</span>
-                              <p className="text-slate-500 mt-0.5">Hashing the parsed JSON object which alters whitespace, or using the prefixed key (e.g., test_xxx) as the HMAC secret instead of the raw database UUID.</p>
-                            </div>
-                          </div>
-
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-center select-none">
-                              <span className="text-[9px] text-slate-400 font-extrabold uppercase">Resolution Action & Production Code Fix</span>
-                              <span className="text-[8.5px] font-bold text-slate-400 font-mono">NodeJS Raw Body Verification</span>
-                            </div>
-                            
-                            <div className="rounded-2xl border border-slate-200 bg-[#0B0F19] overflow-hidden shadow-md">
-                              <pre className="p-3 text-[9px] font-mono text-slate-200 overflow-x-auto leading-relaxed max-h-[150px]">
-                                <code>{`// 1. Capture RAW body buffer instead of pre-parsed JSON objects
-app.post('/api/webhook', express.raw({ type: 'application/json' }), (req, res) => {
-  const signature = req.headers['x-mymobpay-signature'];
-  const rawSecret = "a1b2c3d4-e5f6..."; // omit the "test_" or "live_" prefix!
-  
-  const computed = crypto
-    .createHmac('sha256', rawSecret)
-    .update(req.body) // raw buffer input
-    .digest('hex');
-    
-  if (computed === signature) {
-    res.status(200).send("Verified successfully!");
-  } else {
-    res.status(401).send("Verification signature mismatch");
-  }
-});`}</code>
-                              </pre>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {selectedDiagnostic === 'vpa' && (
-                        <div className="space-y-4 animate-fadeIn">
-                          <div className="flex justify-between items-center text-xs font-black uppercase text-red-700 select-none">
-                            <span>Diagnostic Case: UPI Account Payee VPA Inactive</span>
-                            <span className="bg-red-50 border border-red-250 px-2 py-0.5 rounded text-[8px]">P2P Routing</span>
-                          </div>
-                          
-                          <div className="space-y-1">
-                            <span className="text-[9px] text-slate-405 font-extrabold uppercase select-none block">Real Console Error string</span>
-                            <code className="block bg-[#0B0F19] text-rose-400 font-mono text-[9px] p-3 rounded-xl border border-slate-800 leading-normal select-all">
-                              UPI Payee VPA address lookup failed: payee VPA &quot;pending@upi&quot; is not registered. Bank networks declined scanning intent.
-                            </code>
-                          </div>
-
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold text-slate-600 leading-normal select-none">
-                            <div>
-                              <span className="text-[9px] text-slate-400 font-extrabold uppercase block">Failure Location Vector</span>
-                              <p className="text-slate-800 font-bold mt-0.5 font-mono text-[10px]">Payment Scan Gateways Viewport</p>
-                            </div>
-                            <div>
-                              <span className="text-[9px] text-slate-400 font-extrabold uppercase block">Underlying Cause</span>
-                              <p className="text-slate-500 mt-0.5">Your console settings still carry the default payee VPA address. Scan pathways fail dynamically since VPA is unregistered inside National Payments Corporation (NPCI).</p>
-                            </div>
-                          </div>
-
-                          <div className="space-y-2">
-                            <span className="text-[9px] text-slate-400 font-extrabold uppercase select-none block">Resolution Action & Setup Instructions</span>
-                            
-                            <div className="bg-white border border-slate-200 p-4 rounded-2xl text-[10.5px] leading-relaxed text-slate-700 font-semibold space-y-2">
-                              <p className="text-slate-900 font-extrabold">Follow these 3 easy steps to activate P2P deposit routing:</p>
-                              <p>1. Go to your bank portal or UPI App (GPay, PhonePe, BHIM) and copy your personal or business UPI address (e.g. \`mymerechant@okaxis\` or \`payee@upi\`).</p>
-                              <p>2. Open your Merchant Console **Settings** tab. Clear the default \`pending@upi\` and paste your valid UPI VPA in the VPA field.</p>
-                              <p>3. Click **&quot;Save Profile&quot;**. Scanning checkouts will now route direct deposits to your bank immediately.</p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {selectedDiagnostic === 'timeout' && (
-                        <div className="space-y-4 animate-fadeIn">
-                          <div className="flex justify-between items-center text-xs font-black uppercase text-red-700 select-none">
-                            <span>Diagnostic Case: Webhook Outbound Network Connection Timeout</span>
-                            <span className="bg-red-50 border border-red-255 px-2 py-0.5 rounded text-[8px]">Network & Tunneling</span>
-                          </div>
-                          
-                          <div className="space-y-1">
-                            <span className="text-[9px] text-slate-400 font-extrabold uppercase select-none block">Real Console Error string</span>
-                            <code className="block bg-[#0B0F19] text-rose-400 font-mono text-[9px] p-3 rounded-xl border border-slate-800 leading-normal select-all">
-                              Webhook delivery failed. Connection timed out after 5000ms (ERR_CONNECTION_TIMED_OUT) or returned HTTP 502 Bad Gateway.
-                            </code>
-                          </div>
-
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold text-slate-650 leading-normal select-none">
-                            <div>
-                              <span className="text-[9px] text-slate-400 font-extrabold uppercase block">Failure Location Vector</span>
-                              <p className="text-slate-800 font-bold mt-0.5 font-mono text-[10px]">Outbound Webhook Tester Dispatch log</p>
-                            </div>
-                            <div>
-                              <span className="text-[9px] text-slate-400 font-extrabold uppercase block">Underlying Cause</span>
-                              <p className="text-slate-500 mt-0.5">Attempting to test outbound webhooks with a local address URL (e.g. localhost:5000/api/webhook). Cloud servers cannot route network requests directly to localhost.</p>
-                            </div>
-                          </div>
-
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-center select-none">
-                              <span className="text-[9px] text-slate-400 font-extrabold uppercase">Resolution Action & Setup Instructions</span>
-                              <span className="text-[8.5px] font-bold text-slate-400 font-mono">Launch secure ngrok public tunnel</span>
-                            </div>
-                            
-                            <div className="rounded-2xl border border-slate-205 bg-[#0B0F19] overflow-hidden shadow-md">
-                              <pre className="p-3 text-[9.5px] font-mono text-slate-200 overflow-x-auto leading-relaxed max-h-[150px]">
-                                <code>{`# 1. Download ngrok and expose your local server port (e.g. 5000)
-ngrok http 5000
-
-# 2. Copy the secure Forwarding HTTPS URL provided by ngrok:
-# https://a1b2-c3d4.ngrok-free.app
-
-# 3. Paste the full endpoint in your Settings -> Webhook Outbound URL field:
 # https://a1b2-c3d4.ngrok-free.app/api/webhook`}</code>
                               </pre>
                             </div>
