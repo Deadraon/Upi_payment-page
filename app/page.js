@@ -29,6 +29,7 @@ export default function HomePage() {
   const [monthlyVolume, setMonthlyVolume] = useState(500000); // 5 Lakhs default
   const [activeCodeTab, setActiveCodeTab] = useState('curl');
   const [copiedCode, setCopiedCode] = useState(false);
+  const [showPaymentsMenu, setShowPaymentsMenu] = useState(false);
 
   // Interactive Live Invoice demo states
   const [demoAmount, setDemoAmount] = useState('500');
@@ -143,7 +144,7 @@ print("Checkout Link generated:", data.get("orderId"))`
          STICKY HEADER NAVIGATION
          ──────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/60 transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between relative">
           
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 select-none group">
@@ -154,11 +155,19 @@ print("Checkout Link generated:", data.get("orderId"))`
 
           {/* Navigation Links (Desktop) */}
           <nav className="hidden lg:flex items-center gap-8">
-            <button onClick={() => {
-              const el = document.getElementById('products-section');
-              el?.scrollIntoView({ behavior: 'smooth' });
-            }} className="text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors">
+            <button 
+              onMouseEnter={() => setShowPaymentsMenu(true)}
+              onMouseLeave={() => setShowPaymentsMenu(false)}
+              onClick={() => {
+                const el = document.getElementById('products-section');
+                el?.scrollIntoView({ behavior: 'smooth' });
+              }} 
+              className="text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors flex items-center gap-1 py-4"
+            >
               Payments
+              <svg className={`w-3.5 h-3.5 transition-transform duration-300 ${showPaymentsMenu ? 'rotate-180 text-blue-650' : 'text-slate-450'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
             </button>
             <button onClick={() => {
               const el = document.getElementById('pricing-section');
@@ -179,6 +188,159 @@ print("Checkout Link generated:", data.get("orderId"))`
               Privacy
             </Link>
           </nav>
+
+          {/* Mega Menu Dropdown (Mimicking Razorpay Style Visual Cards with deep shadows) */}
+          {showPaymentsMenu && (
+            <div 
+              onMouseEnter={() => setShowPaymentsMenu(true)}
+              onMouseLeave={() => setShowPaymentsMenu(false)}
+              className="absolute top-[72px] left-6 right-6 bg-white border border-slate-200 rounded-[28px] shadow-[0_24px_60px_rgba(0,0,0,0.1)] p-8 grid grid-cols-1 md:grid-cols-12 gap-8 z-50 animate-scale-up"
+            >
+              {/* Column 1: Online Payments (5 cols) */}
+              <div className="md:col-span-5 space-y-4">
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">ACCEPT PAYMENTS ONLINE</h4>
+                
+                <div className="space-y-1">
+                  
+                  <div 
+                    onClick={() => {
+                      setShowPaymentsMenu(false);
+                      document.getElementById('products-section')?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="flex items-start gap-3.5 p-2 hover:bg-blue-50/50 rounded-2xl transition-all duration-300 group cursor-pointer"
+                  >
+                    <div className="w-9 h-9 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white group-hover:border-blue-200 transition-colors">
+                      <Landmark className="w-4.5 h-4.5 text-blue-650" />
+                    </div>
+                    <div>
+                      <h5 className="text-xs font-black text-slate-850 flex items-center gap-1.5 group-hover:text-blue-700 transition-colors">
+                        Payment Gateway
+                        <span className="bg-emerald-100 text-emerald-800 text-[8px] font-bold px-1.5 py-0.2 rounded-md uppercase">ACTIVE</span>
+                      </h5>
+                      <p className="text-[10.5px] text-slate-450 font-semibold leading-normal mt-0.5">Highly responsive UPI check-out scan routes.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3.5 p-2 hover:bg-blue-50/50 rounded-2xl transition-all duration-300 group cursor-pointer">
+                    <div className="w-9 h-9 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white group-hover:border-blue-200 transition-colors">
+                      <span className="font-bold text-sm text-blue-600">🔗</span>
+                    </div>
+                    <div>
+                      <h5 className="text-xs font-black text-slate-850 flex items-center gap-1.5 group-hover:text-blue-700 transition-colors">
+                        Payment Links
+                      </h5>
+                      <p className="text-[10.5px] text-slate-450 font-semibold leading-normal mt-0.5">Share dynamic custom invoice URLs instantly.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3.5 p-2 hover:bg-blue-50/50 rounded-2xl transition-all duration-300 group cursor-pointer">
+                    <div className="w-9 h-9 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white group-hover:border-blue-200 transition-colors">
+                      <span className="font-bold text-sm text-blue-600">📄</span>
+                    </div>
+                    <div>
+                      <h5 className="text-xs font-black text-slate-850 flex items-center gap-1.5 group-hover:text-blue-700 transition-colors">
+                        Payment Pages
+                      </h5>
+                      <p className="text-[10.5px] text-slate-450 font-semibold leading-normal mt-0.5">Centralized brand checkouts and custom colors.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3.5 p-2 hover:bg-blue-50/50 rounded-2xl transition-all duration-300 group cursor-pointer">
+                    <div className="w-9 h-9 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white group-hover:border-blue-200 transition-colors">
+                      <span className="font-bold text-sm text-blue-600">📱</span>
+                    </div>
+                    <div>
+                      <h5 className="text-xs font-black text-slate-850 flex items-center gap-1.5 group-hover:text-blue-700 transition-colors">
+                        UPI QR Codes
+                      </h5>
+                      <p className="text-[10.5px] text-slate-450 font-semibold leading-normal mt-0.5">Clean visual scan widgets built with react-qr.</p>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              {/* Column 2: Developer integrations (4 cols) */}
+              <div className="md:col-span-4 space-y-4">
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">DEVELOPER INTEGRATIONS</h4>
+                
+                <div className="space-y-1">
+                  
+                  <div 
+                    onClick={() => {
+                      setShowPaymentsMenu(false);
+                      document.getElementById('developer-section')?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="flex items-start gap-3.5 p-2 hover:bg-blue-50/50 rounded-2xl transition-all duration-300 group cursor-pointer"
+                  >
+                    <div className="w-9 h-9 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white group-hover:border-blue-200 transition-colors">
+                      <Code className="w-4.5 h-4.5 text-blue-650" />
+                    </div>
+                    <div>
+                      <h5 className="text-xs font-black text-slate-850 flex items-center gap-1.5 group-hover:text-blue-700 transition-colors">
+                        REST API Orders
+                      </h5>
+                      <p className="text-[10.5px] text-slate-455 font-semibold leading-normal mt-0.5">Create checkouts and query database orders.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3.5 p-2 hover:bg-blue-50/50 rounded-2xl transition-all duration-300 group cursor-pointer">
+                    <div className="w-9 h-9 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white group-hover:border-blue-200 transition-colors">
+                      <span className="font-bold text-sm text-blue-600">⚡</span>
+                    </div>
+                    <div>
+                      <h5 className="text-xs font-black text-slate-850 flex items-center gap-1.5 group-hover:text-blue-700 transition-colors">
+                        Mobile SDKs
+                        <span className="bg-blue-100 text-blue-800 text-[8px] font-bold px-1.5 py-0.2 rounded-md">NEW</span>
+                      </h5>
+                      <p className="text-[10.5px] text-slate-455 font-semibold leading-normal mt-0.5">Flutter & React Native native intent schemas.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3.5 p-2 hover:bg-blue-50/50 rounded-2xl transition-all duration-300 group cursor-pointer">
+                    <div className="w-9 h-9 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white group-hover:border-blue-200 transition-colors">
+                      <span className="font-bold text-sm text-blue-600">🔔</span>
+                    </div>
+                    <div>
+                      <h5 className="text-xs font-black text-slate-850 flex items-center gap-1.5 group-hover:text-blue-700 transition-colors">
+                        Signed Webhooks
+                      </h5>
+                      <p className="text-[10.5px] text-slate-455 font-semibold leading-normal mt-0.5">Secure, cryptographically verified HMAC handshakes.</p>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              {/* Column 3: Platform Metrics (3 cols) */}
+              <div className="md:col-span-3 space-y-4">
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">PLATFORM STATS</h4>
+                
+                <div className="space-y-4 select-none">
+                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.01)] space-y-1">
+                    <span className="text-[8px] font-black text-blue-600 uppercase tracking-wider block">P2P SETTLEMENTS</span>
+                    <p className="text-sm font-black text-slate-900 leading-none">0 SECONDS</p>
+                    <p className="text-[9.5px] text-slate-450 font-semibold leading-normal">Direct-to-bank. No escrows or lockup margins.</p>
+                  </div>
+
+                  <div className="p-4 bg-emerald-50/40 border border-emerald-250/50 rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.01)] space-y-1">
+                    <span className="text-[8px] font-black text-emerald-650 uppercase tracking-wider block">REVENUE CUTS</span>
+                    <p className="text-sm font-black text-emerald-650 leading-none">0% FLAT RATE</p>
+                    <p className="text-[9.5px] text-slate-450 font-semibold leading-normal">Retain 100% of earnings on your volumes.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer row inside dropdown */}
+              <div className="md:col-span-12 border-t border-slate-100 pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-[10px] text-slate-400 font-bold uppercase select-none">
+                <span>🚀 SaaS flat monthly subscription platform</span>
+                <div className="flex gap-4">
+                  <Link href="/login" className="text-blue-600 hover:text-blue-700 normal-case font-extrabold">Go to Merchant Console →</Link>
+                </div>
+              </div>
+
+            </div>
+          )}
 
           {/* Action CTAs */}
           <div className="hidden sm:flex items-center gap-4">
