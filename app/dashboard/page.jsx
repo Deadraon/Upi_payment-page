@@ -47,6 +47,13 @@ export default function DashboardPage() {
   const [apiLang, setApiLang] = useState('curl');
   const [testingWebhook, setTestingWebhook] = useState(false);
   const [webhookLogs, setWebhookLogs] = useState([]);
+  const [wizardStep, setWizardStep] = useState(0);
+  const [selectedDiagnostic, setSelectedDiagnostic] = useState('cors');
+
+  // Automatically reset setup wizard to step 0 when target changes
+  useEffect(() => {
+    setWizardStep(0);
+  }, [integrationTarget, mobileSdk]);
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -1070,12 +1077,6 @@ echo "Order Created: " . $data['orderId'];
               </div>
             )}
 
-            {/* ═══════════════════════════════════════════════════════════
-               TAB: DEVELOPER PORTAL
-               ═══════════════════════════════════════════════════════════ */}
-            {/* ═══════════════════════════════════════════════════════════
-               TAB: DEVELOPER PORTAL
-               ═══════════════════════════════════════════════════════════ */}
             {activeTab === 'developer' && (
               <div className="space-y-6 animate-fadeIn">
                 
@@ -1086,7 +1087,7 @@ echo "Order Created: " . $data['orderId'];
                       <span className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-ping" />
                       Integration Setup Wizard
                     </h3>
-                    <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                    <p className="text-xs text-slate-505 font-semibold leading-relaxed">
                       Select where you want to collect payments. We will adapt your step-by-step setup guides, credentials, and codebases in real time.
                     </p>
                   </div>
@@ -1113,217 +1114,369 @@ echo "Order Created: " . $data['orderId'];
                   </div>
                 </div>
 
-                {/* Split Screen Setup wizard panel */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  
-                  {/* LEFT PANE: HIGH FIDELITY SMARTPHONE CHECKOUT MOCKUP (Reacts in real time) */}
-                  <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col items-center justify-between min-h-[500px]">
-                    <div className="w-full">
-                      <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-3 flex items-center gap-2 select-none">
-                        <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                        Gateway Mockup Simulator
+                {wizardStep === 0 ? (
+                  /* STEP 0: WELCOME CARD PANEL */
+                  <div className="bg-white p-8 rounded-3xl border border-slate-200/80 shadow-[0_4px_25px_rgba(0,0,0,0.02)] flex flex-col items-center text-center max-w-2xl mx-auto space-y-6 py-12 animate-fadeIn select-none">
+                    <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center border border-blue-100 shadow-sm">
+                      <Code className="w-8 h-8" />
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+                        Seamless Payment Gateway Integration
                       </h3>
-                      
-                      <div className="mt-4 space-y-4">
+                      <p className="text-sm text-slate-500 font-semibold max-w-md mx-auto leading-relaxed">
+                        Integrate direct-to-bank UPI checkouts on your platform in under 5 minutes. Select your integration target above and click below to begin your guided step-by-step setup wizard.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-md text-left pt-2">
+                      <div className="p-4 bg-slate-50 border border-slate-200/60 rounded-2xl flex items-start gap-3">
+                        <span className="text-emerald-500 font-bold mt-0.5">✓</span>
                         <div>
-                          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Set Payload Amount (INR)</label>
-                          <div className="relative">
-                            <span className="absolute left-3.5 top-2.5 text-slate-400 font-bold text-xs">₹</span>
+                          <p className="text-xs font-bold text-slate-900">Pre-compiled SDKs</p>
+                          <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Copy-paste production codes for Web, React, and Flutter.</p>
+                        </div>
+                      </div>
+                      <div className="p-4 bg-slate-50 border border-slate-200/60 rounded-2xl flex items-start gap-3">
+                        <span className="text-emerald-500 font-bold mt-0.5">✓</span>
+                        <div>
+                          <p className="text-xs font-bold text-slate-900">Real-time Diagnostics</p>
+                          <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Catch and resolve CORS, credentials, or HMAC errors instantly.</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => setWizardStep(1)}
+                      className="px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-sm transition-all duration-300 shadow-lg shadow-blue-500/25 flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                      <span>Start Guided Configuration</span>
+                      <ChevronRight className="w-4.5 h-4.5" />
+                    </button>
+                  </div>
+                ) : wizardStep === 5 ? (
+                  /* STEP 5: ONBOARDING CONGRATS CARD */
+                  <div className="bg-white p-8 rounded-3xl border border-emerald-200 shadow-[0_4px_25px_rgba(16,185,129,0.02)] flex flex-col items-center text-center max-w-2xl mx-auto space-y-6 py-12 animate-fadeIn select-none">
+                    <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center border border-emerald-100 shadow-sm animate-bounce">
+                      <CheckCircle2 className="w-8 h-8" />
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+                        🎉 Onboarding Integration Completed!
+                      </h3>
+                      <p className="text-sm text-slate-500 font-semibold max-w-md mx-auto leading-relaxed">
+                        Excellent job! Your payment gateway is now fully integrated. Start accepting secure, zero-commission, direct-to-bank UPI transfers immediately.
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                      <button
+                        onClick={() => {
+                          setWizardStep(0);
+                        }}
+                        className="px-6 py-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all text-xs font-bold text-slate-700"
+                      >
+                        Reset Setup wizard
+                      </button>
+                      <button
+                        onClick={() => {
+                          document.getElementById('webhook-simulator-view')?.scrollIntoView({ behavior: 'smooth' });
+                        }}
+                        className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all text-xs font-black shadow-md shadow-emerald-500/10"
+                      >
+                        Launch Webhook Tester
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  /* SPLIT SCREEN STEP-BY-STEP PANEL */
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    
+                    {/* LEFT PANE: HIGH FIDELITY SMARTPHONE CHECKOUT MOCKUP */}
+                    <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col items-center justify-between min-h-[500px]">
+                      <div className="w-full">
+                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-3 flex items-center gap-2 select-none">
+                          <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                          </svg>
+                          Gateway Mockup Simulator
+                        </h3>
+                        
+                        <div className="mt-4 space-y-4">
+                          <div>
+                            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Set Payload Amount (INR)</label>
+                            <div className="relative">
+                              <span className="absolute left-3.5 top-2.5 text-slate-400 font-bold text-xs">₹</span>
+                              <input 
+                                type="number"
+                                value={linkAmount}
+                                onChange={e => setLinkAmount(e.target.value)}
+                                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 pl-7 pr-3 focus:outline-none focus:border-blue-500 text-xs font-semibold text-slate-900"
+                                placeholder="500.00"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Payload Note / ID</label>
                             <input 
-                              type="number"
-                              value={linkAmount}
-                              onChange={e => setLinkAmount(e.target.value)}
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 pl-7 pr-3 focus:outline-none focus:border-blue-500 text-xs font-semibold text-slate-900"
-                              placeholder="500.00"
+                              type="text"
+                              value={linkNote}
+                              onChange={e => setLinkNote(e.target.value)}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 focus:outline-none focus:border-blue-500 text-xs font-semibold text-slate-900"
+                              placeholder="Order_123"
                             />
                           </div>
                         </div>
-                        <div>
-                          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Payload Note / ID</label>
-                          <input 
-                            type="text"
-                            value={linkNote}
-                            onChange={e => setLinkNote(e.target.value)}
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 focus:outline-none focus:border-blue-500 text-xs font-semibold text-slate-900"
-                            placeholder="Order_123"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Smartphone Bezel Bezel container */}
-                    <div className="my-6 relative w-full max-w-[200px] bg-slate-950 border-4 border-slate-800 rounded-[28px] shadow-2xl overflow-hidden aspect-[9/18.5] flex flex-col transition-all duration-300 hover:scale-[1.02]">
-                      
-                      {/* Notch */}
-                      <div className="absolute top-0 inset-x-0 h-3.5 flex justify-center z-30">
-                        <div className="bg-slate-850 w-16 h-2.5 rounded-b-lg" />
                       </div>
 
-                      {/* Screen Content */}
-                      <div className="flex-1 bg-[#F8FAFC] pt-5 px-3 pb-3 flex flex-col justify-between font-sans text-slate-900 text-[9px] select-none">
+                      {/* Smartphone Bezel Bezel container */}
+                      <div className="my-6 relative w-full max-w-[200px] bg-slate-950 border-4 border-slate-800 rounded-[28px] shadow-2xl overflow-hidden aspect-[9/18.5] flex flex-col transition-all duration-300 hover:scale-[1.02]">
                         
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center text-[6px] font-extrabold text-slate-400 px-0.5">
-                            <span>12:45 PM</span>
-                            <span className="flex items-center gap-0.5">
-                              <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" /> LTE
-                            </span>
-                          </div>
+                        {/* Notch */}
+                        <div className="absolute top-0 inset-x-0 h-3.5 flex justify-center z-30">
+                          <div className="bg-slate-850 w-16 h-2.5 rounded-b-lg" />
+                        </div>
 
-                          <div className="flex flex-col items-center pt-1 border-b border-slate-100 pb-2">
-                            <span className="text-[10px] font-black tracking-tight text-slate-900">
-                              MyMob<span className="text-blue-600 italic">Pay</span>
-                            </span>
-                            <p className="text-[5px] text-slate-400 font-black uppercase tracking-wider mt-0.5">DIRECT BANK SECURE</p>
-                          </div>
-
-                          {/* Dynamic paying card details */}
-                          <div className="bg-white border border-slate-200/80 rounded-xl p-2 shadow-sm space-y-1">
-                            <div className="flex justify-between items-center text-[6px] text-slate-400 font-bold uppercase">
-                              <span>Paying To</span>
-                              <span className="text-blue-600 font-extrabold bg-blue-50 px-1 py-0.2 rounded text-[4.5px]">VERIFIED</span>
-                            </div>
-                            <p className="text-[8.5px] font-extrabold text-slate-900 truncate">
-                              {profile?.business_name || 'Demo Store'}
-                            </p>
-                            <p className="text-[6px] text-slate-400 font-semibold truncate -mt-0.5">
-                              UPI: {profile?.upi_id || 'pending@upi'}
-                            </p>
-                          </div>
-
-                          {/* Dynamic transaction billing details */}
-                          <div className="bg-white border border-slate-200/80 rounded-xl p-2 shadow-sm space-y-1">
-                            <div className="flex justify-between items-center text-[6px] text-slate-400 font-bold uppercase">
-                              <span>Total Due</span>
-                            </div>
-                            <div className="flex items-baseline gap-0.5">
-                              <span className="text-[8px] font-bold text-slate-400">₹</span>
-                              <span className="text-sm font-black text-slate-900 tracking-tight leading-none">
-                                {parseFloat(linkAmount) ? parseFloat(linkAmount).toFixed(2) : '0.00'}
+                        {/* Screen Content */}
+                        <div className="flex-1 bg-[#F8FAFC] pt-5 px-3 pb-3 flex flex-col justify-between font-sans text-slate-900 text-[9px] select-none">
+                          
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center text-[6px] font-extrabold text-slate-400 px-0.5">
+                              <span>12:45 PM</span>
+                              <span className="flex items-center gap-0.5">
+                                <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" /> LTE
                               </span>
                             </div>
-                            <div className="flex justify-between items-center text-[5.5px] text-slate-450 pt-1 border-t border-slate-100 font-medium">
-                              <span>Note: <span className="font-extrabold text-slate-700 truncate max-w-[70px] inline-block align-bottom">{linkNote || 'Order_123'}</span></span>
-                            </div>
-                          </div>
 
-                          {/* Target specific visualizers */}
-                          {integrationTarget === 'website' ? (
-                            <div className="bg-white border border-slate-200/80 rounded-xl p-2 shadow-sm flex flex-col items-center justify-center space-y-1.5 relative overflow-hidden">
-                              {/* QR Vector preview */}
-                              <svg viewBox="0 0 100 100" className="w-12 h-12 text-slate-800" fill="currentColor">
-                                <rect x="10" y="10" width="20" height="20" fill="#0F172A" rx="2" />
-                                <rect x="14" y="14" width="12" height="12" fill="#FFFFFF" rx="1.5" />
-                                <rect x="17" y="17" width="6" height="6" fill="#3B82F6" />
-                                <rect x="70" y="10" width="20" height="20" fill="#0F172A" rx="2" />
-                                <rect x="74" y="14" width="12" height="12" fill="#FFFFFF" rx="1.5" />
-                                <rect x="77" y="17" width="6" height="6" fill="#3B82F6" />
-                                <rect x="10" y="70" width="20" height="20" fill="#0F172A" rx="2" />
-                                <rect x="14" y="74" width="12" height="12" fill="#FFFFFF" rx="1.5" />
-                                <rect x="17" y="77" width="6" height="6" fill="#3B82F6" />
-                                <path d="M40,10 h6 v6 h-6 z M50,15 h8 v4 h-8 z M45,25 h10 v4 h-10 z M35,35 h8 v8 h-8 z M55,35 h12 v4 h-12 z M35,50 h12 v4 h-12 z M50,50 h6 v6 h-6 z M10,40 h8 v8 h-8 z M70,40 h8 v6 h-8 z M70,55 h12 v4 h-12 z M10,55 h6 v6 h-6 z M80,70 h10 v8 h-10 z M80,85 h8 v8 h-8 z" fill="#0F172A" />
-                                <rect x="40" y="40" width="20" height="20" fill="#3B82F6" rx="3" />
-                              </svg>
-                              <span className="text-[5px] text-slate-400 font-extrabold uppercase tracking-wider flex items-center gap-0.5">
-                                <span className="w-1 h-1 rounded-full bg-emerald-500" /> SCAN UPI QR CODE
+                            <div className="flex flex-col items-center pt-1 border-b border-slate-100 pb-2">
+                              <span className="text-[10px] font-black tracking-tight text-slate-900">
+                                MyMob<span className="text-blue-600 italic">Pay</span>
                               </span>
+                              <p className="text-[5px] text-slate-400 font-black uppercase tracking-wider mt-0.5">DIRECT BANK SECURE</p>
                             </div>
-                          ) : (
+
+                            {/* Dynamic paying card details */}
                             <div className="bg-white border border-slate-200/80 rounded-xl p-2 shadow-sm space-y-1">
-                              <span className="text-[5.5px] text-slate-400 font-bold uppercase tracking-wider block">CHOOSE UPI CLIENT</span>
-                              <div className="grid grid-cols-2 gap-1">
-                                <div className="p-1 bg-slate-50 border border-slate-200 rounded flex items-center gap-1 cursor-pointer">
-                                  <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                                  <span className="font-extrabold text-[5px] text-slate-700">PhonePe</span>
-                                </div>
-                                <div className="p-1 bg-slate-50 border border-slate-200 rounded flex items-center gap-1 cursor-pointer">
-                                  <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                                  <span className="font-extrabold text-[5px] text-slate-700">GPay</span>
-                                </div>
-                                <div className="p-1 bg-slate-50 border border-slate-200 rounded flex items-center gap-1 cursor-pointer">
-                                  <div className="w-1.5 h-1.5 rounded-full bg-sky-500" />
-                                  <span className="font-extrabold text-[5px] text-slate-700">Paytm</span>
-                                </div>
-                                <div className="p-1 bg-slate-50 border border-slate-200 rounded flex items-center gap-1 cursor-pointer">
-                                  <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
-                                  <span className="font-extrabold text-[5px] text-slate-700">BHIM</span>
-                                </div>
+                              <div className="flex justify-between items-center text-[6px] text-slate-400 font-bold uppercase">
+                                <span>Paying To</span>
+                                <span className="text-blue-600 font-extrabold bg-blue-50 px-1 py-0.2 rounded text-[4.5px]">VERIFIED</span>
                               </div>
-                            </div>
-                          )}
-
-                        </div>
-
-                        <div className="pt-2 border-t border-slate-100 text-center text-[5.5px] font-bold text-slate-400 uppercase tracking-wider">
-                          🔒 256-BIT CRYPTO SECURITY
-                        </div>
-
-                      </div>
-
-                    </div>
-
-                    <button 
-                      onClick={copyPaymentLink}
-                      className="w-full py-2.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 rounded-xl transition-all text-xs font-bold flex items-center justify-center gap-2"
-                    >
-                      {copiedLink ? <CheckCircle className="w-4 h-4 text-emerald-600" /> : <LinkIcon className="w-4 h-4" />}
-                      <span>{copiedLink ? 'Copied Checkout URL' : 'Copy Gateway URL'}</span>
-                    </button>
-                  </div>
-
-                  {/* RIGHT PANE: PRE-FILLED CODE PANELS & DOCUMENTATION (Left 2 cols) */}
-                  <div className="lg:col-span-2 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between">
-                    
-                    {integrationTarget === 'website' ? (
-                      <div className="space-y-5">
-                        <div className="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4 select-none">
-                          <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                            <Code className="w-5 h-5 text-blue-600" /> REST API Order Integration
-                          </h3>
-                          
-                          {/* Code Language tabs */}
-                          <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200/50">
-                            {['curl', 'js', 'python'].map(lang => (
-                              <button
-                                key={lang}
-                                onClick={() => setApiLang(lang)}
-                                className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all duration-300 ${apiLang === lang ? 'bg-white text-blue-600 shadow-sm border border-slate-200/60' : 'text-slate-400 hover:text-slate-700'}`}
-                              >
-                                {lang === 'js' ? 'NodeJS' : lang}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Integration steps */}
-                        <div className="space-y-4 font-medium text-slate-600 text-xs leading-relaxed">
-                          
-                          <div className="flex items-start gap-3">
-                            <span className="w-5 h-5 rounded-full bg-blue-50 text-blue-600 border border-blue-200 text-xs font-black flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
-                            <div className="space-y-1">
-                              <h4 className="text-xs font-black text-slate-900">Programmatic Order POST Request</h4>
-                              <p className="text-slate-500 font-semibold">
-                                Dispatch an authenticated POST request from your secure backend to create a transactional order ID mapping inside the gateway database.
+                              <p className="text-[8.5px] font-extrabold text-slate-900 truncate">
+                                {profile?.business_name || 'Demo Store'}
+                              </p>
+                              <p className="text-[6px] text-slate-400 font-semibold truncate -mt-0.5">
+                                UPI: {profile?.upi_id || 'pending@upi'}
                               </p>
                             </div>
+
+                            {/* Dynamic transaction billing details */}
+                            <div className="bg-white border border-slate-200/80 rounded-xl p-2 shadow-sm space-y-1">
+                              <div className="flex justify-between items-center text-[6px] text-slate-400 font-bold uppercase">
+                                <span>Total Due</span>
+                              </div>
+                              <div className="flex items-baseline gap-0.5">
+                                <span className="text-[8px] font-bold text-slate-400">₹</span>
+                                <span className="text-sm font-black text-slate-900 tracking-tight leading-none">
+                                  {parseFloat(linkAmount) ? parseFloat(linkAmount).toFixed(2) : '0.00'}
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center text-[5.5px] text-slate-450 pt-1 border-t border-slate-100 font-medium">
+                                <span>Note: <span className="font-extrabold text-slate-700 truncate max-w-[70px] inline-block align-bottom">{linkNote || 'Order_123'}</span></span>
+                              </div>
+                            </div>
+
+                            {/* Target specific visualizers */}
+                            {integrationTarget === 'website' ? (
+                              <div className="bg-white border border-slate-200/80 rounded-xl p-2 shadow-sm flex flex-col items-center justify-center space-y-1.5 relative overflow-hidden">
+                                {/* QR Vector preview */}
+                                <svg viewBox="0 0 100 100" className="w-12 h-12 text-slate-800" fill="currentColor">
+                                  <rect x="10" y="10" width="20" height="20" fill="#0F172A" rx="2" />
+                                  <rect x="14" y="14" width="12" height="12" fill="#FFFFFF" rx="1.5" />
+                                  <rect x="17" y="17" width="6" height="6" fill="#3B82F6" />
+                                  <rect x="70" y="10" width="20" height="20" fill="#0F172A" rx="2" />
+                                  <rect x="74" y="14" width="12" height="12" fill="#FFFFFF" rx="1.5" />
+                                  <rect x="77" y="17" width="6" height="6" fill="#3B82F6" />
+                                  <rect x="10" y="70" width="20" height="20" fill="#0F172A" rx="2" />
+                                  <rect x="14" y="74" width="12" height="12" fill="#FFFFFF" rx="1.5" />
+                                  <rect x="17" y="77" width="6" height="6" fill="#3B82F6" />
+                                  <path d="M40,10 h6 v6 h-6 z M50,15 h8 v4 h-8 z M45,25 h10 v4 h-10 z M35,35 h8 v8 h-8 z M55,35 h12 v4 h-12 z M35,50 h12 v4 h-12 z M50,50 h6 v6 h-6 z M10,40 h8 v8 h-8 z M70,40 h8 v6 h-8 z M70,55 h12 v4 h-12 z M10,55 h6 v6 h-6 z M80,70 h10 v8 h-10 z M80,85 h8 v8 h-8 z" fill="#0F172A" />
+                                  <rect x="40" y="40" width="20" height="20" fill="#3B82F6" rx="3" />
+                                </svg>
+                                <span className="text-[5px] text-slate-400 font-extrabold uppercase tracking-wider flex items-center gap-0.5">
+                                  <span className="w-1 h-1 rounded-full bg-emerald-500" /> SCAN UPI QR CODE
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="bg-white border border-slate-200/80 rounded-xl p-2 shadow-sm space-y-1">
+                                <span className="text-[5.5px] text-slate-400 font-bold uppercase tracking-wider block">CHOOSE UPI CLIENT</span>
+                                <div className="grid grid-cols-2 gap-1">
+                                  <div className="p-1 bg-slate-50 border border-slate-200 rounded flex items-center gap-1 cursor-pointer">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                                    <span className="font-extrabold text-[5px] text-slate-700">PhonePe</span>
+                                  </div>
+                                  <div className="p-1 bg-slate-50 border border-slate-200 rounded flex items-center gap-1 cursor-pointer">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                                    <span className="font-extrabold text-[5px] text-slate-700">GPay</span>
+                                  </div>
+                                  <div className="p-1 bg-slate-50 border border-slate-200 rounded flex items-center gap-1 cursor-pointer">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-sky-500" />
+                                    <span className="font-extrabold text-[5px] text-slate-700">Paytm</span>
+                                  </div>
+                                  <div className="p-1 bg-slate-50 border border-slate-200 rounded flex items-center gap-1 cursor-pointer">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                                    <span className="font-extrabold text-[5px] text-slate-700">BHIM</span>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
                           </div>
 
-                          {/* Method path visualizer */}
-                          <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl select-all">
-                            <span className="px-2.5 py-0.5 bg-blue-600 text-white text-[9px] font-black rounded-md uppercase">POST</span>
-                            <code className="font-mono text-slate-800 font-bold text-xs">https://mymob.tech/api/orders</code>
+                          <div className="pt-2 border-t border-slate-100 text-center text-[5.5px] font-bold text-slate-400 uppercase tracking-wider">
+                            🔒 256-BIT CRYPTO SECURITY
                           </div>
 
-                          {/* Code pre-formatted block */}
-                          <div className="rounded-2xl border border-slate-200 bg-[#0B0F19] overflow-hidden shadow-md">
-                            <div className="bg-slate-900/80 px-4 py-2 border-b border-slate-800 flex justify-between items-center select-none">
-                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{apiLang === 'curl' ? 'cURL Request Format' : apiLang === 'js' ? 'JavaScript Backend SDK' : 'Python Requests integration'}</span>
-                              <button 
-                                onClick={() => {
-                                  const text = apiLang === 'curl' 
-                                    ? `curl -X POST https://mymob.tech/api/orders \\
+                        </div>
+
+                      </div>
+
+                      <button 
+                        onClick={copyPaymentLink}
+                        className="w-full py-2.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 rounded-xl transition-all text-xs font-bold flex items-center justify-center gap-2"
+                      >
+                        {copiedLink ? <CheckCircle className="w-4 h-4 text-emerald-600" /> : <LinkIcon className="w-4 h-4" />}
+                        <span>{copiedLink ? 'Copied Checkout URL' : 'Copy Gateway URL'}</span>
+                      </button>
+                    </div>
+
+                    {/* RIGHT PANE: GUIDED SETUP STEPS CONTAINER */}
+                    <div className="lg:col-span-2 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between min-h-[500px]">
+                      
+                      {/* Stepper Progress Indicator */}
+                      <div className="border-b border-slate-100 pb-4 mb-5 select-none">
+                        <div className="flex items-center justify-between">
+                          {[
+                            { step: 1, label: integrationTarget === 'website' ? 'Credentials' : 'UPI Vitals' },
+                            { step: 2, label: integrationTarget === 'website' ? 'POST API' : 'Deep Link' },
+                            { step: 3, label: integrationTarget === 'website' ? 'Redirect' : 'Polling Loop' },
+                            { step: 4, label: 'Outbound HMAC Webhook' }
+                          ].map((s, idx) => (
+                            <div key={s.step} className="flex items-center flex-1 last:flex-none">
+                              <div className="flex flex-col items-center">
+                                <div 
+                                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black transition-all ${
+                                    wizardStep > s.step 
+                                      ? 'bg-emerald-500 text-white shadow-sm' 
+                                      : wizardStep === s.step 
+                                        ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 ring-4 ring-blue-50 animate-pulse' 
+                                        : 'bg-slate-100 text-slate-400'
+                                  }`}
+                                >
+                                  {wizardStep > s.step ? '✓' : s.step}
+                                </div>
+                                <span className={`text-[9px] font-bold mt-1.5 whitespace-nowrap ${wizardStep === s.step ? 'text-blue-600 font-extrabold' : 'text-slate-400'}`}>
+                                  {s.label}
+                                </span>
+                              </div>
+                              {idx < 3 && (
+                                <div className="flex-1 h-0.5 mx-2 bg-slate-100 relative -top-3">
+                                  <div 
+                                    className="absolute inset-y-0 left-0 bg-blue-500 transition-all duration-550" 
+                                    style={{ width: wizardStep > s.step ? '100%' : '0%' }}
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* STEP CONTENT SWITCHERS */}
+                      <div className="flex-1">
+                        
+                        {/* WEBSITE INTEGRATION WIZARD STEPS */}
+                        {integrationTarget === 'website' && (
+                          <div className="space-y-4">
+                            
+                            {/* Step 1: Credentials */}
+                            {wizardStep === 1 && (
+                              <div className="space-y-4 animate-fadeIn">
+                                <div className="space-y-1">
+                                  <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
+                                    🔑 Step 1: Retrieve API Credentials
+                                  </h4>
+                                  <p className="text-xs text-slate-505 font-semibold leading-relaxed">
+                                    Authenticate programmatic checkouts. Toggle Sandbox/Live mode at the top right to switch environments.
+                                  </p>
+                                </div>
+
+                                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Active Merchant API Key</span>
+                                    <span className={`text-[9px] px-2 py-0.5 rounded font-black uppercase ${profile?.sandbox_mode !== false ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-blue-50 text-blue-700 border border-blue-200'}`}>
+                                      {profile?.sandbox_mode !== false ? 'Sandbox Environment' : 'Live Environment'}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <code className="flex-1 bg-white border border-slate-250 px-3.5 py-2 rounded-xl text-xs font-mono break-all text-slate-800 font-bold select-all">
+                                      {profile?.sandbox_mode !== false ? `test_${profile?.api_key || 'YOUR_API_KEY'}` : `live_${profile?.api_key || 'YOUR_API_KEY'}`}
+                                    </code>
+                                    <button 
+                                      onClick={copyApiKey}
+                                      className="p-2.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl transition-all border border-blue-200"
+                                      title="Copy API Key"
+                                    >
+                                      {copied ? <CheckCircle className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                                    </button>
+                                  </div>
+                                </div>
+
+                                <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-2xl text-[11px] text-blue-800 font-semibold space-y-1.5 leading-normal">
+                                  <p className="font-bold flex items-center gap-1.5 uppercase text-[9.5px] tracking-wider text-blue-700">💡 Integration Security Tip</p>
+                                  <p>Never expose private API keys in client-side HTML/JS source repositories. Always wrap payment requests in secure server-side controllers and inject keys via server environment variables (`process.env.MYMOBPAY_API_KEY`).</p>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Step 2: POST API */}
+                            {wizardStep === 2 && (
+                              <div className="space-y-4 animate-fadeIn">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-2">
+                                  <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
+                                    🔌 Step 2: Backend Order Creation API
+                                  </h4>
+                                  
+                                  {/* API language selector tabs */}
+                                  <div className="flex bg-slate-100 p-0.5 rounded-xl border border-slate-200/50 self-end sm:self-auto">
+                                    {['curl', 'js', 'python'].map(lang => (
+                                      <button
+                                        key={lang}
+                                        onClick={() => setApiLang(lang)}
+                                        className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase transition-all duration-350 ${apiLang === lang ? 'bg-white text-blue-600 shadow-sm border border-slate-200/60' : 'text-slate-400 hover:text-slate-700'}`}
+                                      >
+                                        {lang === 'js' ? 'NodeJS' : lang}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                                  Make an authenticated server-side POST request to establish a unique transaction mapping inside the gateway database before redirecting users.
+                                </p>
+
+                                <div className="flex items-center gap-3 p-2.5 bg-slate-50 border border-slate-200 rounded-xl select-all">
+                                  <span className="px-2 py-0.5 bg-blue-600 text-white text-[8px] font-black rounded uppercase">POST</span>
+                                  <code className="font-mono text-slate-800 font-bold text-[11px]">https://mymob.tech/api/orders</code>
+                                </div>
+
+                                {/* Code Block Container */}
+                                <div className="rounded-2xl border border-slate-200 bg-[#0B0F19] overflow-hidden shadow-md">
+                                  <div className="bg-slate-900/80 px-4 py-2 border-b border-slate-850 flex justify-between items-center select-none">
+                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{apiLang === 'curl' ? 'cURL Request Format' : apiLang === 'js' ? 'JavaScript Backend' : 'Python Requests'}</span>
+                                    <button 
+                                      onClick={() => {
+                                        const text = apiLang === 'curl' 
+                                          ? `curl -X POST https://mymob.tech/api/orders \\
   -H "Content-Type: application/json" \\
   -d '{
     "api_key": "${profile?.api_key ? (profile.sandbox_mode !== false ? 'test_' : 'live_') + profile.api_key : 'YOUR_API_KEY'}",
@@ -1333,20 +1486,20 @@ echo "Order Created: " . $data['orderId'];
     "note": "${linkNote || 'Order_123'}",
     "callback_url": "${profile?.webhook_url || 'https://your-server.com/api/callback'}"
   }'`
-                                    : apiLang === 'js' 
-                                      ? snippets.js 
-                                      : snippets.python;
-                                  copySnippet('apiCode', text);
-                                }}
-                                className="text-[10px] font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1"
-                              >
-                                {copiedSnippet === 'apiCode' ? <CheckCircle className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-                                <span>{copiedSnippet === 'apiCode' ? 'Copied' : 'Copy Code'}</span>
-                              </button>
-                            </div>
-                            <pre className="p-4 text-[9.5px] font-mono text-slate-200 overflow-x-auto leading-relaxed max-h-[190px]">
-                              {apiLang === 'curl' ? (
-                                <code>
+                                          : apiLang === 'js' 
+                                            ? snippets.js 
+                                            : snippets.python;
+                                        copySnippet('apiCode', text);
+                                      }}
+                                      className="text-[9px] font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                                    >
+                                      {copiedSnippet === 'apiCode' ? <CheckCircle className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+                                      <span>{copiedSnippet === 'apiCode' ? 'Copied' : 'Copy'}</span>
+                                    </button>
+                                  </div>
+                                  <pre className="p-3.5 text-[9px] font-mono text-slate-200 overflow-x-auto leading-relaxed max-h-[170px]">
+                                    {apiLang === 'curl' ? (
+                                      <code>
 {`curl -X POST https://mymob.tech/api/orders \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -1357,75 +1510,217 @@ echo "Order Created: " . $data['orderId'];
     "note": "${linkNote || 'Order_123'}",
     "callback_url": "${profile?.webhook_url || 'https://your-server.com/api/callback'}"
   }'`}
-                                </code>
-                              ) : apiLang === 'js' ? (
-                                <code>{snippets.js}</code>
-                              ) : (
-                                <code>{snippets.python}</code>
-                              )}
-                            </pre>
-                          </div>
+                                      </code>
+                                    ) : apiLang === 'js' ? (
+                                      <code>{snippets.js}</code>
+                                    ) : (
+                                      <code>{snippets.python}</code>
+                                    )}
+                                  </pre>
+                                </div>
+                              </div>
+                            )}
 
-                          <div className="flex items-start gap-3 pt-2">
-                            <span className="w-5 h-5 rounded-full bg-blue-50 text-blue-600 border border-blue-200 text-xs font-black flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
-                            <div className="space-y-1">
-                              <h4 className="text-xs font-black text-slate-900">Redirect Customer to Checkout URL</h4>
-                              <p className="text-slate-500 font-semibold leading-relaxed">
-                                Redirect your customer&apos;s viewport to the scanning page, appending the newly created `orderId` parameter returned in Step 1:
-                              </p>
-                              <code className="block bg-slate-50 border border-slate-200 p-2.5 rounded-lg text-[9.5px] font-mono font-bold text-slate-700 select-all leading-normal break-all">
-                                {`https://mymob.tech/pay?api_key=${profile?.api_key ? (profile.sandbox_mode !== false ? 'test_' : 'live_') + profile.api_key : 'YOUR_API_KEY'}&amount=${parseFloat(linkAmount) || 500.00}&ref=YOUR_ORDER_ID`}
-                              </code>
-                            </div>
-                          </div>
+                            {/* Step 3: Redirect Customer */}
+                            {wizardStep === 3 && (
+                              <div className="space-y-4 animate-fadeIn">
+                                <div className="space-y-1">
+                                  <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
+                                    📲 Step 3: Redirect Customer View
+                                  </h4>
+                                  <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                                    Redirect the customer&apos;s browser window to the secure scanning viewport, appending the public key, exact amount, and the `orderId` returned from Step 2:
+                                  </p>
+                                </div>
 
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-5">
-                        <div className="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4 select-none">
-                          <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                            <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                            </svg>
-                            Mobile App Integration Track
-                          </h3>
-                          
-                          {/* SDK language switches */}
-                          <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200/50">
-                            {['flutter', 'react_native'].map(sdk => (
-                              <button
-                                key={sdk}
-                                onClick={() => setMobileSdk(sdk)}
-                                className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all duration-300 ${mobileSdk === sdk ? 'bg-white text-blue-600 shadow-sm border border-slate-200/60' : 'text-slate-400 hover:text-slate-700'}`}
-                              >
-                                {sdk === 'react_native' ? 'React Native' : 'Flutter'}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
+                                <div className="bg-slate-50 border border-slate-250 p-4 rounded-2xl space-y-2">
+                                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Gateway Redirect Target format</span>
+                                  <code className="block bg-white border border-slate-200 p-3 rounded-xl text-[10.5px] font-mono font-bold text-slate-700 select-all leading-normal break-all select-all">
+                                    {`https://mymob.tech/pay?api_key=${profile?.api_key ? (profile.sandbox_mode !== false ? 'test_' : 'live_') + profile.api_key : 'YOUR_API_KEY'}&amount=${parseFloat(linkAmount) || 500.00}&ref=YOUR_ORDER_ID`}
+                                  </code>
+                                </div>
 
-                        {/* Mobile SDK integrations */}
-                        <div className="space-y-4 font-medium text-slate-600 text-xs leading-relaxed">
-                          
-                          <div className="flex items-start gap-3">
-                            <span className="w-5 h-5 rounded-full bg-blue-50 text-blue-600 border border-blue-200 text-xs font-black flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
-                            <div className="space-y-1">
-                              <h4 className="text-xs font-black text-slate-900">Bypass Blocked Webview Intents</h4>
-                              <p className="text-slate-500 font-semibold">
-                                Sandboxed social media apps intercept standard `upi://` URLs, leading to white screen blocks. Bypass this restriction by compiling a custom Android `intent://` string template.
-                              </p>
-                            </div>
-                          </div>
+                                <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl text-[11px] text-amber-800 font-semibold leading-normal space-y-1.5">
+                                  <p className="font-bold flex items-center gap-1.5 uppercase text-[9.5px] tracking-wider text-amber-700">⚠️ Critical Redirection Policy</p>
+                                  <p>Ensure the `ref` query parameter contains the exact transactional `orderId` returned from your Step 2 backend API response. Do not generate custom order IDs on the frontend to avoid verification mismatches.</p>
+                                </div>
+                              </div>
+                            )}
 
-                          {/* Code pre-formatted block */}
-                          <div className="rounded-2xl border border-slate-200 bg-[#0B0F19] overflow-hidden shadow-md">
-                            <div className="bg-slate-900/80 px-4 py-2 border-b border-slate-800 flex justify-between items-center select-none">
-                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{mobileSdk === 'flutter' ? 'Flutter / Dart SDK' : 'React Native Javascript Integration'}</span>
-                              <button 
-                                onClick={() => {
-                                  const text = mobileSdk === 'flutter' 
-                                    ? `// Flutter direct deep-link & webview bypass script
+                            {/* Step 4: Webhook Outbound Signature Validation */}
+                            {wizardStep === 4 && (
+                              <div className="space-y-4 animate-fadeIn">
+                                <div className="space-y-1">
+                                  <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
+                                    📡 Step 4: Webhook Signature verification
+                                  </h4>
+                                  <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                                    Protect your fulfillment against falsified bank notifications. Calculate a raw SHA256 HMAC of the request body and verify it matches the header.
+                                  </p>
+                                </div>
+
+                                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2.5">
+                                  <div className="flex justify-between items-center text-[10px] font-black text-slate-400 uppercase">
+                                    <span>Outbound Custom Header</span>
+                                    <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.2 rounded font-extrabold text-[8.5px]">Required</span>
+                                  </div>
+                                  <div className="bg-white border border-slate-250 p-2.5 rounded-xl font-mono text-[10.5px] font-bold text-slate-800 flex justify-between items-center">
+                                    <span>X-MyMobPay-Signature</span>
+                                    <span className="text-[9px] text-slate-400 font-bold uppercase">Computed Sha256 Hex</span>
+                                  </div>
+                                </div>
+
+                                {/* Code pre-formatted block */}
+                                <div className="rounded-2xl border border-slate-200 bg-[#0B0F19] overflow-hidden shadow-md">
+                                  <div className="bg-slate-900/80 px-4 py-2 border-b border-slate-850 flex justify-between items-center select-none">
+                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">NodeJS Express HMAC verification</span>
+                                    <button 
+                                      onClick={() => {
+                                        const text = `// NodeJS Express webhook HMAC signature validator
+const crypto = require('crypto');
+
+app.post('/api/webhook', (req, res) => {
+  const signature = req.headers['x-mymobpay-signature'];
+  const rawKey = "${profile?.api_key || 'YOUR_PRIVATE_API_KEY'}"; // private API Key without test_ or live_ prefix
+  
+  const computedHash = crypto
+    .createHmac('sha256', rawKey)
+    .update(JSON.stringify(req.body))
+    .digest('hex');
+    
+  if (signature === computedHash) {
+    console.log("Webhook verified successfully. Order verified ID:", req.body.orderId);
+    // Release digital assets or credit customer balances here
+    res.status(200).json({ success: true });
+  } else {
+    console.warn("Invalid webhook signature spoof attempt blocked.");
+    res.status(401).json({ error: "Signature mismatch" });
+  }
+});`;
+                                        copySnippet('webhookVerifyCode', text);
+                                      }}
+                                      className="text-[9px] font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                                    >
+                                      {copiedSnippet === 'webhookVerifyCode' ? <CheckCircle className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+                                      <span>{copiedSnippet === 'webhookVerifyCode' ? 'Copied' : 'Copy'}</span>
+                                    </button>
+                                  </div>
+                                  <pre className="p-3.5 text-[9px] font-mono text-slate-200 overflow-x-auto leading-relaxed max-h-[170px]">
+                                    <code>{`// NodeJS Express Webhook HMAC signature validator
+const crypto = require('crypto');
+
+app.post('/api/webhook', (req, res) => {
+  const signature = req.headers['x-mymobpay-signature'];
+  const rawKey = "${profile?.api_key || 'YOUR_PRIVATE_API_KEY'}"; // raw key without test_/live_
+  
+  const computedHash = crypto
+    .createHmac('sha256', rawKey)
+    .update(JSON.stringify(req.body))
+    .digest('hex');
+    
+  if (signature === computedHash) {
+    console.log("HMAC Signature Match! Order:", req.body.orderId);
+    // Release assets...
+    res.status(200).send("OK");
+  } else {
+    res.status(400).send("Signature mismatch");
+  }
+});`}</code>
+                                  </pre>
+                                </div>
+                              </div>
+                            )}
+
+                          </div>
+                        )}
+
+                        {/* MOBILE APP INTEGRATION WIZARD STEPS */}
+                        {integrationTarget === 'mobile_app' && (
+                          <div className="space-y-4">
+                            
+                            {/* Step 1: UPI Vitals */}
+                            {wizardStep === 1 && (
+                              <div className="space-y-4 animate-fadeIn">
+                                <div className="space-y-1">
+                                  <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
+                                    💳 Step 1: Configure Business VPA Vitals
+                                  </h4>
+                                  <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                                    Ensure your payout deposit details are set correctly. Mobile banking clients will route bank deposits directly to these registered vitals.
+                                  </p>
+                                </div>
+
+                                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+                                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Registered Merchant Settings Check</span>
+                                  
+                                  <div className="grid grid-cols-2 gap-3 text-left">
+                                    <div className="p-3 bg-white border border-slate-250 rounded-xl space-y-0.5">
+                                      <span className="text-[8px] text-slate-400 font-extrabold uppercase block">Payee Business VPA</span>
+                                      <span className={`font-mono text-xs font-bold ${profile?.upi_id === 'pending@upi' ? 'text-red-500 font-black animate-pulse' : 'text-slate-800'}`}>
+                                        {profile?.upi_id || 'pending@upi'}
+                                      </span>
+                                    </div>
+                                    <div className="p-3 bg-white border border-slate-250 rounded-xl space-y-0.5">
+                                      <span className="text-[8px] text-slate-400 font-extrabold uppercase block">Brand Theme Color</span>
+                                      <div className="flex items-center gap-1.5">
+                                        <div className="w-3 h-3 rounded-full border border-slate-200 shadow-sm" style={{ backgroundColor: profile?.theme_color || '#3B82F6' }} />
+                                        <span className="font-mono text-xs font-bold text-slate-800">{profile?.theme_color || '#3B82F6'}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {profile?.upi_id === 'pending@upi' && (
+                                    <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-[10px] text-red-700 font-semibold flex items-center gap-2">
+                                      <span>❌</span>
+                                      <p>Your UPI ID is set to default. Please configure a valid UPI ID inside the Settings tab to authorize checkouts.</p>
+                                    </div>
+                                  )}
+                                </div>
+
+                                <button
+                                  onClick={() => setActiveTab('settings')}
+                                  className="w-full py-2.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 rounded-xl transition-all text-xs font-bold flex items-center justify-center gap-1.5"
+                                >
+                                  <span>Go to Business Settings</span>
+                                  <ChevronRight className="w-4.5 h-4.5" />
+                                </button>
+                              </div>
+                            )}
+
+                            {/* Step 2: WebView Deep-Link Intent Bypass */}
+                            {wizardStep === 2 && (
+                              <div className="space-y-4 animate-fadeIn">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-2">
+                                  <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
+                                    📲 Step 2: WebView Deep-Link Intent Bypass
+                                  </h4>
+                                  
+                                  {/* Mobile SDK language switches */}
+                                  <div className="flex bg-slate-100 p-0.5 rounded-xl border border-slate-200/50 self-end sm:self-auto">
+                                    {['flutter', 'react_native'].map(sdk => (
+                                      <button
+                                        key={sdk}
+                                        onClick={() => setMobileSdk(sdk)}
+                                        className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase transition-all duration-350 ${mobileSdk === sdk ? 'bg-white text-blue-600 shadow-sm border border-slate-200/60' : 'text-slate-400 hover:text-slate-700'}`}
+                                      >
+                                        {sdk === 'react_native' ? 'React Native' : 'Flutter'}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <p className="text-xs text-slate-505 font-semibold leading-relaxed">
+                                  In-app social media webviews intercept raw `upi://` URI schemas and load blank screens. Bypass this sandboxing restriction by wrapping deep links in custom native Android package selectors.
+                                </p>
+
+                                {/* Code Block Container */}
+                                <div className="rounded-2xl border border-slate-200 bg-[#0B0F19] overflow-hidden shadow-md">
+                                  <div className="bg-slate-900/80 px-4 py-2 border-b border-slate-855 flex justify-between items-center select-none">
+                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{mobileSdk === 'flutter' ? 'Flutter / Dart SDK' : 'React Native SDK'}</span>
+                                    <button 
+                                      onClick={() => {
+                                        const text = mobileSdk === 'flutter' 
+                                          ? `// Flutter direct deep-link & webview bypass script
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -1449,19 +1744,9 @@ class MyMobPaySDK {
       throw "No banking/UPI applications installed on this mobile phone.";
     }
   }
-
-  // Poll gateway verification status
-  Future<bool> verifyTransaction(String orderId) async {
-    final res = await http.get(Uri.parse("https://mymob.tech/api/orders?id=\$orderId"));
-    if (res.statusCode == 200) {
-      return jsonDecode(res.body)['status'] == 'verified';
-    }
-    return false;
-  }
 }`
-                                    : `// React Native Direct UPI deep-link & webview bypass script
+                                          : `// React Native Direct UPI deep-link & webview bypass script
 import { Linking, Platform } from 'react-native';
-import axios from 'axios';
 
 const MyMobPaySDK = {
   upiId: "${profile?.upi_id || 'pending@upi'}",
@@ -1486,40 +1771,26 @@ const MyMobPaySDK = {
     } else {
       await Linking.openURL(rawUrl);
     }
-  },
-
-  // Recursive status polling checks
-  async pollOrderStatus(orderId) {
-    try {
-      const res = await axios.get(\`https://mymob.tech/api/orders?id=\${orderId}\`);
-      return res.data.status === 'verified';
-    } catch (e) {
-      console.error("Order verification polling failed:", e);
-      return false;
-    }
   }
 };`;
-                                  copySnippet('sdkCode', text);
-                                }}
-                                className="text-[10px] font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1"
-                              >
-                                {copiedSnippet === 'sdkCode' ? <CheckCircle className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-                                <span>{copiedSnippet === 'sdkCode' ? 'Copied' : 'Copy Code'}</span>
-                              </button>
-                            </div>
-                            <pre className="p-4 text-[9.5px] font-mono text-slate-200 overflow-x-auto leading-relaxed max-h-[190px]">
-                              {mobileSdk === 'flutter' ? (
-                                <code>
+                                        copySnippet('sdkCode', text);
+                                      }}
+                                      className="text-[9px] font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                                    >
+                                      {copiedSnippet === 'sdkCode' ? <CheckCircle className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+                                      <span>{copiedSnippet === 'sdkCode' ? 'Copied' : 'Copy'}</span>
+                                    </button>
+                                  </div>
+                                  <pre className="p-3.5 text-[9px] font-mono text-slate-200 overflow-x-auto leading-relaxed max-h-[170px]">
+                                    {mobileSdk === 'flutter' ? (
+                                      <code>
 {`// Flutter Direct Webview-Bypass deep-linking
 import 'package:url_launcher/url_launcher.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 class MyMobPaySDK {
   final String upiId = "${profile?.upi_id || 'pending@upi'}";
   final String businessName = "${profile?.business_name || 'Demo Store'}";
 
-  // Trigger direct Deep links
   Future<void> triggerNativeCheckout({required double amount, required String orderId}) async {
     final String upiUrl = "upi://pay?pa=$upiId&pn=\${Uri.encodeComponent(businessName)}&am=\$amount&cu=INR&tn=\$orderId";
     final String androidIntent = "intent://pay?pa=$upiId&pn=\${Uri.encodeComponent(businessName)}&am=\$amount&cu=INR&tn=\$orderId#Intent;scheme=upi;package=in.org.npci.upiapp;end";
@@ -1532,28 +1803,17 @@ class MyMobPaySDK {
       throw "No UPI payment app detected on this smartphone.";
     }
   }
-
-  // Poll status verification endpoint
-  Future<bool> verifyTransaction(String orderId) async {
-    final res = await http.get(Uri.parse("https://mymob.tech/api/orders?id=\$orderId"));
-    if (res.statusCode == 200) {
-      return jsonDecode(res.body)['status'] == 'verified';
-    }
-    return false;
-  }
 }`}
-                                </code>
-                              ) : (
-                                <code>
+                                      </code>
+                                    ) : (
+                                      <code>
 {`// React Native direct deep link & webview bypass script
 import { Linking, Platform } from 'react-native';
-import axios from 'axios';
 
 const MyMobPaySDK = {
   upiId: "${profile?.upi_id || 'pending@upi'}",
   businessName: "${profile?.business_name || 'Demo Store'}",
 
-  // Trigger native mobile payout clients
   async payWithUPI(amount, orderId) {
     const rawUrl = \`upi://pay?pa=\${this.upiId}&pn=\${encodeURIComponent(this.businessName)}&am=\${amount}&cu=INR&tn=\${orderId}\`;
     
@@ -1562,7 +1822,6 @@ const MyMobPaySDK = {
       try {
         await Linking.openURL(rawUrl);
       } catch (err) {
-        // Bypass blocked webviews safely
         try {
           await Linking.openURL(intentUrl);
         } catch (e) {
@@ -1572,58 +1831,187 @@ const MyMobPaySDK = {
     } else {
       await Linking.openURL(rawUrl);
     }
-  },
-
-  // Recursive status polling checks
-  async checkOrderStatus(orderId) {
-    try {
-      const res = await axios.get(\`https://mymob.tech/api/orders?id=\${orderId}\`);
-      return res.data.status === 'verified';
-    } catch (e) {
-      console.error("Order verification polling failed:", e);
-      return false;
-    }
   }
 };`}
-                                </code>
-                              )}
-                            </pre>
-                          </div>
-
-                          <div className="flex items-start gap-3 pt-2">
-                            <span className="w-5 h-5 rounded-full bg-blue-50 text-blue-600 border border-blue-200 text-xs font-black flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
-                            <div className="space-y-1">
-                              <h4 className="text-xs font-black text-slate-900">Execute Order Status Polling loop</h4>
-                              <p className="text-slate-500 font-semibold leading-relaxed">
-                                Query our direct order status endpoint recursively to verify client payouts dynamically.
-                              </p>
-                              <div className="bg-slate-50 border border-slate-200 p-2.5 rounded-lg flex items-center justify-between text-[9.5px] font-mono font-bold text-slate-700">
-                                <span>GET https://mymob.tech/api/orders?id=ORDER_ID</span>
-                                <span className="bg-emerald-100 text-emerald-700 text-[8px] px-1.5 py-0.2 rounded uppercase">FAST LOOKUP</span>
+                                      </code>
+                                    )}
+                                  </pre>
+                                </div>
                               </div>
-                            </div>
-                          </div>
+                            )}
 
-                        </div>
+                            {/* Step 3: Status Polling loop */}
+                            {wizardStep === 3 && (
+                              <div className="space-y-4 animate-fadeIn">
+                                <div className="space-y-1">
+                                  <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
+                                    🔄 Step 3: Status Verification Polling loop
+                                  </h4>
+                                  <p className="text-xs text-slate-505 font-semibold leading-relaxed">
+                                    Because standalone mobile client applications cannot host webhook server ports, query our rapid status lookup endpoint recursively in the background until the transaction settles.
+                                  </p>
+                                </div>
+
+                                <div className="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-mono font-bold text-slate-700">
+                                  <span>GET https://mymob.tech/api/orders?id=YOUR_ORDER_ID</span>
+                                  <span className="bg-emerald-100 text-emerald-700 text-[7.5px] px-1.5 py-0.2 rounded font-extrabold uppercase">FAST LOOKUP</span>
+                                </div>
+
+                                {/* Code Block */}
+                                <div className="rounded-2xl border border-slate-200 bg-[#0B0F19] overflow-hidden shadow-md">
+                                  <div className="bg-slate-900/80 px-4 py-2 border-b border-slate-850 flex justify-between items-center select-none">
+                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{mobileSdk === 'flutter' ? 'Flutter status polling check' : 'React Native / Axios polling check'}</span>
+                                    <button 
+                                      onClick={() => {
+                                        const text = mobileSdk === 'flutter'
+                                          ? `// Poll status verification endpoint
+Future<bool> verifyTransaction(String orderId) async {
+  for (int i = 0; i < 30; i++) { // Poll 30 times (1 min total)
+    final res = await http.get(Uri.parse("https://mymob.tech/api/orders?id=\$orderId"));
+    if (res.statusCode == 200) {
+      final data = jsonDecode(res.body);
+      if (data['status'] == 'verified') {
+        return true; // transaction successful!
+      } else if (data['status'] == 'rejected' || data['status'] == 'expired') {
+        return false; // failed order
+      }
+    }
+    await Future.delayed(Duration(seconds: 2));
+  }
+  return false;
+}`
+                                          : `// Recursive order status polling check
+async function pollOrderStatus(orderId) {
+  let attempts = 0;
+  return new Promise((resolve) => {
+    const interval = setInterval(async () => {
+      attempts++;
+      if (attempts > 30) {
+        clearInterval(interval);
+        resolve(false); // timeout after 1 min
+      }
+      try {
+        const res = await axios.get(\`https://mymob.tech/api/orders?id=\${orderId}\`);
+        if (res.data.status === 'verified') {
+          clearInterval(interval);
+          resolve(true);
+        } else if (res.data.status === 'rejected' || res.data.status === 'expired') {
+          clearInterval(interval);
+          resolve(false);
+        }
+      } catch (e) {
+        console.error("Verification poll failed:", e);
+      }
+    }, 2000);
+  });
+}`;
+                                        copySnippet('pollCode', text);
+                                      }}
+                                      className="text-[9px] font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                                    >
+                                      {copiedSnippet === 'pollCode' ? <CheckCircle className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+                                      <span>{copiedSnippet === 'pollCode' ? 'Copied' : 'Copy'}</span>
+                                    </button>
+                                  </div>
+                                  <pre className="p-3.5 text-[9px] font-mono text-slate-200 overflow-x-auto leading-relaxed max-h-[170px]">
+                                    {mobileSdk === 'flutter' ? (
+                                      <code>
+{`// Flutter polling routine
+Future<bool> verifyTransaction(String orderId) async {
+  final res = await http.get(Uri.parse("https://mymob.tech/api/orders?id=\$orderId"));
+  if (res.statusCode == 200) {
+    return jsonDecode(res.body)['status'] == 'verified';
+  }
+  return false;
+}`}
+                                      </code>
+                                    ) : (
+                                      <code>
+{`// React Native polling routine
+async function checkOrderStatus(orderId) {
+  const res = await axios.get(\`https://mymob.tech/api/orders?id=\${orderId}\`);
+  return res.data.status === 'verified';
+}`}
+                                      </code>
+                                    )}
+                                  </pre>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Step 4: Webhook Failsafe */}
+                            {wizardStep === 4 && (
+                              <div className="space-y-4 animate-fadeIn">
+                                <div className="space-y-1">
+                                  <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
+                                    📡 Step 4: Webhook Outbound Verification
+                                  </h4>
+                                  <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                                    Never rely solely on client-side status polling! Set up a secure Webhook URL in your Settings tab. Our servers will post encrypted webhook handshakes when a payment is matched.
+                                  </p>
+                                </div>
+
+                                <div className="p-4 bg-emerald-50/70 border border-emerald-250 rounded-2xl text-[11px] text-emerald-800 font-semibold leading-normal space-y-1.5 animate-fadeIn">
+                                  <p className="font-bold flex items-center gap-1.5 uppercase text-[9.5px] tracking-wider text-emerald-700">🔒 Multi-layered Security Best Practice</p>
+                                  <p>1. Client mobile app triggers scanning and initiates lightweight status polling loops to update the visual UI immediately.</p>
+                                  <p>2. Backend server listens for raw HMAC signed `payment.verified` callbacks to safely update database records and fulfill digital purchases.</p>
+                                </div>
+
+                                <button
+                                  onClick={() => {
+                                    setSelectedDiagnostic('hmac');
+                                    document.getElementById('diagnostic-hub-view')?.scrollIntoView({ behavior: 'smooth' });
+                                  }}
+                                  className="w-full py-2.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 rounded-xl transition-all text-xs font-bold flex items-center justify-center gap-1.5"
+                                >
+                                  <span>Inspect HMAC Verification Steps</span>
+                                  <ChevronRight className="w-4 h-4" />
+                                </button>
+                              </div>
+                            )}
+
+                          </div>
+                        )}
+
                       </div>
-                    )}
-                    
-                    {/* Security credentials footer */}
-                    <div className="pt-4 border-t border-slate-100 space-y-2 mt-4 select-none">
-                      <h4 className="font-bold text-slate-900 flex items-center gap-1.5 text-xs">
-                        <Key className="w-4 h-4 text-blue-600" /> Outbound Signature Validations
-                      </h4>
-                      <p className="text-[11px] text-slate-550 font-semibold leading-normal">
-                        To secure integrations, double check incoming webhook parameters using your platform API credentials and raw secrets before releasing digital assets.
-                      </p>
+
+                      {/* Stepper Footer Navigation Controls */}
+                      <div className="border-t border-slate-100 pt-4 flex items-center justify-between mt-5 select-none">
+                        {wizardStep > 1 ? (
+                          <button
+                            onClick={() => setWizardStep(wizardStep - 1)}
+                            className="px-4 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all text-[11px] font-extrabold text-slate-600 flex items-center gap-1.5"
+                          >
+                            ← Previous Step
+                          </button>
+                        ) : (
+                          <div />
+                        )}
+
+                        {wizardStep < 4 ? (
+                          <button
+                            onClick={() => setWizardStep(wizardStep + 1)}
+                            className="px-5 py-2.5 bg-blue-600 hover:bg-blue-750 text-white rounded-xl transition-all text-[11px] font-black shadow-md shadow-blue-500/10 flex items-center gap-1.5"
+                          >
+                            Mark Completed & Next Step →
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => setWizardStep(5)}
+                            className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-755 text-white rounded-xl transition-all text-[11px] font-black shadow-md shadow-emerald-500/10 flex items-center gap-1.5 animate-bounce"
+                          >
+                            ✓ Finish Onboarding Configuration
+                          </button>
+                        )}
+                      </div>
+
                     </div>
 
                   </div>
-
-                </div>
+                )}
 
                 {/* WEBHOOK OUTBOUND DELIVERY SIMULATOR (Bottom Card) */}
-                <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm space-y-6">
+                <div id="webhook-simulator-view" className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm space-y-6">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-3 select-none">
                     <div className="space-y-1">
                       <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
@@ -1632,7 +2020,7 @@ const MyMobPaySDK = {
                         </svg>
                         Outbound Webhook Delivery Tester
                       </h3>
-                      <p className="text-xs text-slate-550 font-semibold">
+                      <p className="text-xs text-slate-500 font-semibold">
                         Verify your server webhook handshake by dispatching authenticated mock event payloads.
                       </p>
                     </div>
@@ -1662,7 +2050,7 @@ const MyMobPaySDK = {
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     
                     {/* Settings Config card */}
-                    <div className="space-y-4 font-semibold text-xs text-slate-655 select-none">
+                    <div className="space-y-4 font-semibold text-xs text-slate-700 select-none">
                       <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Simulator Parameters</span>
                         
@@ -1682,7 +2070,7 @@ const MyMobPaySDK = {
 
                         <div className="space-y-1">
                           <span className="text-[9.5px] text-slate-400 font-extrabold uppercase">Security Cryptography</span>
-                          <span className="text-slate-500 block leading-relaxed text-[10px]">
+                          <span className="text-slate-500 block leading-relaxed text-[10px] font-semibold">
                             Outbound callbacks are cryptographically signed using your private merchant API Key. We attach the resulting HMAC hex directly to the custom header `X-MyMobPay-Signature`.
                           </span>
                         </div>
@@ -1728,16 +2116,328 @@ const MyMobPaySDK = {
                                   <span className={`px-1.5 py-0.2 rounded text-[8px] font-black ${log.success ? 'bg-emerald-950/80 text-emerald-400 border border-emerald-900/50' : 'bg-red-950/80 text-red-400 border border-red-900/50'}`}>
                                     {log.status ? `${log.status} ${log.statusText}` : 'FAIL'}
                                   </span>
-                                  <span className="text-slate-500 font-bold">{log.latency}ms</span>
+                                  <span className="text-slate-550 font-bold">{log.latency}ms</span>
                                 </div>
                               </div>
 
                               <div className="bg-[#0b0e1a] border border-slate-900/80 p-2.5 rounded-xl space-y-1 text-slate-400 text-[8.5px]">
-                                <p><span className="text-slate-500 font-bold">Event Type:</span> payment.verified</p>
-                                <p className="truncate"><span className="text-slate-500 font-bold">HMAC Signature Header:</span> <span className="text-blue-400 font-bold select-all">{log.response?.startsWith('Failed') ? 'None' : 'computed_sha256_hex'}</span></p>
+                                <p><span className="text-slate-550 font-bold">Event Type:</span> payment.verified</p>
+                                <p className="truncate"><span className="text-slate-550 font-bold">HMAC Signature Header:</span> <span className="text-blue-400 font-bold select-all">{log.response?.startsWith('Failed') ? 'None' : 'computed_sha256_hex'}</span></p>
                                 <div className="pt-1.5 border-t border-slate-900 mt-1.5">
-                                  <span className="text-slate-500 font-bold block mb-0.5">Remote Server Payout Callback Response:</span>
+                                  <span className="text-slate-550 font-bold block mb-0.5">Remote Server Payout Callback Response:</span>
                                   <code className="text-slate-300 select-all whitespace-pre-wrap block bg-slate-950/50 p-1.5 rounded border border-slate-900/60 font-semibold break-all text-[8px]">
+                                    {log.response || 'Empty payload response returned.'}
+                                  </code>
+                                </div>
+                              </div>
+
+                            </div>
+                          ))
+                        )}
+
+                      </div>
+
+                      {/* Terminal Footer */}
+                      <div className="border-t border-slate-900 pt-1.5 mt-2 flex justify-between items-center text-[8px] text-slate-600 font-mono select-none">
+                        <span>Simulator status: Online</span>
+                        <span>Session cache size: {webhookLogs.length} attempts</span>
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                </div>
+
+                {/* DIAGNOSTIC TROUBLESHOOTING HUB */}
+                <div id="diagnostic-hub-view" className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm space-y-6">
+                  <div className="border-b border-slate-100 pb-3 select-none">
+                    <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+                      <AlertCircle className="w-5 h-5 text-red-500 animate-pulse" />
+                      🛠️ Real-time Diagnostic Troubleshooting Hub
+                    </h3>
+                    <p className="text-xs text-slate-500 font-semibold mt-1">
+                      Simulate and browse common real-world integration errors, inspect line failure points, and apply production-ready resolutions.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                    {/* Error Selector Buttons */}
+                    <div className="flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0 select-none">
+                      {[
+                        { id: 'cors', label: 'CORS Policy Blocked', icon: '🔒' },
+                        { id: 'apikey', label: 'Invalid API Key Format', icon: '🔑' },
+                        { id: 'hmac', label: 'HMAC Signature Mismatch', icon: '📡' },
+                        { id: 'vpa', label: 'UPI Account VPA Pending', icon: '❌' },
+                        { id: 'timeout', label: 'Webhook Timeout Error', icon: '🌐' }
+                      ].map(err => (
+                        <button
+                          key={err.id}
+                          onClick={() => setSelectedDiagnostic(err.id)}
+                          className={`w-full text-left px-4 py-3 rounded-2xl text-xs font-bold border transition-all duration-300 flex items-center gap-2 whitespace-nowrap lg:whitespace-normal ${
+                            selectedDiagnostic === err.id 
+                              ? 'bg-red-50 border-red-200 text-red-700 shadow-sm shadow-red-550/5' 
+                              : 'bg-slate-50 border-slate-200/60 text-slate-550 hover:text-slate-800'
+                          }`}
+                        >
+                          <span className="text-base">{err.icon}</span>
+                          <span>{err.label}</span>
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Detailed Diagnostic Viewer Card */}
+                    <div className="lg:col-span-3 bg-slate-50 border border-slate-200 p-5 rounded-3xl space-y-4">
+                      {selectedDiagnostic === 'cors' && (
+                        <div className="space-y-4 animate-fadeIn">
+                          <div className="flex justify-between items-center text-xs font-black uppercase text-red-700 select-none">
+                            <span>Diagnostic Case: CORS Blocked Access</span>
+                            <span className="bg-red-50 border border-red-250 px-2 py-0.5 rounded text-[8px]">Security Block</span>
+                          </div>
+                          
+                          <div className="space-y-1">
+                            <span className="text-[9px] text-slate-400 font-extrabold uppercase select-none block">Real Console Error string</span>
+                            <code className="block bg-[#0B0F19] text-rose-400 font-mono text-[9px] p-3 rounded-xl border border-slate-800 leading-normal select-all">
+                              Access to fetch at &apos;https://mymob.tech/api/orders&apos; from origin &apos;http://localhost:3500&apos; has been blocked by CORS policy: No &apos;Access-Control-Allow-Origin&apos; header is present on the requested resource.
+                            </code>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold text-slate-600 leading-normal select-none">
+                            <div>
+                              <span className="text-[9px] text-slate-400 font-extrabold uppercase block">Failure Location Vector</span>
+                              <p className="text-slate-800 font-bold mt-0.5 font-mono text-[10px]">Browser Frontend: `fetch(&quot;api/orders&quot;)`</p>
+                            </div>
+                            <div>
+                              <span className="text-[9px] text-slate-400 font-extrabold uppercase block">Underlying Cause</span>
+                              <p className="text-slate-505 mt-0.5">Attempting to call payments creation directly from browser HTML/JS code. We block client-side order dispatches to prevent attackers from reading private secrets.</p>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center select-none">
+                              <span className="text-[9px] text-slate-400 font-extrabold uppercase">Resolution Action & Production Code Fix</span>
+                              <span className="text-[8.5px] font-bold text-slate-400 font-mono">Node.js Express Controller Proxy</span>
+                            </div>
+                            
+                            <div className="rounded-2xl border border-slate-200 bg-[#0B0F19] overflow-hidden shadow-md">
+                              <pre className="p-3 text-[9px] font-mono text-slate-200 overflow-x-auto leading-relaxed max-h-[150px]">
+                                <code>{`// 1. Move the order creation call to your secure node server
+app.post('/api/create-payment-order', async (req, res) => {
+  try {
+    const apiRes = await fetch("https://mymob.tech/api/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        api_key: process.env.MYMOBPAY_PRIVATE_KEY, // test_... or live_...
+        amount: req.body.amount,
+        note: req.body.note,
+        callback_url: "https://your-domain.com/api/callback"
+      })
+    });
+    const data = await apiRes.json();
+    res.status(200).json(data); // Send orderId safely back to frontend
+  } catch (err) {
+    res.status(500).json({ error: "Failed to dispatch order" });
+  }
+});`}</code>
+                              </pre>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedDiagnostic === 'apikey' && (
+                        <div className="space-y-4 animate-fadeIn">
+                          <div className="flex justify-between items-center text-xs font-black uppercase text-red-700 select-none">
+                            <span>Diagnostic Case: Invalid API Key Format</span>
+                            <span className="bg-red-50 border border-red-250 px-2 py-0.5 rounded text-[8px]">Authentication</span>
+                          </div>
+                          
+                          <div className="space-y-1">
+                            <span className="text-[9px] text-slate-400 font-extrabold uppercase select-none block">Real Console Error string</span>
+                            <code className="block bg-[#0B0F19] text-rose-400 font-mono text-[9.5px] p-3 rounded-xl border border-slate-800 leading-normal select-all">
+                              &#123; &quot;success&quot;: false, &quot;error&quot;: &quot;Invalid API Key prefix. Must begin with live_ or test_&quot; &#125;
+                            </code>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold text-slate-600 leading-normal select-none">
+                            <div>
+                              <span className="text-[9px] text-slate-400 font-extrabold uppercase block">Failure Location Vector</span>
+                              <p className="text-slate-800 font-bold mt-0.5 font-mono text-[10px]">API Request Payload: `api_key` parameter</p>
+                            </div>
+                            <div>
+                              <span className="text-[9px] text-slate-400 font-extrabold uppercase block">Underlying Cause</span>
+                              <p className="text-slate-500 mt-0.5">Submitting the raw database API Key UUID directly, or omitting the required environment prefix matching your active Sandbox / Live setting.</p>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center select-none">
+                              <span className="text-[9px] text-slate-400 font-extrabold uppercase">Resolution Action & Production Code Fix</span>
+                              <span className="text-[8.5px] font-bold text-slate-400 font-mono">Prefix-aware Template String</span>
+                            </div>
+                            
+                            <div className="rounded-2xl border border-slate-200 bg-[#0B0F19] overflow-hidden shadow-md">
+                              <pre className="p-3 text-[9.5px] font-mono text-slate-200 overflow-x-auto leading-relaxed max-h-[150px]">
+                                <code>{`// 1. Fetch from console profile. Incorporate the active prefix format
+const getPrefixedApiKey = (rawKey, isSandbox) => {
+  const prefix = isSandbox ? "test_" : "live_";
+  return \`\${prefix}\${rawKey}\`; // Outputs: test_a1b2c3d4-e5f6...
+};
+
+// 2. Dispatch the correct payload
+const apiKey = getPrefixedApiKey(profile.api_key, profile.sandbox_mode);`}</code>
+                              </pre>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedDiagnostic === 'hmac' && (
+                        <div className="space-y-4 animate-fadeIn">
+                          <div className="flex justify-between items-center text-xs font-black uppercase text-red-700 select-none">
+                            <span>Diagnostic Case: Webhook HMAC Signature Mismatch</span>
+                            <span className="bg-red-50 border border-red-250 px-2 py-0.5 rounded text-[8px]">Security & Webhooks</span>
+                          </div>
+                          
+                          <div className="space-y-1">
+                            <span className="text-[9px] text-slate-400 font-extrabold uppercase select-none block">Real Console Error string</span>
+                            <code className="block bg-[#0B0F19] text-rose-400 font-mono text-[9px] p-3 rounded-xl border border-slate-800 leading-normal select-all">
+                              Webhook signature verification failed. Computed HMAC: e3b0c442... Received: 4f89a223... HTTP Status: 401 Unauthorized
+                            </code>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold text-slate-650 leading-normal select-none">
+                            <div>
+                              <span className="text-[9px] text-slate-400 font-extrabold uppercase block">Failure Location Vector</span>
+                              <p className="text-slate-800 font-bold mt-0.5 font-mono text-[10px]">Server Webhook Router Middleware</p>
+                            </div>
+                            <div>
+                              <span className="text-[9px] text-slate-400 font-extrabold uppercase block">Underlying Cause</span>
+                              <p className="text-slate-500 mt-0.5">Hashing the parsed JSON object which alters whitespace, or using the prefixed key (e.g., test_xxx) as the HMAC secret instead of the raw database UUID.</p>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center select-none">
+                              <span className="text-[9px] text-slate-400 font-extrabold uppercase">Resolution Action & Production Code Fix</span>
+                              <span className="text-[8.5px] font-bold text-slate-400 font-mono">NodeJS Raw Body Verification</span>
+                            </div>
+                            
+                            <div className="rounded-2xl border border-slate-200 bg-[#0B0F19] overflow-hidden shadow-md">
+                              <pre className="p-3 text-[9px] font-mono text-slate-200 overflow-x-auto leading-relaxed max-h-[150px]">
+                                <code>{`// 1. Capture RAW body buffer instead of pre-parsed JSON objects
+app.post('/api/webhook', express.raw({ type: 'application/json' }), (req, res) => {
+  const signature = req.headers['x-mymobpay-signature'];
+  const rawSecret = "a1b2c3d4-e5f6..."; // omit the "test_" or "live_" prefix!
+  
+  const computed = crypto
+    .createHmac('sha256', rawSecret)
+    .update(req.body) // raw buffer input
+    .digest('hex');
+    
+  if (computed === signature) {
+    res.status(200).send("Verified successfully!");
+  } else {
+    res.status(401).send("Verification signature mismatch");
+  }
+});`}</code>
+                              </pre>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedDiagnostic === 'vpa' && (
+                        <div className="space-y-4 animate-fadeIn">
+                          <div className="flex justify-between items-center text-xs font-black uppercase text-red-700 select-none">
+                            <span>Diagnostic Case: UPI Account Payee VPA Inactive</span>
+                            <span className="bg-red-50 border border-red-250 px-2 py-0.5 rounded text-[8px]">P2P Routing</span>
+                          </div>
+                          
+                          <div className="space-y-1">
+                            <span className="text-[9px] text-slate-405 font-extrabold uppercase select-none block">Real Console Error string</span>
+                            <code className="block bg-[#0B0F19] text-rose-400 font-mono text-[9px] p-3 rounded-xl border border-slate-800 leading-normal select-all">
+                              UPI Payee VPA address lookup failed: payee VPA &quot;pending@upi&quot; is not registered. Bank networks declined scanning intent.
+                            </code>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold text-slate-600 leading-normal select-none">
+                            <div>
+                              <span className="text-[9px] text-slate-400 font-extrabold uppercase block">Failure Location Vector</span>
+                              <p className="text-slate-800 font-bold mt-0.5 font-mono text-[10px]">Payment Scan Gateways Viewport</p>
+                            </div>
+                            <div>
+                              <span className="text-[9px] text-slate-400 font-extrabold uppercase block">Underlying Cause</span>
+                              <p className="text-slate-500 mt-0.5">Your console settings still carry the default payee VPA address. Scan pathways fail dynamically since VPA is unregistered inside National Payments Corporation (NPCI).</p>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <span className="text-[9px] text-slate-400 font-extrabold uppercase select-none block">Resolution Action & Setup Instructions</span>
+                            
+                            <div className="bg-white border border-slate-200 p-4 rounded-2xl text-[10.5px] leading-relaxed text-slate-700 font-semibold space-y-2">
+                              <p className="text-slate-900 font-extrabold">Follow these 3 easy steps to activate P2P deposit routing:</p>
+                              <p>1. Go to your bank portal or UPI App (GPay, PhonePe, BHIM) and copy your personal or business UPI address (e.g. \`mymerechant@okaxis\` or \`payee@upi\`).</p>
+                              <p>2. Open your Merchant Console **Settings** tab. Clear the default \`pending@upi\` and paste your valid UPI VPA in the VPA field.</p>
+                              <p>3. Click **&quot;Save Profile&quot;**. Scanning checkouts will now route direct deposits to your bank immediately.</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedDiagnostic === 'timeout' && (
+                        <div className="space-y-4 animate-fadeIn">
+                          <div className="flex justify-between items-center text-xs font-black uppercase text-red-700 select-none">
+                            <span>Diagnostic Case: Webhook Outbound Network Connection Timeout</span>
+                            <span className="bg-red-50 border border-red-255 px-2 py-0.5 rounded text-[8px]">Network & Tunneling</span>
+                          </div>
+                          
+                          <div className="space-y-1">
+                            <span className="text-[9px] text-slate-400 font-extrabold uppercase select-none block">Real Console Error string</span>
+                            <code className="block bg-[#0B0F19] text-rose-400 font-mono text-[9px] p-3 rounded-xl border border-slate-800 leading-normal select-all">
+                              Webhook delivery failed. Connection timed out after 5000ms (ERR_CONNECTION_TIMED_OUT) or returned HTTP 502 Bad Gateway.
+                            </code>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold text-slate-650 leading-normal select-none">
+                            <div>
+                              <span className="text-[9px] text-slate-400 font-extrabold uppercase block">Failure Location Vector</span>
+                              <p className="text-slate-800 font-bold mt-0.5 font-mono text-[10px]">Outbound Webhook Tester Dispatch log</p>
+                            </div>
+                            <div>
+                              <span className="text-[9px] text-slate-400 font-extrabold uppercase block">Underlying Cause</span>
+                              <p className="text-slate-500 mt-0.5">Attempting to test outbound webhooks with a local address URL (e.g. localhost:5000/api/webhook). Cloud servers cannot route network requests directly to localhost.</p>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center select-none">
+                              <span className="text-[9px] text-slate-400 font-extrabold uppercase">Resolution Action & Setup Instructions</span>
+                              <span className="text-[8.5px] font-bold text-slate-400 font-mono">Launch secure ngrok public tunnel</span>
+                            </div>
+                            
+                            <div className="rounded-2xl border border-slate-205 bg-[#0B0F19] overflow-hidden shadow-md">
+                              <pre className="p-3 text-[9.5px] font-mono text-slate-200 overflow-x-auto leading-relaxed max-h-[150px]">
+                                <code>{`# 1. Download ngrok and expose your local server port (e.g. 5000)
+ngrok http 5000
+
+# 2. Copy the secure Forwarding HTTPS URL provided by ngrok:
+# https://a1b2-c3d4.ngrok-free.app
+
+# 3. Paste the full endpoint in your Settings -> Webhook Outbound URL field:
+# https://a1b2-c3d4.ngrok-free.app/api/webhook`}</code>
+                              </pre>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            )}whitespace-pre-wrap block bg-slate-950/50 p-1.5 rounded border border-slate-900/60 font-semibold break-all text-[8px]">
                                     {log.response || 'Empty payload response returned.'}
                                   </code>
                                 </div>
