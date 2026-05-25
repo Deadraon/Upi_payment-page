@@ -182,7 +182,14 @@ print("Checkout Link generated:", data.get("orderId"))`
               Developer API
             </button>
             <Link href="/terms" className="text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors">
-            {/* Mega Menu Dropdown (Mimicking Razorpay Style Visual Cards with deep shadows) */}
+              Terms
+            </Link>
+            <Link href="/privacy" className="text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors">
+              Privacy
+            </Link>
+          </nav>
+
+          {/* Mega Menu Dropdown (Mimicking Razorpay Style Visual Cards with deep shadows) */}
           {showPaymentsMenu && (
             <div 
               onMouseEnter={() => setShowPaymentsMenu(true)}
