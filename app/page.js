@@ -342,11 +342,13 @@ print("Checkout Link generated:", data.get("orderId"))`
                     </div>
                     <div className="flex items-baseline">
                       <span className="text-sm font-bold text-slate-400 mr-0.5">₹</span>
-                      <span className="text-3xl font-black text-slate-900 tracking-tight leading-none">500.00</span>
+                      <span className="text-3xl font-black text-slate-900 tracking-tight leading-none">
+                        {parseFloat(demoAmount || '500').toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                      </span>
                     </div>
                     <div className="pt-2 border-t border-slate-100/80 flex justify-between text-[10px] font-semibold text-slate-500">
                       <span>Paying to:</span>
-                      <span className="font-bold text-slate-850">Deadraon</span>
+                      <span className="font-bold text-slate-850">Demo Store</span>
                     </div>
                   </div>
 
