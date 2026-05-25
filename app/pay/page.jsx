@@ -36,18 +36,18 @@ const GPayLogo    = () => <img src="/logos/gpay.svg"    alt="Google Pay"  classN
 const PhonePeLogo = () => <img src="/logos/phonepe.svg" alt="PhonePe"     className="w-8 h-8 object-contain bg-white p-1.5 rounded-xl" />;
 const PaytmLogo   = () => <img src="/logos/paytm.svg"   alt="Paytm"       className="w-8 h-8 object-contain bg-white p-1.5 rounded-xl" />;
 const BhimLogo    = () => <img src="/logos/bhim.svg"    alt="BHIM UPI"    className="w-8 h-8 object-contain bg-white p-1.5 rounded-xl" />;
-const MyMobPayLogo = ({ className = 'w-48 h-auto' }) => (
+const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = '#0f172a' }) => (
   <svg viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
     {/* Single unified wordmark with unique mixed fonts */}
     <text x="2" y="42" letterSpacing="0">
       {/* M of My */}
-      <tspan fontFamily="'Orbitron', sans-serif" fontWeight="800" fontSize="38" fill="#FFFFFF">M</tspan>
+      <tspan fontFamily="'Orbitron', sans-serif" fontWeight="800" fontSize="38" fill={textColor}>M</tspan>
       {/* y of My */}
-      <tspan fontFamily="'Outfit', sans-serif" fontWeight="500" fontSize="34" fill="#FFFFFF" dx="1">y</tspan>
+      <tspan fontFamily="'Outfit', sans-serif" fontWeight="500" fontSize="34" fill={textColor} dx="1">y</tspan>
       {/* M of Mob */}
-      <tspan fontFamily="'Orbitron', sans-serif" fontWeight="800" fontSize="38" fill="#FFFFFF" dx="2">M</tspan>
+      <tspan fontFamily="'Orbitron', sans-serif" fontWeight="800" fontSize="38" fill={textColor} dx="2">M</tspan>
       {/* ob of Mob */}
-      <tspan fontFamily="'Outfit', sans-serif" fontWeight="500" fontSize="34" fill="#FFFFFF" dx="1">ob</tspan>
+      <tspan fontFamily="'Outfit', sans-serif" fontWeight="500" fontSize="34" fill={textColor} dx="1">ob</tspan>
       {/* Pay */}
       <tspan fontFamily="'Orbitron', sans-serif" fontWeight="900" fontStyle="italic" fontSize="36" fill="#3B82F6" dx="3">Pay</tspan>
     </text>
@@ -85,7 +85,7 @@ const OrderPanel = ({ project, amount, orderId, timer, merchant }) => {
       <div>
         {/* Logo */}
         <div className="flex flex-col items-start gap-1 mb-10">
-          <MyMobPayLogo className="w-48 h-auto object-contain filter brightness-0" />
+          <MyMobPayLogo className="w-48 h-auto object-contain" />
           {project && project !== activeBusinessName && (
             <p className="text-[11px] text-slate-500 font-medium ml-1">via {project}</p>
           )}
@@ -637,7 +637,7 @@ function PayPageContent() {
                       <div className="flex items-center justify-between p-3 rounded-xl bg-slate-100 border border-slate-200">
                         <div>
                           <p className="text-[9px] text-slate-500 uppercase tracking-wider mb-0.5">Pay to UPI ID</p>
-                          <p className="text-[11px] font-mono font-bold text-slate-700">{CONFIG.upiId}</p>
+                          <p className="text-[11px] font-mono font-bold text-slate-700">{merchant?.upi_id || CONFIG.upiId}</p>
                         </div>
                         <div className="flex gap-1.5">
                           <button onClick={copyUPI}
