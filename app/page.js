@@ -242,15 +242,13 @@ print("Checkout Link generated:", data.get("orderId"))`
           {/* Left Column Copywriting */}
           <div className="lg:col-span-7 space-y-8 text-center lg:text-left">
             
-            {/* Akasa Air Badge endorsement overlay */}
+            {/* Direct P2P Status Badge */}
             <div className="inline-flex items-center gap-2.5 px-4 py-2 bg-slate-50 border border-slate-200/80 rounded-2xl shadow-sm text-xs font-bold text-slate-800 animate-fade-up">
               <span className="flex h-2 w-2 relative">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
               <span>Direct P2P Settlement Active</span>
-              <span className="text-slate-350">|</span>
-              <span className="text-blue-600 font-extrabold">Akasa Air Approved</span>
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.08] animate-fade-up delay-100">
