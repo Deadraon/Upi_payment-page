@@ -1712,7 +1712,7 @@ const MyMobPaySDK = {
                               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                             </svg>
                             <p className="font-bold">No webhook dispatch logs found in current session cache.</p>
-                            <p className="text-[8.5px] font-semibold">Click "Send Test Event" to execute callback simulation triggers.</p>
+                            <p className="text-[8.5px] font-semibold">Click &quot;Send Test Event&quot; to execute callback simulation triggers.</p>
                           </div>
                         ) : (
                           webhookLogs.map(log => (
