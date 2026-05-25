@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { CONFIG } from '@/lib/config';
 import { 
@@ -21,7 +21,18 @@ import {
   TrendingUp,
   SlidersHorizontal,
   ChevronDown,
-  Copy
+  Copy,
+  Eye,
+  EyeOff,
+  Activity,
+  Check,
+  Settings,
+  ShieldAlert,
+  Store,
+  ArrowUpRight,
+  ExternalLink,
+  Menu,
+  X
 } from 'lucide-react';
 
 export default function AdminPage() {
@@ -31,15 +42,31 @@ export default function AdminPage() {
   const [authError, setAuthError] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
 
-  // Data states
+  // Active Tab: overview, transactions, merchants, config
+  const [activeTab, setActiveTab] = useState('overview');
+
+  // Mobile menu open state
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Database Data states
   const [orders, setOrders] = useState([]);
+  const [merchants, setMerchants] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [merchantsLoading, setMerchantsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
   
-  // Modal / Action states
-  const [actionLoading, setActionLoading] = useState(null); // stores order ID currently in progress
+  // Search & Filter states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [merchantSearchQuery, setMerchantSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [selectedMerchantFilter, setSelectedMerchantFilter] = useState('all');
+
+  // Revealed keys mapping
+  const [revealedKeys, setRevealedKeys] = useState({});
+  const [copiedKeyId, setCopiedKeyId] = useState(null);
+
+  // Manual actions on orders
+  const [actionLoading, setActionLoading] = useState(null);
   const [manualUtr, setManualUtr] = useState('');
   const [utrPromptId, setUtrPromptId] = useState(null);
 
@@ -52,7 +79,28 @@ export default function AdminPage() {
     }
   }, []);
 
-  // Fetch orders and calculate summaries
+  // Fetch all registered merchants (bypassing RLS via our secure API)
+  const fetchMerchants = useCallback(async () => {
+    if (!isLoggedIn) return;
+    setMerchantsLoading(true);
+    try {
+      const res = await fetch('/api/admin/merchants', {
+        headers: {
+          'x-admin-password': password
+        }
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to fetch merchants');
+      setMerchants(data.merchants || []);
+    } catch (err) {
+      console.error('Error fetching merchants:', err);
+      setError('Could not fetch merchant records from server.');
+    } finally {
+      setMerchantsLoading(false);
+    }
+  }, [isLoggedIn, password]);
+
+  // Fetch all orders
   const fetchOrders = useCallback(async () => {
     if (!isLoggedIn) return;
     setLoading(true);
@@ -73,52 +121,27 @@ export default function AdminPage() {
     }
   }, [isLoggedIn]);
 
-  // Trigger fetch when logged in or filter changes
+  // Unified Refresh
+  const handleRefreshAll = useCallback(() => {
+    fetchOrders();
+    fetchMerchants();
+  }, [fetchOrders, fetchMerchants]);
+
+  // Trigger fetch on login
   useEffect(() => {
     if (isLoggedIn) {
-      fetchOrders();
+      handleRefreshAll();
       
-      // Auto-refresh every 15 seconds
+      // Auto-refresh every 20 seconds
       const interval = setInterval(() => {
-        fetchOrders();
-      }, 15000);
+        handleRefreshAll();
+      }, 20000);
       
       return () => clearInterval(interval);
     }
-  }, [isLoggedIn, fetchOrders]);
+  }, [isLoggedIn, handleRefreshAll]);
 
-  // Handle manual verify/reject actions
-  const handleOrderAction = async (orderId, action, utrVal = '') => {
-    setActionLoading(orderId);
-    try {
-      const res = await fetch('/api/admin/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          password,
-          orderId,
-          action,
-          utr: utrVal
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to update order status');
-      }
-
-      // Update local state instantly
-      setOrders(prev => prev.map(o => o.id === orderId ? data.order : o));
-      setUtrPromptId(null);
-      setManualUtr('');
-    } catch (err) {
-      alert(err.message || 'Operation failed');
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  // Password submission
+  // Password submission login
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setAuthError('');
@@ -150,6 +173,75 @@ export default function AdminPage() {
     setPassword('');
     setIsLoggedIn(false);
     setOrders([]);
+    setMerchants([]);
+  };
+
+  // Toggle Merchant subscription status
+  const handleToggleSubscription = async (merchantId, currentStatus) => {
+    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+    try {
+      const res = await fetch('/api/admin/merchants', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          password,
+          merchantId,
+          action: 'toggleSubscription',
+          status: newStatus
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to update subscription status');
+
+      // Update local state instantly
+      setMerchants(prev => prev.map(m => m.id === merchantId ? data.merchant : m));
+    } catch (err) {
+      alert(err.message || 'Operation failed');
+    }
+  };
+
+  // Handle manual verify/reject actions on orders
+  const handleOrderAction = async (orderId, action, utrVal = '') => {
+    setActionLoading(orderId);
+    try {
+      const res = await fetch('/api/admin/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          password,
+          orderId,
+          action,
+          utr: utrVal
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to update order status');
+      }
+
+      // Update local state instantly
+      setOrders(prev => prev.map(o => o.id === orderId ? data.order : o));
+      setUtrPromptId(null);
+      setManualUtr('');
+    } catch (err) {
+      alert(err.message || 'Operation failed');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Toggle API Key visibility
+  const toggleKeyVisibility = (id) => {
+    setRevealedKeys(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  // Copy API key to clipboard
+  const handleCopyKey = (id, key) => {
+    navigator.clipboard.writeText(key);
+    setCopiedKeyId(id);
+    setTimeout(() => setCopiedKeyId(null), 2000);
   };
 
   // Calculations for Metrics Cards
@@ -169,75 +261,124 @@ export default function AdminPage() {
     return { revenue, count };
   };
 
-  const getMetrics = () => {
+  const platformMetrics = useMemo(() => {
     const pendingCount = orders.filter(o => o.status === 'pending').length;
     const verifiedCount = orders.filter(o => o.status === 'verified').length;
-    const rejectedCount = orders.filter(o => o.status === 'rejected').length;
+    const totalVolume = orders
+      .filter(o => o.status === 'verified')
+      .reduce((sum, o) => sum + parseFloat(o.amount), 0);
+    const activeMerchants = merchants.filter(m => m.subscription_status === 'active').length;
+    
     const today = getTodayStats();
 
-    return { pendingCount, verifiedCount, rejectedCount, today };
-  };
+    return {
+      pendingCount,
+      verifiedCount,
+      totalVolume,
+      activeMerchants,
+      totalMerchants: merchants.length,
+      today
+    };
+  }, [orders, merchants]);
 
-  const metrics = getMetrics();
+  // Compile Merchant Sales stats for Leaderboard
+  const merchantLeaderboard = useMemo(() => {
+    const leaderboard = merchants.map(m => {
+      const merchantOrders = orders.filter(o => o.merchant_id === m.id && o.status === 'verified');
+      const salesVolume = merchantOrders.reduce((sum, o) => sum + parseFloat(o.amount), 0);
+      return {
+        id: m.id,
+        businessName: m.business_name,
+        upiId: m.upi_id,
+        status: m.subscription_status,
+        salesVolume,
+        ordersCount: merchantOrders.length
+      };
+    });
+
+    // Sort by sales volume descending
+    return leaderboard.sort((a, b) => b.salesVolume - a.salesVolume).slice(0, 5);
+  }, [merchants, orders]);
 
   // Filtering orders
-  const filteredOrders = orders.filter(o => {
-    // Status filter
-    if (statusFilter !== 'all' && o.status !== statusFilter) return false;
-    
-    // Search query filter
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      const matchId = o.id?.toLowerCase().includes(q);
-      const matchName = o.customer_name?.toLowerCase().includes(q);
-      const matchPhone = o.customer_phone?.toLowerCase().includes(q);
-      const matchUtr = o.utr?.toLowerCase().includes(q);
-      const matchNote = o.note?.toLowerCase().includes(q);
-      const matchAmount = o.amount?.toString().includes(q);
-      
-      return matchId || matchName || matchPhone || matchUtr || matchNote || matchAmount;
-    }
-    
-    return true;
-  });
+  const filteredOrders = useMemo(() => {
+    return orders.filter(o => {
+      // Status filter
+      if (statusFilter !== 'all' && o.status !== statusFilter) return false;
 
-  const themeColor = CONFIG.themeColor || '#1D9E75';
+      // Merchant filter
+      if (selectedMerchantFilter !== 'all' && o.merchant_id !== selectedMerchantFilter) return false;
+      
+      // Search query filter
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const matchId = o.id?.toLowerCase().includes(q);
+        const matchName = o.customer_name?.toLowerCase().includes(q);
+        const matchPhone = o.customer_phone?.toLowerCase().includes(q);
+        const matchUtr = o.utr?.toLowerCase().includes(q);
+        const matchNote = o.note?.toLowerCase().includes(q);
+        const matchAmount = o.amount?.toString().includes(q);
+        
+        return matchId || matchName || matchPhone || matchUtr || matchNote || matchAmount;
+      }
+      
+      return true;
+    });
+  }, [orders, statusFilter, selectedMerchantFilter, searchQuery]);
+
+  // Filtering merchants
+  const filteredMerchants = useMemo(() => {
+    return merchants.filter(m => {
+      if (merchantSearchQuery.trim()) {
+        const q = merchantSearchQuery.toLowerCase().trim();
+        const matchName = m.business_name?.toLowerCase().includes(q);
+        const matchUpi = m.upi_id?.toLowerCase().includes(q);
+        const matchId = m.id?.toLowerCase().includes(q);
+        return matchName || matchUpi || matchId;
+      }
+      return true;
+    });
+  }, [merchants, merchantSearchQuery]);
+
+  const themeColor = '#10B981'; // SaaS Emerald Accent
 
   if (!isLoggedIn) {
-    /* LOGIN WALL SCREEN */
+    /* LUXURY LOGIN WALL SCREEN */
     return (
-      <div className="min-h-screen bg-[#0A0E17] text-slate-100 flex flex-col justify-center items-center p-4 font-sans selection:bg-[#1D9E75]/30">
+      <div className="min-h-screen bg-[#050811] text-slate-100 flex flex-col justify-center items-center p-4 font-sans selection:bg-emerald-500/30">
         
-        {/* Background glow */}
+        {/* Soft radial glow */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-[30%] left-[40%] w-[50%] h-[50%] rounded-full opacity-[0.05] blur-[100px]" style={{ backgroundColor: themeColor }}></div>
+          <div className="absolute top-[25%] left-[25%] w-[50%] h-[50%] rounded-full opacity-[0.03] blur-[120px]" style={{ backgroundColor: themeColor }}></div>
         </div>
 
-        <div className="max-w-md w-full bg-[#121B2E]/60 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 shadow-2xl relative space-y-6 overflow-hidden">
+        <div className="max-w-md w-full bg-[#0a0f1d]/75 backdrop-blur-2xl border border-slate-900 rounded-[2rem] p-8 shadow-2xl relative space-y-7 overflow-hidden">
           
           <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ backgroundColor: themeColor }}></div>
 
           {/* Branding */}
-          <div className="text-center space-y-3">
-            <div className="w-14 h-14 bg-slate-800 rounded-2xl flex items-center justify-center mx-auto shadow-md">
-              <Dumbbell className="w-7 h-7 text-white" style={{ color: themeColor }} />
+          <div className="text-center space-y-4">
+            <div className="w-16 h-16 bg-[#0E1528] border border-slate-800 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
+              <Dumbbell className="w-8 h-8 text-emerald-400" />
             </div>
             <div>
-              <h2 className="text-2xl font-black text-white">{CONFIG.businessName}</h2>
-              <p className="text-xs text-slate-400 font-semibold tracking-wider uppercase mt-0.5">Admin Dashboard Portal</p>
+              <h2 className="text-2xl font-black tracking-tight text-white">
+                MyMob<span className="text-emerald-500 italic">Pay</span> SaaS
+              </h2>
+              <p className="text-[10px] text-slate-400 font-bold tracking-widest uppercase mt-0.5">Super Admin Dashboard</p>
             </div>
           </div>
 
           {authError && (
-            <div className="p-3.5 bg-red-500/10 border border-red-500/20 rounded-xl text-red-200 text-xs flex items-center gap-2 animate-shake">
-              <AlertCircle className="w-4.5 h-4.5 text-red-400" />
-              <span>{authError}</span>
+            <div className="p-3.5 bg-red-500/10 border border-red-500/25 rounded-xl text-red-200 text-xs flex items-center gap-2.5">
+              <AlertCircle className="w-4.5 h-4.5 text-red-400 flex-shrink-0" />
+              <span className="font-semibold">{authError}</span>
             </div>
           )}
 
-          <form onSubmit={handleLoginSubmit} className="space-y-4">
+          <form onSubmit={handleLoginSubmit} className="space-y-5">
             <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block">Dashboard Password</label>
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Access Password</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                   <Lock className="w-4 h-4 text-slate-500" />
@@ -248,7 +389,7 @@ export default function AdminPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-[#0A0F1D]/80 border border-slate-850 rounded-xl py-3.5 pl-10 pr-4 text-sm text-white placeholder-slate-650 outline-none focus:border-slate-700 focus:ring-1 focus:ring-slate-750 transition-all"
+                  className="w-full bg-[#03060E] border border-slate-800 rounded-xl py-3.5 pl-10 pr-4 text-sm text-white placeholder-slate-700 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500/20 transition-all font-semibold"
                 />
               </div>
             </div>
@@ -259,14 +400,14 @@ export default function AdminPage() {
               className="w-full py-3.5 rounded-xl text-white font-bold text-sm tracking-wide flex items-center justify-center gap-2.5 transition-transform active:scale-[0.99] disabled:opacity-50 shadow-lg"
               style={{
                 backgroundColor: themeColor,
-                boxShadow: `0 6px 20px ${themeColor}20`
+                boxShadow: `0 6px 20px rgba(16, 185, 129, 0.15)`
               }}
             >
               {authLoading ? (
                 <RefreshCw className="w-4 h-4 animate-spin" />
               ) : (
                 <>
-                  <span>Unlock Gateway Logs</span>
+                  <span>Unlock SaaS Console</span>
                   <Unlock className="w-4 h-4" />
                 </>
               )}
@@ -279,39 +420,137 @@ export default function AdminPage() {
 
   /* LOGGED IN DASHBOARD */
   return (
-    <div className="min-h-screen bg-[#060A13] text-slate-100 font-sans flex flex-col justify-between selection:bg-[#1D9E75]/30">
+    <div className="min-h-screen bg-[#03060d] text-slate-200 font-sans flex flex-col justify-between selection:bg-emerald-500/20">
       
       {/* Top Header bar */}
-      <header className="bg-[#0B1220] border-b border-slate-900 sticky top-0 z-40">
+      <header className="bg-[#080d19]/80 backdrop-blur-md border-b border-slate-900/60 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-slate-800 flex items-center justify-center">
-              <Dumbbell className="w-5 h-5" style={{ color: themeColor }} />
+            <div className="p-2 rounded-xl bg-slate-900 border border-slate-850 flex items-center justify-center">
+              <Dumbbell className="w-5 h-5 text-emerald-400" />
             </div>
             <div>
-              <h1 className="font-extrabold text-md tracking-tight text-white">{CONFIG.businessName}</h1>
-              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Gateway Admin Console</p>
+              <div className="flex items-center gap-2">
+                <h1 className="font-black text-lg tracking-tight text-white">
+                  MyMob<span className="text-emerald-400 italic">Pay</span>
+                </h1>
+                <span className="px-2 py-0.5 text-[9px] rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold uppercase">SaaS OWNER</span>
+              </div>
+              <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Gateway Platform Admin</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* Tab Selection (Desktop Only) */}
+          <nav className="hidden md:flex bg-[#040810] border border-slate-850 p-1.5 rounded-2xl gap-1">
+            {[
+              { id: 'overview', label: 'Platform Stats', icon: Activity },
+              { id: 'transactions', label: 'Global Orders', icon: FileText },
+              { id: 'merchants', label: 'Merchants (SaaS)', icon: Store },
+              { id: 'config', label: 'System Config', icon: Settings },
+            ].map(tab => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === tab.id ? 'bg-[#0E1729] text-white shadow-sm border border-slate-800' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/40 border border-transparent'}`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+
+          {/* Action Buttons (Desktop Only) */}
+          <div className="hidden md:flex items-center gap-3">
             <button 
-              onClick={fetchOrders}
-              disabled={loading}
-              className="p-2 rounded-xl bg-slate-850 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800 disabled:opacity-50 transition-colors"
+              onClick={handleRefreshAll}
+              disabled={loading || merchantsLoading}
+              className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800 disabled:opacity-50 transition-colors"
+              title="Sync Platform Data"
             >
-              <RefreshCw className={`w-4.5 h-4.5 ${loading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-4 h-4 ${loading || merchantsLoading ? 'animate-spin' : ''}`} />
             </button>
             <button 
               onClick={handleLogout}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-950/20 border border-red-900/30 text-red-400 hover:text-red-300 hover:bg-red-950/30 transition-colors text-xs font-semibold"
+              className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-red-950/15 border border-red-900/20 text-red-400 hover:text-red-300 hover:bg-red-950/25 transition-colors text-xs font-bold"
             >
-              <LogOut className="w-3.5 h-3.5" />
+              <LogOut className="w-4 h-4" />
               <span>Log Out</span>
+            </button>
+          </div>
+
+          {/* Hamburger Menu Controls (Mobile Only) */}
+          <div className="md:hidden flex items-center gap-2">
+            <button 
+              onClick={handleRefreshAll}
+              disabled={loading || merchantsLoading}
+              className="p-2 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white disabled:opacity-50 transition-colors"
+              title="Sync"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading || merchantsLoading ? 'animate-spin' : ''}`} />
+            </button>
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition-colors"
+              title="Menu"
+            >
+              {isMobileMenuOpen ? <X className="w-4 h-4 text-white" /> : <Menu className="w-4 h-4 text-white" />}
             </button>
           </div>
         </div>
       </header>
+
+      {/* Mobile Drawer Slide-out overlay Navigation (Mobile Only) */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 z-30 bg-[#03060d]/95 backdrop-blur-xl flex flex-col pt-24 px-6 pb-8 space-y-8 animate-fadeIn">
+          <div className="flex flex-col space-y-3">
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3">Navigation Menu</p>
+            {[
+              { id: 'overview', label: 'Platform Stats', icon: Activity },
+              { id: 'transactions', label: 'Global Orders', icon: FileText },
+              { id: 'merchants', label: 'Merchants (SaaS)', icon: Store },
+              { id: 'config', label: 'System Config', icon: Settings },
+            ].map(tab => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all border ${activeTab === tab.id ? 'bg-[#0E1729] text-white border-slate-800 shadow-sm' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/20 border-transparent'}`}
+                >
+                  <Icon className="w-4.5 h-4.5 text-emerald-400" />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="flex-1"></div>
+
+          {/* Mobile Drawer Actions */}
+          <div className="space-y-4 pt-6 border-t border-slate-900">
+            <div className="flex justify-between items-center px-2">
+              <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Gateway Platform Admin</span>
+              <span className="text-[8px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded font-black uppercase">v1.1</span>
+            </div>
+            <button 
+              onClick={() => {
+                handleLogout();
+                setIsMobileMenuOpen(false);
+              }}
+              className="w-full flex items-center justify-center gap-2.5 px-4 py-3.5 rounded-2xl bg-red-950/20 border border-red-900/35 text-red-400 hover:bg-red-900 hover:text-white transition-all text-sm font-bold shadow-md"
+            >
+              <LogOut className="w-4.5 h-4.5" />
+              <span>Log Out Platform</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Main Admin View */}
       <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 flex-1 space-y-8">
@@ -320,99 +559,508 @@ export default function AdminPage() {
         {error && (
           <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-200 text-sm flex items-start gap-3">
             <AlertCircle className="w-5 h-5 flex-shrink-0 text-red-400" />
-            <p>{error}</p>
+            <p className="font-semibold">{error}</p>
           </div>
         )}
 
-        {/* Dashboard Cards Grid */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          
-          {/* Today's Revenue */}
-          <div className="bg-[#0F172A]/70 border border-slate-850/80 rounded-2xl p-5 shadow-lg relative overflow-hidden flex flex-col justify-between h-[115px]">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Today&apos;s Revenue</p>
-                <h3 className="text-2xl font-black text-white mt-1.5 flex items-center gap-0.5">
-                  <IndianRupee className="w-5 h-5 text-emerald-400" />
-                  <span>{metrics.today.revenue.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
-                </h3>
+        {/* ═══════════════════════════════════════════════════════════
+           TAB 1: OVERVIEW & PLATFORM LEADERBOARDS
+           ═══════════════════════════════════════════════════════════ */}
+        {activeTab === 'overview' && (
+          <div className="space-y-8 animate-fadeIn">
+            {/* Summary Metrics Grid */}
+            <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              
+              {/* Platform volume */}
+              <div className="bg-[#090E1B]/70 border border-slate-900 rounded-2xl p-5 shadow-lg relative overflow-hidden flex flex-col justify-between h-[120px]">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Platform Sales Volume</p>
+                    <h3 className="text-2xl font-black text-white mt-2 flex items-baseline">
+                      <span className="text-sm font-bold text-slate-400 mr-0.5">₹</span>
+                      <span>{platformMetrics.totalVolume.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                    </h3>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <TrendingUp className="w-5 h-5" />
+                  </div>
+                </div>
+                <p className="text-[10px] text-slate-400 font-semibold">{platformMetrics.verifiedCount} aggregate payments processed</p>
               </div>
-              <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                <TrendingUp className="w-5 h-5" />
+
+              {/* Today's Sales */}
+              <div className="bg-[#090E1B]/70 border border-slate-900 rounded-2xl p-5 shadow-lg relative overflow-hidden flex flex-col justify-between h-[120px]">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Today&apos;s Revenue</p>
+                    <h3 className="text-2xl font-black text-white mt-2 flex items-baseline">
+                      <span className="text-sm font-bold text-slate-400 mr-0.5">₹</span>
+                      <span>{platformMetrics.today.revenue.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                    </h3>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <ArrowUpRight className="w-5 h-5" />
+                  </div>
+                </div>
+                <p className="text-[10px] text-emerald-400 font-bold">+{platformMetrics.today.count} global checkouts today</p>
               </div>
+
+              {/* Total SaaS Tenants */}
+              <div className="bg-[#090E1B]/70 border border-slate-900 rounded-2xl p-5 shadow-lg relative overflow-hidden flex flex-col justify-between h-[120px]">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Registered Merchants</p>
+                    <h3 className="text-3xl font-black text-white mt-2">{platformMetrics.totalMerchants}</h3>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                    <Store className="w-5 h-5" />
+                  </div>
+                </div>
+                <p className="text-[10px] text-slate-400 font-semibold">{platformMetrics.activeMerchants} active subscriptions</p>
+              </div>
+
+              {/* Awaiting Match */}
+              <div className="bg-[#090E1B]/70 border border-slate-900 rounded-2xl p-5 shadow-lg relative overflow-hidden flex flex-col justify-between h-[120px]">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Awaiting Verification</p>
+                    <h3 className="text-3xl font-black text-white mt-2">{platformMetrics.pendingCount}</h3>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 animate-pulse">
+                    <Clock className="w-5 h-5" />
+                  </div>
+                </div>
+                <p className="text-[10px] text-amber-500 font-bold animate-pulse">Pending automatic verification triggers</p>
+              </div>
+
+            </section>
+
+            {/* Merchant Leaderboard & Platform Health split */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              
+              {/* Leaderboard Table */}
+              <div className="bg-[#070b13]/80 border border-slate-900 rounded-2xl p-6 shadow-xl lg:col-span-2 space-y-4">
+                <div className="flex justify-between items-center pb-2">
+                  <h4 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-emerald-400" /> Top Performing Merchants
+                  </h4>
+                  <span className="text-[10px] bg-slate-900 border border-slate-800 px-2 py-0.5 rounded text-slate-400 font-bold uppercase">SaaS STATS</span>
+                </div>
+
+                <div className="overflow-x-auto rounded-xl border border-slate-850">
+                  <table className="min-w-full divide-y divide-slate-850/80">
+                    <thead className="bg-[#0A0F1D]/55">
+                      <tr>
+                        <th className="px-5 py-3 text-left text-[9px] font-bold text-slate-400 uppercase tracking-wider">Business Name</th>
+                        <th className="px-5 py-3 text-left text-[9px] font-bold text-slate-400 uppercase tracking-wider">UPI ID Address</th>
+                        <th className="px-5 py-3 text-center text-[9px] font-bold text-slate-400 uppercase tracking-wider">Verified Orders</th>
+                        <th className="px-5 py-3 text-right text-[9px] font-bold text-slate-400 uppercase tracking-wider">Volume (INR)</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-850/40 bg-[#040810]/40">
+                      {merchantsLoading ? (
+                        <tr>
+                          <td colSpan="4" className="px-5 py-6 text-center text-xs text-slate-500">
+                            Loading leaderboards...
+                          </td>
+                        </tr>
+                      ) : merchantLeaderboard.length === 0 ? (
+                        <tr>
+                          <td colSpan="4" className="px-5 py-6 text-center text-xs text-slate-500 font-medium">
+                            No verified merchant sales logs recorded yet.
+                          </td>
+                        </tr>
+                      ) : (
+                        merchantLeaderboard.map((m, idx) => (
+                          <tr key={m.id} className="hover:bg-slate-900/30 transition-colors">
+                            <td className="px-5 py-3.5 whitespace-nowrap text-xs">
+                              <div className="flex items-center gap-2">
+                                <span className={`w-5 h-5 rounded-full flex items-center justify-center font-bold text-[9px] ${idx === 0 ? 'bg-amber-400/20 text-amber-400 border border-amber-400/30' : idx === 1 ? 'bg-slate-350/20 text-slate-300 border border-slate-300/30' : 'bg-slate-900 text-slate-400'}`}>
+                                  {idx + 1}
+                                </span>
+                                <span className="font-bold text-white">{m.businessName}</span>
+                              </div>
+                            </td>
+                            <td className="px-5 py-3.5 whitespace-nowrap text-xs font-mono font-medium text-slate-450">
+                              {m.upiId}
+                            </td>
+                            <td className="px-5 py-3.5 whitespace-nowrap text-xs font-bold text-center text-slate-300">
+                              {m.ordersCount}
+                            </td>
+                            <td className="px-5 py-3.5 whitespace-nowrap text-xs font-black text-right text-emerald-450 flex items-center justify-end gap-0.5">
+                              <span className="text-[10px] text-slate-500 font-bold">₹</span>
+                              <span>{m.salesVolume.toFixed(2)}</span>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Platform Health / Webhook Diagnostics */}
+              <div className="bg-[#070b13]/80 border border-slate-900 rounded-2xl p-6 shadow-xl space-y-6">
+                <h4 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                  <Activity className="w-4.5 h-4.5 text-emerald-400" /> Platform Services
+                </h4>
+
+                <div className="space-y-4">
+                  {[
+                    { name: 'Supabase Database', desc: 'Secure PostgreSQL & RLS Core', status: 'operational', val: 'Connected' },
+                    { name: 'Outbound Webhooks', desc: 'Outbound merchant signatures', status: 'operational', val: 'HMAC-SHA256' },
+                    { name: 'Bank Notification Hub', desc: 'Gmail IMAP parsing system', status: 'operational', val: 'Active' },
+                    { name: 'Platform Billing System', desc: 'Zero-Fee billing routers', status: 'operational', val: 'Active' }
+                  ].map((service, idx) => (
+                    <div key={idx} className="flex justify-between items-center p-3 bg-slate-950 rounded-xl border border-slate-900">
+                      <div>
+                        <p className="text-xs font-bold text-white">{service.name}</p>
+                        <p className="text-[10px] text-slate-500 font-semibold mt-0.5">{service.desc}</p>
+                      </div>
+                      <div className="text-right">
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-extrabold uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                          ✓ {service.val}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
             </div>
-            <p className="text-[10px] text-slate-400 font-semibold">{metrics.today.count} verified transactions today</p>
           </div>
+        )}
 
-          {/* Pending Verification */}
-          <div className="bg-[#0F172A]/70 border border-slate-850/80 rounded-2xl p-5 shadow-lg relative overflow-hidden flex flex-col justify-between h-[115px]">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Pending Match</p>
-                <h3 className="text-2xl font-black text-white mt-1.5">{metrics.pendingCount}</h3>
-              </div>
-              <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 animate-pulse">
-                <Clock className="w-5 h-5" />
-              </div>
-            </div>
-            <p className="text-[10px] text-slate-400 font-semibold">Awaiting automated SMS webhook</p>
-          </div>
+        {/* ═══════════════════════════════════════════════════════════
+           TAB 2: GLOBAL TRANSACTION LOGS
+           ═══════════════════════════════════════════════════════════ */}
+        {activeTab === 'transactions' && (
+          <section className="bg-[#070b13]/80 border border-slate-900 backdrop-blur-xl rounded-2xl p-6 shadow-xl space-y-6 animate-fadeIn">
+            
+            {/* Filters and Searches */}
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 border-b border-slate-900">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-1">
+                <div className="space-y-1">
+                  <h2 className="text-lg font-bold text-white tracking-wide">Global Transaction Logs</h2>
+                  <p className="text-xs text-slate-400">Total: {filteredOrders.length} filtered checkouts • Auto-refresh active</p>
+                </div>
+                
+                {/* Search Bar */}
+                <div className="relative max-w-xs w-full sm:ml-4">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <Search className="w-4 h-4 text-slate-500" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Search UTR, Customer, Note..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-[#03060E] border border-slate-800 rounded-xl py-2 pl-10 pr-8 text-xs text-white placeholder-slate-700 outline-none focus:border-slate-700 transition-all font-semibold"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-white text-xs"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
 
-          {/* Total Verified */}
-          <div className="bg-[#0F172A]/70 border border-slate-850/80 rounded-2xl p-5 shadow-lg relative overflow-hidden flex flex-col justify-between h-[115px]">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total Verified</p>
-                <h3 className="text-2xl font-black text-white mt-1.5">{metrics.verifiedCount}</h3>
-              </div>
-              <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                <CheckCircle2 className="w-5 h-5" />
-              </div>
-            </div>
-            <p className="text-[10px] text-slate-400 font-semibold">Valid bank credits registered</p>
-          </div>
-
-          {/* Total Rejected */}
-          <div className="bg-[#0F172A]/70 border border-slate-850/80 rounded-2xl p-5 shadow-lg relative overflow-hidden flex flex-col justify-between h-[115px]">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total Rejected</p>
-                <h3 className="text-2xl font-black text-white mt-1.5">{metrics.rejectedCount}</h3>
-              </div>
-              <div className="p-2.5 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20">
-                <XCircle className="w-5 h-5" />
-              </div>
-            </div>
-            <p className="text-[10px] text-slate-400 font-semibold">Failed or manual overrides</p>
-          </div>
-
-        </section>
-
-        {/* Filters and List view */}
-        <section className="bg-[#0A0E17]/60 border border-slate-850/85 backdrop-blur-xl rounded-2xl p-6 shadow-xl space-y-6">
-          
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 border-b border-slate-850">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-1">
-              <div className="space-y-1">
-                <h2 className="text-lg font-bold text-white tracking-wide">Transaction Logs</h2>
-                <p className="text-xs text-slate-400">Total: {orders.length} orders • Live Auto-refreshing 15s</p>
+                {/* Merchant Selector Filter */}
+                <div className="relative w-full sm:w-[180px]">
+                  <select
+                    value={selectedMerchantFilter}
+                    onChange={(e) => setSelectedMerchantFilter(e.target.value)}
+                    className="w-full bg-[#03060E] border border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-350 outline-none focus:border-slate-700 appearance-none font-bold cursor-pointer"
+                  >
+                    <option value="all">All Stores (SaaS)</option>
+                    {merchants.map(m => (
+                      <option key={m.id} value={m.id}>{m.business_name}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-2.5 w-4 h-4 text-slate-500 pointer-events-none" />
+                </div>
               </div>
               
-              {/* Search Bar */}
-              <div className="relative max-w-xs w-full sm:ml-4">
+              {/* Filter by status */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0">
+                {[
+                  { id: 'all', label: 'All Logs' },
+                  { id: 'pending', label: 'Pending' },
+                  { id: 'verified', label: 'Verified' },
+                  { id: 'rejected', label: 'Rejected' },
+                ].map(filt => (
+                  <button
+                    key={filt.id}
+                    onClick={() => setStatusFilter(filt.id)}
+                    className="px-3.5 py-2 rounded-xl text-xs font-extrabold border transition-all flex-shrink-0"
+                    style={{
+                      backgroundColor: statusFilter === filt.id ? 'rgba(16, 185, 129, 0.1)' : '#03060E',
+                      borderColor: statusFilter === filt.id ? themeColor : 'rgb(30, 41, 59)',
+                      color: statusFilter === filt.id ? 'white' : 'rgb(148, 163, 184)'
+                    }}
+                  >
+                    {filt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Table */}
+            <div className="overflow-x-auto rounded-xl border border-slate-850">
+              <table className="min-w-full divide-y divide-slate-850/80">
+                <thead className="bg-[#0A0F1D]/55">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Merchant Store</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Order ID</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Date & Time</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Customer</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Amount</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Note</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">UTR Reference</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-4 text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">Action Override</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-850/40 bg-[#040810]/30">
+                  {loading && orders.length === 0 ? (
+                    <tr>
+                      <td colSpan="9" className="px-6 py-12 text-center text-xs text-slate-500">
+                        <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-emerald-450" />
+                        Fetching global transaction history...
+                      </td>
+                    </tr>
+                  ) : filteredOrders.length === 0 ? (
+                    <tr>
+                      <td colSpan="9" className="px-6 py-12 text-center text-xs text-slate-500 font-semibold">
+                        No transactions found matching the selected filters.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredOrders.map((order) => {
+                      const localTime = new Date(order.created_at).toLocaleString('en-IN', {
+                        timeZone: 'Asia/Kolkata',
+                        dateStyle: 'medium',
+                        timeStyle: 'short'
+                      });
+
+                      // Join with merchant name on the fly
+                      const merchantObj = merchants.find(m => m.id === order.merchant_id);
+                      const merchantName = merchantObj ? merchantObj.business_name : 'Primary Account';
+
+                      return (
+                        <tr key={order.id} className="hover:bg-slate-900/25 transition-colors">
+                          
+                          {/* Merchant name */}
+                          <td className="px-6 py-4 whitespace-nowrap text-xs">
+                            <span className="font-extrabold text-white flex items-center gap-1.5">
+                              <Store className="w-3.5 h-3.5 text-slate-500" />
+                              {merchantName}
+                            </span>
+                          </td>
+
+                          {/* Order ID */}
+                          <td className="px-6 py-4 whitespace-nowrap text-xs font-mono font-bold text-slate-500">
+                            <span 
+                              className="cursor-pointer hover:text-emerald-400 flex items-center gap-1"
+                              onClick={() => {
+                                navigator.clipboard.writeText(order.id);
+                                alert("Copied full Order ID!");
+                              }}
+                              title="Copy full Order ID"
+                            >
+                              {order.id.slice(0, 11)}
+                              <Copy className="w-3 h-3 opacity-40 hover:opacity-100" />
+                            </span>
+                          </td>
+
+                          {/* Date */}
+                          <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-400 font-semibold">
+                            {localTime}
+                          </td>
+
+                          {/* Customer */}
+                          <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-200">
+                            {order.customer_name || order.customer_phone ? (
+                              <div className="space-y-0.5">
+                                <div className="font-bold flex items-center gap-1">
+                                  <User className="w-3.5 h-3.5 text-slate-650" />
+                                  <span>{order.customer_name || 'N/A'}</span>
+                                </div>
+                                {order.customer_phone && (
+                                  <div className="text-[10px] font-bold text-slate-500 font-mono flex items-center gap-1">
+                                    <Phone className="w-3 h-3 text-slate-700" />
+                                    <span>{order.customer_phone}</span>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-slate-650 font-medium">Anonymous</span>
+                            )}
+                          </td>
+
+                          {/* Amount */}
+                          <td className="px-6 py-4 whitespace-nowrap text-xs font-bold text-slate-100">
+                            <div className="flex items-center gap-0.5 font-extrabold text-sm">
+                              <IndianRupee className="w-3.5 h-3.5 text-slate-500" />
+                              <span>{parseFloat(order.amount).toFixed(2)}</span>
+                            </div>
+                          </td>
+
+                          {/* Note */}
+                          <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-500 font-bold max-w-[120px] truncate" title={order.note}>
+                            {order.note || '-'}
+                          </td>
+
+                          {/* UTR */}
+                          <td className="px-6 py-4 whitespace-nowrap text-xs font-mono">
+                            {order.utr ? (
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-bold text-slate-200 bg-slate-900 border border-slate-800 px-2 py-0.5 rounded-lg">
+                                  {order.utr}
+                                </span>
+                                <button
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(order.utr);
+                                    alert("Copied UTR Reference!");
+                                  }}
+                                  className="p-1 hover:bg-slate-800 rounded text-slate-450 hover:text-white transition-colors"
+                                  title="Copy UTR Reference"
+                                >
+                                  <Copy className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[9px] font-bold bg-amber-500/10 border border-amber-500/20 text-amber-400">
+                                Awaiting Match
+                              </span>
+                            )}
+                          </td>
+
+                          {/* Status */}
+                          <td className="px-6 py-4 whitespace-nowrap text-xs">
+                            {order.status === 'verified' && (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                <span>Verified</span>
+                              </span>
+                            )}
+                            {order.status === 'pending' && (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 border border-amber-500/20 text-amber-400">
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>
+                                <span>Pending</span>
+                              </span>
+                            )}
+                            {order.status === 'rejected' && (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 border border-red-500/20 text-red-400">
+                                <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
+                                <span>Rejected</span>
+                              </span>
+                            )}
+                          </td>
+
+                          {/* Manual override action */}
+                          <td className="px-6 py-4 whitespace-nowrap text-xs text-center">
+                            {order.status === 'pending' ? (
+                              <div className="flex items-center justify-center gap-1.5">
+                                {utrPromptId === order.id ? (
+                                  <div className="flex items-center gap-1 animate-fadeIn">
+                                    <input
+                                      type="text"
+                                      placeholder="Enter UTR"
+                                      value={manualUtr}
+                                      onChange={(e) => setManualUtr(e.target.value)}
+                                      className="px-2 py-1 rounded bg-[#03060E] border border-slate-700 text-xs text-white outline-none w-[110px] font-semibold"
+                                    />
+                                    <button
+                                      onClick={() => handleOrderAction(order.id, 'verify', manualUtr)}
+                                      disabled={actionLoading === order.id}
+                                      className="p-1 text-emerald-400 hover:bg-slate-800 rounded transition-colors font-bold"
+                                      title="Confirm"
+                                    >
+                                      ✓
+                                    </button>
+                                    <button
+                                      onClick={() => setUtrPromptId(null)}
+                                      className="p-1 text-slate-500 hover:bg-slate-800 rounded transition-colors"
+                                      title="Cancel"
+                                    >
+                                      ✕
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <button
+                                      onClick={() => {
+                                        setUtrPromptId(order.id);
+                                        setManualUtr(order.utr || `MANUAL-${Math.floor(100000 + Math.random() * 900000)}`);
+                                      }}
+                                      disabled={actionLoading !== null}
+                                      className="px-2.5 py-1 rounded-lg text-[10px] font-bold border border-emerald-500/20 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white transition-all"
+                                    >
+                                      Verify
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        if (confirm("Reject this payment?")) {
+                                          handleOrderAction(order.id, 'reject');
+                                        }
+                                      }}
+                                      disabled={actionLoading !== null}
+                                      className="px-2.5 py-1 rounded-lg text-[10px] font-bold border border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all"
+                                    >
+                                      Reject
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-[10px] text-slate-550 font-mono font-medium truncate max-w-[100px] inline-block bg-slate-900 px-2 py-0.5 rounded border border-slate-800/40">
+                                {order.utr || 'Matched'}
+                              </span>
+                            )}
+                          </td>
+
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+          </section>
+        )}
+
+        {/* ═══════════════════════════════════════════════════════════
+           TAB 3: MERCHANTS DIRECTORY (SaaS ACCOUNT CONTROLS)
+           ═══════════════════════════════════════════════════════════ */}
+        {activeTab === 'merchants' && (
+          <section className="bg-[#070b13]/80 border border-slate-900 backdrop-blur-xl rounded-2xl p-6 shadow-xl space-y-6 animate-fadeIn">
+            
+            {/* Header controls */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-900">
+              <div className="space-y-1">
+                <h2 className="text-lg font-bold text-white tracking-wide">SaaS Registered Merchants</h2>
+                <p className="text-xs text-slate-400">Total Merchants: {merchants.length} • Manage subscriptions and API keys instantly</p>
+              </div>
+
+              {/* Search Merchants */}
+              <div className="relative max-w-xs w-full">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                   <Search className="w-4 h-4 text-slate-500" />
                 </div>
                 <input
                   type="text"
-                  placeholder="Search UTR, Name, Phone..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-[#0A0F1D]/80 border border-slate-800 rounded-xl py-2 pl-10 pr-8 text-xs text-white placeholder-slate-650 outline-none focus:border-slate-700 transition-all font-medium"
+                  placeholder="Search Merchant Name, UPI..."
+                  value={merchantSearchQuery}
+                  onChange={(e) => setMerchantSearchQuery(e.target.value)}
+                  className="w-full bg-[#03060E] border border-slate-800 rounded-xl py-2 pl-10 pr-8 text-xs text-white placeholder-slate-700 outline-none focus:border-slate-700 transition-all font-semibold"
                 />
-                {searchQuery && (
+                {merchantSearchQuery && (
                   <button
-                    onClick={() => setSearchQuery('')}
+                    onClick={() => setMerchantSearchQuery('')}
                     className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-white text-xs"
                   >
                     ✕
@@ -420,245 +1068,219 @@ export default function AdminPage() {
                 )}
               </div>
             </div>
-            
-            {/* Filter buttons */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0">
-              {[
-                { id: 'all', label: 'All Logs', color: 'rgb(241, 245, 249)' },
-                { id: 'pending', label: 'Pending', color: 'rgb(245, 158, 11)' },
-                { id: 'verified', label: 'Verified', color: 'rgb(16, 185, 129)' },
-                { id: 'rejected', label: 'Rejected', color: 'rgb(239, 68, 68)' },
-              ].map(filt => (
-                <button
-                  key={filt.id}
-                  onClick={() => setStatusFilter(filt.id)}
-                  className="px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition-all flex-shrink-0"
-                  style={{
-                    backgroundColor: statusFilter === filt.id ? 'rgba(30, 41, 59, 0.6)' : '#0F172A',
-                    borderColor: statusFilter === filt.id ? themeColor : 'rgb(30, 41, 59)',
-                    color: statusFilter === filt.id ? 'white' : 'rgb(148, 163, 184)'
-                  }}
-                >
-                  {filt.label}
-                </button>
-              ))}
-            </div>
-          </div>
 
-          {/* Orders Table Container */}
-          <div className="overflow-x-auto rounded-xl border border-slate-850">
-            <table className="min-w-full divide-y divide-slate-850/80">
-              <thead className="bg-[#0F172A]/50">
-                <tr>
-                  <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Order ID</th>
-                  <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Date & Time</th>
-                  <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Customer</th>
-                  <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Amount</th>
-                  <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Method</th>
-                  <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Note</th>
-                  <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">UTR Reference</th>
-                  <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-4 text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-850/50 bg-[#070B13]/30">
-                {filteredOrders.length === 0 ? (
+            {/* Merchants List Table */}
+            <div className="overflow-x-auto rounded-xl border border-slate-850">
+              <table className="min-w-full divide-y divide-slate-850/80">
+                <thead className="bg-[#0A0F1D]/55">
                   <tr>
-                    <td colSpan="9" className="px-6 py-12 text-center text-sm text-slate-500">
-                      No transactions match this search/status filter.
-                    </td>
+                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Merchant Profile</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Business UPI ID</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">API Key (Sensitive)</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Registered On</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Webhook Route</th>
+                    <th className="px-6 py-4 text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">SaaS Status</th>
+                    <th className="px-6 py-4 text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">Access Toggle</th>
                   </tr>
-                ) : (
-                  filteredOrders.map((order) => {
-                    const localTime = new Date(order.created_at).toLocaleString('en-IN', {
-                      timeZone: 'Asia/Kolkata',
-                      dateStyle: 'medium',
-                      timeStyle: 'short'
-                    });
+                </thead>
+                <tbody className="divide-y divide-slate-850/40 bg-[#040810]/30">
+                  {merchantsLoading ? (
+                    <tr>
+                      <td colSpan="7" className="px-6 py-12 text-center text-xs text-slate-500">
+                        <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-emerald-450" />
+                        Fetching SaaS merchants database records...
+                      </td>
+                    </tr>
+                  ) : filteredMerchants.length === 0 ? (
+                    <tr>
+                      <td colSpan="7" className="px-6 py-12 text-center text-xs text-slate-500 font-semibold">
+                        No registered merchants match your search query.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredMerchants.map((merchant) => {
+                      const regDate = new Date(merchant.created_at).toLocaleDateString('en-IN', {
+                        dateStyle: 'medium'
+                      });
 
-                    return (
-                      <tr key={order.id} className="hover:bg-slate-900/35 transition-colors">
-                        
-                        {/* Order ID */}
-                        <td className="px-6 py-4.5 whitespace-nowrap text-xs font-mono font-bold text-slate-400 group relative">
-                          <span className="cursor-pointer" onClick={() => {
-                            navigator.clipboard.writeText(order.id);
-                            alert("Copied Order ID to clipboard");
-                          }} title="Click to copy full ID">
-                            {order.id.slice(0, 8)}...
-                          </span>
-                        </td>
+                      const isKeyRevealed = revealedKeys[merchant.id];
+                      const isKeyCopied = copiedKeyId === merchant.id;
 
-                        {/* Date */}
-                        <td className="px-6 py-4.5 whitespace-nowrap text-xs text-slate-400 font-semibold">
-                          {localTime}
-                        </td>
-
-                        {/* Customer */}
-                        <td className="px-6 py-4.5 whitespace-nowrap text-xs text-slate-200">
-                          {order.customer_name || order.customer_phone ? (
-                            <div className="space-y-0.5">
-                              <div className="font-bold flex items-center gap-1">
-                                <User className="w-3.5 h-3.5 text-slate-500" />
-                                <span>{order.customer_name || 'N/A'}</span>
+                      return (
+                        <tr key={merchant.id} className="hover:bg-slate-900/25 transition-colors">
+                          
+                          {/* Business profile */}
+                          <td className="px-6 py-4.5 whitespace-nowrap text-xs">
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-xs text-white" style={{ backgroundColor: merchant.theme_color || '#3B82F6' }}>
+                                {merchant.business_name ? merchant.business_name.charAt(0).toUpperCase() : 'B'}
                               </div>
-                              {order.customer_phone && (
-                                <div className="text-[10px] font-semibold text-slate-500 font-mono flex items-center gap-1">
-                                  <Phone className="w-3 h-3 text-slate-650" />
-                                  <span>{order.customer_phone}</span>
-                                </div>
-                              )}
+                              <div>
+                                <p className="font-extrabold text-white">{merchant.business_name}</p>
+                                <p className="text-[9px] font-mono text-slate-500 tracking-tight mt-0.5">{merchant.id}</p>
+                              </div>
                             </div>
-                          ) : (
-                            <span className="text-slate-600 font-medium">Anonymous</span>
-                          )}
-                        </td>
+                          </td>
 
-                        {/* Amount */}
-                        <td className="px-6 py-4.5 whitespace-nowrap text-xs font-bold text-slate-100">
-                          <div className="flex items-center gap-0.5 font-extrabold text-sm">
-                            <IndianRupee className="w-3.5 h-3.5 text-slate-500" />
-                            <span>{parseFloat(order.amount).toFixed(2)}</span>
-                          </div>
-                        </td>
+                          {/* UPI ID */}
+                          <td className="px-6 py-4.5 whitespace-nowrap text-xs font-mono font-bold text-slate-200">
+                            {merchant.upi_id}
+                          </td>
 
-                        {/* Method */}
-                        <td className="px-6 py-4.5 whitespace-nowrap text-xs">
-                          <span className="px-2 py-0.5 text-[10px] rounded-lg bg-slate-850 border border-slate-800 text-slate-300 font-bold uppercase tracking-wider">
-                            {order.method || 'UPI'}
-                          </span>
-                        </td>
-
-                        {/* Note */}
-                        <td className="px-6 py-4.5 whitespace-nowrap text-xs text-slate-400 font-medium max-w-[120px] truncate" title={order.note}>
-                          {order.note || '-'}
-                        </td>
-
-                        {/* UTR Reference */}
-                        <td className="px-6 py-4.5 whitespace-nowrap text-xs font-mono">
-                          {order.utr ? (
-                            <div className="flex items-center gap-1.5">
-                              <span className="font-bold text-slate-200 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-lg">
-                                {order.utr}
+                          {/* API Key */}
+                          <td className="px-6 py-4.5 whitespace-nowrap text-xs font-mono">
+                            <div className="flex items-center gap-1.5 bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-900 w-[180px] justify-between">
+                              <span className="font-semibold text-slate-400 select-all">
+                                {isKeyRevealed ? merchant.api_key : '••••-••••-••••'}
                               </span>
-                              <button
-                                onClick={() => {
-                                  navigator.clipboard.writeText(order.utr);
-                                  alert("Copied UTR Reference to clipboard!");
-                                }}
-                                className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white transition-colors animate-pulse"
-                                title="Copy UTR Reference"
-                              >
-                                <Copy className="w-3.5 h-3.5 text-[#00D2FF]" />
-                              </button>
+                              <div className="flex items-center gap-1">
+                                <button
+                                  onClick={() => toggleKeyVisibility(merchant.id)}
+                                  className="text-slate-500 hover:text-white transition-colors"
+                                  title={isKeyRevealed ? "Hide Key" : "Show Key"}
+                                >
+                                  {isKeyRevealed ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                                </button>
+                                <button
+                                  onClick={() => handleCopyKey(merchant.id, merchant.api_key)}
+                                  className="text-slate-500 hover:text-white transition-colors"
+                                  title="Copy Key"
+                                >
+                                  {isKeyCopied ? <Check className="w-3.5 h-3.5 text-emerald-400 animate-scale-up" /> : <Copy className="w-3.5 h-3.5" />}
+                                </button>
+                              </div>
                             </div>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-bold bg-amber-500/10 border border-amber-500/20 text-amber-400 animate-pulse">
-                              Awaiting Submission
-                            </span>
-                          )}
-                        </td>
+                          </td>
 
-                        {/* Status Badge */}
-                        <td className="px-6 py-4.5 whitespace-nowrap text-xs">
-                          {order.status === 'verified' && (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 animate-fadeIn">
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                              <span>Verified</span>
-                            </span>
-                          )}
-                          {order.status === 'pending' && (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 border border-amber-500/25 text-amber-400">
-                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>
-                              <span>Pending</span>
-                            </span>
-                          )}
-                          {order.status === 'rejected' && (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-red-500/10 border border-red-500/25 text-red-400">
-                              <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
-                              <span>Rejected</span>
-                            </span>
-                          )}
-                        </td>
+                          {/* Reg Date */}
+                          <td className="px-6 py-4.5 whitespace-nowrap text-xs text-slate-400 font-semibold">
+                            {regDate}
+                          </td>
 
-                        {/* Action buttons */}
-                        <td className="px-6 py-4.5 whitespace-nowrap text-xs text-center">
-                          {order.status === 'pending' ? (
-                            <div className="flex items-center justify-center gap-1.5">
-                              {utrPromptId === order.id ? (
-                                <div className="flex items-center gap-1 animate-fadeIn">
-                                  <input
-                                    type="text"
-                                    placeholder="Enter UTR"
-                                    value={manualUtr}
-                                    onChange={(e) => setManualUtr(e.target.value)}
-                                    className="px-2 py-1 rounded bg-[#0A0F1D] border border-slate-700 text-xs text-white outline-none w-[110px] font-semibold"
-                                  />
-                                  <button
-                                    onClick={() => handleOrderAction(order.id, 'verify', manualUtr)}
-                                    disabled={actionLoading === order.id}
-                                    className="p-1 text-emerald-400 hover:bg-slate-800 rounded transition-colors"
-                                    title="Confirm"
-                                  >
-                                    ✓
-                                  </button>
-                                  <button
-                                    onClick={() => setUtrPromptId(null)}
-                                    className="p-1 text-slate-500 hover:bg-slate-800 rounded transition-colors"
-                                    title="Cancel"
-                                  >
-                                    ✕
-                                  </button>
-                                </div>
-                              ) : (
-                                <>
-                                  <button
-                                    onClick={() => {
-                                      setUtrPromptId(order.id);
-                                      setManualUtr(order.utr || `MANUAL-${Math.floor(100000 + Math.random() * 900000)}`);
-                                    }}
-                                    disabled={actionLoading !== null}
-                                    className="px-2.5 py-1 rounded-lg text-[10px] font-bold border border-emerald-500/20 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white transition-all"
-                                  >
-                                    Verify
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      if (confirm("Reject this payment?")) {
-                                        handleOrderAction(order.id, 'reject');
-                                      }
-                                    }}
-                                    disabled={actionLoading !== null}
-                                    className="px-2.5 py-1 rounded-lg text-[10px] font-bold border border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all"
-                                  >
-                                    Reject
-                                  </button>
-                                </>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-[11px] text-slate-550 font-mono font-medium truncate max-w-[100px] inline-block bg-slate-900 px-2 py-0.5 rounded border border-slate-800/40">
-                              {order.utr || 'Matched'}
-                            </span>
-                          )}
-                        </td>
+                          {/* Webhook Url */}
+                          <td className="px-6 py-4.5 whitespace-nowrap text-xs font-mono max-w-[150px] truncate" title={merchant.webhook_url || 'Not configured'}>
+                            {merchant.webhook_url ? (
+                              <a href={merchant.webhook_url} target="_blank" rel="noreferrer" className="text-blue-400 hover:underline flex items-center gap-1.5">
+                                <span>{merchant.webhook_url}</span>
+                                <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                              </a>
+                            ) : (
+                              <span className="text-slate-650 italic">None</span>
+                            )}
+                          </td>
 
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
+                          {/* Sub Status */}
+                          <td className="px-6 py-4.5 whitespace-nowrap text-xs text-center">
+                            {merchant.subscription_status === 'active' ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-extrabold uppercase bg-emerald-500/10 text-emerald-450 border border-emerald-500/25">
+                                Active
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-extrabold uppercase bg-red-500/10 text-red-400 border border-red-500/25">
+                                Suspended
+                              </span>
+                            )}
+                          </td>
 
-        </section>
+                          {/* Access Switch Actions */}
+                          <td className="px-6 py-4.5 whitespace-nowrap text-xs text-center">
+                            <button
+                              onClick={() => {
+                                const actionStr = merchant.subscription_status === 'active' ? 'Suspend' : 'Activate';
+                                if (confirm(`${actionStr} subscription for ${merchant.business_name}?`)) {
+                                  handleToggleSubscription(merchant.id, merchant.subscription_status);
+                                }
+                              }}
+                              className={`px-3 py-1.5 rounded-xl text-[10px] font-extrabold border transition-all ${merchant.subscription_status === 'active' ? 'bg-red-950/10 border-red-900/20 text-red-400 hover:bg-red-500 hover:text-white' : 'bg-emerald-950/10 border-emerald-900/20 text-emerald-400 hover:bg-emerald-500 hover:text-white'}`}
+                            >
+                              {merchant.subscription_status === 'active' ? 'SUSPEND' : 'ACTIVATE'}
+                            </button>
+                          </td>
+
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+          </section>
+        )}
+
+        {/* ═══════════════════════════════════════════════════════════
+           TAB 4: DEVELOPER & SYSTEM DIAGNOSTICS
+           ═══════════════════════════════════════════════════════════ */}
+        {activeTab === 'config' && (
+          <section className="bg-[#070b13]/80 border border-slate-900 backdrop-blur-xl rounded-2xl p-6 shadow-xl space-y-6 animate-fadeIn">
+            <div className="pb-4 border-b border-slate-900 space-y-1">
+              <h2 className="text-lg font-bold text-white tracking-wide">Developer & System Diagnostics</h2>
+              <p className="text-xs text-slate-400">Configure global configurations, inspect environment integration, and monitor server diagnostics</p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              
+              {/* Env variable health */}
+              <div className="p-6 bg-slate-950 rounded-2xl border border-slate-900 space-y-4">
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                  <ShieldAlert className="w-4 h-4 text-amber-500" /> Platform Key Credentials
+                </h4>
+
+                <div className="space-y-3">
+                  {[
+                    { name: 'NEXT_PUBLIC_SUPABASE_URL', status: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Active' : 'Missing' },
+                    { name: 'NEXT_PUBLIC_SUPABASE_ANON_KEY', status: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Active' : 'Missing' },
+                    { name: 'ADMIN_PASSWORD', status: 'Active (Protected)' },
+                    { name: 'SUPABASE_SERVICE_KEY', status: 'Active (RLS Bypassed)' }
+                  ].map((env, idx) => (
+                    <div key={idx} className="flex justify-between items-center py-2 border-b border-slate-900/60 last:border-b-0 text-xs">
+                      <span className="font-mono text-slate-500 font-bold">{env.name}</span>
+                      <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${env.status.includes('Missing') ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-emerald-500/10 text-emerald-450 border border-emerald-500/20'}`}>
+                        {env.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* DLT Templates Config */}
+              <div className="p-6 bg-slate-950 rounded-2xl border border-slate-900 space-y-4">
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-emerald-450" /> TRAI DLT Templates Configuration
+                </h4>
+
+                <div className="space-y-3 text-xs">
+                  <div className="flex justify-between items-start py-2 border-b border-slate-900/60">
+                    <div>
+                      <p className="font-bold text-white">SMS Webhook Listener</p>
+                      <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Listens for notifications from bank forwarders</p>
+                    </div>
+                    <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-slate-900 border border-slate-800 text-slate-400">
+                      /api/webhook/sms
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-start py-2 border-b border-slate-900/60">
+                    <div>
+                      <p className="font-bold text-white">Email Webhook Listener</p>
+                      <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Receives transactional bank alerts via Cloudflare</p>
+                    </div>
+                    <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-slate-900 border border-slate-800 text-slate-400">
+                      /api/webhook/email
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </section>
+        )}
 
       </main>
 
       {/* Footer */}
-      <footer className="py-6 text-center text-[10px] text-slate-500 border-t border-slate-900 bg-[#070B13]/80">
-        <p>&copy; 2026 {CONFIG.businessName}. All rights reserved.</p>
-        <p className="mt-1 text-[9px] text-slate-650">Secure Session Protected • Merchant Node Reference IP-IOB/2026</p>
+      <footer className="py-6 text-center text-[10px] text-slate-550 border-t border-slate-900 bg-[#070b13]/85 mt-10">
+        <p>&copy; 2026 {CONFIG.businessName} SaaS Gateway Platform. All rights reserved.</p>
+        <p className="mt-1 text-[9px] text-slate-650">Protected Dashboard • Session ID: {Math.floor(1000000000 + Math.random() * 9000000000)}</p>
       </footer>
 
     </div>
