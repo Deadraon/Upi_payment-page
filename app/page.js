@@ -10,6 +10,18 @@ import {
   Key, Landmark, Code, Play, Star, Plus, Minus, Info
 } from 'lucide-react';
 
+const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = '#0f172a' }) => (
+  <svg viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
+    <text x="2" y="42" letterSpacing="0">
+      <tspan fontFamily="'Orbitron', sans-serif" fontWeight="800" fontSize="38" fill={textColor}>M</tspan>
+      <tspan fontFamily="'Outfit', sans-serif" fontWeight="500" fontSize="34" fill={textColor} dx="1">y</tspan>
+      <tspan fontFamily="'Orbitron', sans-serif" fontWeight="800" fontSize="38" fill={textColor} dx="2">M</tspan>
+      <tspan fontFamily="'Outfit', sans-serif" fontWeight="500" fontSize="34" fill={textColor} dx="1">ob</tspan>
+      <tspan fontFamily="'Orbitron', sans-serif" fontWeight="900" fontStyle="italic" fontSize="36" fill="#3B82F6" dx="3">Pay</tspan>
+    </text>
+  </svg>
+);
+
 export default function HomePage() {
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -293,33 +305,118 @@ print("Checkout Link generated:", data.get("orderId"))`
             {/* Custom glowing background ring */}
             <div className="absolute -inset-4 bg-gradient-to-tr from-blue-500 to-indigo-500 rounded-3xl opacity-[0.05] blur-xl" />
 
-            {/* Simulated Smartphone Graphic showcasing hero_payment_mockup */}
-            <div className="relative w-full max-w-[340px] bg-slate-950 border-8 border-slate-800 rounded-[44px] shadow-[0_24px_50px_rgba(0,0,0,0.15)] overflow-hidden aspect-[9/18]">
+            {/* Premium Simulated Smartphone Frame displaying Actual MyMobPay checkout screen */}
+            <div className="relative w-full max-w-[340px] bg-slate-900 border-8 border-slate-800 rounded-[44px] shadow-[0_24px_50px_rgba(0,0,0,0.15)] overflow-hidden aspect-[9/18.5] flex flex-col">
               
-              {/* Speaker / Camera Notch */}
-              <div className="absolute top-0 inset-x-0 h-6 flex justify-center z-20">
+              {/* Speaker / Camera Notch (Dynamic Island) */}
+              <div className="absolute top-0 inset-x-0 h-6 flex justify-center z-30">
                 <div className="bg-slate-800 w-28 h-4 rounded-b-2xl" />
               </div>
 
-              {/* Dynamic Mockup Image rendered */}
-              <img 
-                src="/hero_payment_mockup.png" 
-                alt="MyMobPay Checkout Mockup"
-                className="w-full h-full object-cover"
-              />
+              {/* Internal Screen Content */}
+              <div className="flex-1 bg-[#F8FAFC] pt-8 px-5 pb-5 flex flex-col justify-between font-sans select-none text-slate-900">
+                
+                {/* Header Info */}
+                <div className="space-y-4">
+                  
+                  {/* Status Bar */}
+                  <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 px-1">
+                    <span>10:42 AM</span>
+                    <div className="flex items-center gap-1">
+                      <span>LTE</span>
+                      <div className="w-4 h-2 border border-slate-350 rounded-sm p-0.5 flex items-center">
+                        <div className="bg-slate-400 w-full h-full rounded-xs" />
+                      </div>
+                    </div>
+                  </div>
 
-              {/* Floating Akasa Air Powered card overlay */}
-              <div className="absolute bottom-6 inset-x-4 bg-white/95 backdrop-blur-md border border-slate-200/60 p-4 rounded-2xl shadow-xl flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-orange-500 flex items-center justify-center text-white font-extrabold text-xs">
-                  AA
+                  {/* Logo */}
+                  <div className="flex flex-col items-center justify-center pt-2">
+                    <MyMobPayLogo className="w-36 h-auto" />
+                    <p className="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest mt-1">Direct Bank Checkout</p>
+                  </div>
+
+                  {/* Due amount card */}
+                  <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-2">
+                    <div className="flex justify-between items-center text-[10px] text-slate-400 font-bold uppercase">
+                      <span>Total Due</span>
+                      <span className="text-blue-600 font-extrabold bg-blue-50 px-2 py-0.5 rounded text-[8px] uppercase">P2P Bank Route</span>
+                    </div>
+                    <div className="flex items-baseline">
+                      <span className="text-sm font-bold text-slate-400 mr-0.5">₹</span>
+                      <span className="text-3xl font-black text-slate-900 tracking-tight leading-none">500.00</span>
+                    </div>
+                    <div className="pt-2 border-t border-slate-100/80 flex justify-between text-[10px] font-semibold text-slate-500">
+                      <span>Paying to:</span>
+                      <span className="font-bold text-slate-850">Deadraon</span>
+                    </div>
+                  </div>
+
+                  {/* QR Code Container */}
+                  <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col items-center justify-center space-y-3 relative overflow-hidden group">
+                    
+                    {/* Futuristic Scanning line */}
+                    <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent top-0 animate-pulse" 
+                         style={{
+                           animation: 'float 3s ease-in-out infinite'
+                         }} 
+                    />
+
+                    {/* Highly stylized SVG vector QR Code */}
+                    <svg viewBox="0 0 100 100" className="w-32 h-32 text-slate-800" fill="currentColor">
+                      {/* Quiet Zone borders */}
+                      <path d="M0,0 h28 v8 h-20 v20 h-8 z M72,0 h28 v28 h-8 v-20 h-20 z M0,72 h8 v20 h-20 v-28 h8 z M72,100 h28 v-28 h-8 v20 h-20 z" fill="#00529B" opacity="0.15" />
+                      
+                      {/* Dynamic Modules - Grid mock points */}
+                      <rect x="10" y="10" width="20" height="20" fill="#0F172A" rx="2" />
+                      <rect x="14" y="14" width="12" height="12" fill="#FFFFFF" rx="1.5" />
+                      <rect x="17" y="17" width="6" height="6" fill="#3B82F6" />
+
+                      <rect x="70" y="10" width="20" height="20" fill="#0F172A" rx="2" />
+                      <rect x="74" y="14" width="12" height="12" fill="#FFFFFF" rx="1.5" />
+                      <rect x="77" y="17" width="6" height="6" fill="#3B82F6" />
+
+                      <rect x="10" y="70" width="20" height="20" fill="#0F172A" rx="2" />
+                      <rect x="14" y="74" width="12" height="12" fill="#FFFFFF" rx="1.5" />
+                      <rect x="17" y="77" width="6" height="6" fill="#3B82F6" />
+
+                      {/* Random mock QR dots */}
+                      <path d="M40,10 h6 v6 h-6 z M50,15 h8 v4 h-8 z M45,25 h10 v4 h-10 z M35,35 h8 v8 h-8 z M55,35 h12 v4 h-12 z M35,50 h12 v4 h-12 z M50,50 h6 v6 h-6 z M10,40 h8 v8 h-8 z M25,45 h10 v4 h-10 z M70,40 h8 v6 h-8 z M82,45 h8 v4 h-8 z M70,55 h12 v4 h-12 z M10,55 h6 v6 h-6 z M80,70 h10 v8 h-10 z M80,85 h8 v8 h-8 z M40,70 h6 v10 h-6 z M52,75 h8 v4 h-8 z M45,85 h12 v4 h-12 z" fill="#0F172A" />
+                      
+                      {/* Custom Center Logo */}
+                      <rect x="40" y="40" width="20" height="20" fill="#3B82F6" rx="4" />
+                      <text x="50" y="54" fontFamily="'Orbitron', sans-serif" fontWeight="950" fontSize="14" fill="#FFFFFF" textAnchor="middle">M</text>
+                    </svg>
+
+                    <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider flex items-center gap-1">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> Auto-Verify Active
+                    </span>
+
+                  </div>
+
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Powered by MyMobPay</p>
-                  <p className="text-xs font-black text-slate-850 mt-1 truncate">Akasa Air Flight Payouts</p>
+
+                {/* Footer Section */}
+                <div className="space-y-4 pt-4 border-t border-slate-200">
+                  
+                  {/* Apps row */}
+                  <div className="space-y-2">
+                    <p className="text-[8px] text-slate-400 font-extrabold uppercase tracking-widest text-center">Scan with any UPI app</p>
+                    <div className="flex justify-center gap-2">
+                      <img src="/logos/gpay.svg" className="w-8 h-8 object-contain bg-white border border-slate-250/70 p-1.5 rounded-xl shadow-xs" alt="GPay" />
+                      <img src="/logos/phonepe.svg" className="w-8 h-8 object-contain bg-white border border-slate-250/70 p-1.5 rounded-xl shadow-xs" alt="PhonePe" />
+                      <img src="/logos/paytm.svg" className="w-8 h-8 object-contain bg-white border border-slate-250/70 p-1.5 rounded-xl shadow-xs" alt="Paytm" />
+                      <img src="/logos/bhim.svg" className="w-8 h-8 object-contain bg-white border border-slate-250/70 p-1.5 rounded-xl shadow-xs" alt="BHIM" />
+                    </div>
+                  </div>
+
+                  {/* Security copy */}
+                  <div className="flex items-center justify-center gap-1.5 text-[8px] font-bold text-slate-400 uppercase tracking-wide text-center">
+                    <Lock className="w-3 h-3 text-slate-350" /> Secure B2B checkout by MyMobPay
+                  </div>
+
                 </div>
-                <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 text-[8px] font-bold uppercase rounded border border-emerald-200">
-                  Live
-                </span>
+
               </div>
 
             </div>
