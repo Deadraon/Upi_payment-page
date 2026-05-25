@@ -120,3 +120,37 @@ export async function POST(request) {
     return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 });
   }
 }
+
+export async function GET(request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ error: 'Order ID is required' }, { status: 400 });
+    }
+
+    const { data: order, error } = await supabaseAdmin
+      .from('orders')
+      .select('id, amount, status, note, created_at, mode, utr')
+      .eq('id', id)
+      .single();
+
+    if (error || !order) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ 
+      orderId: order.id, 
+      amount: order.amount, 
+      status: order.status, 
+      note: order.note,
+      mode: order.mode,
+      utr: order.utr
+    }, { status: 200 });
+
+  } catch (err) {
+    console.error('API get order error:', err);
+    return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 });
+  }
+}
