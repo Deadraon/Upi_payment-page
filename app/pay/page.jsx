@@ -583,7 +583,7 @@ function PayPageContent() {
                   <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Scan with any UPI app</p>
                   {upiQrValue ? (
                     <div className="bg-white rounded-2xl p-5 shadow-xl">
-                      <QRCode value={upiQrValue} size={185} level="H" fgColor="#f8fafc" bgColor="#FFFFFF" />
+                      <QRCode value={upiQrValue} size={185} level="H" fgColor="#0f172a" bgColor="#FFFFFF" />
                       <div className="mt-3 pt-3 border-t border-gray-100 text-center">
                         <p className="text-[9px] text-gray-500 font-medium uppercase tracking-wider">
                           Open UPI app → Scan → Pay ₹{displayAmt ? parseFloat(displayAmt).toFixed(2) : ''}

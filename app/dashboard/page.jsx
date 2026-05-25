@@ -9,8 +9,11 @@ import {
   Loader2, Copy, CheckCircle, CreditCard, Mail, X, 
   LayoutDashboard, Search, Download, RefreshCw, IndianRupee,
   Clock, CheckCircle2, XCircle, Code, ChevronRight, BookOpen,
-  Menu
+  Menu, TrendingUp
 } from 'lucide-react';
+import { 
+  ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid 
+} from 'recharts';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -233,6 +236,62 @@ export default function DashboardPage() {
       pendingCount
     };
   }, [orders]);
+
+  // Compile Time-Series Data for Area Chart over last 7 days
+  const chartData = useMemo(() => {
+    const verified = orders.filter(o => o.status === 'verified');
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+      days.push({
+        date: dateStr,
+        rawDate: d,
+        sales: 0,
+        orders: 0
+      });
+    }
+
+    verified.forEach(order => {
+      const orderDate = new Date(order.created_at);
+      days.forEach(day => {
+        const d1 = new Date(orderDate);
+        d1.setHours(0, 0, 0, 0);
+        const d2 = new Date(day.rawDate);
+        d2.setHours(0, 0, 0, 0);
+        
+        if (d1.getTime() === d2.getTime()) {
+          day.sales += parseFloat(order.amount);
+          day.orders += 1;
+        }
+      });
+    });
+
+    return days.map(({ date, sales, orders }) => ({
+      date,
+      sales: parseFloat(sales.toFixed(2)),
+      orders
+    }));
+  }, [orders]);
+
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-xl z-50">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{label}</p>
+          <p className="text-base font-black text-slate-900 mt-1.5 flex items-baseline">
+            <span className="text-xs font-bold text-slate-400 mr-0.5">₹</span>
+            {payload[0].value.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+          </p>
+          <p className="text-[10px] text-blue-600 font-bold mt-0.5">
+            {payload[0].payload.orders} {payload[0].payload.orders === 1 ? 'order' : 'orders'} verified
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
 
   // Client-side CSV Download
   const downloadCSV = () => {
@@ -619,6 +678,63 @@ echo "Order Created: " . $data['orderId'];
                     <p className="text-[10px] text-slate-400 font-semibold mt-1">Funds deposited directly to UPI ID</p>
                   </div>
 
+                </div>
+
+                {/* Sales Analytics Chart Card */}
+                <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                    <div>
+                      <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+                        <TrendingUp className="w-4.5 h-4.5 text-blue-600" />
+                        Sales Performance
+                      </h3>
+                      <p className="text-xs text-slate-500 font-medium mt-0.5">
+                        Daily sales volume and transaction count trends over the last 7 days.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="h-[280px] w-full mt-2">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart
+                        data={chartData}
+                        margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                      >
+                        <defs>
+                          <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor={profile?.theme_color || '#3B82F6'} stopOpacity={0.15}/>
+                            <stop offset="95%" stopColor={profile?.theme_color || '#3B82F6'} stopOpacity={0.01}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                        <XAxis 
+                          dataKey="date" 
+                          stroke="#94a3b8" 
+                          fontSize={10} 
+                          tickLine={false} 
+                          axisLine={false} 
+                          dy={10}
+                        />
+                        <YAxis 
+                          stroke="#94a3b8" 
+                          fontSize={10} 
+                          tickLine={false} 
+                          axisLine={false} 
+                          dx={-5}
+                          tickFormatter={(v) => `₹${v}`}
+                        />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Area 
+                          type="monotone" 
+                          dataKey="sales" 
+                          stroke={profile?.theme_color || '#3B82F6'} 
+                          strokeWidth={2.5}
+                          fillOpacity={1} 
+                          fill="url(#colorSales)" 
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
 
                 {/* Account / Subscription Status Card */}
