@@ -23,11 +23,21 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Valid amount is required' }, { status: 400 });
     }
 
+    let actualKey = api_key;
+    let isTestFromKey = false;
+    
+    if (api_key.startsWith('test_')) {
+      actualKey = api_key.replace('test_', '');
+      isTestFromKey = true;
+    } else if (api_key.startsWith('live_')) {
+      actualKey = api_key.replace('live_', '');
+    }
+
     // 1. Authenticate the merchant using the API Key
     const { data: merchant, error: merchantError } = await supabaseAdmin
       .from('merchants')
-      .select('id, subscription_status')
-      .eq('api_key', api_key)
+      .select('id, subscription_status, sandbox_mode')
+      .eq('api_key', actualKey)
       .single();
 
     if (merchantError || !merchant) {
@@ -92,7 +102,8 @@ export async function POST(request) {
           project: project || merchant.business_name,
           callback_url: callback_url || null,
           external_ref: external_ref || null,
-          status: 'pending'
+          status: 'pending',
+          mode: (isTestFromKey || merchant.sandbox_mode) ? 'test' : 'live'
         }
       ])
       .select('id')
@@ -103,7 +114,7 @@ export async function POST(request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ orderId: data.id, orderAmount: finalAmount }, { status: 201 });
+    return NextResponse.json({ orderId: data.id, orderAmount: finalAmount, mode: (isTestFromKey || merchant.sandbox_mode) ? 'test' : 'live' }, { status: 201 });
   } catch (err) {
     console.error('API orders error:', err);
     return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 });

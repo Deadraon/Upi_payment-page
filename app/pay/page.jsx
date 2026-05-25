@@ -177,10 +177,38 @@ function PayPageContent() {
   const [step, setStep]               = useState(paramAmount ? 'paying' : 'form');
   const [orderId, setOrderId]         = useState(null);
   const [orderAmount, setOrderAmount] = useState(null);
+  const [orderMode, setOrderMode]     = useState('live');
   const [loading, setLoading]         = useState(false);
   const [error, setError]             = useState('');
   const [timer, setTimer]             = useState(600);
   const [confirmed, setConfirmed]     = useState(false);
+
+  async function handleSimulatePayment(simulateStatus) {
+    if (!orderId) return;
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch('/api/orders/simulate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, simulateStatus })
+      });
+      
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Simulation request failed');
+      
+      if (simulateStatus === 'success') {
+        setConfirmed(true);
+        setTimeout(() => router.push(`/status/${orderId}`), 600);
+      } else {
+        setError('Transaction simulated as failed/expired.');
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   // Right panel state
   const [payView, setPayView]       = useState('apps');
@@ -251,7 +279,9 @@ function PayPageContent() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to create order');
-      setOrderId(data.orderId); setOrderAmount(data.orderAmount);
+      setOrderId(data.orderId); 
+      setOrderAmount(data.orderAmount);
+      setOrderMode(data.mode || 'live');
       if (paramCallback) localStorage.setItem(`callback_${data.orderId}`, paramCallback);
       if (paramRef) localStorage.setItem(`ref_${data.orderId}`, paramRef);
       setStep('paying');
@@ -472,144 +502,198 @@ function PayPageContent() {
             </div>
 
             <div className="px-6 py-5">
-              {/* Apps / QR toggle */}
-              <div className="flex p-1 bg-slate-50 rounded-xl mb-5 border border-slate-100">
-                {[
-                  { id: 'apps', icon: <Smartphone className="w-3.5 h-3.5" />, label: 'UPI Apps' },
-                  { id: 'qr',   icon: <QrCode className="w-3.5 h-3.5" />,   label: 'Scan QR'  },
-                ].map(tab => (
-                  <button key={tab.id} onClick={() => { setPayView(tab.id); setSelectedApp(null); }}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[11px] font-bold transition-all ${
-                      payView === tab.id
-                        ? 'text-white shadow-md'
-                        : 'text-slate-500 hover:text-slate-700'
-                    }`}
-                    style={payView === tab.id ? { backgroundColor: merchant?.theme_color || '#3B82F6' } : {}}
-                  >
-                    {tab.icon} {tab.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* ── APPS VIEW ── */}
-              {payView === 'apps' && (
-                <div className="space-y-3 animate-fade-up">
-                  <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Select your UPI app</p>
-
-                  {/* App grid */}
-                  <div className="grid grid-cols-2 gap-2.5">
-                    {UPI_APPS.map(app => {
-                      const isSelected = selectedApp?.id === app.id;
-                      return (
-                        <button
-                          key={app.id}
-                          type="button"
-                          onClick={() => setSelectedApp(isSelected ? null : app)}
-                          className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all active:scale-95 ${
-                            isSelected
-                              ? 'bg-[#1C2B4A] border-[#388BFD] shadow-sm shadow-blue-500/20'
-                              : 'bg-slate-100 border-slate-200 hover:border-[#484F58] hover:bg-[#282E37]'
-                          }`}
-                        >
-                          <div className="flex-shrink-0">{app.logo}</div>
-                          <div>
-                            <p className={`text-[12px] font-bold leading-tight transition-colors ${isSelected ? 'text-slate-900' : 'text-slate-700'}`}>
-                              {app.label}
-                            </p>
-                            <p className="text-[9px] text-slate-500 mt-0.5">
-                              {isSelected ? '✓ Selected' : 'Tap to select'}
-                            </p>
-                          </div>
-                          {isSelected && (
-                            <div className="ml-auto w-4 h-4 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
-                              <CheckCircle className="w-3 h-3 text-white" />
-                            </div>
-                          )}
-                        </button>
-                      );
-                    })}
+              {orderMode === 'test' ? (
+                /* ── SANDBOX TEST MODE SIMULATOR UI ── */
+                <div className="space-y-5 animate-fade-up">
+                  <div className="p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 animate-pulse mt-0.5" />
+                    <div>
+                      <strong className="text-amber-800 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider">Sandbox Test Mode Active</strong>
+                      <p className="text-[11px] font-semibold text-amber-600 mt-1 leading-relaxed">
+                        No real money will be debited or transferred. You are using the checkout simulator to test system database updates and automated webhooks.
+                      </p>
+                    </div>
                   </div>
 
-                  {/* Open selected app button */}
-                  {selectedApp && (
+                  {error && (
+                    <div className="flex items-center gap-2 p-3 rounded-xl bg-red-900/25 border border-red-500/25 text-xs text-red-400">
+                      <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />{error}
+                    </div>
+                  )}
+
+                  <div className="space-y-3 pt-2">
+                    <p className="text-[10px] text-slate-500 uppercase tracking-widest font-extrabold text-center">Simulate Customer Payments Actions</p>
+                    
+                    {/* Simulate Success Button */}
                     <button
                       type="button"
-                      onClick={() => openApp(selectedApp)}
-                      disabled={!orderId}
-                      className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 text-white"
-                      style={{ background: selectedApp.accent }}
+                      onClick={() => handleSimulatePayment('success')}
+                      disabled={loading}
+                      className="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 shadow-lg shadow-emerald-500/20"
                     >
-                      <ExternalLink className="w-4 h-4" />
-                      Open {selectedApp.label}
+                      {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle className="w-5 h-5" />}
+                      Simulate Successful Payment (Instant Webhook)
                     </button>
-                  )}
 
-                  {/* OR divider */}
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 h-px bg-slate-100" />
-                    <span className="text-[10px] text-[#484F58] font-medium">OR</span>
-                    <div className="flex-1 h-px bg-slate-100" />
+                    {/* Simulate Failure Button */}
+                    <button
+                      type="button"
+                      onClick={() => handleSimulatePayment('failed')}
+                      disabled={loading}
+                      className="w-full py-4 rounded-2xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
+                    >
+                      {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <AlertCircle className="w-5 h-5" />}
+                      Simulate Failed / Expired Transaction
+                    </button>
                   </div>
 
-                  {/* Copy row */}
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-slate-100 border border-slate-200">
-                    <div>
-                      <p className="text-[9px] text-slate-500 uppercase tracking-wider mb-0.5">Pay to UPI ID</p>
-                      <p className="text-[11px] font-mono font-bold text-slate-700">{CONFIG.upiId}</p>
-                    </div>
-                    <div className="flex gap-1.5">
-                      <button onClick={copyUPI}
-                        className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-semibold border transition-all ${
-                          copied ? 'bg-emerald-900/40 border-emerald-600/40 text-emerald-400' : 'bg-white border-slate-200 text-slate-500 hover:border-[#484F58] hover:text-slate-700'
-                        }`}>
-                        {copied ? <CheckCircle className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                        {copied ? 'Copied' : 'Copy ID'}
-                      </button>
-                      <button onClick={copyAmt}
-                        className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-semibold border transition-all ${
-                          copiedAmt ? 'bg-emerald-900/40 border-emerald-600/40 text-emerald-400' : 'bg-white border-slate-200 text-slate-500 hover:border-[#484F58] hover:text-slate-700'
-                        }`}>
-                        {copiedAmt ? <CheckCircle className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                        {copiedAmt ? 'Copied' : 'Copy ₹'}
-                      </button>
-                    </div>
+                  <div className="pt-2 border-t border-slate-100 text-center">
+                    <p className="text-[9px] font-mono text-slate-400">Order ID: {orderId} • Simulated via MyMobPay Sandbox API</p>
                   </div>
                 </div>
-              )}
+              ) : (
+                /* ── ORIGINAL UPI LIVE FLOW ── */
+                <>
+                  {/* Apps / QR toggle */}
+                  <div className="flex p-1 bg-slate-50 rounded-xl mb-5 border border-slate-100">
+                    {[
+                      { id: 'apps', icon: <Smartphone className="w-3.5 h-3.5" />, label: 'UPI Apps' },
+                      { id: 'qr',   icon: <QrCode className="w-3.5 h-3.5" />,   label: 'Scan QR'  },
+                    ].map(tab => (
+                      <button key={tab.id} onClick={() => { setPayView(tab.id); setSelectedApp(null); }}
+                        className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[11px] font-bold transition-all ${
+                          payView === tab.id
+                            ? 'text-white shadow-md'
+                            : 'text-slate-500 hover:text-slate-700'
+                        }`}
+                        style={payView === tab.id ? { backgroundColor: merchant?.theme_color || '#3B82F6' } : {}}
+                      >
+                        {tab.icon} {tab.label}
+                      </button>
+                    ))}
+                  </div>
 
-              {/* ── QR VIEW ── */}
-              {payView === 'qr' && (
-                <div className="flex flex-col items-center space-y-4 animate-fade-up">
-                  <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Scan with any UPI app</p>
-                  {upiQrValue ? (
-                    <div className="bg-white rounded-2xl p-5 shadow-xl">
-                      <QRCode value={upiQrValue} size={185} level="H" fgColor="#0f172a" bgColor="#FFFFFF" />
-                      <div className="mt-3 pt-3 border-t border-gray-100 text-center">
-                        <p className="text-[9px] text-gray-500 font-medium uppercase tracking-wider">
-                          Open UPI app → Scan → Pay ₹{displayAmt ? parseFloat(displayAmt).toFixed(2) : ''}
-                        </p>
+                  {/* ── APPS VIEW ── */}
+                  {payView === 'apps' && (
+                    <div className="space-y-3 animate-fade-up">
+                      <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Select your UPI app</p>
+
+                      {/* App grid */}
+                      <div className="grid grid-cols-2 gap-2.5">
+                        {UPI_APPS.map(app => {
+                          const isSelected = selectedApp?.id === app.id;
+                          return (
+                            <button
+                              key={app.id}
+                              type="button"
+                              onClick={() => setSelectedApp(isSelected ? null : app)}
+                              className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all active:scale-95 ${
+                                isSelected
+                                  ? 'bg-[#1C2B4A] border-[#388BFD] shadow-sm shadow-blue-500/20'
+                                  : 'bg-slate-100 border-slate-200 hover:border-[#484F58] hover:bg-[#282E37]'
+                              }`}
+                            >
+                              <div className="flex-shrink-0">{app.logo}</div>
+                              <div>
+                                <p className={`text-[12px] font-bold leading-tight transition-colors ${isSelected ? 'text-slate-900' : 'text-slate-700'}`}>
+                                  {app.label}
+                                </p>
+                                <p className="text-[9px] text-slate-500 mt-0.5">
+                                  {isSelected ? '✓ Selected' : 'Tap to select'}
+                                </p>
+                              </div>
+                              {isSelected && (
+                                <div className="ml-auto w-4 h-4 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+                                  <CheckCircle className="w-3 h-3 text-white" />
+                                </div>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Open selected app button */}
+                      {selectedApp && (
+                        <button
+                          type="button"
+                          onClick={() => openApp(selectedApp)}
+                          disabled={!orderId}
+                          className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 text-white"
+                          style={{ background: selectedApp.accent }}
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                          Open {selectedApp.label}
+                        </button>
+                      )}
+
+                      {/* OR divider */}
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 h-px bg-slate-100" />
+                        <span className="text-[10px] text-[#484F58] font-medium">OR</span>
+                        <div className="flex-1 h-px bg-slate-100" />
+                      </div>
+
+                      {/* Copy row */}
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-slate-100 border border-slate-200">
+                        <div>
+                          <p className="text-[9px] text-slate-500 uppercase tracking-wider mb-0.5">Pay to UPI ID</p>
+                          <p className="text-[11px] font-mono font-bold text-slate-700">{CONFIG.upiId}</p>
+                        </div>
+                        <div className="flex gap-1.5">
+                          <button onClick={copyUPI}
+                            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-semibold border transition-all ${
+                              copied ? 'bg-emerald-900/40 border-emerald-600/40 text-emerald-400' : 'bg-white border-slate-200 text-slate-500 hover:border-[#484F58] hover:text-slate-700'
+                            }`}>
+                            {copied ? <CheckCircle className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                            {copied ? 'Copied' : 'Copy ID'}
+                          </button>
+                          <button onClick={copyAmt}
+                            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-semibold border transition-all ${
+                              copiedAmt ? 'bg-emerald-900/40 border-emerald-600/40 text-emerald-400' : 'bg-white border-slate-200 text-slate-500 hover:border-[#484F58] hover:text-slate-700'
+                            }`}>
+                            {copiedAmt ? <CheckCircle className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                            {copiedAmt ? 'Copied' : 'Copy ₹'}
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  ) : (
-                    <div className="h-[220px] flex items-center justify-center">
-                      <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
+                  )}
+
+                  {/* ── QR VIEW ── */}
+                  {payView === 'qr' && (
+                    <div className="flex flex-col items-center space-y-4 animate-fade-up">
+                      <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Scan with any UPI app</p>
+                      {upiQrValue ? (
+                        <div className="bg-white rounded-2xl p-5 shadow-xl">
+                          <QRCode value={upiQrValue} size={185} level="H" fgColor="#0f172a" bgColor="#FFFFFF" />
+                          <div className="mt-3 pt-3 border-t border-gray-100 text-center">
+                            <p className="text-[9px] text-gray-500 font-medium uppercase tracking-wider">
+                              Open UPI app → Scan → Pay ₹{displayAmt ? parseFloat(displayAmt).toFixed(2) : ''}
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="h-[220px] flex items-center justify-center">
+                          <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
+                        </div>
+                      )}
                     </div>
                   )}
-                </div>
-              )}
 
-              {/* ── CONFIRM BUTTON ── */}
-              <div className="mt-5 pt-4 border-t border-slate-100 space-y-2">
-                <button onClick={handleConfirmPaid} disabled={!orderId}
-                  className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-40 shadow-lg shadow-emerald-600/20">
-                  <CheckCircle className="w-4 h-4" />
-                  I&apos;ve Paid — Verify Now
-                </button>
-                <p className="text-center text-[9px] text-[#484F58] flex items-center justify-center gap-1.5">
-                  <Loader2 className="w-2.5 h-2.5 animate-spin" style={{ animationDuration: '3s', color: merchant?.theme_color || '#3B82F6' }} />
-                  Checking status automatically in real-time
-                </p>
-              </div>
+                  {/* ── CONFIRM BUTTON ── */}
+                  <div className="mt-5 pt-4 border-t border-slate-100 space-y-2">
+                    <button onClick={handleConfirmPaid} disabled={!orderId}
+                      className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-40 shadow-lg shadow-emerald-600/20">
+                      <CheckCircle className="w-4 h-4" />
+                      I&apos;ve Paid — Verify Now
+                    </button>
+                    <p className="text-center text-[9px] text-[#484F58] flex items-center justify-center gap-1.5">
+                      <Loader2 className="w-2.5 h-2.5 animate-spin" style={{ animationDuration: '3s', color: merchant?.theme_color || '#3B82F6' }} />
+                      Checking status automatically in real-time
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>

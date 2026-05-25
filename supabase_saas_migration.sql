@@ -43,3 +43,7 @@ CREATE POLICY "Anyone can view order status"
 ON public.orders FOR SELECT 
 USING (true);
 
+-- 6. Developer Sandbox / Test Mode Additions
+ALTER TABLE public.merchants ADD COLUMN IF NOT EXISTS sandbox_mode BOOLEAN DEFAULT false;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS mode TEXT DEFAULT 'live';
+

@@ -168,6 +168,23 @@ export default function DashboardPage() {
     }
   };
 
+  const toggleSandboxMode = async () => {
+    if (!user || !profile) return;
+    const nextSandbox = !profile.sandbox_mode;
+    try {
+      const { error } = await supabase
+        .from('merchants')
+        .update({ sandbox_mode: nextSandbox })
+        .eq('id', user.id);
+      
+      if (error) throw error;
+      setProfile({ ...profile, sandbox_mode: nextSandbox });
+    } catch (err) {
+      console.error("Failed to switch modes:", err);
+      alert("Failed to change environment mode.");
+    }
+  };
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     router.push('/login');
@@ -175,7 +192,8 @@ export default function DashboardPage() {
 
   const copyApiKey = () => {
     if (!profile?.api_key) return;
-    navigator.clipboard.writeText(profile.api_key);
+    const prefix = profile.sandbox_mode ? 'test_' : 'live_';
+    navigator.clipboard.writeText(prefix + profile.api_key);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -196,6 +214,11 @@ export default function DashboardPage() {
   // Filter Transactions list
   const filteredOrders = useMemo(() => {
     return orders.filter(o => {
+      // Separator filter based on environment mode
+      const isTestOrder = o.mode === 'test';
+      const activeSandbox = !!profile?.sandbox_mode;
+      if (isTestOrder !== activeSandbox) return false;
+
       // Status filter
       if (statusFilter !== 'all' && o.status !== statusFilter) return false;
       
@@ -213,11 +236,13 @@ export default function DashboardPage() {
       }
       return true;
     });
-  }, [orders, searchQuery, statusFilter]);
+  }, [orders, searchQuery, statusFilter, profile]);
 
   // Calculations for Metrics Cards
   const stats = useMemo(() => {
-    const verified = orders.filter(o => o.status === 'verified');
+    const activeSandbox = !!profile?.sandbox_mode;
+    const modeFiltered = orders.filter(o => (o.mode === 'test') === activeSandbox);
+    const verified = modeFiltered.filter(o => o.status === 'verified');
     const totalVolume = verified.reduce((sum, o) => sum + parseFloat(o.amount), 0);
     
     // Today's counts
@@ -226,7 +251,7 @@ export default function DashboardPage() {
     const todayVerified = verified.filter(o => new Date(o.created_at) >= today);
     const todayVolume = todayVerified.reduce((sum, o) => sum + parseFloat(o.amount), 0);
 
-    const pendingCount = orders.filter(o => o.status === 'pending').length;
+    const pendingCount = modeFiltered.filter(o => o.status === 'pending').length;
 
     return {
       totalVolume,
@@ -235,11 +260,13 @@ export default function DashboardPage() {
       todayCount: todayVerified.length,
       pendingCount
     };
-  }, [orders]);
+  }, [orders, profile]);
 
   // Compile Time-Series Data for Area Chart over last 7 days
   const chartData = useMemo(() => {
-    const verified = orders.filter(o => o.status === 'verified');
+    const activeSandbox = !!profile?.sandbox_mode;
+    const modeFiltered = orders.filter(o => (o.mode === 'test') === activeSandbox);
+    const verified = modeFiltered.filter(o => o.status === 'verified');
     const days = [];
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
@@ -273,7 +300,7 @@ export default function DashboardPage() {
       sales: parseFloat(sales.toFixed(2)),
       orders
     }));
-  }, [orders]);
+  }, [orders, profile]);
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -560,7 +587,7 @@ echo "Order Created: " . $data['orderId'];
         <div className="flex-1 p-4 md:p-10 overflow-y-auto">
           <div className="max-w-5xl mx-auto space-y-6">
             
-            {/* Header section with active tab label */}
+            {/* Header section with active tab label and sandbox toggle */}
             <div className="mb-6 pt-2 md:pt-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h2 className="text-3xl font-black text-slate-900 capitalize">{activeTab === 'api' ? 'API Credentials' : activeTab === 'developer' ? 'Developer Portal' : activeTab}</h2>
@@ -573,26 +600,40 @@ echo "Order Created: " . $data['orderId'];
                 </p>
               </div>
 
-              {activeTab === 'transactions' && (
-                <div className="flex gap-2">
-                  <button 
-                    onClick={handleRefreshOrders}
-                    disabled={ordersLoading}
-                    className="p-2.5 rounded-xl border border-slate-200 bg-white text-slate-500 hover:text-slate-900 transition-colors shadow-sm disabled:opacity-55"
-                    title="Refresh Transactions"
-                  >
-                    <RefreshCw className={`w-4 h-4 ${ordersLoading ? 'animate-spin' : ''}`} />
-                  </button>
-                  <button 
-                    onClick={downloadCSV}
-                    disabled={filteredOrders.length === 0}
-                    className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm flex items-center gap-2 transition-all shadow-md shadow-blue-500/20 disabled:opacity-50"
-                  >
-                    <Download className="w-4 h-4" /> Export CSV Report
-                  </button>
-                </div>
-              )}
+              {/* Sandbox Toggle Switch */}
+              <div className="flex items-center gap-3 bg-white border border-slate-200 px-4 py-2.5 rounded-2xl shadow-sm select-none">
+                <span className={`text-[10px] font-extrabold uppercase tracking-wider ${profile?.sandbox_mode ? 'text-amber-600' : 'text-slate-400'}`}>
+                  {profile?.sandbox_mode ? 'Sandbox Mode' : 'Live Mode'}
+                </span>
+                <button
+                  onClick={toggleSandboxMode}
+                  className={`w-11 h-6 rounded-full transition-all duration-300 relative flex items-center px-1 focus:outline-none ${profile?.sandbox_mode ? 'bg-amber-400 shadow-sm shadow-amber-400/20' : 'bg-slate-200'}`}
+                  title="Toggle Sandbox/Live Mode"
+                >
+                  <div className={`w-4 h-4 bg-white rounded-full transition-transform duration-300 ${profile?.sandbox_mode ? 'translate-x-5' : 'translate-x-0'}`} />
+                </button>
             </div>
+
+            {activeTab === 'transactions' && (
+              <div className="flex gap-2">
+                <button 
+                  onClick={handleRefreshOrders}
+                  disabled={ordersLoading}
+                  className="p-2.5 rounded-xl border border-slate-200 bg-white text-slate-500 hover:text-slate-900 transition-colors shadow-sm disabled:opacity-55"
+                  title="Refresh Transactions"
+                >
+                  <RefreshCw className={`w-4 h-4 ${ordersLoading ? 'animate-spin' : ''}`} />
+                </button>
+                <button 
+                  onClick={downloadCSV}
+                  disabled={filteredOrders.length === 0}
+                  className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm flex items-center gap-2 transition-all shadow-md shadow-blue-500/20 disabled:opacity-50"
+                >
+                  <Download className="w-4 h-4" /> Export CSV Report
+                </button>
+              </div>
+            )}
+          </div>
 
             {/* Gmail Forwarding Banner */}
             {profile?.gmail_verification_code && (
@@ -636,6 +677,21 @@ echo "Order Created: " . $data['orderId'];
                ═══════════════════════════════════════════════════════════ */}
             {activeTab === 'overview' && (
               <div className="space-y-6">
+                
+                {/* Sandbox Mode Warning Banner */}
+                {profile?.sandbox_mode && (
+                  <div className="p-5 bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl shadow-sm flex items-start gap-4">
+                    <div className="p-2 bg-amber-100 rounded-xl text-amber-600 border border-amber-200">
+                      <AlertCircle className="w-5 h-5 animate-pulse" />
+                    </div>
+                    <div>
+                      <strong className="text-amber-800 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider">Sandbox Test Environment Active</strong>
+                      <p className="text-[11px] mt-1 text-amber-600 font-semibold leading-normal">
+                        All transaction data, stats, and revenue calculations displayed below are dynamic sandbox mocks. Real checkouts and bank notifications are disabled.
+                      </p>
+                    </div>
+                  </div>
+                )}
                 
                 {/* Stats Dashboard Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -1084,13 +1140,17 @@ echo "Order Created: " . $data['orderId'];
                ═══════════════════════════════════════════════════════════ */}
             {activeTab === 'api' && (
               <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
-                <h3 className="text-[10px] font-bold text-blue-600 uppercase tracking-wider mb-2 flex items-center gap-2">
-                  <Key className="w-3.5 h-3.5" /> Private API Key
+                <h3 className="text-[10px] font-bold uppercase tracking-wider mb-2 flex items-center gap-2" style={{ color: profile?.sandbox_mode ? '#f59e0b' : '#2563eb' }}>
+                  <Key className="w-3.5 h-3.5" /> {profile?.sandbox_mode ? 'Sandbox Private API Key' : 'Live Private API Key'}
                 </h3>
-                <p className="text-xs text-slate-500 mb-5 font-medium">Use this key to authorize checkout generation requests from your backend server. Keep it secure and never share it publicly.</p>
+                <p className="text-xs text-slate-500 mb-5 font-medium">
+                  {profile?.sandbox_mode 
+                    ? 'Use this test API key to authorize simulated checkout creations. Keep sandbox transactions isolated from real bank payouts.' 
+                    : 'Use this live API key to authorize production checkout creations. Keep it secure and never share it publicly.'}
+                </p>
                 <div className="flex items-center gap-2">
                   <code className="flex-1 bg-slate-50 border border-slate-200 px-4 py-2.5 rounded-xl text-xs font-mono break-all text-slate-700 font-bold">
-                    {profile?.api_key || 'Loading...'}
+                    {profile?.sandbox_mode ? `test_${profile?.api_key || 'Loading...'}` : `live_${profile?.api_key || 'Loading...'}`}
                   </code>
                   <button 
                     onClick={copyApiKey}
