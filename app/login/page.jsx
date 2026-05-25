@@ -124,15 +124,15 @@ export default function LoginPage() {
               🟢 Direct P2P Settlements
             </div>
             
-            <h2 className="text-4xl font-black text-white leading-tight tracking-tight">
+            <h2 className="text-4xl font-black text-white-pure leading-tight tracking-tight">
               Built for founders defying all odds
             </h2>
             
-            <p className="text-sm text-slate-450 leading-relaxed font-medium">
+            <p className="text-sm text-slate-500 leading-relaxed font-medium">
               Join thousands of businesses managing billing programmatically with flat-rate subscriptions and 0% gateway cuts.
             </p>
 
-            <div className="pt-2 space-y-3 font-semibold text-xs text-slate-400">
+            <div className="pt-2 space-y-3 font-semibold text-xs text-slate-500">
               <p className="flex items-center gap-2">
                 <CheckCircle2 className="w-4.5 h-4.5 text-emerald-500" />
                 <span>Zero transaction cuts on monthly volumes</span>
@@ -216,7 +216,7 @@ export default function LoginPage() {
         </div>
 
         {/* Footer info in left panel */}
-        <p className="text-[10px] text-slate-650 font-bold relative z-10">
+        <p className="text-[10px] text-slate-500 font-bold relative z-10">
           © 2026 MyMobPay · Secure B2B Gateway Infrastructures
         </p>
 
@@ -293,7 +293,7 @@ export default function LoginPage() {
               <button
                 onClick={() => handleAuth('signin')}
                 disabled={loading || !email || !password}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold py-3 px-4 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-1.5 shadow-md shadow-blue-500/10 hover:shadow-blue-500/20 active:scale-98 text-xs"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white-pure font-extrabold py-3 px-4 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-1.5 shadow-md shadow-blue-500/10 hover:shadow-blue-500/20 active:scale-98 text-xs"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Sign In'}
                 {!loading && <ArrowRight className="w-4 h-4" />}
@@ -303,7 +303,7 @@ export default function LoginPage() {
               <button
                 onClick={() => handleAuth('signup')}
                 disabled={loading || !email || !password}
-                className="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-650 font-bold py-3 px-4 rounded-xl transition-all disabled:opacity-50 text-xs"
+                className="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-500 font-bold py-3 px-4 rounded-xl transition-all disabled:opacity-50 text-xs"
               >
                 Create Account
               </button>
@@ -318,7 +318,7 @@ export default function LoginPage() {
               <button
                 onClick={handleGoogleLogin}
                 disabled={loading}
-                className="w-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl transition-all disabled:opacity-55 flex items-center justify-center gap-2.5 shadow-sm text-xs"
+                className="w-full bg-white hover:bg-slate-50 border border-slate-200 text-white-pure font-bold py-3 px-4 rounded-xl transition-all disabled:opacity-55 flex items-center justify-center gap-2.5 shadow-sm text-xs"
               >
                 <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
                   <g transform="matrix(1, 0, 0, 1, 0, 0)">

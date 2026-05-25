@@ -455,7 +455,7 @@ function PayPageContent() {
                 </div>
               )}
               <button type="submit" disabled={loading}
-                className="w-full py-4 rounded-xl text-white font-black text-base flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 shadow-xl"
+                className="w-full py-4 rounded-xl text-white-pure font-black text-base flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 shadow-xl"
                 style={{
                   backgroundColor: merchant?.theme_color || '#3B82F6',
                   boxShadow: `0 8px 25px ${(merchant?.theme_color || '#3B82F6')}30`
@@ -544,7 +544,7 @@ function PayPageContent() {
                       type="button"
                       onClick={() => handleSimulatePayment('success')}
                       disabled={loading}
-                      className="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 shadow-lg shadow-emerald-500/20"
+                      className="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white-pure font-black text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 shadow-lg shadow-emerald-500/20"
                     >
                       {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle className="w-5 h-5" />}
                       Simulate Successful Payment (Instant Webhook)
@@ -633,7 +633,7 @@ function PayPageContent() {
                           type="button"
                           onClick={() => openApp(selectedApp)}
                           disabled={!orderId}
-                          className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 text-white"
+                          className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 text-white-pure"
                           style={{ background: selectedApp.accent }}
                         >
                           <ExternalLink className="w-4 h-4" />
@@ -698,7 +698,7 @@ function PayPageContent() {
                   {/* ── CONFIRM BUTTON ── */}
                   <div className="mt-5 pt-4 border-t border-slate-100 space-y-2">
                     <button onClick={handleConfirmPaid} disabled={!orderId}
-                      className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-40 shadow-lg shadow-emerald-600/20">
+                      className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white-pure font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-40 shadow-lg shadow-emerald-600/20">
                       <CheckCircle className="w-4 h-4" />
                       I&apos;ve Paid — Verify Now
                     </button>

@@ -224,12 +224,12 @@ export default function StatusPage() {
                   url.searchParams.set('gateway_id', orderId);
                   if (order.utr) url.searchParams.set('utr', order.utr);
                   window.location.href = url.toString();
-                }} className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all">
+                }} className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white-pure font-bold text-sm flex items-center justify-center gap-2 transition-all">
                   <ExternalLink className="w-4 h-4" /> Return to {order.project || 'App'}
                 </button>
               ) : (
                 <button onClick={() => router.push('/pay')}
-                  className="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all">
+                  className="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white-pure font-bold text-sm flex items-center justify-center gap-2 transition-all">
                   Done · New Payment
                 </button>
               )}
@@ -285,7 +285,7 @@ export default function StatusPage() {
                 </button>
               ) : (
                 <button onClick={() => router.push('/pay')}
-                  className="w-full py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all">
+                  className="w-full py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white-pure font-bold text-sm flex items-center justify-center gap-2 transition-all">
                   <RefreshCw className="w-4 h-4" /> Try Again
                 </button>
               )}
@@ -389,7 +389,7 @@ export default function StatusPage() {
                   <button
                     type="submit"
                     disabled={submittingUtr || utrInput.length !== 12}
-                    className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white-pure font-semibold text-xs flex items-center justify-center gap-1.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     {submittingUtr
                       ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Submitting...</>
