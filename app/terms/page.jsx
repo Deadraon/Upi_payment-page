@@ -8,7 +8,7 @@ export default function TermsPage() {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-700 py-12 px-6 sm:px-12 lg:px-20 flex flex-col items-center">
+    <div className="min-h-screen bg-slate-50 text-slate-700 py-12 px-6 sm:px-12 lg:px-20 flex flex-col items-center">
       <div className="max-w-3xl w-full space-y-8 animate-scale-up">
         
         {/* Navigation */}
@@ -49,8 +49,8 @@ export default function TermsPage() {
             <h2 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
               <Landmark className="w-4.5 h-4.5 text-blue-600" /> 2. RBI Compliance Disclaimer
             </h2>
-            <div className="p-4 bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl text-xs space-y-2 font-medium">
-              <strong className="text-amber-950 flex items-center gap-1.5">
+            <div className="p-4 bg-amber-500/10 border border-amber-500/20 text-amber-450 rounded-2xl text-xs space-y-2 font-medium">
+              <strong className="text-amber-300 flex items-center gap-1.5">
                 <Landmark className="w-4 h-4 text-amber-700" /> Reserve Bank of India (RBI) Regulatory Compliance
               </strong>
               <p>

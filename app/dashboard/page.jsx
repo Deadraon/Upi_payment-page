@@ -637,7 +637,7 @@ echo "Order Created: " . $data['orderId'];
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
           <p className="text-sm text-slate-500 font-medium">Loading merchant console...</p>
@@ -647,7 +647,7 @@ echo "Order Created: " . $data['orderId'];
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex flex-col md:flex-row">
+    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
       
       {/* Sidebar (Desktop) */}
       <aside className="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col sticky top-0 h-screen">
@@ -1374,7 +1374,7 @@ echo "Order Created: " . $data['orderId'];
                             </div>
                           </div>
                           <div>
-                            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Payload Note / ID</label>
+                            <label className="block text-[10px] font-bold text-slate-505 uppercase tracking-wider mb-1">Payload Note / ID</label>
                             <input 
                               type="text"
                               value={linkNote}
@@ -1386,7 +1386,7 @@ echo "Order Created: " . $data['orderId'];
                         </div>
                       </div>
 
-                      {/* Smartphone Bezel Bezel container */}
+                      {/* Smartphone Bezel container */}
                       <div className="my-6 relative w-full max-w-[200px] bg-slate-950 border-4 border-slate-800 rounded-[28px] shadow-2xl overflow-hidden aspect-[9/18.5] flex flex-col transition-all duration-300 hover:scale-[1.02]">
                         
                         {/* Notch */}
@@ -1395,7 +1395,7 @@ echo "Order Created: " . $data['orderId'];
                         </div>
 
                         {/* Screen Content */}
-                        <div className="flex-1 bg-[#F8FAFC] pt-5 px-3 pb-3 flex flex-col justify-between font-sans text-slate-900 text-[9px] select-none">
+                        <div className="flex-1 bg-[#0B192C] pt-5 px-3 pb-3 flex flex-col justify-between font-sans text-white text-[9px] select-none">
                           
                           <div className="space-y-2">
                             <div className="flex justify-between items-center text-[6px] font-extrabold text-slate-400 px-0.5">
@@ -1405,46 +1405,46 @@ echo "Order Created: " . $data['orderId'];
                               </span>
                             </div>
 
-                            <div className="flex flex-col items-center pt-1 border-b border-slate-100 pb-2">
-                              <span className="text-[10px] font-black tracking-tight text-slate-900">
-                                MyMob<span className="text-blue-600 italic">Pay</span>
+                            <div className="flex flex-col items-center pt-1 border-b border-[#1D2D44] pb-2">
+                              <span className="text-[10px] font-black tracking-tight text-white">
+                                MyMob<span className="text-[#3395FF] italic">Pay</span>
                               </span>
                               <p className="text-[5px] text-slate-400 font-black uppercase tracking-wider mt-0.5">DIRECT BANK SECURE</p>
                             </div>
 
                             {/* Dynamic paying card details */}
-                            <div className="bg-white border border-slate-200/80 rounded-xl p-2 shadow-sm space-y-1">
-                              <div className="flex justify-between items-center text-[6px] text-slate-400 font-bold uppercase">
+                            <div className="bg-[#0F1E36] border border-[#1D2D44] rounded-xl p-2 shadow-sm space-y-1">
+                              <div className="flex justify-between items-center text-[6px] text-slate-450 font-bold uppercase">
                                 <span>Paying To</span>
-                                <span className="text-blue-600 font-extrabold bg-blue-50 px-1 py-0.2 rounded text-[4.5px]">VERIFIED</span>
+                                <span className="text-[#3395FF] font-extrabold bg-[#0B2447] px-1 py-0.2 rounded text-[4.5px]">VERIFIED</span>
                               </div>
-                              <p className="text-[8.5px] font-extrabold text-slate-900 truncate">
+                              <p className="text-[8.5px] font-extrabold text-white truncate">
                                 {profile?.business_name || 'Demo Store'}
                               </p>
-                              <p className="text-[6px] text-slate-400 font-semibold truncate -mt-0.5">
+                              <p className="text-[6px] text-slate-450 font-semibold truncate -mt-0.5">
                                 UPI: {profile?.upi_id || 'pending@upi'}
                               </p>
                             </div>
 
                             {/* Dynamic transaction billing details */}
-                            <div className="bg-white border border-slate-200/80 rounded-xl p-2 shadow-sm space-y-1">
-                              <div className="flex justify-between items-center text-[6px] text-slate-400 font-bold uppercase">
+                            <div className="bg-[#0F1E36] border border-[#1D2D44] rounded-xl p-2 shadow-sm space-y-1">
+                              <div className="flex justify-between items-center text-[6px] text-slate-450 font-bold uppercase">
                                 <span>Total Due</span>
                               </div>
                               <div className="flex items-baseline gap-0.5">
-                                <span className="text-[8px] font-bold text-slate-400">₹</span>
-                                <span className="text-sm font-black text-slate-900 tracking-tight leading-none">
+                                <span className="text-[8px] font-bold text-slate-450">₹</span>
+                                <span className="text-sm font-black text-white tracking-tight leading-none">
                                   {parseFloat(linkAmount) ? parseFloat(linkAmount).toFixed(2) : '0.00'}
                                 </span>
                               </div>
-                              <div className="flex justify-between items-center text-[5.5px] text-slate-450 pt-1 border-t border-slate-100 font-medium">
-                                <span>Note: <span className="font-extrabold text-slate-700 truncate max-w-[70px] inline-block align-bottom">{linkNote || 'Order_123'}</span></span>
+                              <div className="flex justify-between items-center text-[5.5px] text-slate-450 pt-1 border-t border-[#1D2D44] font-medium">
+                                <span>Note: <span className="font-extrabold text-slate-200 truncate max-w-[70px] inline-block align-bottom">{linkNote || 'Order_123'}</span></span>
                               </div>
                             </div>
 
                             {/* Target specific visualizers */}
                             {integrationTarget === 'website' ? (
-                              <div className="bg-white border border-slate-200/80 rounded-xl p-2 shadow-sm flex flex-col items-center justify-center space-y-1.5 relative overflow-hidden">
+                              <div className="bg-white-pure border border-slate-200/80 rounded-xl p-2 shadow-sm flex flex-col items-center justify-center space-y-1.5 relative overflow-hidden">
                                 {/* QR Vector preview */}
                                 <svg viewBox="0 0 100 100" className="w-12 h-12 text-slate-800" fill="currentColor">
                                   <rect x="10" y="10" width="20" height="20" fill="#0F172A" rx="2" />

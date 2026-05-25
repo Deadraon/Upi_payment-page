@@ -6,17 +6,17 @@
 
 /* ─── Clean Design Tokens ────────────────────────────────── */
 :root {
-  --bg-base:        #FFFFFF;
-  --bg-card:        #FFFFFF;
-  --bg-input:       #F9FAFB;
-  --border-subtle:  #E5E7EB;
-  --border-hover:   #D1D5DB;
-  --accent:         #4F46E5;
-  --accent-light:   #6366F1;
-  --accent-glow:    rgba(79, 70, 229, 0.12);
-  --text-primary:   #111827;
-  --text-secondary: #6B7280;
-  --text-muted:     #9CA3AF;
+  --bg-base:        #0B192C; /* Razorpay deep dark blue */
+  --bg-card:        #0F1E36; /* Razorpay card dark blue */
+  --bg-input:       #07111F;
+  --border-subtle:  #1D2D44;
+  --border-hover:   #2C3E5A;
+  --accent:         #3395FF; /* Razorpay electric blue */
+  --accent-light:   #54A6FF;
+  --accent-glow:    rgba(51, 149, 255, 0.15);
+  --text-primary:   #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted:     #64748B;
   --success:        #10B981;
   --danger:         #EF4444;
   --warning:        #F59E0B;
@@ -34,20 +34,20 @@ html { scroll-behavior: smooth; }
 
 body {
   font-family: var(--font-sans);
-  background-color: #F8FAFC;
-  color: var(--text-primary);
+  background-color: var(--bg-base) !important;
+  color: var(--text-primary) !important;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
 }
 
-::selection { background: rgba(37, 99, 235, 0.15); color: #0F172A; }
+::selection { background: rgba(51, 149, 255, 0.25); color: #FFFFFF; }
 
 /* ─── Scrollbar ──────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-track { background: #F1F5F9; }
-::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 999px; }
-::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+::-webkit-scrollbar-track { background: var(--bg-base); }
+::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-hover); }
 
 /* ─── Keyframes ──────────────────────────────────────────── */
 @keyframes fadeUp {
@@ -139,12 +139,12 @@ body {
 
 /* ─── Clean Card ─────────────────────────────────────────── */
 .glass-card {
-  background: #FFFFFF;
+  background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-card);
   box-shadow:
-    0 1px 3px rgba(0,0,0,0.04),
-    0 8px 24px rgba(0,0,0,0.06);
+    0 4px 6px rgba(0,0,0,0.15),
+    0 10px 30px rgba(0,0,0,0.2);
   position: relative;
   overflow: hidden;
 }
@@ -193,15 +193,15 @@ body {
 .pay-input::placeholder { color: var(--text-muted); }
 .pay-input:focus {
   border-color: var(--accent);
-  background: #FFFFFF;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  background: var(--bg-input);
+  box-shadow: 0 0 0 3px rgba(51, 149, 255, 0.15);
 }
 
 /* ─── Method Cards ───────────────────────────────────────── */
 .method-card {
   border-radius: 10px;
   border: 1.5px solid var(--border-subtle);
-  background: #FFFFFF;
+  background: var(--bg-card);
   transition: all 0.2s ease;
   cursor: pointer;
   position: relative;
@@ -210,19 +210,19 @@ body {
 .method-card:hover {
   border-color: var(--border-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
 }
 .method-card.active {
   border-color: var(--accent) !important;
-  background: rgba(37, 99, 235, 0.03) !important;
-  box-shadow: 0 0 0 1px var(--accent), 0 4px 12px rgba(37, 99, 235, 0.1);
+  background: rgba(51, 149, 255, 0.05) !important;
+  box-shadow: 0 0 0 1px var(--accent), 0 4px 12px rgba(51, 149, 255, 0.12);
 }
 
 /* ─── Quick Amount Pills ─────────────────────────────────── */
 .amount-pill {
   border-radius: 8px;
   border: 1.5px solid var(--border-subtle);
-  background: #FFFFFF;
+  background: var(--bg-card);
   color: var(--text-secondary);
   transition: all 0.15s ease;
   font-size: 13px;
@@ -232,22 +232,22 @@ body {
 .amount-pill:hover {
   border-color: var(--accent);
   color: var(--accent);
-  background: rgba(37, 99, 235, 0.03);
+  background: rgba(51, 149, 255, 0.05);
 }
 .amount-pill.active {
   border-color: var(--accent);
-  background: rgba(37, 99, 235, 0.06);
+  background: rgba(51, 149, 255, 0.1);
   color: var(--accent);
   font-weight: 700;
 }
 
 /* ─── QR Card ────────────────────────────────────────────── */
 .qr-card {
-  background: #fff;
+  background: var(--bg-card);
   border-radius: 16px;
   box-shadow:
-    0 2px 8px rgba(0,0,0,0.06),
-    0 12px 32px rgba(0,0,0,0.08);
+    0 4px 12px rgba(0,0,0,0.15),
+    0 16px 40px rgba(0,0,0,0.25);
   border: 1px solid var(--border-subtle);
   transition: all 0.3s ease;
 }
@@ -264,7 +264,7 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 10px 0;
-  border-bottom: 1px solid #F1F5F9;
+  border-bottom: 1px solid var(--border-subtle);
   font-size: 13px;
 }
 .receipt-row:last-child { border-bottom: none; }
@@ -283,9 +283,9 @@ body {
   letter-spacing: 0.03em;
   text-transform: uppercase;
 }
-.status-badge.verified { background: #F0FDF4; color: #16A34A; border: 1px solid #BBF7D0; }
-.status-badge.pending  { background: #FFFBEB; color: #D97706; border: 1px solid #FDE68A; }
-.status-badge.rejected { background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; }
+.status-badge.verified { background: rgba(16, 185, 129, 0.1); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.2); }
+.status-badge.pending  { background: rgba(245, 158, 11, 0.1); color: #F59E0B; border: 1px solid rgba(245, 158, 11, 0.2); }
+.status-badge.rejected { background: rgba(239, 68, 68, 0.1); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.2); }
 
 /* ─── Progress Bar ───────────────────────────────────────── */
 .progress-bar {
@@ -298,7 +298,7 @@ body {
 /* ─── Divider ────────────────────────────────────────────── */
 .divider {
   height: 1px;
-  background: #F1F5F9;
+  background: var(--border-subtle);
 }
 
 /* ─── Live Indicator ─────────────────────────────────────── */

@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { Loader2, Lock, Mail, ArrowRight, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 
-const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = '#0f172a' }) => (
+const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = '#FFFFFF' }) => (
   <svg viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
     <text x="2" y="42" letterSpacing="0">
       <tspan fontFamily="'Orbitron', sans-serif" fontWeight="800" fontSize="38" fill={textColor}>M</tspan>
@@ -158,7 +158,7 @@ export default function LoginPage() {
               </div>
 
               {/* simulated checkout screen content */}
-              <div className="flex-1 bg-[#F8FAFC] pt-6 px-3.5 pb-3.5 flex flex-col justify-between font-sans select-none text-slate-900 text-[10px]">
+              <div className="flex-1 bg-[#0B192C] pt-6 px-3.5 pb-3.5 flex flex-col justify-between font-sans select-none text-white text-[10px]">
                 
                 <div className="space-y-3">
                   <div className="flex justify-between items-center text-[7px] font-bold text-slate-400 px-0.5">
@@ -171,19 +171,19 @@ export default function LoginPage() {
                     <p className="text-[6px] text-slate-400 font-extrabold uppercase tracking-wider mt-0.5">Direct Bank Checkout</p>
                   </div>
 
-                  <div className="bg-white border border-slate-200 rounded-xl p-2.5 shadow-sm space-y-1.5">
+                  <div className="bg-[#0F1E36] border border-[#1D2D44] rounded-xl p-2.5 shadow-sm space-y-1.5">
                     <div className="flex justify-between items-center text-[7px] text-slate-400 font-bold uppercase">
                       <span>Total Due</span>
-                      <span className="text-blue-600 font-extrabold bg-blue-50 px-1 py-0.2 rounded text-[5px] uppercase">P2P Route</span>
+                      <span className="text-[#3395FF] font-extrabold bg-[#0B2447] px-1 py-0.2 rounded text-[5px] uppercase">P2P Route</span>
                     </div>
                     <div className="flex items-baseline">
                       <span className="text-[10px] font-bold text-slate-400 mr-0.2">₹</span>
-                      <span className="text-xl font-black text-slate-900 tracking-tight leading-none">500.00</span>
+                      <span className="text-xl font-black text-white tracking-tight leading-none">500.00</span>
                     </div>
                   </div>
 
                   {/* QR Vector preview */}
-                  <div className="bg-white border border-slate-200 rounded-xl p-2.5 shadow-sm flex flex-col items-center justify-center space-y-2 relative overflow-hidden">
+                  <div className="bg-white-pure border border-slate-200 rounded-xl p-2.5 shadow-sm flex flex-col items-center justify-center space-y-2 relative overflow-hidden">
                     <svg viewBox="0 0 100 100" className="w-20 h-20 text-slate-800" fill="currentColor">
                       <rect x="10" y="10" width="20" height="20" fill="#0F172A" rx="2" />
                       <rect x="14" y="14" width="12" height="12" fill="#FFFFFF" rx="1.5" />
@@ -225,7 +225,7 @@ export default function LoginPage() {
       {/* ────────────────────────────────────────────────────────
          RIGHT PANE: BRAND MATCHED AUTHENTICATION CONSOLE
          ──────────────────────────────────────────────────────── */}
-      <div className="col-span-1 lg:col-span-5 bg-[#F8FAFC] flex flex-col justify-center items-center px-6 py-12 lg:p-16 relative">
+      <div className="col-span-1 lg:col-span-5 bg-slate-50 flex flex-col justify-center items-center px-6 py-12 lg:p-16 relative">
         
         {/* Mobile Header Brand visibility logo */}
         <div className="lg:hidden mb-8">
@@ -243,14 +243,14 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded-xl text-xs font-semibold mb-6 flex items-start gap-2">
-              <div className="mt-0.5"><Lock className="w-3.5 h-3.5" /></div>
+            <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-xl text-xs font-semibold mb-6 flex items-start gap-2">
+              <div className="mt-0.5"><Lock className="w-3.5 h-3.5 text-red-400" /></div>
               <div className="flex-1 leading-normal">{error}</div>
             </div>
           )}
 
           {message && (
-            <div className="bg-emerald-50 border border-emerald-200 text-emerald-600 p-3 rounded-xl text-xs font-semibold mb-6">
+            <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-450 p-3 rounded-xl text-xs font-semibold mb-6">
               {message}
             </div>
           )}

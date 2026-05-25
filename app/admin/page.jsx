@@ -415,7 +415,7 @@ export default function AdminPage() {
   if (!isLoggedIn) {
     /* LUXURY LIGHT THEME LOGIN WALL SCREEN */
     return (
-      <div className="min-h-screen bg-[#f8fafc] text-slate-900 flex flex-col justify-center items-center px-4 font-sans selection:bg-blue-500/10">
+      <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-center items-center px-4 font-sans selection:bg-blue-500/10">
         
         <div className="max-w-md w-full bg-white border border-slate-200 rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative space-y-7 overflow-hidden">
           
@@ -430,8 +430,8 @@ export default function AdminPage() {
           </div>
 
           {authError && (
-            <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs flex items-center gap-2.5">
-              <AlertCircle className="w-4.5 h-4.5 text-red-500 flex-shrink-0" />
+            <div className="p-3.5 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-xs flex items-center gap-2.5">
+              <AlertCircle className="w-4.5 h-4.5 text-red-400 flex-shrink-0" />
               <span className="font-semibold">{authError}</span>
             </div>
           )}
@@ -476,7 +476,7 @@ export default function AdminPage() {
 
   /* LOGGED IN DASHBOARD */
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-700 font-sans flex flex-col justify-between selection:bg-blue-500/10">
+    <div className="min-h-screen bg-slate-50 text-slate-750 font-sans flex flex-col justify-between selection:bg-blue-500/10">
       
       {/* Top Header bar */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-[0_2px_15px_rgb(0,0,0,0.015)]">
@@ -610,8 +610,8 @@ export default function AdminPage() {
         
         {/* Error warning */}
         {error && (
-          <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 flex-shrink-0 text-red-500" />
+          <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 flex-shrink-0 text-red-400" />
             <p className="font-semibold">{error}</p>
           </div>
         )}
@@ -679,7 +679,7 @@ export default function AdminPage() {
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Awaiting Verification</p>
                     <h3 className="text-3xl font-black text-slate-900 mt-2">{platformMetrics.pendingCount}</h3>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 animate-pulse">
+                  <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 animate-pulse">
                     <Clock className="w-5 h-5" />
                   </div>
                 </div>

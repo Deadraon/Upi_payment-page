@@ -8,7 +8,7 @@ export default function PrivacyPage() {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-700 py-12 px-6 sm:px-12 lg:px-20 flex flex-col items-center">
+    <div className="min-h-screen bg-slate-50 text-slate-700 py-12 px-6 sm:px-12 lg:px-20 flex flex-col items-center">
       <div className="max-w-3xl w-full space-y-8 animate-scale-up">
         
         {/* Navigation */}
@@ -49,9 +49,9 @@ export default function PrivacyPage() {
             <h2 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
               <Lock className="w-4.5 h-4.5 text-blue-600" /> 2. PCI-DSS Compliance & Data Security
             </h2>
-            <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl text-xs space-y-2 font-medium">
-              <strong className="text-emerald-900 flex items-center gap-1.5">
-                <CheckCircle className="w-4 h-4 text-emerald-600" /> PCI-DSS Compliant Isolated Architecture
+            <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-2xl text-xs space-y-2 font-medium">
+              <strong className="text-emerald-300 flex items-center gap-1.5">
+                <CheckCircle className="w-4 h-4 text-emerald-400" /> PCI-DSS Compliant Isolated Architecture
               </strong>
               <p>
                 Our payment gateway is explicitly designed to handle transactions without collecting or retaining sensitive payment credentials (such as raw bank account passwords, debit card pins, or OTPs). All routing is processed using standard, public UPI Virtual Payment Addresses (VPAs).

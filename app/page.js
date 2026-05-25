@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { CONFIG } from '@/lib/config';
 import { 
@@ -10,7 +11,7 @@ import {
   Key, Landmark, Code, Play, Star, Plus, Minus, Info, Lock
 } from 'lucide-react';
 
-const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = '#0f172a' }) => (
+const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = '#FFFFFF' }) => (
   <svg viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
     <text x="2" y="42" letterSpacing="0">
       <tspan fontFamily="'Orbitron', sans-serif" fontWeight="800" fontSize="38" fill={textColor}>M</tspan>
@@ -138,7 +139,7 @@ print("Checkout Link generated:", data.get("orderId"))`
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 overflow-x-hidden selection:bg-blue-500/10 selection:text-blue-600">
+    <div className="min-h-screen bg-slate-50 text-slate-900 overflow-x-hidden selection:bg-blue-500/10 selection:text-blue-600">
       
       {/* ────────────────────────────────────────────────────────
          STICKY HEADER NAVIGATION
@@ -451,7 +452,7 @@ print("Checkout Link generated:", data.get("orderId"))`
         </div>
 
         {/* Decorative Grid Line Background */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-35 -z-20" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1D2D44_1px,transparent_1px),linear-gradient(to_bottom,#1D2D44_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-35 -z-20" />
 
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           
@@ -532,7 +533,7 @@ print("Checkout Link generated:", data.get("orderId"))`
               </div>
 
               {/* Internal Screen Content */}
-              <div className="flex-1 bg-[#F8FAFC] pt-8 px-5 pb-5 flex flex-col justify-between font-sans select-none text-slate-900">
+              <div className="flex-1 bg-[#0B192C] pt-8 px-5 pb-5 flex flex-col justify-between font-sans select-none text-white">
                 
                 {/* Header Info */}
                 <div className="space-y-4">
@@ -555,28 +556,28 @@ print("Checkout Link generated:", data.get("orderId"))`
                   </div>
 
                   {/* Due amount card */}
-                  <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-2">
+                  <div className="bg-[#0F1E36] border border-[#1D2D44] rounded-2xl p-4 shadow-sm space-y-2">
                     <div className="flex justify-between items-center text-[10px] text-slate-400 font-bold uppercase">
                       <span>Total Due</span>
-                      <span className="text-blue-600 font-extrabold bg-blue-50 px-2 py-0.5 rounded text-[8px] uppercase">P2P Bank Route</span>
+                      <span className="text-[#3395FF] font-extrabold bg-[#0B2447] px-2 py-0.5 rounded text-[8px] uppercase">P2P Bank Route</span>
                     </div>
                     <div className="flex items-baseline">
-                      <span className="text-sm font-bold text-slate-400 mr-0.5">₹</span>
-                      <span className="text-3xl font-black text-slate-900 tracking-tight leading-none">
+                      <span className="text-sm font-bold text-slate-450 mr-0.5">₹</span>
+                      <span className="text-3xl font-black text-white tracking-tight leading-none">
                         {parseFloat(demoAmount || '500').toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                       </span>
                     </div>
-                    <div className="pt-2 border-t border-slate-100/80 flex justify-between text-[10px] font-semibold text-slate-500">
+                    <div className="pt-2 border-t border-[#1D2D44] flex justify-between text-[10px] font-semibold text-slate-400">
                       <span>Paying to:</span>
-                      <span className="font-bold text-slate-850">Demo Store</span>
+                      <span className="font-bold text-slate-200">Demo Store</span>
                     </div>
                   </div>
 
                   {/* QR Code Container */}
-                  <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col items-center justify-center space-y-3 relative overflow-hidden group">
+                  <div className="bg-white-pure border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col items-center justify-center space-y-3 relative overflow-hidden group">
                     
                     {/* Futuristic Scanning Laser line */}
-                    <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent top-0 animate-laser" />
+                    <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-[#3395FF] to-transparent top-0 animate-laser" />
 
                     {/* Highly stylized SVG vector QR Code */}
                     <svg viewBox="0 0 100 100" className="w-32 h-32 text-slate-800" fill="currentColor">
@@ -619,10 +620,10 @@ print("Checkout Link generated:", data.get("orderId"))`
                   <div className="space-y-2">
                     <p className="text-[8px] text-slate-400 font-extrabold uppercase tracking-widest text-center">Scan with any UPI app</p>
                     <div className="flex justify-center gap-2">
-                      <img src="/logos/gpay.svg" className="w-8 h-8 object-contain bg-white border border-slate-250/70 p-1.5 rounded-xl shadow-xs" alt="GPay" />
-                      <img src="/logos/phonepe.svg" className="w-8 h-8 object-contain bg-white border border-slate-250/70 p-1.5 rounded-xl shadow-xs" alt="PhonePe" />
-                      <img src="/logos/paytm.svg" className="w-8 h-8 object-contain bg-white border border-slate-250/70 p-1.5 rounded-xl shadow-xs" alt="Paytm" />
-                      <img src="/logos/bhim.svg" className="w-8 h-8 object-contain bg-white border border-slate-250/70 p-1.5 rounded-xl shadow-xs" alt="BHIM" />
+                      <Image src="/logos/gpay.svg" width={32} height={32} className="w-8 h-8 object-contain bg-white-pure border border-slate-250/70 p-1.5 rounded-xl shadow-xs" alt="GPay" />
+                      <Image src="/logos/phonepe.svg" width={32} height={32} className="w-8 h-8 object-contain bg-white-pure border border-slate-250/70 p-1.5 rounded-xl shadow-xs" alt="PhonePe" />
+                      <Image src="/logos/paytm.svg" width={32} height={32} className="w-8 h-8 object-contain bg-white-pure border border-slate-250/70 p-1.5 rounded-xl shadow-xs" alt="Paytm" />
+                      <Image src="/logos/bhim.svg" width={32} height={32} className="w-8 h-8 object-contain bg-white-pure border border-slate-250/70 p-1.5 rounded-xl shadow-xs" alt="BHIM" />
                     </div>
                   </div>
 

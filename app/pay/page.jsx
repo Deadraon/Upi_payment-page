@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import QRCode from 'react-qr-code';
 import { CONFIG } from '@/lib/config';
 import { supabase } from '@/lib/supabase';
@@ -46,11 +47,11 @@ const getDeepLink = (appId, amount, orderId, merchant) => {
 };
 
 /* ── App Logos — official brand images from /public/logos/ ── */
-const GPayLogo    = () => <img src="/logos/gpay.svg"    alt="Google Pay"  className="w-8 h-8 object-contain bg-white p-1.5 rounded-xl" />;
-const PhonePeLogo = () => <img src="/logos/phonepe.svg" alt="PhonePe"     className="w-8 h-8 object-contain bg-white p-1.5 rounded-xl" />;
-const PaytmLogo   = () => <img src="/logos/paytm.svg"   alt="Paytm"       className="w-8 h-8 object-contain bg-white p-1.5 rounded-xl" />;
-const BhimLogo    = () => <img src="/logos/bhim.svg"    alt="BHIM UPI"    className="w-8 h-8 object-contain bg-white p-1.5 rounded-xl" />;
-const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = '#0f172a' }) => (
+const GPayLogo    = () => <Image src="/logos/gpay.svg"    alt="Google Pay"  width={32} height={32} className="w-8 h-8 object-contain bg-white-pure p-1.5 rounded-xl" />;
+const PhonePeLogo = () => <Image src="/logos/phonepe.svg" alt="PhonePe"     width={32} height={32} className="w-8 h-8 object-contain bg-white-pure p-1.5 rounded-xl" />;
+const PaytmLogo   = () => <Image src="/logos/paytm.svg"   alt="Paytm"       width={32} height={32} className="w-8 h-8 object-contain bg-white-pure p-1.5 rounded-xl" />;
+const BhimLogo    = () => <Image src="/logos/bhim.svg"    alt="BHIM UPI"    width={32} height={32} className="w-8 h-8 object-contain bg-white-pure p-1.5 rounded-xl" />;
+const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = '#FFFFFF' }) => (
   <svg viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
     {/* Single unified wordmark with unique mixed fonts */}
     <text x="2" y="42" letterSpacing="0">
@@ -437,9 +438,9 @@ function PayPageContent() {
                         borderColor: merchant?.theme_color || '#3B82F6',
                         color: merchant?.theme_color || '#3B82F6'
                       } : {
-                        backgroundColor: '#f8fafc',
-                        borderColor: '#e2e8f0',
-                        color: '#64748b'
+                        backgroundColor: 'var(--bg-input)',
+                        borderColor: 'var(--border-subtle)',
+                        color: 'var(--text-secondary)'
                       }}
                     >
                       ₹{a >= 1000 ? ((a/1000) + 'K') : a}
@@ -476,9 +477,9 @@ function PayPageContent() {
   const displayAmt = orderAmount ?? parseFloat(paramAmount);
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center px-4 py-8">
       <div className="w-full max-w-3xl animate-scale-up">
-        <div className="flex flex-col md:flex-row rounded-3xl bg-white overflow-hidden border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+        <div className="flex flex-col md:flex-row rounded-3xl bg-white overflow-hidden border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.25)]">
 
           {/* ── LEFT PANEL (order summary) ── */}
           <div className="w-full md:w-[40%] bg-slate-50/50 border-b md:border-b-0 md:border-r border-slate-100">
@@ -519,11 +520,11 @@ function PayPageContent() {
               {orderMode === 'test' ? (
                 /* ── SANDBOX TEST MODE SIMULATOR UI ── */
                 <div className="space-y-5 animate-fade-up">
-                  <div className="p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 animate-pulse mt-0.5" />
+                  <div className="p-4 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-2xl flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0 animate-pulse mt-0.5" />
                     <div>
-                      <strong className="text-amber-800 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider">Sandbox Test Mode Active</strong>
-                      <p className="text-[11px] font-semibold text-amber-600 mt-1 leading-relaxed">
+                      <strong className="text-amber-300 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider">Sandbox Test Mode Active</strong>
+                      <p className="text-[11px] font-semibold text-amber-400 mt-1 leading-relaxed">
                         No real money will be debited or transferred. You are using the checkout simulator to test system database updates and automated webhooks.
                       </p>
                     </div>
@@ -554,7 +555,7 @@ function PayPageContent() {
                       type="button"
                       onClick={() => handleSimulatePayment('failed')}
                       disabled={loading}
-                      className="w-full py-4 rounded-2xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
+                      className="w-full py-4 rounded-2xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
                     >
                       {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <AlertCircle className="w-5 h-5" />}
                       Simulate Failed / Expired Transaction
@@ -609,7 +610,7 @@ function PayPageContent() {
                             >
                               <div className="flex-shrink-0">{app.logo}</div>
                               <div>
-                                <p className={`text-[12px] font-bold leading-tight transition-colors ${isSelected ? 'text-slate-900' : 'text-slate-700'}`}>
+                                <p className={`text-[12px] font-bold leading-tight transition-colors ${isSelected ? 'text-slate-900' : 'text-slate-500'}`}>
                                   {app.label}
                                 </p>
                                 <p className="text-[9px] text-slate-500 mt-0.5">
@@ -678,7 +679,7 @@ function PayPageContent() {
                     <div className="flex flex-col items-center space-y-4 animate-fade-up">
                       <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Scan with any UPI app</p>
                       {upiQrValue ? (
-                        <div className="bg-white rounded-2xl p-5 shadow-xl">
+                        <div className="bg-white-pure rounded-2xl p-5 shadow-xl">
                           <QRCode value={upiQrValue} size={185} level="H" fgColor="#0f172a" bgColor="#FFFFFF" />
                           <div className="mt-3 pt-3 border-t border-gray-100 text-center">
                             <p className="text-[9px] text-gray-500 font-medium uppercase tracking-wider">
