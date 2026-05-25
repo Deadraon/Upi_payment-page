@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { CONFIG } from '@/lib/config';
@@ -33,6 +33,41 @@ export default function HomePage() {
   // Interactive Live Invoice demo states
   const [demoAmount, setDemoAmount] = useState('500');
   const [demoNote, setDemoNote] = useState('Mock_Order');
+
+  // Dynamic Typewriter visual states
+  const words = useMemo(() => ['founders', 'indie hackers', 'SaaS startups', 'creators', 'developers'], []);
+  const [typedText, setTypedText] = useState('founders');
+  const [wordIndex, setWordIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [charIndex, setCharIndex] = useState(8);
+  const [typingSpeed, setTypingSpeed] = useState(120);
+
+  useEffect(() => {
+    const handleType = () => {
+      const currentWord = words[wordIndex];
+      if (isDeleting) {
+        setTypedText(currentWord.substring(0, charIndex - 1));
+        setCharIndex(prev => prev - 1);
+        setTypingSpeed(60);
+      } else {
+        setTypedText(currentWord.substring(0, charIndex + 1));
+        setCharIndex(prev => prev + 1);
+        setTypingSpeed(120);
+      }
+
+      if (!isDeleting && charIndex === currentWord.length) {
+        setTypingSpeed(1800); // Pause on typed word
+        setIsDeleting(true);
+      } else if (isDeleting && charIndex === 0) {
+        setIsDeleting(false);
+        setWordIndex(prev => (prev + 1) % words.length);
+        setTypingSpeed(350); // Pause before starting next word
+      }
+    };
+
+    const timer = setTimeout(handleType, typingSpeed);
+    return () => clearTimeout(timer);
+  }, [charIndex, isDeleting, wordIndex, typingSpeed, words]);
 
   const subscriptionFee = CONFIG.subscriptionFee || 499;
 
@@ -239,6 +274,20 @@ print("Checkout Link generated:", data.get("orderId"))`
         <div className="absolute top-[48%] left-[45%] w-4 h-4 bg-indigo-400/25 rounded-full animate-float pointer-events-none -z-10" style={{ animationDelay: '-2.5s', animationDuration: '6s' }} />
         <div className="absolute top-[72%] right-[10%] w-5 h-5 bg-sky-300/15 rounded-full animate-float pointer-events-none -z-10" style={{ animationDelay: '-4.5s', animationDuration: '7s' }} />
 
+        {/* Abstract animated geometric mesh / visual assets */}
+        <div className="absolute top-[20%] right-[15%] w-16 h-16 bg-gradient-to-tr from-blue-500/10 to-indigo-500/10 rounded-2xl border border-blue-500/10 backdrop-blur-xs animate-float pointer-events-none -z-10 rotate-12" style={{ animationDuration: '8s', animationDelay: '-1s' }} />
+        <div className="absolute bottom-[15%] left-[12%] w-20 h-20 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-full border border-indigo-500/10 backdrop-blur-xs animate-float pointer-events-none -z-10" style={{ animationDuration: '10s', animationDelay: '-3s' }} />
+        <div className="absolute top-[35%] left-[25%] opacity-20 pointer-events-none -z-10 animate-float" style={{ animationDuration: '7s', animationDelay: '-2s' }}>
+          <svg className="w-8 h-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+        </div>
+        <div className="absolute bottom-[30%] right-[22%] opacity-15 pointer-events-none -z-10 animate-float" style={{ animationDuration: '9s', animationDelay: '-4s' }}>
+          <svg className="w-6 h-6 text-indigo-600 rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+        </div>
+
         {/* Decorative Grid Line Background */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-35 -z-20" />
 
@@ -258,7 +307,11 @@ print("Checkout Link generated:", data.get("orderId"))`
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.08] animate-fade-up delay-100">
               UPI payments <br/>
-              <span className="text-blue-600 bg-clip-text">for founders</span> defying all odds
+              <span className="text-blue-600 bg-clip-text relative inline-block">
+                for {typedText}
+                <span className="inline-block w-[3px] h-[36px] md:h-[48px] bg-blue-600 ml-1.5 align-middle animate-pulse" style={{ verticalAlign: 'baseline', marginTop: '-4px' }}>|</span>
+              </span> <br className="hidden sm:inline" />
+              defying all odds
             </h1>
 
             <p className="text-base sm:text-lg text-slate-550 max-w-xl mx-auto lg:mx-0 font-medium leading-relaxed animate-fade-up delay-150">
