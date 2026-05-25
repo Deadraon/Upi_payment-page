@@ -9,7 +9,7 @@ import {
   Loader2, Copy, CheckCircle, CreditCard, Mail, X, 
   LayoutDashboard, Search, Download, RefreshCw, IndianRupee,
   Clock, CheckCircle2, XCircle, Code, ChevronRight, BookOpen,
-  Menu, TrendingUp
+  Menu, TrendingUp, AlertCircle
 } from 'lucide-react';
 import { 
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid 
