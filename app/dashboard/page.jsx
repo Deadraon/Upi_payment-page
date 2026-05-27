@@ -2172,15 +2172,20 @@ async function checkOrderStatus(orderId) {
                                 {/* Inline Webhook URL input — no need to go to Settings */}
                                 <div className="space-y-1.5">
                                   <label className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">
-                                    Your Server Webhook Endpoint URL
+                                    Your Website Link
                                   </label>
-                                  <input
-                                    type="url"
-                                    value={wizardWebhookUrl}
-                                    onChange={e => setWizardWebhookUrl(e.target.value)}
-                                    placeholder="https://your-server.com/api/webhook"
-                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-3 focus:outline-none focus:border-blue-500 text-xs font-mono font-semibold text-slate-900 placeholder:text-slate-400 placeholder:font-sans"
-                                  />
+                                  <div className="flex items-center">
+                                    <input
+                                      type="url"
+                                      value={wizardWebhookUrl ? wizardWebhookUrl.replace(/\/api\/webhook$/, '') : ''}
+                                      onChange={e => setWizardWebhookUrl(e.target.value ? e.target.value.replace(/\/$/, '') + '/api/webhook' : '')}
+                                      placeholder="https://your-website.com"
+                                      className="w-full bg-slate-50 border border-slate-200 rounded-l-xl py-2.5 px-3 border-r-0 focus:outline-none focus:border-blue-500 text-xs font-mono font-semibold text-slate-900 placeholder:text-slate-400 placeholder:font-sans"
+                                    />
+                                    <div className="bg-slate-100 border border-slate-200 border-l-0 rounded-r-xl py-2.5 px-3 text-xs font-mono font-semibold text-slate-500">
+                                      /api/webhook
+                                    </div>
+                                  </div>
                                   {wizardWebhookUrl && !wizardWebhookUrl.startsWith('https://') && (
                                     <p className="text-[9.5px] text-amber-600 font-bold flex items-center gap-1">
                                       <AlertCircle className="w-3 h-3" /> Use HTTPS for production. For local testing: run <code className="bg-amber-50 px-1 rounded">ngrok http &lt;port&gt;</code>
@@ -2695,15 +2700,20 @@ async function checkOrderStatus(orderId) {
 
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-2 flex items-center gap-2">
-                      Webhook Outbound URL <span className="text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded font-bold uppercase">Optional</span>
+                      Your Website Link <span className="text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded font-bold uppercase">Optional</span>
                     </label>
-                    <input 
-                      type="url" 
-                      value={profile?.webhook_url || ''} 
-                      onChange={(e) => setProfile({...profile, webhook_url: e.target.value})}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 focus:border-blue-500 focus:outline-none font-mono text-sm font-semibold text-slate-900 placeholder-slate-455"
-                      placeholder="https://your-website.com/api/webhook"
-                    />
+                    <div className="flex items-center">
+                      <input 
+                        type="url" 
+                        value={profile?.webhook_url ? profile.webhook_url.replace(/\/api\/webhook$/, '') : ''} 
+                        onChange={(e) => setProfile({...profile, webhook_url: e.target.value ? e.target.value.replace(/\/$/, '') + '/api/webhook' : ''})}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-l-xl py-3 px-4 border-r-0 focus:border-blue-500 focus:outline-none font-mono text-sm font-semibold text-slate-900 placeholder-slate-455"
+                        placeholder="https://your-website.com"
+                      />
+                      <div className="bg-slate-100 border border-slate-200 border-l-0 rounded-r-xl py-3 px-4 text-sm font-mono font-semibold text-slate-500">
+                        /api/webhook
+                      </div>
+                    </div>
                     <p className="text-xs text-slate-400 mt-1.5 font-medium">We will fire a POST request here carrying HMAC signatures when a customer payment succeeds.</p>
                   </div>
 
