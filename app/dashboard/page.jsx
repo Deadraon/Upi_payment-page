@@ -29,6 +29,8 @@ export default function DashboardPage() {
   // Transaction States
   const [orders, setOrders] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
+  const [emailLogs, setEmailLogs] = useState([]);
+  const [emailLogsLoading, setEmailLogsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
@@ -55,13 +57,17 @@ export default function DashboardPage() {
   const [stepTestMsg, setStepTestMsg] = useState('');
   const [stepTestDetail, setStepTestDetail] = useState('');
   const [wizardWebhookUrl, setWizardWebhookUrl] = useState('');
+  const [rerunWizard, setRerunWizard] = useState(false);
 
   // Automatically reset setup wizard + test state when target/step changes
   useEffect(() => {
     setWizardStep(0);
+    setTestingWebhook(false);
+    setWebhookLogs([]);
     setStepTestResult(null);
     setStepTestMsg('');
     setStepTestDetail('');
+    setRerunWizard(false);
   }, [integrationTarget, mobileSdk]);
 
   // Reset test result when step changes
@@ -139,6 +145,7 @@ export default function DashboardPage() {
       if (data.webhook_url) setWizardWebhookUrl(data.webhook_url);
       // Fetch orders for this merchant
       fetchOrders(userId);
+      fetchEmailLogs(userId);
     } catch (error) {
       console.error('Error fetching profile:', error);
       
@@ -152,6 +159,7 @@ export default function DashboardPage() {
          } else {
             setProfile(insertedData);
             fetchOrders(userId);
+            fetchEmailLogs(userId);
          }
       } else {
          setDbError(error.message);
@@ -176,6 +184,24 @@ export default function DashboardPage() {
       console.error('Error fetching orders:', err);
     } finally {
       setOrdersLoading(false);
+    }
+  };
+
+  const fetchEmailLogs = async (userId) => {
+    setEmailLogsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('email_logs')
+        .select('*')
+        .eq('merchant_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setEmailLogs(data || []);
+    } catch (err) {
+      console.error('Error fetching email logs:', err);
+    } finally {
+      setEmailLogsLoading(false);
     }
   };
 
@@ -1342,7 +1368,126 @@ echo "Order Created: " . $data['orderId'];
                   </div>
                 </div>
 
-                {wizardStep === 0 ? (
+                {profile?.setup_progress?.[integrationTarget] && !rerunWizard ? (
+                  <div className="bg-white p-8 rounded-3xl border border-slate-200/80 shadow-[0_4px_25px_rgba(0,0,0,0.02)] animate-fadeIn">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 pb-6 border-b border-slate-100">
+                      <div>
+                        <h3 className="text-xl font-black text-slate-900 flex items-center gap-2">
+                          <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+                          {integrationTarget === 'email_forwarding' ? 'Email Routing Active' : integrationTarget === 'website' ? 'Website Integration Active' : 'Mobile SDK Active'}
+                        </h3>
+                        <p className="text-sm text-slate-500 font-medium mt-1">
+                          Your integration is complete and listening for real-time payments.
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setRerunWizard(true)}
+                        className="px-4 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold text-xs rounded-xl border border-slate-200 transition-all flex items-center gap-2 shrink-0"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" /> Modify Configuration
+                      </button>
+                    </div>
+
+                    {integrationTarget === 'email_forwarding' && (
+                      <div className="space-y-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100">
+                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Total Forwarded</p>
+                            <p className="text-2xl font-black text-slate-800">{emailLogs.length}</p>
+                          </div>
+                          <div className="p-5 bg-emerald-50 rounded-2xl border border-emerald-100">
+                            <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">Matched Orders</p>
+                            <p className="text-2xl font-black text-emerald-700">{emailLogs.filter(l => l.status === 'matched').length}</p>
+                          </div>
+                          <div className="p-5 bg-blue-50 rounded-2xl border border-blue-100">
+                            <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Parsed (No Match)</p>
+                            <p className="text-2xl font-black text-blue-700">{emailLogs.filter(l => l.status === 'parsed').length}</p>
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="text-sm font-bold text-slate-800">Live Email Routing Logs</h4>
+                            <button onClick={() => fetchEmailLogs(profile.id)} className="text-[10px] font-bold text-blue-600 uppercase flex items-center gap-1 hover:underline">
+                              <RefreshCw className={`w-3 h-3 ${emailLogsLoading ? 'animate-spin' : ''}`} /> Refresh Logs
+                            </button>
+                          </div>
+                          <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm overflow-x-auto">
+                            <table className="w-full text-left border-collapse min-w-[500px]">
+                              <thead>
+                                <tr className="bg-slate-50 border-b border-slate-100">
+                                  <th className="px-4 py-3 text-[10px] font-black text-slate-500 uppercase tracking-wider">Time</th>
+                                  <th className="px-4 py-3 text-[10px] font-black text-slate-500 uppercase tracking-wider">Sender</th>
+                                  <th className="px-4 py-3 text-[10px] font-black text-slate-500 uppercase tracking-wider">Snippet</th>
+                                  <th className="px-4 py-3 text-[10px] font-black text-slate-500 uppercase tracking-wider text-right">Status</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-slate-100">
+                                {emailLogs.length === 0 ? (
+                                  <tr>
+                                    <td colSpan="4" className="px-4 py-12 text-center text-sm font-medium text-slate-400">
+                                      No emails received yet. Send a test payment to your UPI ID to trigger a bank email!
+                                    </td>
+                                  </tr>
+                                ) : (
+                                  emailLogs.slice(0, 10).map((log) => (
+                                    <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
+                                      <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-500 font-medium">
+                                        {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                      </td>
+                                      <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700 font-bold">
+                                        {log.sender}
+                                      </td>
+                                      <td className="px-4 py-3.5 text-xs text-slate-500 truncate max-w-[200px]" title={log.body_snippet}>
+                                        {log.body_snippet}
+                                      </td>
+                                      <td className="px-4 py-3.5 whitespace-nowrap text-right">
+                                        {log.status === 'matched' ? (
+                                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-extrabold uppercase bg-emerald-100 text-emerald-700">Matched</span>
+                                        ) : log.status === 'parsed' ? (
+                                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-extrabold uppercase bg-blue-100 text-blue-700">Parsed</span>
+                                        ) : (
+                                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-extrabold uppercase bg-slate-100 text-slate-600">Ignored</span>
+                                        )}
+                                      </td>
+                                    </tr>
+                                  ))
+                                )}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {(integrationTarget === 'website' || integrationTarget === 'mobile_app') && (
+                      <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200 shadow-inner">
+                        <p className="text-sm font-bold text-slate-800 mb-4">Production Credentials</p>
+                        <div className="flex flex-col gap-3">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 bg-white rounded-xl border border-slate-200 shadow-sm gap-2">
+                            <span className="text-xs font-bold text-slate-600">Platform API Key</span>
+                            <div className="flex items-center gap-2">
+                              <code className="text-xs font-mono font-black text-slate-800 bg-slate-100 px-2.5 py-1.5 rounded">{CONFIG.platformApiKey}</code>
+                            </div>
+                          </div>
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 bg-white rounded-xl border border-slate-200 shadow-sm gap-2">
+                            <span className="text-xs font-bold text-slate-600">Merchant API Key</span>
+                            <div className="flex items-center gap-2">
+                              <code className="text-xs font-mono font-black text-slate-800 bg-slate-100 px-2.5 py-1.5 rounded truncate max-w-[200px]">{profile?.api_key}</code>
+                            </div>
+                          </div>
+                          {integrationTarget === 'website' && (
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 bg-white rounded-xl border border-slate-200 shadow-sm gap-2 mt-2 border-t-2 border-slate-100">
+                              <span className="text-xs font-bold text-slate-600">Registered Webhook</span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-mono font-bold text-slate-500 truncate max-w-[200px]">{profile?.webhook_url || 'Not configured'}</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : wizardStep === 0 ? (
                   /* STEP 0: WELCOME CARD PANEL */
                   <div className="bg-white p-8 rounded-3xl border border-slate-200/80 shadow-[0_4px_25px_rgba(0,0,0,0.02)] flex flex-col items-center text-center max-w-2xl mx-auto space-y-6 py-12 animate-fadeIn select-none">
                     <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center border border-blue-100 shadow-sm">
@@ -1407,12 +1552,17 @@ echo "Order Created: " . $data['orderId'];
                         Reset Setup wizard
                       </button>
                       <button
-                        onClick={() => {
-                          document.getElementById('webhook-simulator-view')?.scrollIntoView({ behavior: 'smooth' });
+                        onClick={async () => {
+                          const currentProgress = profile?.setup_progress || { email_forwarding: false, website: false, android_sdk: false };
+                          const newProgress = { ...currentProgress, [integrationTarget]: true };
+                          await supabase.from('merchants').update({ setup_progress: newProgress }).eq('id', profile.id);
+                          setProfile({ ...profile, setup_progress: newProgress });
+                          setRerunWizard(false);
+                          setWizardStep(0);
                         }}
-                        className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all text-xs font-black shadow-md shadow-emerald-500/10"
+                        className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all text-sm font-bold shadow-md shadow-emerald-500/20"
                       >
-                        Launch Webhook Tester
+                        Finish & Save Progress
                       </button>
                     </div>
                   </div>

@@ -6,7 +6,7 @@ import { triggerMerchantWebhook } from '@/lib/webhook';
 
 export async function POST(request) {
   try {
-    const { api_key, body: emailBody } = await request.json();
+    const { api_key, body: emailBody, from: emailSender } = await request.json();
 
     if (!api_key || !emailBody) {
       return NextResponse.json({ error: 'Missing API key or email body' }, { status: 400 });
@@ -52,10 +52,20 @@ export async function POST(request) {
 
 
     // 2. Parse the email text to extract UTR and Amount
-    // We reuse the robust transaction parsing engine
     const parsed = parseTransactionText(emailBody);
     
+    // Helper to log emails to the database
+    const logEmail = async (status) => {
+      await supabaseAdmin.from('email_logs').insert({
+        merchant_id: merchant.id,
+        sender: emailSender || 'Unknown',
+        body_snippet: emailBody.substring(0, 150) + (emailBody.length > 150 ? '...' : ''),
+        status: status
+      });
+    };
+
     if (!parsed || !parsed.amount || !parsed.utr) {
+      await logEmail('ignored');
       return NextResponse.json({
         success: false,
         code: 'EMAIL_NOT_PARSED',
@@ -81,6 +91,7 @@ export async function POST(request) {
     }
 
     if (!order || order.length === 0) {
+      await logEmail('parsed'); // It was parsed, but no matching order found
       return NextResponse.json({
         success: false,
         code: 'ORDER_NOT_FOUND',
@@ -99,6 +110,7 @@ export async function POST(request) {
       .limit(1);
 
     if (!dupError && duplicateUtr && duplicateUtr.length > 0) {
+      await logEmail('parsed'); // Parsed, but duplicate UTR
       return NextResponse.json({
         success: false,
         code: 'DUPLICATE_UTR',
@@ -150,6 +162,9 @@ export async function POST(request) {
 
     // 7. Trigger merchant outbound webhook safely
     await triggerMerchantWebhook(matchedOrder.id);
+    
+    // Log the successful match!
+    await logEmail('matched');
 
     return NextResponse.json({
       success: true,

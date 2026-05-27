@@ -60,3 +60,22 @@ ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS external_ref TEXT;
 -- Note: If your orders table was created with id as UUID, uncomment the line below to convert it to TEXT.
 -- ALTER TABLE public.orders ALTER COLUMN id TYPE TEXT;
 
+-- 10. Add integration setup progress tracking
+ALTER TABLE public.merchants ADD COLUMN IF NOT EXISTS setup_progress JSONB DEFAULT '{"email_forwarding": false, "website": false, "android_sdk": false}';
+
+-- 11. Create email_logs table for the integration dashboard
+CREATE TABLE IF NOT EXISTS public.email_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    merchant_id UUID REFERENCES public.merchants(id) ON DELETE CASCADE,
+    sender TEXT,
+    body_snippet TEXT,
+    status TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.email_logs ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Merchants can view their own email logs" 
+ON public.email_logs FOR SELECT 
+USING (auth.uid() = merchant_id);
+
