@@ -2378,7 +2378,7 @@ async function checkOrderStatus(orderId) {
                                     <RefreshCw className="w-6 h-6 text-slate-450 animate-spin" />
                                     <div>
                                       <p className="text-xs font-bold text-slate-750">Waiting for Google email...</p>
-                                      <p className="text-[10px] text-slate-450 font-medium mt-0.5">Click 'Proceed' on Gmail in Step 2 to trigger the verification mail.</p>
+                                      <p className="text-[10px] text-slate-450 font-medium mt-0.5">Click &apos;Proceed&apos; on Gmail in Step 2 to trigger the verification mail.</p>
                                     </div>
                                     <button 
                                       onClick={() => fetchProfile(user?.id)}
@@ -2405,7 +2405,7 @@ async function checkOrderStatus(orderId) {
 
                                 <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs text-slate-700 font-medium space-y-3 leading-relaxed">
                                   <ol className="list-decimal pl-5 space-y-2">
-                                    <li>In your Gmail search bar, type your bank's notification email address (e.g., `alerts@sbi.co.in` or `customercare@hdfcbank.com`) or keywords like `credited`.</li>
+                                    <li>In your Gmail search bar, type your bank&apos;s notification email address (e.g., `alerts@sbi.co.in` or `customercare@hdfcbank.com`) or keywords like `credited`.</li>
                                     <li>Click **Show search options** (the sliders icon in the search bar).</li>
                                     <li>Click **Create filter** at the bottom of the options window.</li>
                                     <li>Check the box **Forward it to:** and select your verified forwarding email.</li>
