@@ -36,7 +36,7 @@ export async function POST(request) {
     // 1. Authenticate the merchant using the API Key
     const { data: merchant, error: merchantError } = await supabaseAdmin
       .from('merchants')
-      .select('id, subscription_status, sandbox_mode')
+      .select('id, subscription_status, sandbox_mode, subscription_expires_at')
       .eq('api_key', actualKey)
       .single();
 
@@ -44,8 +44,15 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Invalid API Key or Merchant not found.' }, { status: 401 });
     }
 
-    if (merchant.subscription_status !== 'active') {
-      return NextResponse.json({ error: 'Merchant account is inactive. Please renew subscription.' }, { status: 403 });
+    let isSubActive = merchant.subscription_status === 'active';
+    if (isSubActive && merchant.subscription_expires_at) {
+       if (new Date(merchant.subscription_expires_at) < new Date()) {
+           isSubActive = false;
+       }
+    }
+
+    if (!isSubActive) {
+      return NextResponse.json({ error: 'Merchant account is inactive or expired. Please renew subscription.' }, { status: 403 });
     }
 
     let finalAmount = parseFloat(amount);

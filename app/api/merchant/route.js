@@ -12,7 +12,7 @@ export async function GET(req) {
   try {
     const { data, error } = await supabaseAdmin
       .from('merchants')
-      .select('id, business_name, upi_id, theme_color, subscription_status')
+      .select('id, business_name, upi_id, theme_color, subscription_status, subscription_expires_at')
       .eq('api_key', key)
       .single();
 
@@ -20,8 +20,15 @@ export async function GET(req) {
       return NextResponse.json({ error: 'Merchant not found or invalid API key' }, { status: 404 });
     }
 
-    if (data.subscription_status !== 'active') {
-      return NextResponse.json({ error: 'Merchant account is inactive' }, { status: 403 });
+    let isSubActive = data.subscription_status === 'active';
+    if (isSubActive && data.subscription_expires_at) {
+       if (new Date(data.subscription_expires_at) < new Date()) {
+           isSubActive = false;
+       }
+    }
+
+    if (!isSubActive) {
+      return NextResponse.json({ error: 'Merchant account is inactive or expired' }, { status: 403 });
     }
 
     // Never return the api_key itself or webhook_urls to the client

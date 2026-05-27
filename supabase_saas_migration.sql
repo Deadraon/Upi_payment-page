@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS public.merchants (
     api_key UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
     webhook_url TEXT,
     subscription_status TEXT DEFAULT 'active',
+    subscription_expires_at TIMESTAMP WITH TIME ZONE,
     theme_color TEXT DEFAULT '#3B82F6',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );

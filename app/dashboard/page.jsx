@@ -125,6 +125,15 @@ export default function DashboardPage() {
         data.api_key = newKey;
       }
 
+      // Auto-expire check
+      if (data.subscription_status === 'active' && data.subscription_expires_at) {
+        const isExpired = new Date(data.subscription_expires_at) < new Date();
+        if (isExpired) {
+          data.subscription_status = 'expired';
+          await supabase.from('merchants').update({ subscription_status: 'expired' }).eq('id', userId);
+        }
+      }
+
       setProfile(data);
       // Pre-fill wizard webhook URL from saved profile
       if (data.webhook_url) setWizardWebhookUrl(data.webhook_url);
@@ -135,7 +144,8 @@ export default function DashboardPage() {
       
       if (error.code === 'PGRST116') {
          const newKey = generateUUID();
-         const newProfile = { id: userId, business_name: 'My Business', upi_id: 'pending@upi', api_key: newKey };
+         const newExpiry = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
+         const newProfile = { id: userId, business_name: 'My Business', upi_id: 'pending@upi', api_key: newKey, subscription_status: 'active', subscription_expires_at: newExpiry };
          const { data: insertedData, error: insertErr } = await supabase.from('merchants').insert(newProfile).select().single();
          if (insertErr) {
             setDbError(`Insert Error: ${insertErr.message} (Code: ${insertErr.code})`);

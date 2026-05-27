@@ -23,7 +23,17 @@ export async function GET(request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, merchants });
+    const processedMerchants = merchants.map(m => {
+       let isSubActive = m.subscription_status === 'active';
+       if (isSubActive && m.subscription_expires_at) {
+          if (new Date(m.subscription_expires_at) < new Date()) {
+             m.subscription_status = 'expired';
+          }
+       }
+       return m;
+    });
+
+    return NextResponse.json({ success: true, merchants: processedMerchants });
   } catch (err) {
     console.error('API admin merchants GET error:', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

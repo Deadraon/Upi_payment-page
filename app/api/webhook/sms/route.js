@@ -24,7 +24,7 @@ export async function POST(request) {
     if (apiKey) {
       const { data, error } = await supabaseAdmin
         .from('merchants')
-        .select('id, subscription_status')
+        .select('id, subscription_status, subscription_expires_at')
         .eq('api_key', apiKey)
         .single();
       
@@ -38,7 +38,7 @@ export async function POST(request) {
     if (!merchant && secret && secret !== validSecret) {
       const { data, error } = await supabaseAdmin
         .from('merchants')
-        .select('id, subscription_status')
+        .select('id, subscription_status, subscription_expires_at')
         .eq('api_key', secret)
         .single();
         
@@ -52,8 +52,16 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized: Invalid secret or API Key' }, { status: 401 });
     }
 
-    if (merchant && merchant.subscription_status !== 'active') {
-      return NextResponse.json({ error: 'Merchant subscription is inactive' }, { status: 403 });
+    if (merchant) {
+       let isSubActive = merchant.subscription_status === 'active';
+       if (isSubActive && merchant.subscription_expires_at) {
+          if (new Date(merchant.subscription_expires_at) < new Date()) {
+              isSubActive = false;
+          }
+       }
+       if (!isSubActive) {
+         return NextResponse.json({ error: 'Merchant subscription is inactive or expired' }, { status: 403 });
+       }
     }
 
     if (!message) {

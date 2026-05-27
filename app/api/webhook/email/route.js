@@ -15,7 +15,7 @@ export async function POST(request) {
     // 1. Authenticate the merchant
     const { data: merchant, error: merchantError } = await supabaseAdmin
       .from('merchants')
-      .select('id, subscription_status')
+      .select('id, subscription_status, subscription_expires_at')
       .eq('api_key', api_key)
       .single();
 
@@ -38,9 +38,16 @@ export async function POST(request) {
       return NextResponse.json({ success: true, message: 'Saved Gmail verification link' }, { status: 200 });
     }
 
-    // Block actual payment processing if subscription is inactive
-    if (merchant.subscription_status !== 'active' && api_key !== CONFIG.platformApiKey) {
-      return NextResponse.json({ error: 'Merchant subscription is inactive' }, { status: 403 });
+    // Block actual payment processing if subscription is inactive or expired
+    let isSubActive = merchant.subscription_status === 'active';
+    if (isSubActive && merchant.subscription_expires_at) {
+       if (new Date(merchant.subscription_expires_at) < new Date()) {
+           isSubActive = false;
+       }
+    }
+
+    if (!isSubActive && api_key !== CONFIG.platformApiKey) {
+      return NextResponse.json({ error: 'Merchant subscription is inactive or expired' }, { status: 403 });
     }
 
 
