@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { parseBankSms } from '@/lib/parseSms';
+import { parseTransactionText } from '@/lib/parseSms';
 import { CONFIG } from '@/lib/config';
 import { triggerMerchantWebhook } from '@/lib/webhook';
 
@@ -45,7 +45,7 @@ export async function POST(request) {
 
     // 2. Parse the email text to extract UTR and Amount
     // We reuse the robust transaction parsing engine
-    const parsed = parseBankSms(emailBody);
+    const parsed = parseTransactionText(emailBody);
     
     if (!parsed || !parsed.amount || !parsed.utr) {
       return NextResponse.json({

@@ -47,3 +47,15 @@ USING (true);
 ALTER TABLE public.merchants ADD COLUMN IF NOT EXISTS sandbox_mode BOOLEAN DEFAULT true;
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS mode TEXT DEFAULT 'live';
 
+-- 7. Add columns for email forwarding verification
+ALTER TABLE public.merchants ADD COLUMN IF NOT EXISTS gmail_verification_code TEXT;
+
+-- 8. Add project integration columns to orders
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS project TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS callback_url TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS external_ref TEXT;
+
+-- 9. Ensure orders.id is TEXT (to match alphanumeric generation logic)
+-- Note: If your orders table was created with id as UUID, uncomment the line below to convert it to TEXT.
+-- ALTER TABLE public.orders ALTER COLUMN id TYPE TEXT;
+
