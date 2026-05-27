@@ -23,16 +23,12 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized: Invalid API Key' }, { status: 401 });
     }
 
-    if (merchant.subscription_status !== 'active' && api_key !== CONFIG.platformApiKey) {
-      return NextResponse.json({ error: 'Merchant subscription is inactive' }, { status: 403 });
-    }
-
     // -- NEW: Intercept Gmail Forwarding Confirmation Link --
     const gmailLinkMatch = emailBody.match(/(https:\/\/(?:mail|mail-settings)\.google\.com\/mail\/vf-[^"'\s<>]+)/i);
     if (gmailLinkMatch) {
       const link = gmailLinkMatch[1];
       
-      // Save the link to the merchant's database row (reusing the same column name for simplicity, or we can use it as the link)
+      // Save the link to the merchant's database row
       await supabaseAdmin
         .from('merchants')
         .update({ gmail_verification_code: link })
@@ -40,6 +36,11 @@ export async function POST(request) {
         
       console.log(`✅ Intercepted Gmail verification link for merchant ${merchant.id}`);
       return NextResponse.json({ success: true, message: 'Saved Gmail verification link' }, { status: 200 });
+    }
+
+    // Block actual payment processing if subscription is inactive
+    if (merchant.subscription_status !== 'active' && api_key !== CONFIG.platformApiKey) {
+      return NextResponse.json({ error: 'Merchant subscription is inactive' }, { status: 403 });
     }
 
 
