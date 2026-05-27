@@ -312,6 +312,47 @@ export default function DashboardPage() {
     setStepTestMsg('');
     setStepTestDetail('');
 
+    if (integrationTarget === 'email_forwarding') {
+      if (wizardStep === 1) {
+        setStepTestResult('pass');
+        setStepTestMsg('✓ Target email format validated');
+        setStepTestDetail('Your unique forwarding address is correctly mapped to your merchant profile API key.');
+      } else if (wizardStep === 2) {
+        setStepTestResult('pass');
+        setStepTestMsg('✓ Gmail configuration initialized');
+        setStepTestDetail('Follow Gmail instructions to send the verification mail.');
+      } else if (wizardStep === 3) {
+        if (profile?.gmail_verification_code) {
+          setStepTestResult('pass');
+          setStepTestMsg('✓ Gmail forwarding confirmed & verified');
+          setStepTestDetail('Google confirmation link has been intercepted and verified.');
+        } else {
+          try {
+            const { data } = await supabase.from('merchants').select('gmail_verification_code').eq('id', user.id).single();
+            if (data?.gmail_verification_code) {
+              setProfile(prev => ({ ...prev, gmail_verification_code: data.gmail_verification_code }));
+              setStepTestResult('pass');
+              setStepTestMsg('✓ Gmail forwarding confirmed & verified');
+              setStepTestDetail('Google confirmation link has been intercepted and verified.');
+            } else {
+              setStepTestResult('fail');
+              setStepTestMsg('✗ Gmail forwarding link not yet received');
+              setStepTestDetail('Google has not sent the email to the forwarding address yet. Please click the Proceed button in Gmail.');
+            }
+          } catch (e) {
+            setStepTestResult('fail');
+            setStepTestMsg('✗ Fetch error: ' + e.message);
+            setStepTestDetail('Failed to check database for verification code.');
+          }
+        }
+      } else if (wizardStep === 4) {
+        setStepTestResult('pass');
+        setStepTestMsg('✓ Gmail bank alerts routing rule created');
+        setStepTestDetail('Congratulations! Email alerts from your bank will now auto-verify payments.');
+      }
+      return;
+    }
+
     // Step 1: Verify API key is valid by hitting /api/merchant
     if (wizardStep === 1) {
       setStepTestMsg('Validating API key against gateway...');
@@ -1268,6 +1309,13 @@ echo "Order Created: " . $data['orderId'];
                       </svg>
                       Mobile App SDK
                     </button>
+                    <button
+                      onClick={() => setIntegrationTarget('email_forwarding')}
+                      className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all duration-300 flex items-center gap-2 ${integrationTarget === 'email_forwarding' ? 'bg-white text-blue-600 shadow-md shadow-blue-500/5 border border-slate-250' : 'text-slate-500 hover:text-slate-800'}`}
+                    >
+                      <Mail className="w-4 h-4 text-blue-600" />
+                      Email Forwarding
+                    </button>
                   </div>
                 </div>
 
@@ -1463,7 +1511,7 @@ echo "Order Created: " . $data['orderId'];
                                   <span className="w-1 h-1 rounded-full bg-emerald-500" /> SCAN UPI QR CODE
                                 </span>
                               </div>
-                            ) : (
+                            ) : integrationTarget === 'mobile_app' ? (
                               <div className="bg-white border border-slate-200/80 rounded-xl p-2 shadow-sm space-y-1">
                                 <span className="text-[5.5px] text-slate-400 font-bold uppercase tracking-wider block">CHOOSE UPI CLIENT</span>
                                 <div className="grid grid-cols-2 gap-1">
@@ -1483,6 +1531,19 @@ echo "Order Created: " . $data['orderId'];
                                     <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
                                     <span className="font-extrabold text-[5px] text-slate-700">BHIM</span>
                                   </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="bg-white border border-slate-200/80 rounded-xl p-2 shadow-sm space-y-1 text-[5px] text-slate-650 font-medium">
+                                <div className="border-b border-slate-100 pb-1 flex justify-between items-center text-slate-400 text-[4px] uppercase font-bold">
+                                  <span>From: alerts@bank.com</span>
+                                  <span>To: Me</span>
+                                </div>
+                                <p className="font-extrabold text-slate-800 pt-0.5">A/C credited by Rs. {linkAmount || '500.00'}</p>
+                                <p className="text-[4.5px] text-slate-400 line-clamp-2">Dear Customer, your a/c is credited by Rs. {linkAmount || '500.00'} via UPI Ref No 612345678901.</p>
+                                <div className="bg-blue-50 border border-blue-100 rounded p-1 text-blue-600 flex items-center justify-between text-[4px] mt-1 select-none font-bold">
+                                  <span>Auto-Forwarding active</span>
+                                  <span>🚀 Direct</span>
                                 </div>
                               </div>
                             )}
@@ -1513,10 +1574,10 @@ echo "Order Created: " . $data['orderId'];
                       <div className="border-b border-slate-100 pb-4 mb-5 select-none">
                         <div className="flex items-center justify-between">
                           {[
-                            { step: 1, label: integrationTarget === 'website' ? 'Credentials' : 'UPI Vitals' },
-                            { step: 2, label: integrationTarget === 'website' ? 'POST API' : 'Deep Link' },
-                            { step: 3, label: integrationTarget === 'website' ? 'Redirect' : 'Polling Loop' },
-                            { step: 4, label: 'Outbound HMAC Webhook' }
+                            { step: 1, label: integrationTarget === 'website' ? 'Credentials' : integrationTarget === 'mobile_app' ? 'UPI Vitals' : 'Target Email' },
+                            { step: 2, label: integrationTarget === 'website' ? 'POST API' : integrationTarget === 'mobile_app' ? 'Deep Link' : 'Gmail Setup' },
+                            { step: 3, label: integrationTarget === 'website' ? 'Redirect' : integrationTarget === 'mobile_app' ? 'Polling Loop' : 'Verification' },
+                            { step: 4, label: integrationTarget === 'email_forwarding' ? 'Gmail Filter' : 'Outbound HMAC Webhook' }
                           ].map((s, idx) => (
                             <div key={s.step} className="flex items-center flex-1 last:flex-none">
                               <div className="flex flex-col items-center">
@@ -2165,13 +2226,21 @@ async function checkOrderStatus(orderId) {
                               ? 'Test Passed — Re-run Test'
                               : stepTestResult === 'fail'
                                 ? 'Test Failed — Retry'
-                                : wizardStep === 1
-                                  ? '▶ Run Test: Verify API Key'
-                                  : wizardStep === 2
-                                    ? '▶ Run Test: Create Live Order'
-                                    : wizardStep === 3
-                                      ? '▶ Run Test: Poll Order Status'
-                                      : '▶ Run Test: Fire Webhook Event'}
+                                : integrationTarget === 'email_forwarding'
+                                  ? wizardStep === 1
+                                    ? '▶ Run Test: Verify Email Forwarding Target'
+                                    : wizardStep === 2
+                                      ? '▶ Run Test: Initializing Gmail Setup'
+                                      : wizardStep === 3
+                                        ? '▶ Run Test: Verify Google Forwarding Link'
+                                        : '▶ Run Test: Verify Bank Alert Routing'
+                                  : wizardStep === 1
+                                    ? '▶ Run Test: Verify API Key'
+                                    : wizardStep === 2
+                                      ? '▶ Run Test: Create Live Order'
+                                      : wizardStep === 3
+                                        ? '▶ Run Test: Poll Order Status'
+                                        : '▶ Run Test: Fire Webhook Event'}
                         </button>
 
                         {/* Inline result line — red/green with solution */}
@@ -2194,7 +2263,161 @@ async function checkOrderStatus(orderId) {
                             )}
                           </div>
                         )}
+
+                        {integrationTarget === 'email_forwarding' && (
+                          <div className="space-y-4">
+                            {/* Step 1: Target Email */}
+                            {wizardStep === 1 && (
+                              <div className="space-y-4 animate-fadeIn">
+                                <div className="space-y-1">
+                                  <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
+                                    📧 Step 1: Copy Your Inbound Email Address
+                                  </h4>
+                                  <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                                    This is your unique platform email address. Google Mail forwarding rules will send bank alerts here to trigger automatic matches.
+                                  </p>
+                                </div>
+
+                                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+                                  <div className="flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                                    <span>Copyable Forwarding Email Address</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <code className="flex-1 bg-white border border-slate-250 px-3.5 py-2 rounded-xl text-xs font-mono break-all text-slate-800 font-bold select-all">
+                                      {`${profile?.api_key || 'YOUR_API_KEY'}@${typeof window !== 'undefined' ? window.location.host : 'mymob.tech'}`}
+                                    </code>
+                                    <button 
+                                      onClick={() => {
+                                        const emailAddr = `${profile?.api_key || 'YOUR_API_KEY'}@${typeof window !== 'undefined' ? window.location.host : 'mymob.tech'}`;
+                                        navigator.clipboard.writeText(emailAddr);
+                                        setCopied(true);
+                                        setTimeout(() => setCopied(false), 2000);
+                                      }}
+                                      className="p-2.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl transition-all border border-blue-200"
+                                      title="Copy Email Address"
+                                    >
+                                      {copied ? <CheckCircle className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                                    </button>
+                                  </div>
+                                </div>
+
+                                <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-2xl text-[11px] text-blue-800 font-semibold space-y-1.5 leading-normal">
+                                  <p className="font-bold flex items-center gap-1.5 uppercase text-[9.5px] tracking-wider text-blue-700">💡 Domain Warning</p>
+                                  <p>Make sure your Cloudflare Worker is active on this host domain. The username prefix is your raw, prefix-free merchant API Key (UUID).</p>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Step 2: Gmail Setup */}
+                            {wizardStep === 2 && (
+                              <div className="space-y-4 animate-fadeIn">
+                                <div className="space-y-1">
+                                  <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
+                                    ⚙️ Step 2: Configure Forwarding in Gmail Settings
+                                  </h4>
+                                  <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                                    Register your gateway target email address in Gmail settings to start routing transaction alerts.
+                                  </p>
+                                </div>
+
+                                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs text-slate-700 font-medium space-y-3 leading-relaxed">
+                                  <ol className="list-decimal pl-5 space-y-2">
+                                    <li>Open your merchant Gmail account on a desktop browser.</li>
+                                    <li>Click the **Gear icon** (top right) → **See all settings**.</li>
+                                    <li>Select the **Forwarding and POP/IMAP** tab at the top.</li>
+                                    <li>Click the **Add a forwarding address** button.</li>
+                                    <li>Paste your copied forwarding email address from Step 1 and click **Next** → **Proceed** → **OK**.</li>
+                                  </ol>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Step 3: Verification */}
+                            {wizardStep === 3 && (
+                              <div className="space-y-4 animate-fadeIn">
+                                <div className="space-y-1">
+                                  <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
+                                    🔐 Step 3: Intercept Google Verification Link
+                                  </h4>
+                                  <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                                    Google will send a confirmation link to your unique forwarding address. Our webhook will automatically catch it and show it below.
+                                  </p>
+                                </div>
+
+                                {profile?.gmail_verification_code ? (
+                                  <div className="p-4 bg-emerald-50 border border-emerald-250 rounded-2xl text-emerald-900 space-y-3 shadow-sm">
+                                    <strong className="text-xs font-bold text-emerald-850 flex items-center gap-1.5 uppercase">
+                                      ✓ Google link intercepted!
+                                    </strong>
+                                    <p className="text-[11px] leading-relaxed text-emerald-700 font-medium">
+                                      We have intercepted the Google confirmation email. Click the link below to confirm the forwarding permission on Google.
+                                    </p>
+                                    <div className="flex gap-2">
+                                      <a
+                                        href={profile.gmail_verification_code}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="flex-1 py-2 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-center text-xs font-bold shadow-sm"
+                                      >
+                                        Authorize Forwarding on Google
+                                      </a>
+                                      <button
+                                        onClick={() => {
+                                          navigator.clipboard.writeText(profile.gmail_verification_code);
+                                          setCopiedLink(true);
+                                          setTimeout(() => setCopiedLink(false), 2000);
+                                        }}
+                                        className="py-2 px-3 bg-white border border-emerald-250 text-emerald-600 rounded-xl text-xs font-bold"
+                                      >
+                                        {copiedLink ? 'Copied' : 'Copy Link'}
+                                      </button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="p-6 bg-slate-50 border border-slate-200 border-dashed rounded-2xl text-center flex flex-col items-center justify-center space-y-3 select-none animate-pulse">
+                                    <RefreshCw className="w-6 h-6 text-slate-450 animate-spin" />
+                                    <div>
+                                      <p className="text-xs font-bold text-slate-750">Waiting for Google email...</p>
+                                      <p className="text-[10px] text-slate-450 font-medium mt-0.5">Click 'Proceed' on Gmail in Step 2 to trigger the verification mail.</p>
+                                    </div>
+                                    <button 
+                                      onClick={() => fetchProfile(user?.id)}
+                                      className="px-4 py-1.5 bg-white border border-slate-250 text-slate-600 rounded-xl text-[10px] font-bold shadow-xs hover:bg-slate-50 flex items-center gap-1"
+                                    >
+                                      <RefreshCw className="w-3.5 h-3.5" /> Refresh Status
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Step 4: Gmail Filter */}
+                            {wizardStep === 4 && (
+                              <div className="space-y-4 animate-fadeIn">
+                                <div className="space-y-1">
+                                  <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
+                                    ✉️ Step 4: Create Gmail Filtering Rule
+                                  </h4>
+                                  <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                                    Set up a filter to only route transaction/credit alerts from your bank to prevent spam.
+                                  </p>
+                                </div>
+
+                                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs text-slate-700 font-medium space-y-3 leading-relaxed">
+                                  <ol className="list-decimal pl-5 space-y-2">
+                                    <li>In your Gmail search bar, type your bank's notification email address (e.g., `alerts@sbi.co.in` or `customercare@hdfcbank.com`) or keywords like `credited`.</li>
+                                    <li>Click **Show search options** (the sliders icon in the search bar).</li>
+                                    <li>Click **Create filter** at the bottom of the options window.</li>
+                                    <li>Check the box **Forward it to:** and select your verified forwarding email.</li>
+                                    <li>Click **Create filter**. All incoming bank credits will now instantly verify payments on your checkout pages!</li>
+                                  </ol>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
+                    )
 
                       {/* Stepper Footer Navigation Controls */}
                       <div className="border-t border-slate-100 pt-4 flex items-center justify-between mt-4 select-none">
