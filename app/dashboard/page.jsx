@@ -1064,29 +1064,42 @@ echo "Order Created: " . $data['orderId'];
                     </h3>
                     <div className="flex items-center gap-3 mt-3">
                       <div className={`w-3 h-3 rounded-full ${profile?.subscription_status === 'active' ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-red-500'}`} />
-                      <span className="font-extrabold text-lg text-slate-900 capitalize">{profile?.subscription_status || 'Inactive'}</span>
+                      <span className="font-extrabold text-lg text-slate-900 capitalize">
+                         {profile?.subscription_status === 'active' && profile?.subscription_expires_at ? (
+                           (() => {
+                             const daysLeft = Math.ceil((new Date(profile.subscription_expires_at) - new Date()) / (1000 * 60 * 60 * 24));
+                             return daysLeft <= 3 ? `Trial Active (${daysLeft} days left)` : `Active (${daysLeft} days left)`;
+                           })()
+                         ) : profile?.subscription_status || 'Inactive'}
+                      </span>
                     </div>
                     <p className="text-xs text-slate-500 mt-1 font-medium">Active accounts process API transactions and SMS triggers in real-time.</p>
                   </div>
 
-                  {profile?.subscription_status !== 'active' ? (
+                  <div className="flex flex-col sm:flex-row items-center gap-4">
+                    {profile?.subscription_status === 'active' && (
+                      <div className="px-5 py-3 rounded-xl bg-slate-50 border border-slate-100 text-right w-full sm:w-auto">
+                        <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Expiration Date</p>
+                        <p className="text-sm font-mono font-bold text-slate-800 mt-0.5">
+                          {profile?.subscription_expires_at ? new Date(profile.subscription_expires_at).toLocaleDateString('en-IN', { dateStyle: 'medium' }) : 'Next billing cycle'}
+                        </p>
+                      </div>
+                    )}
                     <button
                       onClick={() => {
                         const url = `/pay?api_key=${CONFIG.platformApiKey}&amount=${CONFIG.subscriptionFee}&ref=${profile.id}&note=Subscription_Renewal`;
                         window.open(url, '_blank');
                       }}
-                      className="px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all text-sm font-bold flex items-center justify-center gap-2 shadow-md shadow-emerald-500/20"
+                      className={`px-6 py-3.5 w-full sm:w-auto rounded-xl transition-all text-sm font-bold flex items-center justify-center gap-2 shadow-md ${
+                        profile?.subscription_status === 'active' 
+                          ? 'bg-slate-800 hover:bg-slate-900 text-white shadow-slate-900/20' 
+                          : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/20'
+                      }`}
                     >
-                      <CreditCard className="w-4 h-4" /> Renew for ₹{CONFIG.subscriptionFee}/mo
+                      <CreditCard className="w-4 h-4" /> 
+                      {profile?.subscription_status === 'active' ? 'Manage Subscription' : `Renew for ₹${CONFIG.subscriptionFee}/mo`}
                     </button>
-                  ) : (
-                    <div className="px-5 py-3 rounded-xl bg-slate-50 border border-slate-100 text-right">
-                      <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Renewal Date</p>
-                      <p className="text-sm font-mono font-bold text-slate-800 mt-0.5">
-                        {profile?.subscription_expires_at ? new Date(profile.subscription_expires_at).toLocaleDateString('en-IN', { dateStyle: 'medium' }) : 'Next billing cycle'}
-                      </p>
-                    </div>
-                  )}
+                  </div>
                 </div>
 
               </div>
@@ -2299,11 +2312,11 @@ async function checkOrderStatus(orderId) {
                                   </div>
                                   <div className="flex items-center gap-2">
                                     <code className="flex-1 bg-white border border-slate-250 px-3.5 py-2 rounded-xl text-xs font-mono break-all text-slate-800 font-bold select-all">
-                                      {`${profile?.api_key || 'YOUR_API_KEY'}@${typeof window !== 'undefined' ? window.location.host : 'mymob.tech'}`}
+                                      {`${profile?.api_key || 'YOUR_API_KEY'}@${typeof window !== 'undefined' ? window.location.host.replace(/^www\./, '') : 'mymob.tech'}`}
                                     </code>
                                     <button 
                                       onClick={() => {
-                                        const emailAddr = `${profile?.api_key || 'YOUR_API_KEY'}@${typeof window !== 'undefined' ? window.location.host : 'mymob.tech'}`;
+                                        const emailAddr = `${profile?.api_key || 'YOUR_API_KEY'}@${typeof window !== 'undefined' ? window.location.host.replace(/^www\./, '') : 'mymob.tech'}`;
                                         navigator.clipboard.writeText(emailAddr);
                                         setCopied(true);
                                         setTimeout(() => setCopied(false), 2000);
