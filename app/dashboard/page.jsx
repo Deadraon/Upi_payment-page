@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
@@ -695,7 +695,7 @@ export default function DashboardPage() {
       console.error("Webhook test dispatch failed:", err);
       if (fromWizard) {
         setStepTestResult('fail');
-        setStepTestMsg('✗ Connection failed — endpoint unreachable');
+        setStepTestMsg('âœ— Connection failed â€” endpoint unreachable');
         setStepTestDetail('Use ngrok to expose your local server: ngrok http <port>');
       } else {
         alert("Failed to send webhook test event: " + err.message);
@@ -714,16 +714,16 @@ export default function DashboardPage() {
     if (integrationTarget === 'email_forwarding') {
       if (wizardStep === 1) {
         setStepTestResult('pass');
-        setStepTestMsg('✓ Target email format validated');
+        setStepTestMsg('âœ“ Target email format validated');
         setStepTestDetail('Your unique forwarding address is correctly mapped to your merchant profile API key.');
       } else if (wizardStep === 2) {
         setStepTestResult('pass');
-        setStepTestMsg('✓ Gmail configuration initialized');
+        setStepTestMsg('âœ“ Gmail configuration initialized');
         setStepTestDetail('Follow Gmail instructions to send the verification mail.');
       } else if (wizardStep === 3) {
         if (profile?.gmail_verification_code) {
           setStepTestResult('pass');
-          setStepTestMsg('✓ Gmail forwarding confirmed & verified');
+          setStepTestMsg('âœ“ Gmail forwarding confirmed & verified');
           setStepTestDetail('Google confirmation link has been intercepted and verified.');
         } else {
           try {
@@ -731,22 +731,22 @@ export default function DashboardPage() {
             if (data?.gmail_verification_code) {
               setProfile(prev => ({ ...prev, gmail_verification_code: data.gmail_verification_code }));
               setStepTestResult('pass');
-              setStepTestMsg('✓ Gmail forwarding confirmed & verified');
+              setStepTestMsg('âœ“ Gmail forwarding confirmed & verified');
               setStepTestDetail('Google confirmation link has been intercepted and verified.');
             } else {
               setStepTestResult('fail');
-              setStepTestMsg('✗ Gmail forwarding link not yet received');
+              setStepTestMsg('âœ— Gmail forwarding link not yet received');
               setStepTestDetail('Google has not sent the email to the forwarding address yet. Please click the Proceed button in Gmail.');
             }
           } catch (e) {
             setStepTestResult('fail');
-            setStepTestMsg('✗ Fetch error: ' + e.message);
+            setStepTestMsg('âœ— Fetch error: ' + e.message);
             setStepTestDetail('Failed to check database for verification code.');
           }
         }
       } else if (wizardStep === 4) {
         setStepTestResult('pass');
-        setStepTestMsg('✓ Gmail bank alerts routing rule created');
+        setStepTestMsg('âœ“ Gmail bank alerts routing rule created');
         setStepTestDetail('Congratulations! Email alerts from your bank will now auto-verify payments.');
       }
       return;
@@ -798,16 +798,16 @@ export default function DashboardPage() {
         const data = await res.json();
         if (res.ok && data.orderId) {
           setStepTestResult('pass');
-          setStepTestMsg(`✓ Order created — ID: ${data.orderId.slice(0, 18)}...`);
-          setStepTestDetail(`Amount: ₹${data.orderAmount} · Mode: ${data.mode} · Use this orderId in the redirect URL.`);
+          setStepTestMsg(`âœ“ Order created â€” ID: ${data.orderId.slice(0, 18)}...`);
+          setStepTestDetail(`Amount: â‚¹${data.orderAmount} Â· Mode: ${data.mode} Â· Use this orderId in the redirect URL.`);
         } else {
           setStepTestResult('fail');
-          setStepTestMsg(`✗ Order creation failed: ${data.error || 'Unknown'}`);
+          setStepTestMsg(`âœ— Order creation failed: ${data.error || 'Unknown'}`);
           setStepTestDetail('Make sure your API key is correct and your merchant account is active.');
         }
       } catch (e) {
         setStepTestResult('fail');
-        setStepTestMsg('✗ Network error: ' + e.message);
+        setStepTestMsg('âœ— Network error: ' + e.message);
         setStepTestDetail('Could not reach /api/orders endpoint.');
       }
       return;
@@ -960,7 +960,7 @@ export default function DashboardPage() {
         <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-xl z-50">
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{label}</p>
           <p className="text-base font-black text-slate-900 mt-1.5 flex items-baseline">
-            <span className="text-xs font-bold text-slate-400 mr-0.5">₹</span>
+            <span className="text-xs font-bold text-slate-400 mr-0.5">â‚¹</span>
             {payload[0].value.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
           </p>
           <p className="text-[10px] text-blue-600 font-bold mt-0.5">
@@ -1155,7 +1155,7 @@ echo "Order Created: " . $data['orderId'];
                     }`}
                   >
                     <span>{m} Mo{m > 1 ? 's' : ''}</span>
-                    <span className="text-[9px] font-bold opacity-75">₹{CONFIG.subscriptionFee * m}</span>
+                    <span className="text-[9px] font-bold opacity-75">â‚¹{CONFIG.subscriptionFee * m}</span>
                   </button>
                 ))}
                 <div className="relative">
@@ -1174,7 +1174,7 @@ echo "Order Created: " . $data['orderId'];
                   />
                   {customMonths && (
                     <span className="absolute bottom-0.5 left-0 right-0 text-center text-[7px] font-bold text-slate-400">
-                      ₹{CONFIG.subscriptionFee * parseInt(customMonths || 1)}
+                      â‚¹{CONFIG.subscriptionFee * parseInt(customMonths || 1)}
                     </span>
                   )}
                 </div>
@@ -1183,7 +1183,7 @@ echo "Order Created: " . $data['orderId'];
               <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex flex-col gap-3">
                 <div className="flex justify-between items-center text-xs font-bold text-slate-500">
                   <span>Total (for {months} Month{months > 1 ? 's' : ''})</span>
-                  <span className="text-slate-900 font-black">₹{total.toLocaleString('en-IN')}</span>
+                  <span className="text-slate-900 font-black">â‚¹{total.toLocaleString('en-IN')}</span>
                 </div>
                 
                 <button
@@ -1191,7 +1191,7 @@ echo "Order Created: " . $data['orderId'];
                   className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-md shadow-blue-500/20"
                 >
                   <CreditCard className="w-3.5 h-3.5" />
-                  Pay ₹{total.toLocaleString('en-IN')} via UPI
+                  Pay â‚¹{total.toLocaleString('en-IN')} via UPI
                 </button>
               </div>
 
@@ -1239,8 +1239,8 @@ echo "Order Created: " . $data['orderId'];
                     return (
                       <div key={order.id} className="flex items-center justify-between p-3 bg-slate-50 border border-slate-150 rounded-xl text-xs">
                         <div>
-                          <p className="font-black text-slate-800">₹{parseFloat(order.amount).toLocaleString('en-IN')}</p>
-                          <p className="text-[9px] font-bold text-slate-400 mt-0.5">{dateStr} · Ref: {order.id.slice(0, 8)}</p>
+                          <p className="font-black text-slate-800">â‚¹{parseFloat(order.amount).toLocaleString('en-IN')}</p>
+                          <p className="text-[9px] font-bold text-slate-400 mt-0.5">{dateStr} Â· Ref: {order.id.slice(0, 8)}</p>
                         </div>
                         <span className={`text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
                           order.status === 'verified'
@@ -1291,249 +1291,201 @@ echo "Order Created: " . $data['orderId'];
   };
 
   const renderSubscriptionPanel = () => {
-    const daysLeft = getDaysLeft();
+    const expiresAt = profile?.subscription_expires_at ? new Date(profile.subscription_expires_at) : null;
+    const isValidExpiry = expiresAt && !isNaN(expiresAt.getTime()) && expiresAt.getTime() > Date.now();
+    const daysLeft = isValidExpiry ? Math.ceil((expiresAt - new Date()) / 86400000) : null;
     const isActive = profile?.subscription_status === 'active';
-    
+    const isUrgent = daysLeft !== null && daysLeft <= 7;
+    const months = customMonths ? parseInt(customMonths) || 1 : selectedMonths;
+    const total = CONFIG.subscriptionFee * months;
+    const payUrl = `/pay?api_key=${CONFIG.platformApiKey}&amount=${total}&ref=${profile?.id}&note=Subscription_${months}Month`;
+
+    const handleRefreshStatus = async () => {
+      setStatusChecking(true);
+      if (user?.id) await fetchProfile(user.id);
+      setStatusChecking(false);
+    };
+
     return (
-      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden flex flex-col gap-6">
-        <div className="absolute right-0 top-0 w-64 h-64 bg-gradient-to-bl from-blue-500/5 to-transparent rounded-bl-full pointer-events-none" />
-        
-        {/* TOP ROW: Header & Toggle Button */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 z-10">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-50 border border-blue-100 rounded-2xl flex items-center justify-center text-blue-600">
-              <Star className="w-5 h-5 animate-pulse" />
-            </div>
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 font-sans">Account Tier</p>
-              <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-                Premium Plan
-                <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
-                  isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
-                }`}>
-                  {isActive ? 'Active' : profile?.subscription_status || 'Inactive'}
+      <div className="flex flex-col gap-6 max-w-3xl mx-auto w-full animate-fade-up">
+
+        {/* â”€â”€ HERO STATUS CARD â”€â”€ */}
+        <div className={`relative rounded-3xl overflow-hidden p-8 ${
+          isActive
+            ? 'bg-gradient-to-br from-violet-600 via-indigo-600 to-blue-700'
+            : 'bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900'
+        }`}>
+          {/* decorative blobs */}
+          <div className="absolute top-0 right-0 w-72 h-72 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+            {/* Left: Status */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <span className={`w-2.5 h-2.5 rounded-full ${isActive ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`} />
+                <span className="text-white/70 text-xs font-bold uppercase tracking-widest">
+                  {isActive ? 'Premium Plan â€” Active' : 'Plan Inactive'}
                 </span>
-              </h3>
-            </div>
-          </div>
-          
-          {/* Toggle Button */}
-          <button
-            onClick={() => setShowManageSection(!showManageSection)}
-            className="flex items-center gap-1.5 px-4 py-2 border border-slate-200 hover:border-slate-350 hover:bg-slate-50 text-slate-700 text-xs font-black rounded-xl transition-all shadow-sm z-10"
-          >
-            {showManageSection ? 'Hide Details' : 'Manage Subscription'}
-            <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${showManageSection ? 'rotate-180' : ''}`} />
-          </button>
-        </div>
-
-        {/* MIDDLE ROW: Circular Progress & Details */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl p-4 z-10">
-          {/* Circular Countdown Progress */}
-          <div className="flex items-center gap-6">
-            <div className="relative flex items-center justify-center">
-              {(() => {
-                const maxDays = 30;
-                const percentage = daysLeft !== null ? Math.min(100, Math.max(0, (daysLeft / maxDays) * 100)) : 0;
-                const circumference = 2 * Math.PI * 40;
-                const strokeDashoffset = circumference - (percentage / 100) * circumference;
-                const strokeColor = daysLeft === null ? 'stroke-slate-200' : daysLeft <= 3 ? 'stroke-red-500' : daysLeft <= 7 ? 'stroke-amber-500' : 'stroke-blue-600';
-                
-                return (
-                  <>
-                    <svg className="w-28 h-28 transform -rotate-90">
-                      <circle cx="56" cy="56" r="40" className="stroke-slate-100" strokeWidth="6" fill="transparent" />
-                      <circle 
-                        cx="56" 
-                        cy="56" 
-                        r="40" 
-                        className={`${strokeColor} transition-all duration-500`}
-                        strokeWidth="6" 
-                        fill="transparent" 
-                        strokeDasharray={circumference}
-                        strokeDashoffset={strokeDashoffset}
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                    <div className="absolute flex flex-col items-center justify-center">
-                      <p className={`text-2xl font-black ${
-                        daysLeft === null ? 'text-slate-400' : daysLeft <= 3 ? 'text-red-600' : daysLeft <= 7 ? 'text-amber-600' : 'text-slate-900'
-                      }`}>
-                        {daysLeft !== null ? daysLeft : '—'}
-                      </p>
-                      <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">days left</p>
-                    </div>
-                  </>
-                );
-              })()}
-            </div>
-
-            <div className="space-y-1">
-              <h4 className="text-sm font-black text-slate-900">
-                {daysLeft !== null ? `${daysLeft} Days Remaining` : 'No Active Subscription'}
-              </h4>
-              <p className="text-[11px] text-slate-500 font-semibold leading-normal">
-                {isActive ? 'Your merchant account has active transaction routing privileges.' : 'Your dashboard features and APIs are currently locked.'}
-              </p>
-            </div>
-          </div>
-
-          {/* Date Info Fields */}
-          <div className="grid grid-cols-2 gap-6 w-full md:w-auto md:min-w-[300px] border-t md:border-t-0 md:border-l border-slate-200/60 pt-4 md:pt-0 md:pl-6">
-            <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                Subscribed Since
-              </p>
-              <p className="text-xs font-black text-slate-800 mt-1">
-                {profile?.created_at ? new Date(profile.created_at).toLocaleDateString('en-IN', { dateStyle: 'medium' }) : '—'}
-              </p>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5 text-slate-400" />
-                Expires On
-              </p>
-              <p className="text-xs font-black text-slate-800 mt-1">
-                {profile?.subscription_expires_at ? new Date(profile.subscription_expires_at).toLocaleDateString('en-IN', { dateStyle: 'medium' }) : 'No Active Subscription'}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* EXPANDABLE PORTION: RENEWAL & HISTORY */}
-        {showManageSection && (
-          <div className="z-10 animate-fade-up">
-            <div className="border-t border-slate-150 my-2" />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
-              
-              {/* Payment Renewal Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center text-blue-600">
-                    <Zap className="w-4.5 h-4.5" />
-                  </div>
-                  <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">Select Renewal Term</h3>
-                </div>
-
-                <div className="grid grid-cols-4 gap-2">
-                  {[1, 2, 3].map(m => (
-                    <button
-                      key={m}
-                      onClick={() => { setSelectedMonths(m); setCustomMonths(''); }}
-                      className={`py-2 px-1 rounded-xl border-2 font-black text-xs transition-all flex flex-col items-center justify-center gap-0.5 ${
-                        selectedMonths === m && !customMonths
-                          ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm'
-                          : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-350'
-                      }`}
-                    >
-                      <span>{m} Mo{m > 1 ? 's' : ''}</span>
-                      <span className="text-[9px] font-bold opacity-75">₹{CONFIG.subscriptionFee * m}</span>
-                    </button>
-                  ))}
-                  <div className="relative">
-                    <input
-                      type="number"
-                      min="1"
-                      max="24"
-                      placeholder="Custom"
-                      value={customMonths}
-                      onChange={e => { setCustomMonths(e.target.value); setSelectedMonths(0); }}
-                      className={`w-full h-full py-2 px-2 rounded-xl border-2 font-black text-xs text-center transition-all focus:outline-none placeholder-slate-400 ${
-                        customMonths
-                          ? 'border-blue-500 bg-blue-50 text-blue-700'
-                          : 'border-slate-200 bg-slate-50 text-slate-600 focus:border-slate-350'
-                      }`}
-                    />
-                    {customMonths && (
-                      <span className="absolute bottom-0.5 left-0 right-0 text-center text-[7px] font-bold text-slate-400">
-                        ₹{CONFIG.subscriptionFee * parseInt(customMonths || 1)}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {(() => {
-                  const months = customMonths ? parseInt(customMonths) || 1 : selectedMonths;
-                  const total = CONFIG.subscriptionFee * months;
-                  const payUrl = `/pay?api_key=${CONFIG.platformApiKey}&amount=${total}&ref=${profile?.id}&note=Subscription_${months}Month`;
-                  
-                  return (
-                    <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex flex-col gap-3">
-                      <div className="flex justify-between items-center text-xs font-bold text-slate-500">
-                        <span>Total (for {months} Month{months > 1 ? 's' : ''})</span>
-                        <span className="text-slate-900 font-black">₹{total.toLocaleString('en-IN')}</span>
-                      </div>
-                      <button
-                        onClick={() => window.open(payUrl, '_blank')}
-                        className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-md shadow-blue-500/20"
-                      >
-                        <CreditCard className="w-3.5 h-3.5" />
-                        Pay ₹{total.toLocaleString('en-IN')} via UPI
-                      </button>
-                    </div>
-                  );
-                })()}
               </div>
+              <h2 className="text-3xl font-black text-white leading-tight">
+                {daysLeft !== null
+                  ? <>{daysLeft} <span className="text-white/60 text-xl font-bold">days left</span></>
+                  : isActive ? <span className="text-xl">No Expiry Set</span> : <span className="text-xl">Subscription Expired</span>
+                }
+              </h2>
+              <p className="text-white/50 text-sm font-medium">
+                {isActive
+                  ? `Expires: ${expiresAt ? expiresAt.toLocaleDateString('en-IN', { dateStyle: 'long' }) : 'Not set'}`
+                  : 'Renew below to reactivate API access & dashboard features'
+                }
+              </p>
+            </div>
 
-              {/* Payment History Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center text-blue-600">
-                    <Clock className="w-4.5 h-4.5" />
-                  </div>
-                  <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">Payment History</h3>
-                </div>
+            {/* Right: Quick Action */}
+            <div className="flex flex-col gap-2 shrink-0">
+              <button
+                onClick={() => setShowManageSection(!showManageSection)}
+                className="px-5 py-2.5 bg-white/15 hover:bg-white/25 border border-white/20 text-white text-sm font-bold rounded-2xl transition-all backdrop-blur-sm flex items-center gap-2 cursor-pointer"
+              >
+                {showManageSection ? 'Hide Renewal' : 'Renew / Manage'}
+                <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${showManageSection ? 'rotate-180' : ''}`} />
+              </button>
+              <button
+                onClick={handleRefreshStatus}
+                disabled={statusChecking}
+                className="px-5 py-2 bg-transparent hover:bg-white/10 border border-white/15 text-white/70 hover:text-white text-xs font-semibold rounded-2xl transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                {statusChecking ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                Refresh Status
+              </button>
+            </div>
+          </div>
 
-                {historyLoading ? (
-                  <div className="py-8 flex flex-col items-center justify-center gap-2 bg-slate-50 border border-slate-100 rounded-2xl">
-                    <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
-                    <p className="text-[10px] text-slate-400 font-bold">Loading payment logs...</p>
-                  </div>
-                ) : historyOrders.length === 0 ? (
-                  <div className="py-8 text-center text-xs font-semibold text-slate-500 bg-slate-50 border border-slate-100 rounded-2xl">
-                    No subscription renewals found.
-                  </div>
-                ) : (
-                  <div className="max-h-[180px] overflow-y-auto space-y-2 pr-1.5 scrollbar-thin">
-                    {historyOrders.map(order => {
-                      const dateStr = new Date(order.created_at).toLocaleDateString('en-IN', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric'
-                      });
-                      return (
-                        <div key={order.id} className="flex items-center justify-between p-3 bg-slate-50 border border-slate-150 rounded-xl text-xs">
-                          <div>
-                            <p className="font-black text-slate-800">₹{parseFloat(order.amount).toLocaleString('en-IN')}</p>
-                            <p className="text-[9px] font-bold text-slate-400 mt-0.5">{dateStr} · Ref: {order.id.slice(0, 8)}</p>
-                          </div>
-                          <span className={`text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
-                            order.status === 'verified'
-                              ? 'bg-emerald-100 text-emerald-700'
-                              : order.status === 'pending'
-                                ? 'bg-amber-100 text-amber-700'
-                                : 'bg-red-100 text-red-700'
-                          }`}>
-                            {order.status}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
+          {/* Urgent Warning Banner */}
+          {isUrgent && (
+            <div className="relative z-10 mt-5 flex items-center gap-3 bg-amber-500/20 border border-amber-400/30 rounded-2xl px-4 py-3">
+              <AlertCircle className="w-4 h-4 text-amber-300 shrink-0" />
+              <p className="text-amber-200 text-xs font-bold">Your subscription expires in {daysLeft} day{daysLeft !== 1 ? 's' : ''}. Renew now to avoid service interruption.</p>
+            </div>
+          )}
+        </div>
+
+        {/* â”€â”€ RENEWAL SECTION (expandable) â”€â”€ */}
+        {showManageSection && (
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex flex-col gap-5 animate-fade-up">
+            <div>
+              <h3 className="text-sm font-black text-slate-900">Select Renewal Duration</h3>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">Add months to your current plan. â‚¹{CONFIG.subscriptionFee}/month.</p>
+            </div>
+
+            {/* Duration Chips */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[1, 2, 3].map(m => (
+                <button
+                  key={m}
+                  onClick={() => { setSelectedMonths(m); setCustomMonths(''); }}
+                  className={`py-3.5 px-2 rounded-2xl border-2 font-bold text-sm transition-all flex flex-col items-center gap-1 cursor-pointer ${
+                    selectedMonths === m && !customMonths
+                      ? 'border-indigo-500 bg-indigo-50 text-indigo-700 shadow-sm shadow-indigo-500/10'
+                      : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300 hover:bg-white'
+                  }`}
+                >
+                  <span className="font-black">{m} Mo{m > 1 ? 's' : ''}</span>
+                  <span className="text-xs opacity-70 font-semibold">â‚¹{(CONFIG.subscriptionFee * m).toLocaleString('en-IN')}</span>
+                </button>
+              ))}
+              <div className="relative">
+                <input
+                  type="number"
+                  min="1"
+                  max="24"
+                  placeholder="Custom"
+                  value={customMonths}
+                  onChange={e => { setCustomMonths(e.target.value); setSelectedMonths(0); }}
+                  className={`w-full py-3.5 px-3 rounded-2xl border-2 font-bold text-sm text-center transition-all focus:outline-none placeholder:text-slate-400 placeholder:font-medium ${
+                    customMonths
+                      ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                      : 'border-slate-200 bg-slate-50 text-slate-700 focus:border-slate-300'
+                  }`}
+                />
+                {customMonths && (
+                  <span className="absolute bottom-1 left-0 right-0 text-center text-[10px] font-bold text-slate-500">
+                    â‚¹{(CONFIG.subscriptionFee * (parseInt(customMonths) || 1)).toLocaleString('en-IN')}
+                  </span>
                 )}
               </div>
+            </div>
 
+            {/* Summary + Pay Button */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50 border border-slate-100 rounded-2xl p-4">
+              <div>
+                <p className="text-xs text-slate-500 font-semibold">{months} month{months > 1 ? 's' : ''} subscription</p>
+                <p className="text-2xl font-black text-slate-900 mt-0.5">â‚¹{total.toLocaleString('en-IN')}</p>
+              </div>
+              <button
+                onClick={() => window.open(payUrl, '_blank')}
+                className="flex items-center justify-center gap-2 px-7 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-sm transition-all shadow-lg shadow-indigo-500/25 cursor-pointer shrink-0"
+              >
+                <CreditCard className="w-4 h-4" />
+                Pay via UPI
+              </button>
             </div>
           </div>
         )}
 
-        <p className="text-[10px] text-slate-400 font-semibold flex items-center gap-1 z-10">
+        {/* â”€â”€ PAYMENT HISTORY â”€â”€ */}
+        <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-black text-slate-900">Payment History</h3>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">Your past subscription renewals</p>
+            </div>
+            <Clock className="w-4 h-4 text-slate-400" />
+          </div>
+
+          {historyLoading ? (
+            <div className="py-10 flex flex-col items-center gap-2">
+              <Loader2 className="w-5 h-5 text-indigo-500 animate-spin" />
+              <p className="text-xs text-slate-400 font-semibold">Loading history...</p>
+            </div>
+          ) : historyOrders.length === 0 ? (
+            <div className="py-10 flex flex-col items-center gap-2 bg-slate-50 rounded-2xl">
+              <Calendar className="w-8 h-8 text-slate-300" />
+              <p className="text-xs text-slate-400 font-semibold">No payment history yet</p>
+            </div>
+          ) : (
+            <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+              {historyOrders.map(order => {
+                const dateStr = new Date(order.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+                const statusStyles = {
+                  verified: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+                  pending:  'bg-amber-50  text-amber-700  border-amber-100',
+                };
+                const style = statusStyles[order.status] || 'bg-red-50 text-red-700 border-red-100';
+                return (
+                  <div key={order.id} className="flex items-center justify-between px-4 py-3 bg-slate-50 hover:bg-white border border-slate-100 hover:border-slate-200 rounded-2xl transition-all">
+                    <div>
+                      <p className="text-sm font-black text-slate-800">â‚¹{parseFloat(order.amount).toLocaleString('en-IN')}</p>
+                      <p className="text-[10px] font-semibold text-slate-400 mt-0.5">{dateStr} Â· #{order.id.slice(0, 8).toUpperCase()}</p>
+                    </div>
+                    <span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wide border ${style}`}>
+                      {order.status}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <p className="text-xs text-slate-400 font-semibold flex items-center gap-1.5 justify-center pb-2">
           <Shield className="w-3.5 h-3.5 text-emerald-500" /> Active accounts process transactions in real-time.
         </p>
       </div>
     );
   };
+
 
 
   return (
@@ -1548,7 +1500,7 @@ echo "Order Created: " . $data['orderId'];
         </div>
         
         <nav className="flex-1 p-5 space-y-1.5 overflow-y-auto">
-          {/* Subscription tab — pinned at top */}
+          {/* Subscription tab â€” pinned at top */}
           <button
             onClick={handleScrollToSubscription}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-black text-sm transition-all border ${
@@ -1742,7 +1694,7 @@ echo "Order Created: " . $data['orderId'];
             {/* Navigation Options */}
             <div className="flex flex-col space-y-2">
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 mb-1">Menu Navigation</p>
-              {/* Subscription button — top of mobile nav */}
+              {/* Subscription button â€” top of mobile nav */}
               <button
                 onClick={() => {
                   setIsMobileMenuOpen(false);
@@ -1829,7 +1781,7 @@ echo "Order Created: " . $data['orderId'];
           >
             <Search className="w-4 h-4 text-slate-550 group-hover:text-blue-500 transition-colors shrink-0" />
             <span className="text-xs font-semibold text-slate-550 w-full">Search or type command...</span>
-            <span className="text-[10px] font-black bg-slate-200 text-slate-600 px-2 py-0.5 rounded-lg font-mono shrink-0">⌘K</span>
+            <span className="text-[10px] font-black bg-slate-200 text-slate-600 px-2 py-0.5 rounded-lg font-mono shrink-0">âŒ˜K</span>
           </button>
 
           {/* Right: Actions, Subscription Details, and Profile Dropdown */}
@@ -1840,7 +1792,7 @@ echo "Order Created: " . $data['orderId'];
               const expiresAt = profile?.subscription_expires_at ? new Date(profile.subscription_expires_at) : null;
               const isValidDate = expiresAt && !isNaN(expiresAt.getTime()) && expiresAt.getTime() > Date.now();
               const d = isValidDate ? Math.ceil((expiresAt - new Date()) / 86400000) : -1;
-              const text = d > 0 ? `Premium · ${d} days left` : 'Premium · Active';
+              const text = d > 0 ? `Premium Â· ${d} days left` : 'Premium Â· Active';
               return (
                 <button 
                   onClick={handleScrollToSubscription}
@@ -1858,7 +1810,7 @@ echo "Order Created: " . $data['orderId'];
                 title="Renew Active Plan"
               >
                 <span className="w-2 h-2 rounded-full bg-red-500" />
-                <span className="text-[10px] font-black text-red-700 uppercase tracking-wider">Inactive · Renew Plan</span>
+                <span className="text-[10px] font-black text-red-700 uppercase tracking-wider">Inactive Â· Renew Plan</span>
               </button>
             )}
 
@@ -2058,9 +2010,9 @@ echo "Order Created: " . $data['orderId'];
               </div>
             )}
 
-            {/* ═══════════════════════════════════════════════════════════
+            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                TAB: OVERVIEW
-               ═══════════════════════════════════════════════════════════ */}
+               â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
             {activeTab === 'overview' && (
               <div className="space-y-6">
                 
@@ -2086,7 +2038,7 @@ echo "Order Created: " . $data['orderId'];
                   <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between h-[120px]">
                     <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total Sales (INR)</p>
                     <h3 className="text-3xl font-black text-slate-900 leading-none mt-2 flex items-baseline">
-                      <span className="text-lg font-bold text-slate-400 mr-0.5">₹</span>
+                      <span className="text-lg font-bold text-slate-400 mr-0.5">â‚¹</span>
                       {stats.totalVolume.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                     </h3>
                     <p className="text-[10px] text-slate-400 font-medium mt-1">{stats.totalCount} verified payments overall</p>
@@ -2096,7 +2048,7 @@ echo "Order Created: " . $data['orderId'];
                   <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between h-[120px]">
                     <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Today&apos;s Sales</p>
                     <h3 className="text-3xl font-black text-slate-900 leading-none mt-2 flex items-baseline">
-                      <span className="text-lg font-bold text-slate-400 mr-0.5">₹</span>
+                      <span className="text-lg font-bold text-slate-400 mr-0.5">â‚¹</span>
                       {stats.todayVolume.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                     </h3>
                     <p className="text-[10px] text-emerald-600 font-bold mt-1">+{stats.todayCount} transactions today</p>
@@ -2163,7 +2115,7 @@ echo "Order Created: " . $data['orderId'];
                           tickLine={false} 
                           axisLine={false} 
                           dx={-5}
-                          tickFormatter={(v) => `₹${v}`}
+                          tickFormatter={(v) => `â‚¹${v}`}
                         />
                         <Tooltip content={<CustomTooltip />} />
                         <Area 
@@ -2182,9 +2134,9 @@ echo "Order Created: " . $data['orderId'];
               </div>
             )}
 
-            {/* ═══════════════════════════════════════════════════════════
+            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                TAB: SUBSCRIPTION
-               ═══════════════════════════════════════════════════════════ */}
+               â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
             {activeTab === 'subscription' && (
               <div className="space-y-6">
                 {renderSubscriptionPanel()}
@@ -2193,9 +2145,9 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-            {/* ═══════════════════════════════════════════════════════════
+            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                TAB: TRANSACTIONS LOGS
-               ═══════════════════════════════════════════════════════════ */}
+               â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
             {activeTab === 'transactions' && (
               <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden flex flex-col">
                 
@@ -2214,7 +2166,7 @@ echo "Order Created: " . $data['orderId'];
                     />
                     {searchQuery && (
                       <button onClick={() => setSearchQuery('')} className="absolute right-3.5 top-3 text-[10px] text-slate-400 hover:text-slate-900">
-                        ✕
+                        âœ•
                       </button>
                     )}
                   </div>
@@ -2314,7 +2266,7 @@ echo "Order Created: " . $data['orderId'];
 
                               {/* Amount */}
                               <td className="px-6 py-4 whitespace-nowrap text-xs font-black text-slate-950 flex items-center gap-0.5">
-                                <span className="text-slate-400 font-bold">₹</span>
+                                <span className="text-slate-400 font-bold">â‚¹</span>
                                 {parseFloat(order.amount).toFixed(2)}
                               </td>
 
@@ -2349,17 +2301,17 @@ echo "Order Created: " . $data['orderId'];
                               <td className="px-6 py-4 whitespace-nowrap text-xs">
                                 {order.status === 'verified' && (
                                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
-                                    ✓ Verified
+                                    âœ“ Verified
                                   </span>
                                 )}
                                 {order.status === 'pending' && (
                                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-100 animate-pulse">
-                                    ● Pending
+                                    â— Pending
                                   </span>
                                 )}
                                 {order.status === 'rejected' && (
                                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-red-50 text-red-700 border border-red-100">
-                                    ✕ Rejected
+                                    âœ• Rejected
                                   </span>
                                 )}
                                 {order.status === 'expired' && (
@@ -2559,14 +2511,14 @@ echo "Order Created: " . $data['orderId'];
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-md text-left pt-2">
                       <div className="p-4 bg-slate-50 border border-slate-200/60 rounded-2xl flex items-start gap-3">
-                        <span className="text-emerald-500 font-bold mt-0.5">✓</span>
+                        <span className="text-emerald-500 font-bold mt-0.5">âœ“</span>
                         <div>
                           <p className="text-xs font-bold text-slate-900">Pre-compiled SDKs</p>
                           <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Copy-paste production codes for Web, React, and Flutter.</p>
                         </div>
                       </div>
                       <div className="p-4 bg-slate-50 border border-slate-200/60 rounded-2xl flex items-start gap-3">
-                        <span className="text-emerald-500 font-bold mt-0.5">✓</span>
+                        <span className="text-emerald-500 font-bold mt-0.5">âœ“</span>
                         <div>
                           <p className="text-xs font-bold text-slate-900">Real-time Diagnostics</p>
                           <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Catch and resolve CORS, credentials, or HMAC errors instantly.</p>
@@ -2590,7 +2542,7 @@ echo "Order Created: " . $data['orderId'];
                     </div>
                     <div className="space-y-2">
                       <h3 className="text-2xl font-black text-slate-900 tracking-tight">
-                        🎉 Onboarding Integration Completed!
+                        ðŸŽ‰ Onboarding Integration Completed!
                       </h3>
                       <p className="text-sm text-slate-500 font-semibold max-w-md mx-auto leading-relaxed">
                         Excellent job! Your payment gateway is now fully integrated. Start accepting secure, zero-commission, direct-to-bank UPI transfers immediately.
@@ -2639,7 +2591,7 @@ echo "Order Created: " . $data['orderId'];
                           <div>
                             <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Set Payload Amount (INR)</label>
                             <div className="relative">
-                              <span className="absolute left-3.5 top-2.5 text-slate-400 font-bold text-xs">₹</span>
+                              <span className="absolute left-3.5 top-2.5 text-slate-400 font-bold text-xs">â‚¹</span>
                               <input 
                                 type="number"
                                 value={linkAmount}
@@ -2706,7 +2658,7 @@ echo "Order Created: " . $data['orderId'];
                                 <span>Total Due</span>
                               </div>
                               <div className="flex items-baseline gap-0.5">
-                                <span className="text-[8px] font-bold text-slate-450">₹</span>
+                                <span className="text-[8px] font-bold text-slate-450">â‚¹</span>
                                 <span className="text-sm font-black text-white tracking-tight leading-none">
                                   {parseFloat(linkAmount) ? parseFloat(linkAmount).toFixed(2) : '0.00'}
                                 </span>
@@ -2769,7 +2721,7 @@ echo "Order Created: " . $data['orderId'];
                                 <p className="text-[4.5px] text-slate-400 line-clamp-2">Dear Customer, your a/c is credited by Rs. {linkAmount || '500.00'} via UPI Ref No 612345678901.</p>
                                 <div className="bg-blue-50 border border-blue-100 rounded p-1 text-blue-600 flex items-center justify-between text-[4px] mt-1 select-none font-bold">
                                   <span>Auto-Forwarding active</span>
-                                  <span>🚀 Direct</span>
+                                  <span>ðŸš€ Direct</span>
                                 </div>
                               </div>
                             )}
@@ -2777,7 +2729,7 @@ echo "Order Created: " . $data['orderId'];
                           </div>
 
                           <div className="pt-2 border-t border-slate-100 text-center text-[5.5px] font-bold text-slate-400 uppercase tracking-wider">
-                            🔒 256-BIT CRYPTO SECURITY
+                            ðŸ”’ 256-BIT CRYPTO SECURITY
                           </div>
 
                         </div>
@@ -2816,7 +2768,7 @@ echo "Order Created: " . $data['orderId'];
                                         : 'bg-slate-100 text-slate-400'
                                   }`}
                                 >
-                                  {wizardStep > s.step ? '✓' : s.step}
+                                  {wizardStep > s.step ? 'âœ“' : s.step}
                                 </div>
                                 <span className={`text-[9px] font-bold mt-1.5 whitespace-nowrap ${wizardStep === s.step ? 'text-blue-600 font-extrabold' : 'text-slate-400'}`}>
                                   {s.label}
@@ -2847,7 +2799,7 @@ echo "Order Created: " . $data['orderId'];
                               <div className="space-y-4 animate-fadeIn">
                                 <div className="space-y-1">
                                   <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
-                                    🔑 Step 1: Retrieve API Credentials
+                                    ðŸ”‘ Step 1: Retrieve API Credentials
                                   </h4>
                                   <p className="text-xs text-slate-505 font-semibold leading-relaxed">
                                     Authenticate programmatic checkouts. Toggle Sandbox/Live mode at the top right to switch environments.
@@ -2876,7 +2828,7 @@ echo "Order Created: " . $data['orderId'];
                                 </div>
 
                                 <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-2xl text-[11px] text-blue-800 font-semibold space-y-1.5 leading-normal">
-                                  <p className="font-bold flex items-center gap-1.5 uppercase text-[9.5px] tracking-wider text-blue-700">💡 Integration Security Tip</p>
+                                  <p className="font-bold flex items-center gap-1.5 uppercase text-[9.5px] tracking-wider text-blue-700">ðŸ’¡ Integration Security Tip</p>
                                   <p>Never expose private API keys in client-side HTML/JS source repositories. Always wrap payment requests in secure server-side controllers and inject keys via server environment variables (`process.env.MYMOBPAY_API_KEY`).</p>
                                 </div>
                               </div>
@@ -2887,7 +2839,7 @@ echo "Order Created: " . $data['orderId'];
                               <div className="space-y-4 animate-fadeIn">
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-2">
                                   <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
-                                    🔌 Step 2: Backend Order Creation API
+                                    ðŸ”Œ Step 2: Backend Order Creation API
                                   </h4>
                                   
                                   {/* API language selector tabs */}
@@ -2970,7 +2922,7 @@ echo "Order Created: " . $data['orderId'];
                               <div className="space-y-4 animate-fadeIn">
                                 <div className="space-y-1">
                                   <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
-                                    📲 Step 3: Redirect Customer View
+                                    ðŸ“² Step 3: Redirect Customer View
                                   </h4>
                                   <p className="text-xs text-slate-500 font-semibold leading-relaxed">
                                     Redirect the customer&apos;s browser window to the secure scanning viewport, appending the public key, exact amount, and the `orderId` returned from Step 2:
@@ -2985,7 +2937,7 @@ echo "Order Created: " . $data['orderId'];
                                 </div>
 
                                 <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl text-[11px] text-amber-800 font-semibold leading-normal space-y-1.5">
-                                  <p className="font-bold flex items-center gap-1.5 uppercase text-[9.5px] tracking-wider text-amber-700">⚠️ Critical Redirection Policy</p>
+                                  <p className="font-bold flex items-center gap-1.5 uppercase text-[9.5px] tracking-wider text-amber-700">âš ï¸ Critical Redirection Policy</p>
                                   <p>Ensure the `ref` query parameter contains the exact transactional `orderId` returned from your Step 2 backend API response. Do not generate custom order IDs on the frontend to avoid verification mismatches.</p>
                                 </div>
                               </div>
@@ -2996,7 +2948,7 @@ echo "Order Created: " . $data['orderId'];
                               <div className="space-y-4 animate-fadeIn">
                                 <div className="space-y-1">
                                   <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
-                                    📡 Step 4: Webhook Signature verification
+                                    ðŸ“¡ Step 4: Webhook Signature verification
                                   </h4>
                                   <p className="text-xs text-slate-500 font-semibold leading-relaxed">
                                     Protect your fulfillment against falsified bank notifications. Calculate a raw SHA256 HMAC of the request body and verify it matches the header.
@@ -3087,7 +3039,7 @@ app.post('/api/webhook', (req, res) => {
                               <div className="space-y-4 animate-fadeIn">
                                 <div className="space-y-1">
                                   <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
-                                    💳 Step 1: Configure Business VPA Vitals
+                                    ðŸ’³ Step 1: Configure Business VPA Vitals
                                   </h4>
                                   <p className="text-xs text-slate-500 font-semibold leading-relaxed">
                                     Ensure your payout deposit details are set correctly. Mobile banking clients will route bank deposits directly to these registered vitals.
@@ -3115,7 +3067,7 @@ app.post('/api/webhook', (req, res) => {
 
                                   {profile?.upi_id === 'pending@upi' && (
                                     <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-[10px] text-red-700 font-semibold flex items-center gap-2">
-                                      <span>❌</span>
+                                      <span>âŒ</span>
                                       <p>Your UPI ID is set to default. Please configure a valid UPI ID inside the Settings tab to authorize checkouts.</p>
                                     </div>
                                   )}
@@ -3136,7 +3088,7 @@ app.post('/api/webhook', (req, res) => {
                               <div className="space-y-4 animate-fadeIn">
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-2">
                                   <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
-                                    📲 Step 2: WebView Deep-Link Intent Bypass
+                                    ðŸ“² Step 2: WebView Deep-Link Intent Bypass
                                   </h4>
                                   
                                   {/* Mobile SDK language switches */}
@@ -3289,7 +3241,7 @@ const MyMobPaySDK = {
                               <div className="space-y-4 animate-fadeIn">
                                 <div className="space-y-1">
                                   <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
-                                    🔄 Step 3: Status Verification Polling loop
+                                    ðŸ”„ Step 3: Status Verification Polling loop
                                   </h4>
                                   <p className="text-xs text-slate-505 font-semibold leading-relaxed">
                                     Because standalone mobile client applications cannot host webhook server ports, query our rapid status lookup endpoint recursively in the background until the transaction settles.
@@ -3388,14 +3340,14 @@ async function checkOrderStatus(orderId) {
                               <div className="space-y-4 animate-fadeIn">
                                 <div className="space-y-1">
                                   <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
-                                    📡 Step 4: Webhook Outbound Verification
+                                    ðŸ“¡ Step 4: Webhook Outbound Verification
                                   </h4>
                                   <p className="text-xs text-slate-500 font-semibold leading-relaxed">
                                     Our servers will POST a cryptographically signed <code className="bg-slate-100 px-1 rounded text-[10px]">payment.verified</code> event to your server URL each time a payment is matched.
                                   </p>
                                 </div>
 
-                                {/* Inline Webhook URL input — no need to go to Settings */}
+                                {/* Inline Webhook URL input â€” no need to go to Settings */}
                                 <div className="space-y-1.5">
                                   <label className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">
                                     Your Website Link
@@ -3420,7 +3372,7 @@ async function checkOrderStatus(orderId) {
                                 </div>
 
                                 <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-[10.5px] text-slate-700 font-semibold leading-normal space-y-1.5">
-                                  <p className="font-black flex items-center gap-1.5 uppercase text-[9px] tracking-wider text-slate-500">🔒 What your server receives</p>
+                                  <p className="font-black flex items-center gap-1.5 uppercase text-[9px] tracking-wider text-slate-500">ðŸ”’ What your server receives</p>
                                   <p>A <strong>POST</strong> request with JSON body <code className="bg-slate-100 px-1 rounded">{'{ event, orderId, amount, utr }'}</code> and header <code className="bg-slate-100 px-1 rounded">X-MyMobPay-Signature: sha256_hmac_hex</code>.</p>
                                   <p>Verify the HMAC using your raw API key (without <code className="bg-slate-100 px-1 rounded">test_</code>/<code className="bg-slate-100 px-1 rounded">live_</code> prefix).</p>
                                 </div>
@@ -3454,27 +3406,27 @@ async function checkOrderStatus(orderId) {
                           {stepTestResult === 'testing'
                             ? 'Running live test...'
                             : stepTestResult === 'pass'
-                              ? 'Test Passed — Re-run Test'
+                              ? 'Test Passed â€” Re-run Test'
                               : stepTestResult === 'fail'
-                                ? 'Test Failed — Retry'
+                                ? 'Test Failed â€” Retry'
                                 : integrationTarget === 'email_forwarding'
                                   ? wizardStep === 1
-                                    ? '▶ Run Test: Verify Email Forwarding Target'
+                                    ? 'â–¶ Run Test: Verify Email Forwarding Target'
                                     : wizardStep === 2
-                                      ? '▶ Run Test: Initializing Gmail Setup'
+                                      ? 'â–¶ Run Test: Initializing Gmail Setup'
                                       : wizardStep === 3
-                                        ? '▶ Run Test: Verify Google Forwarding Link'
-                                        : '▶ Run Test: Verify Bank Alert Routing'
+                                        ? 'â–¶ Run Test: Verify Google Forwarding Link'
+                                        : 'â–¶ Run Test: Verify Bank Alert Routing'
                                   : wizardStep === 1
-                                    ? '▶ Run Test: Verify API Key'
+                                    ? 'â–¶ Run Test: Verify API Key'
                                     : wizardStep === 2
-                                      ? '▶ Run Test: Create Live Order'
+                                      ? 'â–¶ Run Test: Create Live Order'
                                       : wizardStep === 3
-                                        ? '▶ Run Test: Poll Order Status'
-                                        : '▶ Run Test: Fire Webhook Event'}
+                                        ? 'â–¶ Run Test: Poll Order Status'
+                                        : 'â–¶ Run Test: Fire Webhook Event'}
                         </button>
 
-                        {/* Inline result line — red/green with solution */}
+                        {/* Inline result line â€” red/green with solution */}
                         {stepTestResult && stepTestResult !== 'testing' && (
                           <div className={`border-l-4 rounded-r-xl px-3 py-2.5 animate-fadeIn ${
                             stepTestResult === 'pass'
@@ -3505,7 +3457,7 @@ async function checkOrderStatus(orderId) {
                             onClick={() => setWizardStep(wizardStep - 1)}
                             className="px-4 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all text-[11px] font-extrabold text-slate-600 flex items-center gap-1.5"
                           >
-                            ← Previous Step
+                            â† Previous Step
                           </button>
                         ) : (
                           <div />
@@ -3524,7 +3476,7 @@ async function checkOrderStatus(orderId) {
                                 : 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none border border-slate-200'
                             }`}
                           >
-                            {stepTestResult === 'pass' ? 'Next Step →' : '🔒 Run Test to Unlock'}
+                            {stepTestResult === 'pass' ? 'Next Step â†’' : 'ðŸ”’ Run Test to Unlock'}
                           </button>
                         ) : (
                           <button
@@ -3537,7 +3489,7 @@ async function checkOrderStatus(orderId) {
                                 : 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none border border-slate-200'
                             }`}
                           >
-                            {stepTestResult === 'pass' ? '✓ Finish Onboarding' : '🔒 Test Webhook First'}
+                            {stepTestResult === 'pass' ? 'âœ“ Finish Onboarding' : 'ðŸ”’ Test Webhook First'}
                           </button>
                         )}
                       </div>
@@ -3594,7 +3546,7 @@ async function checkOrderStatus(orderId) {
                         <div className="space-y-1">
                           <span className="text-[9.5px] text-slate-400 font-extrabold uppercase">Callback Endpoint</span>
                           <code className="block font-mono text-slate-800 font-bold truncate text-[10.5px]" title={profile?.webhook_url || 'Not Configured'}>
-                            {profile?.webhook_url || '❌ Configure Webhook URL in Settings'}
+                            {profile?.webhook_url || 'âŒ Configure Webhook URL in Settings'}
                           </code>
                         </div>
 
@@ -3689,9 +3641,9 @@ async function checkOrderStatus(orderId) {
               </div>
             )}
 
-            {/* ═══════════════════════════════════════════════════════════
+            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                TAB: API KEYS
-               ═══════════════════════════════════════════════════════════ */}
+               â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
             {activeTab === 'api' && (
               <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
                 <h3 className="text-[10px] font-bold uppercase tracking-wider mb-2 flex items-center gap-2" style={{ color: profile?.sandbox_mode !== false ? '#f59e0b' : '#2563eb' }}>
@@ -3717,9 +3669,9 @@ async function checkOrderStatus(orderId) {
               </div>
             )}
 
-            {/* ═══════════════════════════════════════════════════════════
+            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                TAB: CONNECTIONS
-               ═══════════════════════════════════════════════════════════ */}
+               â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
             {activeTab === 'connections' && (
               <div className="space-y-6 animate-fadeIn">
                 
@@ -3892,7 +3844,7 @@ async function checkOrderStatus(orderId) {
                         </div>
                         <div className="space-y-2">
                           <h3 className="text-2xl font-black text-slate-900 tracking-tight">
-                            🎉 Email Onboarding Completed!
+                            ðŸŽ‰ Email Onboarding Completed!
                           </h3>
                           <p className="text-sm text-slate-500 font-semibold max-w-md mx-auto leading-relaxed">
                             Excellent job! Gmail email routing forwarding is now fully set up. Payments received on your merchant account will now auto-verify instantly.
@@ -3938,7 +3890,7 @@ async function checkOrderStatus(orderId) {
                                         : 'bg-slate-100 text-slate-400'
                                   }`}
                                 >
-                                  {wizardStep > s.step ? '✓' : s.step}
+                                  {wizardStep > s.step ? 'âœ“' : s.step}
                                 </div>
                                 <span className={`text-[9px] font-bold mt-1.5 whitespace-nowrap ${wizardStep === s.step ? 'text-blue-600 font-extrabold' : 'text-slate-400'}`}>
                                   {s.label}
@@ -3961,7 +3913,7 @@ async function checkOrderStatus(orderId) {
                           <div className="space-y-4 animate-fadeIn">
                             <div className="space-y-1">
                               <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
-                                📧 Step 1: Copy Your Inbound Email Address
+                                ðŸ“§ Step 1: Copy Your Inbound Email Address
                               </h4>
                               <p className="text-xs text-slate-500 font-semibold leading-relaxed">
                                 This is your unique platform email address. Google Mail forwarding rules will send bank alerts here to trigger automatic matches.
@@ -3992,7 +3944,7 @@ async function checkOrderStatus(orderId) {
                             </div>
 
                             <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-2xl text-[11px] text-blue-800 font-semibold space-y-1.5 leading-normal">
-                              <p className="font-bold flex items-center gap-1.5 uppercase text-[9.5px] tracking-wider text-blue-700">💡 Domain Warning</p>
+                              <p className="font-bold flex items-center gap-1.5 uppercase text-[9.5px] tracking-wider text-blue-700">ðŸ’¡ Domain Warning</p>
                               <p>Make sure your Cloudflare Worker is active on this host domain. The username prefix is your raw, prefix-free merchant API Key (UUID).</p>
                             </div>
                           </div>
@@ -4002,7 +3954,7 @@ async function checkOrderStatus(orderId) {
                           <div className="space-y-4 animate-fadeIn">
                             <div className="space-y-1">
                               <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
-                                ⚙️ Step 2: Configure Forwarding in Gmail Settings
+                                âš™ï¸ Step 2: Configure Forwarding in Gmail Settings
                               </h4>
                               <p className="text-xs text-slate-500 font-semibold leading-relaxed">
                                 Register your gateway target email address in Gmail settings to start routing transaction alerts.
@@ -4012,10 +3964,10 @@ async function checkOrderStatus(orderId) {
                             <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs text-slate-705 font-medium space-y-3 leading-relaxed">
                               <ol className="list-decimal pl-5 space-y-2">
                                 <li>Open your merchant Gmail account on a desktop browser.</li>
-                                <li>Click the **Gear icon** (top right) → **See all settings**.</li>
+                                <li>Click the **Gear icon** (top right) â†’ **See all settings**.</li>
                                 <li>Select the **Forwarding and POP/IMAP** tab at the top.</li>
                                 <li>Click the **Add a forwarding address** button.</li>
-                                <li>Paste your copied forwarding email address from Step 1 and click **Next** → **Proceed** → **OK**.</li>
+                                <li>Paste your copied forwarding email address from Step 1 and click **Next** â†’ **Proceed** â†’ **OK**.</li>
                               </ol>
                             </div>
                           </div>
@@ -4025,7 +3977,7 @@ async function checkOrderStatus(orderId) {
                           <div className="space-y-4 animate-fadeIn">
                             <div className="space-y-1">
                               <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
-                                🔐 Step 3: Intercept Google Verification Link
+                                ðŸ” Step 3: Intercept Google Verification Link
                               </h4>
                               <p className="text-xs text-slate-505 font-semibold leading-relaxed">
                                 Google will send a confirmation link to your unique forwarding address. Our webhook will automatically catch it and show it below.
@@ -4035,7 +3987,7 @@ async function checkOrderStatus(orderId) {
                             {profile?.gmail_verification_code ? (
                               <div className="p-4 bg-emerald-50 border border-emerald-250 rounded-2xl text-emerald-900 space-y-3 shadow-sm">
                                 <strong className="text-xs font-bold text-emerald-850 flex items-center gap-1.5 uppercase">
-                                  ✓ Google link intercepted!
+                                  âœ“ Google link intercepted!
                                 </strong>
                                 <p className="text-[11px] leading-relaxed text-emerald-700 font-medium">
                                   We have intercepted the Google confirmation email. Click the link below to confirm the forwarding permission on Google.
@@ -4083,7 +4035,7 @@ async function checkOrderStatus(orderId) {
                           <div className="space-y-4 animate-fadeIn">
                             <div className="space-y-1">
                               <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
-                                ✉️ Step 4: Create Gmail Filtering Rule
+                                âœ‰ï¸ Step 4: Create Gmail Filtering Rule
                               </h4>
                               <p className="text-xs text-slate-500 font-semibold leading-relaxed">
                                 Set up a filter to only route transaction/credit alerts from your bank to prevent spam.
@@ -4125,16 +4077,16 @@ async function checkOrderStatus(orderId) {
                             {stepTestResult === 'testing'
                               ? 'Running live test...'
                               : stepTestResult === 'pass'
-                                ? 'Test Passed — Re-run Test'
+                                ? 'Test Passed â€” Re-run Test'
                                 : stepTestResult === 'fail'
-                                  ? 'Test Failed — Retry'
+                                  ? 'Test Failed â€” Retry'
                                   : wizardStep === 1
-                                    ? '▶ Run Test: Verify Email Forwarding Target'
+                                    ? 'â–¶ Run Test: Verify Email Forwarding Target'
                                     : wizardStep === 2
-                                      ? '▶ Run Test: Initializing Gmail Setup'
+                                      ? 'â–¶ Run Test: Initializing Gmail Setup'
                                       : wizardStep === 3
-                                        ? '▶ Run Test: Verify Google Forwarding Link'
-                                        : '▶ Run Test: Verify Bank Alert Routing'}
+                                        ? 'â–¶ Run Test: Verify Google Forwarding Link'
+                                        : 'â–¶ Run Test: Verify Bank Alert Routing'}
                           </button>
 
                           {stepTestResult && stepTestResult !== 'testing' && (
@@ -4162,7 +4114,7 @@ async function checkOrderStatus(orderId) {
                               }}
                               className="px-4 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all text-[11px] font-extrabold text-slate-600 flex items-center gap-1.5 cursor-pointer"
                             >
-                              ← Previous Step
+                              â† Previous Step
                             </button>
                           ) : (
                             <div />
@@ -4182,7 +4134,7 @@ async function checkOrderStatus(orderId) {
                                   : 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none border border-slate-200'
                               }`}
                             >
-                              {stepTestResult === 'pass' ? 'Next Step →' : '🔒 Run Test to Unlock'}
+                              {stepTestResult === 'pass' ? 'Next Step â†’' : 'ðŸ”’ Run Test to Unlock'}
                             </button>
                           ) : (
                             <button
@@ -4195,7 +4147,7 @@ async function checkOrderStatus(orderId) {
                                   : 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none border border-slate-200'
                               }`}
                             >
-                              {stepTestResult === 'pass' ? '✓ Finish Onboarding' : '🔒 Test Webhook First'}
+                              {stepTestResult === 'pass' ? 'âœ“ Finish Onboarding' : 'ðŸ”’ Test Webhook First'}
                             </button>
                           )}
                         </div>
@@ -4252,7 +4204,7 @@ async function checkOrderStatus(orderId) {
                                 </p>
                               </div>
                               <span className="text-[10px] font-bold text-blue-500 group-hover:translate-x-1.5 transition-transform inline-flex items-center gap-0.5 mt-2">
-                                Connect App →
+                                Connect App â†’
                               </span>
                             </button>
                           ))}
@@ -4390,9 +4342,9 @@ async function checkOrderStatus(orderId) {
               </div>
             )}
 
-            {/* ═══════════════════════════════════════════════════════════
+            {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                TAB: SETTINGS
-               ═══════════════════════════════════════════════════════════ */}
+               â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
             {activeTab === 'settings' && (
               <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
                 <h2 className="text-lg font-bold mb-6 flex items-center gap-2 border-b border-slate-100 pb-4 text-slate-900">
@@ -4767,7 +4719,7 @@ async function checkOrderStatus(orderId) {
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                         className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-3 px-4 rounded-xl text-sm font-semibold text-slate-900 font-mono"
-                        placeholder="••••••••"
+                        placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                       />
                     </div>
 
@@ -4778,7 +4730,7 @@ async function checkOrderStatus(orderId) {
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-3 px-4 rounded-xl text-sm font-semibold text-slate-900 font-mono"
-                        placeholder="••••••••"
+                        placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                       />
                     </div>
                   </div>
@@ -4954,8 +4906,8 @@ async function checkOrderStatus(orderId) {
                               <CreditCard className="w-4 h-4" />
                             </div>
                             <div className="min-w-0">
-                              <p className="text-xs font-bold text-slate-800 truncate">₹{parseFloat(order.amount).toLocaleString('en-IN')}</p>
-                              <p className="text-[9px] font-semibold text-slate-400 mt-0.5 truncate">{dateStr} · Ref: {order.id.slice(0, 8)}</p>
+                              <p className="text-xs font-bold text-slate-800 truncate">â‚¹{parseFloat(order.amount).toLocaleString('en-IN')}</p>
+                              <p className="text-[9px] font-semibold text-slate-400 mt-0.5 truncate">{dateStr} Â· Ref: {order.id.slice(0, 8)}</p>
                             </div>
                           </div>
 
@@ -4989,7 +4941,7 @@ async function checkOrderStatus(orderId) {
 
             {/* Visual Instructions Footer */}
             <div className="px-5 py-3.5 bg-slate-50 border-t border-slate-100 flex justify-between items-center text-[10px] font-bold text-slate-400 select-none">
-              <span>Press enter to select · Click to copy Ref</span>
+              <span>Press enter to select Â· Click to copy Ref</span>
               <span className="font-mono bg-slate-200/80 px-1.5 py-0.5 rounded text-slate-500">ESC to close</span>
             </div>
           </div>
