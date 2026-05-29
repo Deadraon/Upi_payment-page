@@ -4277,6 +4277,7 @@ async function checkOrderStatus(orderId) {
             )}
 
           </div>
+        </div>
       </main>
 
       {/* Premium Glassmorphic Centralized Settings Modal Overlay */}
