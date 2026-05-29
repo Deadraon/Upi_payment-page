@@ -27,6 +27,21 @@
   --radius-btn:     10px;
 }
 
+/* ─── Light Mode Theme Tokens ────────────────────────────── */
+.light-theme {
+  --bg-base:        #F8FAFC; /* Slate 50 */
+  --bg-card:        #FFFFFF; /* White */
+  --bg-input:       #F1F5F9; /* Slate 100 */
+  --border-subtle:  #E2E8F0; /* Slate 200 */
+  --border-hover:   #CBD5E1; /* Slate 300 */
+  --accent:         #2563EB; /* Royal Blue */
+  --accent-light:   #3B82F6;
+  --accent-glow:    rgba(37, 99, 235, 0.08);
+  --text-primary:   #0F172A; /* Slate 900 */
+  --text-secondary: #475569; /* Slate 600 */
+  --text-muted:     #64748B; /* Slate 500 */
+}
+
 /* ─── Base Reset ─────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
 
