@@ -15,6 +15,18 @@ import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid 
 } from 'recharts';
 
+const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = '#FFFFFF' }) => (
+  <svg viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
+    {/* Single unified wordmark with unique mixed fonts */}
+    <text x="2" y="42" letterSpacing="0">
+      {/* MyMob */}
+      <tspan fontFamily="'Outfit', sans-serif" fontWeight="800" fontSize="36" fill={textColor}>MyMob</tspan>
+      {/* Pay */}
+      <tspan fontFamily="'Orbitron', sans-serif" fontWeight="900" fontStyle="italic" fontSize="36" fill="#3B82F6" dx="3">Pay</tspan>
+    </text>
+  </svg>
+);
+
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
@@ -991,9 +1003,7 @@ echo "Order Created: " . $data['orderId'];
       {/* Sidebar (Desktop) */}
       <aside className="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col sticky top-0 h-screen">
         <div className="h-20 flex items-center px-8 border-b border-slate-100">
-          <h1 className="text-2xl font-black tracking-tight text-slate-900">
-            MyMob<span className="text-blue-600 italic">Pay</span>
-          </h1>
+          <MyMobPayLogo className="w-36 h-auto" textColor="#0F172A" />
         </div>
         
         <nav className="flex-1 p-5 space-y-2 overflow-y-auto">
@@ -1082,9 +1092,7 @@ echo "Order Created: " . $data['orderId'];
         
         {/* Mobile Header Bar */}
         <header className="md:hidden h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-40 shadow-sm">
-          <h1 className="text-xl font-black tracking-tight text-slate-900">
-            MyMob<span className="text-blue-600 italic">Pay</span>
-          </h1>
+          <MyMobPayLogo className="w-32 h-auto" textColor="#0F172A" />
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -1896,9 +1904,7 @@ echo "Order Created: " . $data['orderId'];
                             </div>
 
                             <div className="flex flex-col items-center pt-1 border-b border-[#1D2D44] pb-2">
-                              <span className="text-[10px] font-black tracking-tight text-white">
-                                MyMob<span className="text-[#3395FF] italic">Pay</span>
-                              </span>
+                              <MyMobPayLogo className="w-24 h-auto" textColor="#FFFFFF" />
                               <p className="text-[5px] text-slate-400 font-black uppercase tracking-wider mt-0.5">DIRECT BANK SECURE</p>
                             </div>
 

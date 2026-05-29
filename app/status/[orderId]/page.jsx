@@ -38,14 +38,8 @@ const MyMobPayLogo = ({ className = 'w-48 h-auto' }) => (
   <svg viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
     {/* Single unified wordmark with unique mixed fonts */}
     <text x="2" y="42" letterSpacing="0">
-      {/* M of My */}
-      <tspan fontFamily="'Orbitron', sans-serif" fontWeight="800" fontSize="38" fill="#FFFFFF">M</tspan>
-      {/* y of My */}
-      <tspan fontFamily="'Outfit', sans-serif" fontWeight="500" fontSize="34" fill="#FFFFFF" dx="1">y</tspan>
-      {/* M of Mob */}
-      <tspan fontFamily="'Orbitron', sans-serif" fontWeight="800" fontSize="38" fill="#FFFFFF" dx="2">M</tspan>
-      {/* ob of Mob */}
-      <tspan fontFamily="'Outfit', sans-serif" fontWeight="500" fontSize="34" fill="#FFFFFF" dx="1">ob</tspan>
+      {/* MyMob */}
+      <tspan fontFamily="'Outfit', sans-serif" fontWeight="800" fontSize="36" fill="#FFFFFF">MyMob</tspan>
       {/* Pay */}
       <tspan fontFamily="'Orbitron', sans-serif" fontWeight="900" fontStyle="italic" fontSize="36" fill="#3B82F6" dx="3">Pay</tspan>
     </text>

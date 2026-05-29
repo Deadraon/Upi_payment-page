@@ -14,10 +14,9 @@ import {
 const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = '#FFFFFF' }) => (
   <svg viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
     <text x="2" y="42" letterSpacing="0">
-      <tspan fontFamily="'Orbitron', sans-serif" fontWeight="800" fontSize="38" fill={textColor}>M</tspan>
-      <tspan fontFamily="'Outfit', sans-serif" fontWeight="500" fontSize="34" fill={textColor} dx="1">y</tspan>
-      <tspan fontFamily="'Orbitron', sans-serif" fontWeight="800" fontSize="38" fill={textColor} dx="2">M</tspan>
-      <tspan fontFamily="'Outfit', sans-serif" fontWeight="500" fontSize="34" fill={textColor} dx="1">ob</tspan>
+      {/* MyMob */}
+      <tspan fontFamily="'Outfit', sans-serif" fontWeight="800" fontSize="36" fill={textColor}>MyMob</tspan>
+      {/* Pay */}
       <tspan fontFamily="'Orbitron', sans-serif" fontWeight="900" fontStyle="italic" fontSize="36" fill="#3B82F6" dx="3">Pay</tspan>
     </text>
   </svg>
@@ -149,9 +148,7 @@ print("Checkout Link generated:", data.get("orderId"))`
           
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 select-none group">
-            <span className="text-2xl font-black tracking-tight text-slate-900">
-              MyMob<span className="text-blue-600 italic transition-colors group-hover:text-blue-700">Pay</span>
-            </span>
+            <MyMobPayLogo className="w-36 h-auto" textColor="#0F172A" />
           </Link>
 
           {/* Navigation Links (Desktop) */}
@@ -1127,9 +1124,7 @@ print("Checkout Link generated:", data.get("orderId"))`
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 pb-12 border-b border-slate-900">
           
           <div className="md:col-span-4 space-y-4">
-            <span className="text-2xl font-black tracking-tight text-white">
-              MyMob<span className="text-blue-500 italic">Pay</span>
-            </span>
+            <MyMobPayLogo className="w-32 h-auto" textColor="#FFFFFF" />
             <p className="text-xs text-slate-500 leading-relaxed font-medium max-w-xs">
               Instant Direct P2P UPI Payment gateway designed to eliminate intermediary transaction transaction costs for modern builders.
             </p>
