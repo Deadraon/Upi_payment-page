@@ -91,6 +91,8 @@ export default function DashboardPage() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [profileModalTab, setProfileModalTab] = useState('profile');
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [paletteSearchQuery, setPaletteSearchQuery] = useState('');
 
   // Edit States for Modal Inputs
   const [editOwnerName, setEditOwnerName] = useState('');
@@ -275,6 +277,18 @@ export default function DashboardPage() {
     };
   }, [isMobileMenuOpen]);
 
+  // Command Palette Keyboard Listener
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // Safe UUID generator
   const generateUUID = () => {
     if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -398,14 +412,8 @@ export default function DashboardPage() {
   };
 
   const handleScrollToSubscription = () => {
-    setActiveTab('overview');
+    setActiveTab('subscription');
     setShowManageSection(true);
-    setTimeout(() => {
-      const el = document.getElementById('subscription-section');
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
-      }
-    }, 100);
   };
 
   const handleRefreshOrders = () => {
@@ -1485,6 +1493,33 @@ echo "Order Created: " . $data['orderId'];
     );
   };
 
+  const allShortcuts = [
+    { name: 'Go to Overview Dashboard', tab: 'overview', icon: LayoutDashboard },
+    { name: 'Go to Transactions Logs', tab: 'transactions', icon: CreditCard },
+    { name: 'Go to Connections & Cashiers', tab: 'connections', icon: LinkIcon },
+    { name: 'Go to Developer API Portal', tab: 'developer', icon: BookOpen },
+    { name: 'Go to Settings Panel', tab: 'settings', icon: Briefcase },
+    { name: 'Edit Profile & Business Info', action: 'profile', icon: User },
+    { name: 'Reset Account Security Password', action: 'security', icon: Key }
+  ];
+
+  const matchedShortcuts = useMemo(() => {
+    if (!paletteSearchQuery.trim()) return allShortcuts;
+    const query = paletteSearchQuery.toLowerCase();
+    return allShortcuts.filter(s => s.name.toLowerCase().includes(query));
+  }, [paletteSearchQuery]);
+
+  const matchedOrders = useMemo(() => {
+    if (!paletteSearchQuery.trim()) return [];
+    const query = paletteSearchQuery.toLowerCase();
+    return orders.filter(o => 
+      (o.id && o.id.toLowerCase().includes(query)) ||
+      (o.amount && String(o.amount).includes(query)) ||
+      (o.status && o.status.toLowerCase().includes(query)) ||
+      (o.external_ref && o.external_ref.toLowerCase().includes(query))
+    ).slice(0, 5);
+  }, [paletteSearchQuery, orders]);
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
       
@@ -1498,7 +1533,11 @@ echo "Order Created: " . $data['orderId'];
           {/* Subscription tab — pinned at top */}
           <button
             onClick={handleScrollToSubscription}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-black text-sm transition-all border border-violet-500/30 bg-violet-500/10 text-violet-450 hover:text-violet-300 hover:bg-violet-500/20 hover:border-violet-500/50 shadow-sm shadow-violet-500/5"
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-black text-sm transition-all border ${
+              activeTab === 'subscription'
+                ? 'border-violet-400 bg-violet-500/20 text-violet-700 shadow-sm shadow-violet-500/10'
+                : 'border-violet-500/30 bg-violet-500/10 text-violet-450 hover:text-violet-300 hover:bg-violet-500/20 hover:border-violet-500/50 shadow-sm shadow-violet-500/5'
+            }`}
           >
             <Star className="w-4 h-4 text-violet-400 fill-violet-400/10" />
             <span className="flex-1 text-left">Subscription</span>
@@ -1561,27 +1600,11 @@ echo "Order Created: " . $data['orderId'];
           </button>
         </nav>
 
-        {/* User Card info footer */}
+        {/* Sidebar Footer Sign Out button */}
         <div className="p-5 border-t border-slate-100 bg-slate-50/50">
-          <div 
-            onClick={() => openProfileModal('profile')}
-            className="flex items-center gap-3 mb-4 px-2 cursor-pointer hover:bg-slate-100/60 p-2.5 rounded-2xl border border-transparent hover:border-slate-200 transition-all group select-none"
-            title="Edit Profile Settings"
-          >
-            <div 
-              className="w-10 h-10 rounded-full border-2 border-white shadow-sm flex items-center justify-center text-white font-bold text-sm shrink-0"
-              style={{ backgroundColor: profile?.theme_color || '#3B82F6' }}
-            >
-              {profile?.owner_name ? profile.owner_name.charAt(0).toUpperCase() : profile?.business_name ? profile.business_name.charAt(0).toUpperCase() : 'M'}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors">{profile?.owner_name || profile?.business_name || 'My Profile'}</p>
-              <p className="text-[10px] font-medium text-slate-500 truncate">{user?.email}</p>
-            </div>
-          </div>
           <button 
             onClick={handleSignOut}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl transition-all text-sm font-bold text-slate-700 shadow-sm"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl transition-all text-sm font-bold text-slate-700 shadow-sm cursor-pointer"
           >
             <LogOut className="w-4 h-4" /> Sign Out
           </button>
@@ -1696,16 +1719,14 @@ echo "Order Created: " . $data['orderId'];
         {/* Desktop Sticky Header / Navbar */}
         <header className="hidden md:flex h-20 bg-white/85 backdrop-blur-md border-b border-slate-200/80 items-center justify-between px-10 sticky top-0 z-30 select-none">
           {/* Left: Command Search Bar */}
-          <div className="flex items-center gap-3 bg-slate-50 border border-slate-200/80 rounded-2xl px-4 py-2.5 w-80 text-slate-400 focus-within:border-blue-500 focus-within:bg-white transition-all shadow-xs group">
-            <Search className="w-4 h-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
-            <input 
-              type="text" 
-              placeholder="Search or type command..." 
-              className="bg-transparent border-none text-xs font-semibold text-slate-700 outline-none w-full placeholder-slate-400"
-              disabled
-            />
-            <span className="text-[10px] font-black bg-slate-200/80 text-slate-500 px-2 py-0.5 rounded-lg font-mono">⌘K</span>
-          </div>
+          <button 
+            onClick={() => setIsCommandPaletteOpen(true)}
+            className="flex items-center gap-3 bg-slate-50 border border-slate-200/80 rounded-2xl px-4 py-2.5 w-80 text-slate-400 hover:border-slate-350 hover:bg-white transition-all shadow-xs text-left cursor-pointer group"
+          >
+            <Search className="w-4 h-4 text-slate-400 group-hover:text-blue-500 transition-colors shrink-0" />
+            <span className="text-xs font-semibold text-slate-400 w-full">Search or type command...</span>
+            <span className="text-[10px] font-black bg-slate-200/80 text-slate-500 px-2 py-0.5 rounded-lg font-mono shrink-0">⌘K</span>
+          </button>
 
           {/* Right: Actions, Subscription Details, and Profile Dropdown */}
           <div className="flex items-center gap-4">
@@ -1933,11 +1954,6 @@ echo "Order Created: " . $data['orderId'];
                   </div>
                 )}
 
-                {/* Subscription Status & Management Console */}
-                <div id="subscription-section" className="scroll-mt-6">
-                  {renderSubscriptionPanel()}
-                </div>
-
                 {/* Stats Dashboard Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   
@@ -2038,6 +2054,15 @@ echo "Order Created: " . $data['orderId'];
                   </div>
                 </div>
 
+              </div>
+            )}
+
+            {/* ═══════════════════════════════════════════════════════════
+               TAB: SUBSCRIPTION
+               ═══════════════════════════════════════════════════════════ */}
+            {activeTab === 'subscription' && (
+              <div className="space-y-6">
+                {renderSubscriptionPanel()}
               </div>
             )}
 
@@ -4700,6 +4725,145 @@ async function checkOrderStatus(orderId) {
                 </div>
               )}
 
+            </div>
+          </div>
+        </div>
+      {/* Command Palette Working Search Panel Overlay */}
+      {isCommandPaletteOpen && (
+        <div 
+          className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh] px-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn"
+          onClick={() => {
+            setIsCommandPaletteOpen(false);
+            setPaletteSearchQuery('');
+          }}
+        >
+          <div 
+            className="w-full max-w-xl bg-white border border-slate-200/80 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[60vh] animate-scaleUp"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Input Bar */}
+            <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-100 bg-slate-50/50">
+              <Search className="w-5 h-5 text-slate-400 shrink-0" />
+              <input 
+                type="text" 
+                placeholder="Search transaction ID, customer, amount or command..." 
+                value={paletteSearchQuery}
+                onChange={(e) => setPaletteSearchQuery(e.target.value)}
+                className="bg-transparent border-none text-sm font-semibold text-slate-800 outline-none w-full placeholder-slate-400"
+                autoFocus
+              />
+              <button 
+                onClick={() => {
+                  setIsCommandPaletteOpen(false);
+                  setPaletteSearchQuery('');
+                }}
+                className="px-2.5 py-1.5 bg-slate-200/85 hover:bg-slate-350 text-slate-500 rounded-lg text-[10px] font-black transition-all shrink-0 uppercase tracking-wider"
+              >
+                ESC
+              </button>
+            </div>
+
+            {/* Results Container */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              
+              {/* Category 1: Navigation Actions */}
+              {matchedShortcuts.length > 0 && (
+                <div className="space-y-1.5">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-2.5">Dashboard Actions</p>
+                  <div className="space-y-1">
+                    {matchedShortcuts.map((shortcut, idx) => {
+                      const IconComponent = shortcut.icon;
+                      return (
+                        <button
+                          key={idx}
+                          onClick={() => {
+                            if (shortcut.tab) {
+                              setActiveTab(shortcut.tab);
+                            } else if (shortcut.action) {
+                              openProfileModal(shortcut.action);
+                            }
+                            setIsCommandPaletteOpen(false);
+                            setPaletteSearchQuery('');
+                          }}
+                          className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-blue-50/60 rounded-xl text-left transition-colors cursor-pointer group"
+                        >
+                          <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-blue-100/60 group-hover:text-blue-600 transition-colors shrink-0">
+                            <IconComponent className="w-4 h-4" />
+                          </div>
+                          <span className="text-xs font-bold text-slate-700 group-hover:text-blue-800 transition-colors">{shortcut.name}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Category 2: Transaction Records */}
+              {matchedOrders.length > 0 && (
+                <div className="space-y-1.5">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-2.5">Matched Checkout Orders</p>
+                  <div className="space-y-1">
+                    {matchedOrders.map((order) => {
+                      const dateStr = new Date(order.created_at).toLocaleDateString('en-IN', {
+                        day: '2-digit',
+                        month: 'short',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      });
+                      return (
+                        <button
+                          key={order.id}
+                          onClick={() => {
+                            navigator.clipboard.writeText(order.id);
+                            alert(`Copied Order ID: ${order.id}`);
+                            setIsCommandPaletteOpen(false);
+                            setPaletteSearchQuery('');
+                          }}
+                          className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-slate-50 rounded-xl text-left transition-colors cursor-pointer group"
+                          title="Click to copy Order ID"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                              <CreditCard className="w-4 h-4" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs font-bold text-slate-800 truncate">₹{parseFloat(order.amount).toLocaleString('en-IN')}</p>
+                              <p className="text-[9px] font-semibold text-slate-400 mt-0.5 truncate">{dateStr} · Ref: {order.id.slice(0, 8)}</p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className={`text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                              order.status === 'verified'
+                                ? 'bg-emerald-100 text-emerald-700'
+                                : order.status === 'pending'
+                                  ? 'bg-amber-100 text-amber-700'
+                                  : 'bg-red-100 text-red-700'
+                            }`}>
+                              {order.status}
+                            </span>
+                            <span className="text-[8px] font-bold text-slate-400 group-hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-all font-mono">Copy Ref</span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* No matches */}
+              {paletteSearchQuery.trim() && matchedShortcuts.length === 0 && matchedOrders.length === 0 && (
+                <div className="py-8 text-center space-y-2">
+                  <p className="text-xs font-bold text-slate-500">No matching search query found.</p>
+                  <p className="text-[10px] text-slate-400 font-semibold leading-relaxed">Try searching for generic terms like &quot;Settings&quot;, &quot;Overview&quot;, or transaction reference numbers.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Visual Instructions Footer */}
+            <div className="px-5 py-3.5 bg-slate-50 border-t border-slate-100 flex justify-between items-center text-[10px] font-bold text-slate-400 select-none">
+              <span>Press enter to select · Click to copy Ref</span>
+              <span className="font-mono bg-slate-200/80 px-1.5 py-0.5 rounded text-slate-500">ESC to close</span>
             </div>
           </div>
         </div>
