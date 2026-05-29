@@ -25,7 +25,7 @@ export default function DashboardPage() {
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [subTab, setSubTab] = useState('days');
   const [selectedMonths, setSelectedMonths] = useState(1);
   const [customMonths, setCustomMonths] = useState('');
 
@@ -733,172 +733,6 @@ echo "Order Created: " . $data['orderId'];
   };
 
   return (
-    <>
-    {/* ═══════════ SUBSCRIPTION MODAL ═══════════ */}
-    {showSubscriptionModal && (
-      <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-4"
-        style={{ background: 'rgba(15,23,42,0.65)', backdropFilter: 'blur(6px)' }}
-        onClick={(e) => { if (e.target === e.currentTarget) setShowSubscriptionModal(false); }}
-      >
-        <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-fadeIn">
-          {/* Modal Header */}
-          <div className="relative bg-gradient-to-br from-violet-600 to-purple-700 p-7 text-white">
-            <button
-              onClick={() => setShowSubscriptionModal(false)}
-              className="absolute top-4 right-4 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-white/15 rounded-2xl flex items-center justify-center border border-white/20">
-                <Star className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-violet-200">MyMobPay</p>
-                <h2 className="text-xl font-black">Subscription Details</h2>
-              </div>
-            </div>
-
-            {/* Status row */}
-            <div className="flex items-center justify-between bg-white/10 rounded-2xl px-5 py-3 border border-white/15">
-              <div className="flex items-center gap-2">
-                <div className={`w-2.5 h-2.5 rounded-full ${
-                  profile?.subscription_status === 'active' ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]' : 'bg-red-400'
-                } animate-pulse`} />
-                <span className="font-extrabold text-sm capitalize">
-                  {profile?.subscription_status === 'active' ? 'Active Plan' : profile?.subscription_status || 'No Plan'}
-                </span>
-              </div>
-              {getDaysLeft() !== null && (
-                <span className={`text-xs font-black px-3 py-1 rounded-full ${
-                  getDaysLeft() <= 3 ? 'bg-red-400/30 text-red-100' :
-                  getDaysLeft() <= 7 ? 'bg-amber-400/30 text-amber-100' :
-                  'bg-emerald-400/20 text-emerald-100'
-                }`}>
-                  {getDaysLeft()} days left
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Modal Body */}
-          <div className="p-6 space-y-5">
-
-            {/* Plan Info Grid */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
-                  <Calendar className="w-3 h-3" /> Subscribed Since
-                </p>
-                <p className="text-sm font-black text-slate-800">
-                  {profile?.created_at
-                    ? new Date(profile.created_at).toLocaleDateString('en-IN', { dateStyle: 'medium' })
-                    : '—'}
-                </p>
-              </div>
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
-                  <Shield className="w-3 h-3" /> Expires On
-                </p>
-                <p className="text-sm font-black text-slate-800">
-                  {profile?.subscription_expires_at
-                    ? new Date(profile.subscription_expires_at).toLocaleDateString('en-IN', { dateStyle: 'medium' })
-                    : '—'}
-                </p>
-              </div>
-              <div className="p-4 bg-violet-50 rounded-2xl border border-violet-100 col-span-2">
-                <p className="text-[10px] font-bold text-violet-400 uppercase tracking-wider mb-1 flex items-center gap-1">
-                  <Zap className="w-3 h-3" /> Days Remaining
-                </p>
-                <div className="flex items-end gap-2">
-                  <p className={`text-3xl font-black ${
-                    getDaysLeft() === null ? 'text-slate-400' :
-                    getDaysLeft() <= 3 ? 'text-red-600' :
-                    getDaysLeft() <= 7 ? 'text-amber-600' :
-                    'text-violet-700'
-                  }`}>
-                    {getDaysLeft() !== null ? getDaysLeft() : '—'}
-                  </p>
-                  <p className="text-sm font-bold text-slate-400 mb-1">days</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Renew Section */}
-            <div>
-              <p className="text-xs font-black text-slate-700 mb-3 uppercase tracking-wider">Extend Subscription</p>
-              
-              {/* Month selector */}
-              <div className="flex gap-2 mb-4 flex-wrap">
-                {[1, 2, 3].map(m => (
-                  <button
-                    key={m}
-                    onClick={() => { setSelectedMonths(m); setCustomMonths(''); }}
-                    className={`flex-1 py-3 rounded-2xl border-2 font-black text-sm transition-all ${
-                      selectedMonths === m && !customMonths
-                        ? 'border-violet-500 bg-violet-50 text-violet-700 shadow-md shadow-violet-500/15'
-                        : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-violet-300'
-                    }`}
-                  >
-                    {m} Month{m > 1 ? 's' : ''}
-                    <span className="block text-[10px] font-bold mt-0.5 opacity-70">₹{CONFIG.subscriptionFee * m}</span>
-                  </button>
-                ))}
-                <div className="flex-1 relative">
-                  <input
-                    type="number"
-                    min="1"
-                    max="24"
-                    placeholder="Custom"
-                    value={customMonths}
-                    onChange={e => { setCustomMonths(e.target.value); setSelectedMonths(0); }}
-                    className={`w-full py-3 px-3 rounded-2xl border-2 font-black text-sm text-center transition-all focus:outline-none ${
-                      customMonths
-                        ? 'border-violet-500 bg-violet-50 text-violet-700'
-                        : 'border-slate-200 bg-slate-50 text-slate-600'
-                    }`}
-                  />
-                  {customMonths && (
-                    <span className="absolute bottom-1 left-0 right-0 text-center text-[10px] font-bold text-slate-400">₹{CONFIG.subscriptionFee * parseInt(customMonths || 1)}</span>
-                  )}
-                </div>
-              </div>
-
-              {/* Total + Pay CTA */}
-              {(() => {
-                const months = customMonths ? parseInt(customMonths) || 1 : selectedMonths;
-                const total = CONFIG.subscriptionFee * months;
-                const payUrl = `/pay?api_key=${CONFIG.platformApiKey}&amount=${total}&ref=${profile?.id}&note=Subscription_${months}Month`;
-                return (
-                  <div className="bg-gradient-to-r from-violet-50 to-purple-50 rounded-2xl p-4 border border-violet-100">
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Payable</p>
-                        <p className="text-2xl font-black text-slate-900">₹{total.toLocaleString('en-IN')}</p>
-                        <p className="text-[10px] text-slate-400 font-medium">for {months} month{months > 1 ? 's' : ''} · +{months * 30} days added</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[10px] font-bold text-violet-500 uppercase tracking-wider">Rate</p>
-                        <p className="text-sm font-black text-violet-700">₹{CONFIG.subscriptionFee}/mo</p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => window.open(payUrl, '_blank')}
-                      className="w-full py-3.5 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-violet-500/30 hover:scale-[1.01] active:scale-[0.99]"
-                    >
-                      <CreditCard className="w-4 h-4" />
-                      Pay ₹{total.toLocaleString('en-IN')} via UPI
-                    </button>
-                  </div>
-                );
-              })()}
-            </div>
-          </div>
-        </div>
-      </div>
-    )}
-
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
       
       {/* Sidebar (Desktop) */}
@@ -912,18 +746,20 @@ echo "Order Created: " . $data['orderId'];
         <nav className="flex-1 p-5 space-y-2 overflow-y-auto">
           {/* Subscription tab — pinned at top */}
           <button
-            onClick={() => setShowSubscriptionModal(true)}
+            onClick={() => setActiveTab('subscription')}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all ${
-              profile?.subscription_status === 'active'
-                ? 'bg-gradient-to-r from-violet-50 to-purple-50 text-violet-700 border border-violet-100 shadow-sm'
-                : 'bg-red-50 text-red-600 border border-red-100'
+              activeTab === 'subscription'
+                ? 'bg-blue-50 text-blue-700 shadow-sm shadow-blue-500/10'
+                : profile?.subscription_status === 'active'
+                  ? 'bg-gradient-to-r from-violet-50 to-purple-50 text-violet-700 border border-violet-100 shadow-sm'
+                  : 'bg-red-50 text-red-600 border border-red-100'
             }`}
           >
-            <Star className="w-4 h-4" />
+            <Star className={`w-4 h-4 ${activeTab === 'subscription' ? 'text-blue-700' : profile?.subscription_status === 'active' ? 'text-violet-500' : 'text-red-500'}`} />
             <span className="flex-1 text-left">Subscription</span>
             {profile?.subscription_status === 'active' && profile?.subscription_expires_at && (() => {
               const d = Math.ceil((new Date(profile.subscription_expires_at) - new Date()) / 86400000);
-              return <span className="text-[10px] font-extrabold bg-violet-100 text-violet-700 px-2 py-0.5 rounded-full">{d}d left</span>;
+              return <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${activeTab === 'subscription' ? 'bg-blue-100 text-blue-700' : 'bg-violet-100 text-violet-700'}`}>{d}d left</span>;
             })()}
           </button>
 
@@ -1029,18 +865,20 @@ echo "Order Created: " . $data['orderId'];
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 mb-1">Menu Navigation</p>
               {/* Subscription button — top of mobile nav */}
               <button
-                onClick={() => { setShowSubscriptionModal(true); setIsMobileMenuOpen(false); }}
+                onClick={() => { setActiveTab('subscription'); setIsMobileMenuOpen(false); }}
                 className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl text-xs font-bold transition-all border ${
-                  profile?.subscription_status === 'active'
-                    ? 'bg-violet-50/60 text-violet-700 border-violet-100'
-                    : 'bg-red-50 text-red-600 border-red-100'
+                  activeTab === 'subscription'
+                    ? 'bg-blue-50/60 text-blue-600 border-blue-100 shadow-sm'
+                    : profile?.subscription_status === 'active'
+                      ? 'bg-violet-50/60 text-violet-700 border-violet-100'
+                      : 'bg-red-50 text-red-600 border-red-100'
                 }`}
               >
-                <Star className="w-4 h-4" />
+                <Star className={`w-4 h-4 ${activeTab === 'subscription' ? 'text-blue-600' : profile?.subscription_status === 'active' ? 'text-violet-500' : 'text-red-500'}`} />
                 <span className="flex-1 text-left">Subscription</span>
                 {profile?.subscription_status === 'active' && profile?.subscription_expires_at && (() => {
                   const d = Math.ceil((new Date(profile.subscription_expires_at) - new Date()) / 86400000);
-                  return <span className="text-[10px] font-extrabold bg-violet-100 text-violet-700 px-2 py-0.5 rounded-full">{d}d left</span>;
+                  return <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${activeTab === 'subscription' ? 'bg-blue-100 text-blue-700' : 'bg-violet-100 text-violet-700'}`}>{d}d left</span>;
                 })()}
               </button>
               <div className="border-t border-slate-100 my-1" />
@@ -1090,9 +928,10 @@ echo "Order Created: " . $data['orderId'];
             {/* Header section with active tab label and sandbox toggle */}
             <div className="mb-6 pt-2 md:pt-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h2 className="text-3xl font-black text-slate-900 capitalize">{activeTab === 'api' ? 'API Credentials' : activeTab === 'developer' ? 'Developer Portal' : activeTab}</h2>
+                <h2 className="text-3xl font-black text-slate-900 capitalize">{activeTab === 'api' ? 'API Credentials' : activeTab === 'developer' ? 'Developer Portal' : activeTab === 'subscription' ? 'Subscription Console' : activeTab}</h2>
                 <p className="text-sm text-slate-500 font-medium mt-1">
                   {activeTab === 'overview' && 'Real-time overview of business revenue and platform subscription details.'}
+                  {activeTab === 'subscription' && 'Monitor subscription status, calculate renewals, and extend your active platform plan.'}
                   {activeTab === 'transactions' && 'Monitor and filter payment orders. Export history instantly.'}
                   {activeTab === 'developer' && 'Configure custom integrations, fetch orders via REST APIs, or copy-paste client SDK snippets.'}
                   {activeTab === 'settings' && 'Customize your business metadata, direct UPI deposit addresses, and brand colors.'}
@@ -1341,7 +1180,10 @@ echo "Order Created: " . $data['orderId'];
                           </div>
                         )}
                         <button
-                          onClick={() => setShowSubscriptionModal(true)}
+                          onClick={() => {
+                            setActiveTab('subscription');
+                            setSubTab(isActive ? 'days' : 'manage');
+                          }}
                           className={`px-6 py-3.5 w-full sm:w-auto rounded-xl transition-all text-sm font-bold flex items-center justify-center gap-2 shadow-md ${
                             isActive
                               ? 'bg-violet-600 hover:bg-violet-700 text-white shadow-violet-500/25'
@@ -1356,6 +1198,259 @@ echo "Order Created: " . $data['orderId'];
                   );
                 })()}
 
+              </div>
+            )}
+
+            {/* ═══════════════════════════════════════════════════════════
+               TAB: SUBSCRIPTION
+               ═══════════════════════════════════════════════════════════ */}
+            {activeTab === 'subscription' && (
+              <div className="space-y-6 animate-fadeIn">
+                
+                {/* Sub-tab Navigation Pill */}
+                <div className="flex bg-slate-50 border border-slate-200 p-1 rounded-2xl w-full sm:w-fit">
+                  <button
+                    onClick={() => setSubTab('days')}
+                    className={`flex-1 sm:flex-initial px-6 py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all ${
+                      subTab === 'days'
+                        ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                        : 'text-slate-500 hover:text-slate-900'
+                    }`}
+                  >
+                    <Clock className="w-4 h-4" />
+                    Days Remaining
+                  </button>
+                  <button
+                    onClick={() => setSubTab('manage')}
+                    className={`flex-1 sm:flex-initial px-6 py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all ${
+                      subTab === 'manage'
+                        ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                        : 'text-slate-500 hover:text-slate-900'
+                    }`}
+                  >
+                    <Zap className="w-4 h-4" />
+                    Manage Subscription
+                  </button>
+                </div>
+
+                {/* SUB-TAB: DAYS REMAINING */}
+                {subTab === 'days' && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Left Details Card */}
+                    <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between md:col-span-2 relative overflow-hidden">
+                      <div className="absolute right-0 top-0 w-48 h-48 bg-gradient-to-bl from-blue-500/5 to-transparent rounded-bl-full pointer-events-none" />
+                      <div>
+                        <div className="flex items-center gap-3 mb-6">
+                          <div className="w-12 h-12 bg-blue-50 border border-blue-100 rounded-2xl flex items-center justify-center text-blue-600">
+                            <Star className="w-6 h-6 animate-pulse" />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Account Tier</p>
+                            <h3 className="text-xl font-black text-slate-900 flex items-center gap-2">
+                              Premium Merchant Plan
+                              <span className="text-[10px] font-black bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full uppercase tracking-wider">Active</span>
+                            </h3>
+                          </div>
+                        </div>
+
+                        {/* Status detail box */}
+                        <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                          <div>
+                            <p className="text-xs font-bold text-slate-500 mb-1">Status</p>
+                            <div className="flex items-center gap-2.5">
+                              <span className="relative flex h-3 w-3">
+                                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                                  profile?.subscription_status === 'active' ? 'bg-emerald-400' : 'bg-red-400'
+                                }`}></span>
+                                <span className={`relative inline-flex rounded-full h-3 w-3 ${
+                                  profile?.subscription_status === 'active' ? 'bg-emerald-500' : 'bg-red-500'
+                                }`}></span>
+                              </span>
+                              <span className="font-extrabold text-sm capitalize text-slate-900">
+                                {profile?.subscription_status === 'active' ? 'Active & Processing API' : profile?.subscription_status || 'Inactive'}
+                              </span>
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-slate-500 mb-1">Subscribed Since</p>
+                            <p className="text-sm font-black text-slate-800 flex items-center gap-1.5">
+                              <Calendar className="w-4 h-4 text-slate-400" />
+                              {profile?.created_at ? new Date(profile.created_at).toLocaleDateString('en-IN', { dateStyle: 'medium' }) : '—'}
+                            </p>
+                          </div>
+                        </div>
+
+                        <p className="text-xs font-semibold text-slate-500 leading-relaxed">
+                          Your MyMobPay account premium billing is active. Your checkouts are fully powered, automated verification loops are online, and transaction callbacks are routed instantly to your registered webhook address.
+                        </p>
+                      </div>
+
+                      <div className="border-t border-slate-100 pt-4 mt-6 flex flex-wrap gap-4 items-center justify-between">
+                        <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
+                          <Shield className="w-4 h-4 text-emerald-500" />
+                          Secure platform checkout stacks.
+                        </div>
+                        <button
+                          onClick={() => setSubTab('manage')}
+                          className="text-xs font-extrabold text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-all"
+                        >
+                          Renew subscription <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Right Days Left Progress Card */}
+                    <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between relative overflow-hidden">
+                      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500" />
+                      <div>
+                        <h3 className="text-xs font-black text-slate-700 mb-4 uppercase tracking-wider flex items-center gap-1.5">
+                          <Clock className="w-4 h-4 text-slate-400" /> Days Left
+                        </h3>
+
+                        <div className="flex flex-col items-center justify-center py-6">
+                          <div className="relative flex items-center justify-center">
+                            {(() => {
+                              const days = getDaysLeft();
+                              const maxDays = 30;
+                              const percentage = days !== null ? Math.min(100, Math.max(0, (days / maxDays) * 100)) : 0;
+                              const circumference = 2 * Math.PI * 52;
+                              const strokeDashoffset = circumference - (percentage / 100) * circumference;
+                              const strokeColor = days === null ? 'stroke-slate-200' : days <= 3 ? 'stroke-red-500' : days <= 7 ? 'stroke-amber-500' : 'stroke-blue-600';
+                              
+                              return (
+                                <>
+                                  <svg className="w-36 h-36 transform -rotate-90">
+                                    <circle cx="72" cy="72" r="52" className="stroke-slate-100" strokeWidth="8" fill="transparent" />
+                                    <circle 
+                                      cx="72" 
+                                      cy="72" 
+                                      r="52" 
+                                      className={`${strokeColor} transition-all duration-500`}
+                                      strokeWidth="8" 
+                                      fill="transparent" 
+                                      strokeDasharray={circumference}
+                                      strokeDashoffset={strokeDashoffset}
+                                      strokeLinecap="round"
+                                    />
+                                  </svg>
+                                  <div className="absolute flex flex-col items-center justify-center">
+                                    <p className={`text-4xl font-black ${
+                                      days === null ? 'text-slate-400' : days <= 3 ? 'text-red-600' : days <= 7 ? 'text-amber-600' : 'text-slate-900'
+                                    }`}>
+                                      {days !== null ? days : '—'}
+                                    </p>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">days remaining</p>
+                                  </div>
+                                </>
+                              );
+                            })()}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-center">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Expires On</p>
+                        <p className="text-sm font-black text-slate-800">
+                          {profile?.subscription_expires_at
+                            ? new Date(profile.subscription_expires_at).toLocaleDateString('en-IN', { dateStyle: 'long' })
+                            : 'No Active Subscription'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* SUB-TAB: MANAGE & EXTEND */}
+                {subTab === 'manage' && (
+                  <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+                    <div className="flex items-center gap-3 border-b border-slate-100 pb-5">
+                      <div className="w-10 h-10 bg-blue-50 border border-blue-100 rounded-2xl flex items-center justify-center text-blue-600">
+                        <Zap className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-slate-900">Manage Renewals</h3>
+                        <p className="text-xs text-slate-400 font-semibold mt-0.5">Extend your active billing cycles instantly by selecting a duration package below.</p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-xs font-black text-slate-700 mb-3 uppercase tracking-wider">Select Subscription Packages</p>
+                      
+                      {/* Pricing Selectors */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                        {[1, 2, 3].map(m => (
+                          <button
+                            key={m}
+                            onClick={() => { setSelectedMonths(m); setCustomMonths(''); }}
+                            className={`py-4 rounded-2xl border-2 font-black text-sm transition-all flex flex-col items-center justify-center gap-1 ${
+                              selectedMonths === m && !customMonths
+                                ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-md shadow-blue-500/10'
+                                : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300'
+                            }`}
+                          >
+                            <span className="text-base">{m} Month{m > 1 ? 's' : ''}</span>
+                            <span className="text-xs font-bold opacity-75">₹{CONFIG.subscriptionFee * m}</span>
+                          </button>
+                        ))}
+                        <div className="relative">
+                          <input
+                            type="number"
+                            min="1"
+                            max="24"
+                            placeholder="Custom Months"
+                            value={customMonths}
+                            onChange={e => { setCustomMonths(e.target.value); setSelectedMonths(0); }}
+                            className={`w-full h-full py-4 px-3 rounded-2xl border-2 font-black text-sm text-center transition-all focus:outline-none placeholder-slate-400 ${
+                              customMonths
+                                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                : 'border-slate-200 bg-slate-50 text-slate-600 focus:border-slate-300'
+                            }`}
+                          />
+                          {customMonths && (
+                            <span className="absolute bottom-1 left-0 right-0 text-center text-[10px] font-bold text-slate-400">
+                              ₹{CONFIG.subscriptionFee * parseInt(customMonths || 1)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Summary & Checkout Button */}
+                      {(() => {
+                        const months = customMonths ? parseInt(customMonths) || 1 : selectedMonths;
+                        const total = CONFIG.subscriptionFee * months;
+                        const payUrl = `/pay?api_key=${CONFIG.platformApiKey}&amount=${total}&ref=${profile?.id}&note=Subscription_${months}Month`;
+                        return (
+                          <div className="bg-slate-50 border border-slate-100 rounded-3xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                            <div>
+                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Payment Breakdown</p>
+                              <div className="flex items-baseline gap-2 mt-2">
+                                <p className="text-3xl font-black text-slate-900">₹{total.toLocaleString('en-IN')}</p>
+                                <p className="text-xs text-slate-400 font-bold">for {months} Month{months > 1 ? 's' : ''}</p>
+                              </div>
+                              <p className="text-xs text-slate-500 font-semibold mt-1.5">
+                                Renewal duration accumulates and adds +{months * 30} days of operational API validity.
+                              </p>
+                            </div>
+
+                            <div className="flex flex-col gap-2 min-w-[240px]">
+                              <div className="flex items-center justify-between text-xs font-bold text-slate-500 border-b border-slate-100 pb-2 mb-2">
+                                <span>Platform Rate</span>
+                                <span className="text-slate-900">₹{CONFIG.subscriptionFee}/mo</span>
+                              </div>
+                              <button
+                                onClick={() => window.open(payUrl, '_blank')}
+                                className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-500/20 hover:scale-[1.01] active:scale-[0.99]"
+                              >
+                                <CreditCard className="w-4 h-4" />
+                                Pay ₹{total.toLocaleString('en-IN')} via UPI
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -3142,6 +3237,5 @@ async function checkOrderStatus(orderId) {
         </div>
       </main>
     </div>
-    </>
   );
 }
