@@ -1693,6 +1693,148 @@ echo "Order Created: " . $data['orderId'];
           </div>
         )}
 
+        {/* Desktop Sticky Header / Navbar */}
+        <header className="hidden md:flex h-20 bg-white/85 backdrop-blur-md border-b border-slate-200/80 items-center justify-between px-10 sticky top-0 z-30 select-none">
+          {/* Left: Command Search Bar */}
+          <div className="flex items-center gap-3 bg-slate-50 border border-slate-200/80 rounded-2xl px-4 py-2.5 w-80 text-slate-400 focus-within:border-blue-500 focus-within:bg-white transition-all shadow-xs group">
+            <Search className="w-4 h-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+            <input 
+              type="text" 
+              placeholder="Search or type command..." 
+              className="bg-transparent border-none text-xs font-semibold text-slate-700 outline-none w-full placeholder-slate-400"
+              disabled
+            />
+            <span className="text-[10px] font-black bg-slate-200/80 text-slate-500 px-2 py-0.5 rounded-lg font-mono">⌘K</span>
+          </div>
+
+          {/* Right: Actions, Subscription Details, and Profile Dropdown */}
+          <div className="flex items-center gap-4">
+            
+            {/* Subscription Details Pill */}
+            {profile?.subscription_status === 'active' ? (() => {
+              const d = Math.ceil((new Date(profile.subscription_expires_at) - new Date()) / 86400000);
+              return (
+                <button 
+                  onClick={handleScrollToSubscription}
+                  className="flex items-center gap-2 bg-gradient-to-r from-violet-500/10 to-indigo-500/10 hover:from-violet-500/20 hover:to-indigo-500/20 border border-violet-500/30 hover:border-violet-500/50 px-4 py-2 rounded-2xl transition-all shadow-xs cursor-pointer"
+                  title="View Premium Subscription"
+                >
+                  <span className="w-2 h-2 rounded-full bg-violet-500 animate-pulse" />
+                  <span className="text-[10px] font-black text-violet-750 uppercase tracking-wider">Premium · {d} days left</span>
+                </button>
+              );
+            })() : (
+              <button 
+                onClick={handleScrollToSubscription}
+                className="flex items-center gap-2 bg-gradient-to-r from-red-500/10 to-amber-500/10 hover:from-red-500/20 hover:to-amber-500/20 border border-red-500/30 hover:border-red-500/50 px-4 py-2 rounded-2xl transition-all shadow-xs cursor-pointer"
+                title="Renew Active Plan"
+              >
+                <span className="w-2 h-2 rounded-full bg-red-500" />
+                <span className="text-[10px] font-black text-red-750 uppercase tracking-wider">Inactive · Renew Plan</span>
+              </button>
+            )}
+
+            {/* Sandbox Toggle Switch */}
+            <div className="flex items-center gap-2.5 bg-slate-50 border border-slate-200/85 px-3.5 py-2 rounded-2xl shadow-xs select-none">
+              <span className={`text-[9px] font-extrabold uppercase tracking-wider ${profile?.sandbox_mode !== false ? 'text-amber-600' : 'text-slate-400'}`}>
+                {profile?.sandbox_mode !== false ? 'Sandbox' : 'Live'}
+              </span>
+              <button
+                onClick={toggleSandboxMode}
+                className={`w-9 h-5 rounded-full transition-all duration-300 relative flex items-center px-0.5 focus:outline-none cursor-pointer ${profile?.sandbox_mode !== false ? 'bg-amber-400 shadow-xs' : 'bg-slate-200'}`}
+                title="Toggle Sandbox/Live Mode"
+              >
+                <div className={`w-3.5 h-3.5 bg-white rounded-full transition-transform duration-300 ${profile?.sandbox_mode !== false ? 'translate-x-4' : 'translate-x-0'}`} />
+              </button>
+            </div>
+
+            {/* Dark Mode Moon Icon */}
+            <button className="p-2.5 rounded-2xl border border-slate-200/80 bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-900 transition-all shadow-xs flex items-center justify-center cursor-pointer" title="Dark Mode (Coming Soon)">
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+              </svg>
+            </button>
+
+            {/* Bell Notification Icon */}
+            <button className="p-2.5 rounded-2xl border border-slate-200/80 bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-900 transition-all shadow-xs flex items-center justify-center relative cursor-pointer" title="Notifications">
+              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-blue-500" />
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+              </svg>
+            </button>
+
+            <div className="h-6 w-px bg-slate-200" />
+
+            {/* Profile Dropdown Selector */}
+            <div className="relative select-none">
+              <button
+                onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-2xl hover:border-slate-350 hover:bg-slate-50 transition-all shadow-xs cursor-pointer"
+              >
+                <div 
+                  className="w-7 h-7 rounded-full border border-white shadow-inner flex items-center justify-center text-white font-extrabold text-xs"
+                  style={{ backgroundColor: profile?.theme_color || '#3B82F6' }}
+                >
+                  {profile?.owner_name ? profile.owner_name.charAt(0).toUpperCase() : profile?.business_name ? profile.business_name.charAt(0).toUpperCase() : 'M'}
+                </div>
+                <span className="text-xs font-black text-slate-800 hidden sm:inline-block truncate max-w-[120px]">
+                  {profile?.owner_name || profile?.business_name || 'Merchant'}
+                </span>
+                <ChevronDown className={`w-3.5 h-3.5 text-slate-450 transition-transform ${isProfileDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {isProfileDropdownOpen && (
+                <div className="absolute right-0 mt-2.5 w-60 bg-white border border-slate-200/80 rounded-3xl shadow-xl z-50 animate-fadeIn p-4 space-y-3.5">
+                  <div className="pb-3 border-b border-slate-100">
+                    <p className="text-xs font-black text-slate-900 truncate">
+                      {profile?.owner_name || 'Owner Profile'}
+                    </p>
+                    <p className="text-[10px] font-medium text-slate-500 truncate mt-0.5">
+                      {user?.email}
+                    </p>
+                  </div>
+
+                  <div className="space-y-1">
+                    <button
+                      onClick={() => openProfileModal('profile')}
+                      className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-blue-50/50 hover:text-blue-600 rounded-xl text-slate-600 text-xs font-bold transition-all text-left cursor-pointer"
+                    >
+                      <User className="w-4 h-4 text-slate-400" />
+                      Edit Profile
+                    </button>
+                    <button
+                      onClick={() => openProfileModal('payment')}
+                      className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-blue-50/50 hover:text-blue-600 rounded-xl text-slate-600 text-xs font-bold transition-all text-left cursor-pointer"
+                    >
+                      <Briefcase className="w-4 h-4 text-slate-400" />
+                      Account Settings
+                    </button>
+                    <button
+                      onClick={() => openProfileModal('security')}
+                      className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-blue-50/50 hover:text-blue-600 rounded-xl text-slate-600 text-xs font-bold transition-all text-left cursor-pointer"
+                    >
+                      <Shield className="w-4 h-4 text-slate-400" />
+                      Account Security
+                    </button>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100">
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-red-50 text-red-550 rounded-xl text-red-550 text-xs font-bold transition-all text-left cursor-pointer"
+                    >
+                      <LogOut className="w-4 h-4 text-slate-400" />
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+          </div>
+        </header>
+
         {/* Main Body */}
         <div className="flex-1 p-4 md:p-10 overflow-y-auto">
           <div className="max-w-5xl mx-auto space-y-6">
@@ -1710,91 +1852,6 @@ echo "Order Created: " . $data['orderId'];
                   {activeTab === 'settings' && 'Customize your business metadata, direct UPI deposit addresses, and brand colors.'}
                   {activeTab === 'api' && 'Secret credential tokens for creating programmatic checkouts.'}
                 </p>
-              </div>
-
-              {/* Sandbox Toggle & Profile Dropdown Row */}
-              <div className="flex items-center gap-4">
-                
-                {/* Sandbox Toggle Switch */}
-                <div className="flex items-center gap-3 bg-white border border-slate-200 px-4 py-2.5 rounded-2xl shadow-sm select-none">
-                  <span className={`text-[10px] font-extrabold uppercase tracking-wider ${profile?.sandbox_mode !== false ? 'text-amber-600' : 'text-slate-400'}`}>
-                    {profile?.sandbox_mode !== false ? 'Sandbox Mode' : 'Live Mode'}
-                  </span>
-                  <button
-                    onClick={toggleSandboxMode}
-                    className={`w-11 h-6 rounded-full transition-all duration-300 relative flex items-center px-1 focus:outline-none ${profile?.sandbox_mode !== false ? 'bg-amber-400 shadow-sm shadow-amber-400/20' : 'bg-slate-200'}`}
-                    title="Toggle Sandbox/Live Mode"
-                  >
-                    <div className={`w-4 h-4 bg-white rounded-full transition-transform duration-300 ${profile?.sandbox_mode !== false ? 'translate-x-5' : 'translate-x-0'}`} />
-                  </button>
-                </div>
-
-                {/* Desktop Profile Dropdown Selector */}
-                <div className="relative select-none">
-                  <button
-                    onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                    className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-2xl hover:border-slate-350 hover:bg-slate-50 transition-all shadow-sm cursor-pointer"
-                  >
-                    <div 
-                      className="w-7 h-7 rounded-full border border-white shadow-inner flex items-center justify-center text-white font-extrabold text-xs"
-                      style={{ backgroundColor: profile?.theme_color || '#3B82F6' }}
-                    >
-                      {profile?.owner_name ? profile.owner_name.charAt(0).toUpperCase() : profile?.business_name ? profile.business_name.charAt(0).toUpperCase() : 'M'}
-                    </div>
-                    <span className="text-xs font-black text-slate-800 hidden sm:inline-block truncate max-w-[120px]">
-                      {profile?.owner_name || profile?.business_name || 'Merchant'}
-                    </span>
-                    <ChevronDown className={`w-3.5 h-3.5 text-slate-450 transition-transform ${isProfileDropdownOpen ? 'rotate-180' : ''}`} />
-                  </button>
-
-                  {isProfileDropdownOpen && (
-                    <div className="absolute right-0 mt-2.5 w-60 bg-white border border-slate-200/80 rounded-3xl shadow-xl z-50 animate-fadeIn p-4 space-y-3.5">
-                      <div className="pb-3 border-b border-slate-100">
-                        <p className="text-xs font-black text-slate-900 truncate">
-                          {profile?.owner_name || 'Owner Profile'}
-                        </p>
-                        <p className="text-[10px] font-medium text-slate-500 truncate mt-0.5">
-                          {user?.email}
-                        </p>
-                      </div>
-
-                      <div className="space-y-1">
-                        <button
-                          onClick={() => openProfileModal('profile')}
-                          className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-blue-50/50 hover:text-blue-600 rounded-xl text-slate-600 text-xs font-bold transition-all text-left cursor-pointer"
-                        >
-                          <User className="w-4 h-4 text-slate-400" />
-                          Edit Profile
-                        </button>
-                        <button
-                          onClick={() => openProfileModal('payment')}
-                          className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-blue-50/50 hover:text-blue-600 rounded-xl text-slate-600 text-xs font-bold transition-all text-left cursor-pointer"
-                        >
-                          <Briefcase className="w-4 h-4 text-slate-400" />
-                          Account Settings
-                        </button>
-                        <button
-                          onClick={() => openProfileModal('security')}
-                          className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-blue-50/50 hover:text-blue-600 rounded-xl text-slate-600 text-xs font-bold transition-all text-left cursor-pointer"
-                        >
-                          <Shield className="w-4 h-4 text-slate-400" />
-                          Account Security
-                        </button>
-                      </div>
-
-                      <div className="pt-2 border-t border-slate-100">
-                        <button
-                          onClick={handleSignOut}
-                          className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-red-50 text-red-550 rounded-xl text-red-500 text-xs font-bold transition-all text-left cursor-pointer"
-                        >
-                          <LogOut className="w-4 h-4 text-slate-400" />
-                          Sign Out
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
               </div>
 
             {activeTab === 'transactions' && (
