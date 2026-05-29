@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { getAdminSettings, verifyTOTP } from '@/lib/adminSettings';
+import { getAdminSettings, verifyTOTP, isAuthorizedEmail } from '@/lib/adminSettings';
 
 export async function POST(request) {
   try {
@@ -21,7 +21,7 @@ export async function POST(request) {
       }
 
       const settings = await getAdminSettings();
-      if (!settings.admin_email || user.email !== settings.admin_email) {
+      if (!settings.admin_email || !isAuthorizedEmail(user.email, settings.admin_email)) {
         return NextResponse.json({ 
           error: `Google account (${user.email}) is not registered as an administrator.` 
         }, { status: 403 });
@@ -29,6 +29,7 @@ export async function POST(request) {
 
       return NextResponse.json({ success: true, user: { email: user.email } });
     }
+
 
     // 2. Standard Password / 2FA Login
     if (!password) {
