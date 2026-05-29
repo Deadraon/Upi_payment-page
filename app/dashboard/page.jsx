@@ -1551,7 +1551,7 @@ echo "Order Created: " . $data['orderId'];
           {/* Subscription tab — pinned at top */}
           <button
             onClick={handleScrollToSubscription}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-black text-[15px] transition-all border ${
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-black text-sm transition-all border ${
               activeTab === 'subscription'
                 ? 'border-violet-400 bg-violet-500/20 text-violet-700 shadow-sm shadow-violet-500/10'
                 : 'border-violet-500/30 bg-violet-500/10 text-violet-450 hover:text-violet-300 hover:bg-violet-500/20 hover:border-violet-500/50 shadow-sm shadow-violet-500/5'
@@ -1574,7 +1574,7 @@ echo "Order Created: " . $data['orderId'];
 
           <button 
             onClick={() => setActiveTab('overview')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold text-[15px] transition-all border ${
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold text-sm transition-all border ${
               activeTab === 'overview' 
                 ? 'bg-blue-50 text-blue-700 border-blue-100 shadow-sm shadow-blue-500/5' 
                 : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-transparent'
@@ -1590,7 +1590,7 @@ echo "Order Created: " . $data['orderId'];
 
           <button 
             onClick={() => setActiveTab('transactions')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold text-[15px] transition-all border ${
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold text-sm transition-all border ${
               activeTab === 'transactions' 
                 ? 'bg-blue-50 text-blue-700 border-blue-100 shadow-sm shadow-blue-500/5' 
                 : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-transparent'
@@ -1609,7 +1609,7 @@ echo "Order Created: " . $data['orderId'];
               setActiveTab('connections');
               setIntegrationTarget('email_forwarding');
             }}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold text-[15px] transition-all border ${
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold text-sm transition-all border ${
               activeTab === 'connections' 
                 ? 'bg-blue-50 text-blue-700 border-blue-100 shadow-sm shadow-blue-500/5' 
                 : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-transparent'
@@ -1625,7 +1625,7 @@ echo "Order Created: " . $data['orderId'];
                 setIntegrationTarget('website');
               }
             }}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold text-[15px] transition-all border ${
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold text-sm transition-all border ${
               activeTab === 'developer' 
                 ? 'bg-blue-50 text-blue-700 border-blue-100 shadow-sm shadow-blue-500/5' 
                 : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-transparent'
@@ -1636,7 +1636,7 @@ echo "Order Created: " . $data['orderId'];
 
           <button 
             onClick={() => setActiveTab('api')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold text-[15px] transition-all border ${
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold text-sm transition-all border ${
               activeTab === 'api' 
                 ? 'bg-blue-50 text-blue-700 border-blue-100 shadow-sm shadow-blue-500/5' 
                 : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-transparent'
@@ -1652,7 +1652,7 @@ echo "Order Created: " . $data['orderId'];
 
           <button 
             onClick={() => setActiveTab('settings')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold text-[15px] transition-all border ${
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold text-sm transition-all border ${
               activeTab === 'settings' 
                 ? 'bg-blue-50 text-blue-700 border-blue-100 shadow-sm shadow-blue-500/5' 
                 : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-transparent'
@@ -1788,7 +1788,7 @@ echo "Order Created: " . $data['orderId'];
                         setIntegrationTarget('website');
                       }
                     }}
-                    className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-[15px] font-bold transition-all border ${
+                    className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold transition-all border ${
                       activeTab === item.id 
                         ? 'bg-blue-50 text-blue-700 border-blue-100 shadow-sm shadow-blue-500/5' 
                         : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-transparent'
@@ -1929,10 +1929,10 @@ echo "Order Created: " . $data['orderId'];
               {isProfileDropdownOpen && (
                 <div className="absolute right-0 mt-2.5 w-60 bg-white border border-slate-200/80 rounded-3xl shadow-xl z-50 animate-fadeIn p-4 space-y-3.5">
                   <div className="pb-3 border-b border-slate-100">
-                    <p className="text-xs font-black text-slate-900 truncate">
+                    <p className="text-sm font-black text-slate-900 truncate">
                       {profile?.owner_name || 'Owner Profile'}
                     </p>
-                    <p className="text-[10px] font-medium text-slate-500 truncate mt-0.5">
+                    <p className="text-xs font-medium text-slate-500 truncate mt-0.5">
                       {user?.email}
                     </p>
                   </div>
@@ -1940,21 +1940,21 @@ echo "Order Created: " . $data['orderId'];
                   <div className="space-y-1">
                     <button
                       onClick={() => openProfileModal('profile')}
-                      className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-blue-50/50 hover:text-blue-600 rounded-xl text-slate-600 text-xs font-bold transition-all text-left cursor-pointer"
+                      className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-blue-50/50 hover:text-blue-600 rounded-xl text-slate-600 text-sm font-semibold transition-all text-left cursor-pointer"
                     >
                       <User className="w-4 h-4 text-slate-400" />
                       Edit Profile
                     </button>
                     <button
                       onClick={() => openProfileModal('payment')}
-                      className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-blue-50/50 hover:text-blue-600 rounded-xl text-slate-600 text-xs font-bold transition-all text-left cursor-pointer"
+                      className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-blue-50/50 hover:text-blue-600 rounded-xl text-slate-600 text-sm font-semibold transition-all text-left cursor-pointer"
                     >
                       <Briefcase className="w-4 h-4 text-slate-400" />
                       Account Settings
                     </button>
                     <button
                       onClick={() => openProfileModal('security')}
-                      className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-blue-50/50 hover:text-blue-600 rounded-xl text-slate-600 text-xs font-bold transition-all text-left cursor-pointer"
+                      className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-blue-50/50 hover:text-blue-600 rounded-xl text-slate-600 text-sm font-semibold transition-all text-left cursor-pointer"
                     >
                       <Shield className="w-4 h-4 text-slate-400" />
                       Account Security
@@ -1964,7 +1964,7 @@ echo "Order Created: " . $data['orderId'];
                   <div className="pt-2 border-t border-slate-100">
                     <button
                       onClick={handleSignOut}
-                      className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-red-50 text-red-550 rounded-xl text-red-550 text-xs font-bold transition-all text-left cursor-pointer"
+                      className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-red-50 text-red-600 rounded-xl text-red-600 text-sm font-semibold transition-all text-left cursor-pointer"
                     >
                       <LogOut className="w-4 h-4 text-slate-400" />
                       Sign Out
