@@ -87,6 +87,55 @@ export default function DashboardPage() {
   // Connections Tab Sub-tab Selection State
   const [connectionSubTab, setConnectionSubTab] = useState('email');
 
+  // Central Profile Settings Modal & Dropdown States
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [profileModalTab, setProfileModalTab] = useState('profile');
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+
+  // Edit States for Modal Inputs
+  const [editOwnerName, setEditOwnerName] = useState('');
+  const [editPhoneNumber, setEditPhoneNumber] = useState('');
+  const [editBusinessName, setEditBusinessName] = useState('');
+  const [editUpiId, setEditUpiId] = useState('');
+  const [editWebhookUrl, setEditWebhookUrl] = useState('');
+  const [editThemeColor, setEditThemeColor] = useState('#3B82F6');
+  const [editGstin, setEditGstin] = useState('');
+  const [editBusinessAddress, setEditBusinessAddress] = useState('');
+  const [editBusinessCategory, setEditBusinessCategory] = useState('');
+
+  // Password Reset States
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordResetLoading, setPasswordResetLoading] = useState(false);
+  const [passwordResetError, setPasswordResetError] = useState(null);
+  const [passwordResetSuccess, setPasswordResetSuccess] = useState(null);
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileSuccessMsg, setProfileSuccessMsg] = useState(null);
+  const [profileErrorMsg, setProfileErrorMsg] = useState(null);
+
+  const openProfileModal = (tabName = 'profile') => {
+    if (profile) {
+      setEditOwnerName(profile.owner_name || '');
+      setEditPhoneNumber(profile.phone_number || '');
+      setEditBusinessName(profile.business_name || '');
+      setEditUpiId(profile.upi_id || '');
+      setEditWebhookUrl(profile.webhook_url ? profile.webhook_url.replace(/\/api\/webhook$/, '') : '');
+      setEditThemeColor(profile.theme_color || '#3B82F6');
+      setEditGstin(profile.gstin || '');
+      setEditBusinessAddress(profile.business_address || '');
+      setEditBusinessCategory(profile.business_category || 'Retail');
+    }
+    setNewPassword('');
+    setConfirmPassword('');
+    setPasswordResetError(null);
+    setPasswordResetSuccess(null);
+    setProfileSuccessMsg(null);
+    setProfileErrorMsg(null);
+    setProfileModalTab(tabName);
+    setIsProfileModalOpen(true);
+    setIsProfileDropdownOpen(false);
+  };
+
   const fetchStaffDetails = async (providerName) => {
     setStaffLoading(true);
     setStaffError(null);
@@ -411,6 +460,118 @@ export default function DashboardPage() {
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     router.push('/login');
+  };
+
+  const handleSaveProfileModal = async () => {
+    setProfileSaving(true);
+    setProfileSuccessMsg(null);
+    setProfileErrorMsg(null);
+
+    // Form validation
+    if (!editBusinessName.trim()) {
+      setProfileErrorMsg('Business name is required.');
+      setProfileSaving(false);
+      return;
+    }
+    if (!editUpiId.trim() || editUpiId.trim() === 'pending@upi') {
+      setProfileErrorMsg('A valid UPI deposit address (VPA) is required.');
+      setProfileSaving(false);
+      return;
+    }
+
+    // Format webhook URL
+    let finalWebhook = editWebhookUrl.trim();
+    if (finalWebhook && !finalWebhook.endsWith('/api/webhook')) {
+      try {
+        const url = new URL(finalWebhook);
+        if (url.pathname === '/' || url.pathname === '') {
+          finalWebhook = finalWebhook.replace(/\/$/, '') + '/api/webhook';
+        }
+      } catch (e) {
+        if (profile?.webhook_url?.endsWith('/api/webhook')) {
+          finalWebhook = finalWebhook.replace(/\/$/, '') + '/api/webhook';
+        }
+      }
+    }
+
+    try {
+      const { error } = await supabase
+        .from('merchants')
+        .update({
+          owner_name: editOwnerName.trim(),
+          phone_number: editPhoneNumber.trim(),
+          business_name: editBusinessName.trim(),
+          upi_id: editUpiId.trim(),
+          webhook_url: finalWebhook,
+          theme_color: editThemeColor.trim(),
+          gstin: editGstin.trim(),
+          business_address: editBusinessAddress.trim(),
+          business_category: editBusinessCategory
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      // Update active profile state dynamically
+      setProfile(prev => ({
+        ...prev,
+        owner_name: editOwnerName.trim(),
+        phone_number: editPhoneNumber.trim(),
+        business_name: editBusinessName.trim(),
+        upi_id: editUpiId.trim(),
+        webhook_url: finalWebhook,
+        theme_color: editThemeColor.trim(),
+        gstin: editGstin.trim(),
+        business_address: editBusinessAddress.trim(),
+        business_category: editBusinessCategory
+      }));
+
+      setProfileSuccessMsg('Profile settings updated successfully!');
+      setTimeout(() => setProfileSuccessMsg(null), 4000);
+    } catch (err) {
+      console.error('Error updating merchant profile:', err);
+      setProfileErrorMsg(err.message || 'Failed to save merchant settings.');
+    } finally {
+      setProfileSaving(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    setPasswordResetError(null);
+    setPasswordResetSuccess(null);
+
+    // Password validations
+    if (!newPassword) {
+      setPasswordResetError('Password field cannot be empty.');
+      return;
+    }
+    if (newPassword.length < 6) {
+      setPasswordResetError('Password must be at least 6 characters.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordResetError('Passwords do not match.');
+      return;
+    }
+
+    setPasswordResetLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) throw error;
+
+      setPasswordResetSuccess('Your account password was updated successfully!');
+      setNewPassword('');
+      setConfirmPassword('');
+      setTimeout(() => setPasswordResetSuccess(null), 4000);
+    } catch (err) {
+      console.error('Error resetting password:', err);
+      setPasswordResetError(err.message || 'Failed to update account password.');
+    } finally {
+      setPasswordResetLoading(false);
+    }
   };
 
   const copyApiKey = () => {
@@ -1402,15 +1563,19 @@ echo "Order Created: " . $data['orderId'];
 
         {/* User Card info footer */}
         <div className="p-5 border-t border-slate-100 bg-slate-50/50">
-          <div className="flex items-center gap-3 mb-4 px-2">
+          <div 
+            onClick={() => openProfileModal('profile')}
+            className="flex items-center gap-3 mb-4 px-2 cursor-pointer hover:bg-slate-100/60 p-2.5 rounded-2xl border border-transparent hover:border-slate-200 transition-all group select-none"
+            title="Edit Profile Settings"
+          >
             <div 
-              className="w-10 h-10 rounded-full border-2 border-white shadow-sm flex items-center justify-center text-white font-bold text-sm"
+              className="w-10 h-10 rounded-full border-2 border-white shadow-sm flex items-center justify-center text-white font-bold text-sm shrink-0"
               style={{ backgroundColor: profile?.theme_color || '#3B82F6' }}
             >
-              {profile?.business_name ? profile.business_name.charAt(0).toUpperCase() : 'B'}
+              {profile?.owner_name ? profile.owner_name.charAt(0).toUpperCase() : profile?.business_name ? profile.business_name.charAt(0).toUpperCase() : 'M'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-slate-900 truncate">{profile?.business_name || 'My Business'}</p>
+              <p className="text-sm font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors">{profile?.owner_name || profile?.business_name || 'My Profile'}</p>
               <p className="text-[10px] font-medium text-slate-500 truncate">{user?.email}</p>
             </div>
           </div>
@@ -1444,18 +1609,25 @@ echo "Order Created: " . $data['orderId'];
         {isMobileMenuOpen && (
           <div className="md:hidden fixed inset-x-0 bottom-0 top-[64px] z-30 bg-white/95 backdrop-blur-md flex flex-col pt-6 px-6 pb-6 animate-fadeIn">
             {/* Drawer Header Info */}
-            <div className="flex items-center gap-3 mb-6 p-3 bg-slate-50 border border-slate-100 rounded-2xl">
+            <button
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                openProfileModal('profile');
+              }}
+              className="w-full flex items-center gap-3 mb-6 p-3 bg-slate-50 hover:bg-blue-50/40 border border-slate-200 hover:border-blue-300 rounded-2xl transition-all text-left cursor-pointer select-none"
+              title="Edit Profile Settings"
+            >
               <div 
-                className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-sm"
+                className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0"
                 style={{ backgroundColor: profile?.theme_color || '#3B82F6' }}
               >
-                {profile?.business_name ? profile.business_name.charAt(0).toUpperCase() : 'B'}
+                {profile?.owner_name ? profile.owner_name.charAt(0).toUpperCase() : profile?.business_name ? profile.business_name.charAt(0).toUpperCase() : 'M'}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-slate-900 truncate">{profile?.business_name || 'My Business'}</p>
+                <p className="text-sm font-bold text-slate-900 truncate">{profile?.owner_name || profile?.business_name || 'My Profile'}</p>
                 <p className="text-[10px] font-medium text-slate-500 truncate">{user?.email}</p>
               </div>
-            </div>
+            </button>
 
             {/* Navigation Options */}
             <div className="flex flex-col space-y-2">
@@ -1540,19 +1712,90 @@ echo "Order Created: " . $data['orderId'];
                 </p>
               </div>
 
-              {/* Sandbox Toggle Switch */}
-              <div className="flex items-center gap-3 bg-white border border-slate-200 px-4 py-2.5 rounded-2xl shadow-sm select-none">
-                <span className={`text-[10px] font-extrabold uppercase tracking-wider ${profile?.sandbox_mode !== false ? 'text-amber-600' : 'text-slate-400'}`}>
-                  {profile?.sandbox_mode !== false ? 'Sandbox Mode' : 'Live Mode'}
-                </span>
-                <button
-                  onClick={toggleSandboxMode}
-                  className={`w-11 h-6 rounded-full transition-all duration-300 relative flex items-center px-1 focus:outline-none ${profile?.sandbox_mode !== false ? 'bg-amber-400 shadow-sm shadow-amber-400/20' : 'bg-slate-200'}`}
-                  title="Toggle Sandbox/Live Mode"
-                >
-                  <div className={`w-4 h-4 bg-white rounded-full transition-transform duration-300 ${profile?.sandbox_mode !== false ? 'translate-x-5' : 'translate-x-0'}`} />
-                </button>
-            </div>
+              {/* Sandbox Toggle & Profile Dropdown Row */}
+              <div className="flex items-center gap-4">
+                
+                {/* Sandbox Toggle Switch */}
+                <div className="flex items-center gap-3 bg-white border border-slate-200 px-4 py-2.5 rounded-2xl shadow-sm select-none">
+                  <span className={`text-[10px] font-extrabold uppercase tracking-wider ${profile?.sandbox_mode !== false ? 'text-amber-600' : 'text-slate-400'}`}>
+                    {profile?.sandbox_mode !== false ? 'Sandbox Mode' : 'Live Mode'}
+                  </span>
+                  <button
+                    onClick={toggleSandboxMode}
+                    className={`w-11 h-6 rounded-full transition-all duration-300 relative flex items-center px-1 focus:outline-none ${profile?.sandbox_mode !== false ? 'bg-amber-400 shadow-sm shadow-amber-400/20' : 'bg-slate-200'}`}
+                    title="Toggle Sandbox/Live Mode"
+                  >
+                    <div className={`w-4 h-4 bg-white rounded-full transition-transform duration-300 ${profile?.sandbox_mode !== false ? 'translate-x-5' : 'translate-x-0'}`} />
+                  </button>
+                </div>
+
+                {/* Desktop Profile Dropdown Selector */}
+                <div className="relative select-none">
+                  <button
+                    onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                    className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-2xl hover:border-slate-350 hover:bg-slate-50 transition-all shadow-sm cursor-pointer"
+                  >
+                    <div 
+                      className="w-7 h-7 rounded-full border border-white shadow-inner flex items-center justify-center text-white font-extrabold text-xs"
+                      style={{ backgroundColor: profile?.theme_color || '#3B82F6' }}
+                    >
+                      {profile?.owner_name ? profile.owner_name.charAt(0).toUpperCase() : profile?.business_name ? profile.business_name.charAt(0).toUpperCase() : 'M'}
+                    </div>
+                    <span className="text-xs font-black text-slate-800 hidden sm:inline-block truncate max-w-[120px]">
+                      {profile?.owner_name || profile?.business_name || 'Merchant'}
+                    </span>
+                    <ChevronDown className={`w-3.5 h-3.5 text-slate-450 transition-transform ${isProfileDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {isProfileDropdownOpen && (
+                    <div className="absolute right-0 mt-2.5 w-60 bg-white border border-slate-200/80 rounded-3xl shadow-xl z-50 animate-fadeIn p-4 space-y-3.5">
+                      <div className="pb-3 border-b border-slate-100">
+                        <p className="text-xs font-black text-slate-900 truncate">
+                          {profile?.owner_name || 'Owner Profile'}
+                        </p>
+                        <p className="text-[10px] font-medium text-slate-500 truncate mt-0.5">
+                          {user?.email}
+                        </p>
+                      </div>
+
+                      <div className="space-y-1">
+                        <button
+                          onClick={() => openProfileModal('profile')}
+                          className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-blue-50/50 hover:text-blue-600 rounded-xl text-slate-600 text-xs font-bold transition-all text-left cursor-pointer"
+                        >
+                          <User className="w-4 h-4 text-slate-400" />
+                          Edit Profile
+                        </button>
+                        <button
+                          onClick={() => openProfileModal('payment')}
+                          className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-blue-50/50 hover:text-blue-600 rounded-xl text-slate-600 text-xs font-bold transition-all text-left cursor-pointer"
+                        >
+                          <Briefcase className="w-4 h-4 text-slate-400" />
+                          Account Settings
+                        </button>
+                        <button
+                          onClick={() => openProfileModal('security')}
+                          className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-blue-50/50 hover:text-blue-600 rounded-xl text-slate-600 text-xs font-bold transition-all text-left cursor-pointer"
+                        >
+                          <Shield className="w-4 h-4 text-slate-400" />
+                          Account Security
+                        </button>
+                      </div>
+
+                      <div className="pt-2 border-t border-slate-100">
+                        <button
+                          onClick={handleSignOut}
+                          className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-red-50 text-red-550 rounded-xl text-red-500 text-xs font-bold transition-all text-left cursor-pointer"
+                        >
+                          <LogOut className="w-4 h-4 text-slate-400" />
+                          Sign Out
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+              </div>
 
             {activeTab === 'transactions' && (
               <div className="flex gap-2">
@@ -4034,8 +4277,375 @@ async function checkOrderStatus(orderId) {
             )}
 
           </div>
-        </div>
       </main>
+
+      {/* Premium Glassmorphic Centralized Settings Modal Overlay */}
+      {isProfileModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-fadeIn">
+          <div className="bg-white border border-slate-200/80 rounded-[32px] shadow-2xl flex flex-col md:flex-row w-full max-w-4xl overflow-hidden max-h-[85vh] relative animate-scaleUp">
+            
+            {/* Close Button */}
+            <button 
+              onClick={() => setIsProfileModalOpen(false)}
+              className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-200 z-10"
+              title="Close Settings"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            {/* Left Panel: Sidebar Navigation */}
+            <div className="w-full md:w-64 bg-slate-50 border-r border-slate-200/80 p-6 flex flex-col shrink-0 gap-6">
+              <div>
+                <h3 className="text-base font-black text-slate-900">Merchant Settings</h3>
+                <p className="text-[10px] text-slate-500 font-bold mt-0.5 uppercase tracking-wide">Control Dashboard & Profile</p>
+              </div>
+
+              <div className="flex flex-row md:flex-col overflow-x-auto md:overflow-x-visible gap-1 pb-2 md:pb-0 scrollbar-none">
+                <button
+                  onClick={() => setProfileModalTab('profile')}
+                  className={`flex-1 md:flex-initial flex items-center justify-center md:justify-start gap-3 px-4 py-3 rounded-xl font-bold text-xs transition-all border whitespace-nowrap ${
+                    profileModalTab === 'profile' 
+                      ? 'bg-white text-blue-750 border-slate-250 shadow-xs' 
+                      : 'text-slate-500 hover:bg-white/50 hover:text-slate-900 border-transparent'
+                  }`}
+                >
+                  <User className="w-4 h-4 text-blue-500 shrink-0" />
+                  <span>Owner Profile</span>
+                </button>
+
+                <button
+                  onClick={() => setProfileModalTab('business')}
+                  className={`flex-1 md:flex-initial flex items-center justify-center md:justify-start gap-3 px-4 py-3 rounded-xl font-bold text-xs transition-all border whitespace-nowrap ${
+                    profileModalTab === 'business' 
+                      ? 'bg-white text-blue-750 border-slate-250 shadow-xs' 
+                      : 'text-slate-500 hover:bg-white/50 hover:text-slate-900 border-transparent'
+                  }`}
+                >
+                  <Briefcase className="w-4 h-4 text-amber-500 shrink-0" />
+                  <span>Business Details</span>
+                </button>
+
+                <button
+                  onClick={() => setProfileModalTab('payment')}
+                  className={`flex-1 md:flex-initial flex items-center justify-center md:justify-start gap-3 px-4 py-3 rounded-xl font-bold text-xs transition-all border whitespace-nowrap ${
+                    profileModalTab === 'payment' 
+                      ? 'bg-white text-blue-750 border-slate-250 shadow-xs' 
+                      : 'text-slate-500 hover:bg-white/50 hover:text-slate-900 border-transparent'
+                  }`}
+                >
+                  <CreditCard className="w-4 h-4 text-emerald-500 shrink-0" />
+                  <span>Payment & Gateway</span>
+                </button>
+
+                <button
+                  onClick={() => setProfileModalTab('security')}
+                  className={`flex-1 md:flex-initial flex items-center justify-center md:justify-start gap-3 px-4 py-3 rounded-xl font-bold text-xs transition-all border whitespace-nowrap ${
+                    profileModalTab === 'security' 
+                      ? 'bg-white text-blue-750 border-slate-250 shadow-xs' 
+                      : 'text-slate-500 hover:bg-white/50 hover:text-slate-900 border-transparent'
+                  }`}
+                >
+                  <Shield className="w-4 h-4 text-indigo-500 shrink-0" />
+                  <span>Account Security</span>
+                </button>
+              </div>
+
+              {/* Secure Shield Info */}
+              <div className="mt-auto hidden md:flex items-center gap-2 pt-4 border-t border-slate-200 text-slate-400">
+                <Shield className="w-4 h-4 text-emerald-500 shrink-0" />
+                <span className="text-[9px] font-bold tracking-widest uppercase">End-to-End Secure</span>
+              </div>
+            </div>
+
+            {/* Right Panel: Content Pane */}
+            <div className="flex-1 p-6 md:p-8 overflow-y-auto flex flex-col gap-6">
+              
+              {/* Tab: OWNER PROFILE */}
+              {profileModalTab === 'profile' && (
+                <div className="space-y-5 animate-fadeIn">
+                  <div>
+                    <h4 className="text-base font-black text-slate-900">Owner Profile Details</h4>
+                    <p className="text-[11px] text-slate-500 font-medium">Update your account identity and primary notification phone number.</p>
+                  </div>
+
+                  <div className="space-y-4 font-semibold text-xs text-slate-700">
+                    <div>
+                      <label className="block mb-1.5">Owner / Contact Name</label>
+                      <input
+                        type="text"
+                        value={editOwnerName}
+                        onChange={(e) => setEditOwnerName(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-3 px-4 rounded-xl text-sm font-semibold text-slate-900 placeholder-slate-400"
+                        placeholder="e.g. Kunal Chauhan"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block mb-1.5">Primary Phone Number</label>
+                      <input
+                        type="tel"
+                        value={editPhoneNumber}
+                        onChange={(e) => setEditPhoneNumber(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-3 px-4 rounded-xl text-sm font-semibold text-slate-900 placeholder-slate-400 font-mono"
+                        placeholder="e.g. +91 98765 43210"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block mb-1.5 flex items-center gap-1.5 text-slate-500">
+                        <Mail className="w-3.5 h-3.5" /> Login Account Email <span className="text-[9px] bg-slate-250 text-slate-600 px-2 py-0.5 rounded font-black uppercase tracking-wider">Locked</span>
+                      </label>
+                      <input
+                        type="email"
+                        value={user?.email || ''}
+                        disabled
+                        className="w-full bg-slate-100/60 border border-slate-200 text-slate-500 rounded-xl py-3 px-4 text-sm font-semibold cursor-not-allowed select-none"
+                      />
+                      <p className="text-[10px] text-slate-400 mt-1.5 font-medium leading-relaxed">Account emails cannot be updated directly for security purposes. Please contact administration support to initiate a transfer.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Tab: BUSINESS INFO */}
+              {profileModalTab === 'business' && (
+                <div className="space-y-5 animate-fadeIn">
+                  <div>
+                    <h4 className="text-base font-black text-slate-900">Business Registry Information</h4>
+                    <p className="text-[11px] text-slate-500 font-medium">Manage your registered company details, merchant category classification, and tax credentials.</p>
+                  </div>
+
+                  <div className="space-y-4 font-semibold text-xs text-slate-700">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block mb-1.5">Registered Business Name</label>
+                        <input
+                          type="text"
+                          value={editBusinessName}
+                          onChange={(e) => setEditBusinessName(e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-3 px-4 rounded-xl text-sm font-semibold text-slate-900 placeholder-slate-400"
+                          placeholder="e.g. Vyapar Gateway Corp"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block mb-1.5">Business Category</label>
+                        <select
+                          value={editBusinessCategory}
+                          onChange={(e) => setEditBusinessCategory(e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-3 px-4 rounded-xl text-sm font-semibold text-slate-900 cursor-pointer"
+                        >
+                          <option value="Retail">Retail Store / Kirana</option>
+                          <option value="Services">Professional Services</option>
+                          <option value="E-commerce">E-Commerce & SaaS</option>
+                          <option value="Food & Beverage">Food & Beverage / Restaurant</option>
+                          <option value="Healthcare">Healthcare & Pharmacy</option>
+                          <option value="Education">Education & Tutoring</option>
+                          <option value="Logistics">Logistics & Transport</option>
+                          <option value="Others">Others</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block mb-1.5">GSTIN / Tax ID <span className="text-[9px] bg-slate-200 text-slate-500 px-2 py-0.5 rounded font-black uppercase tracking-wider">Optional</span></label>
+                      <input
+                        type="text"
+                        value={editGstin}
+                        onChange={(e) => setEditGstin(e.target.value.toUpperCase())}
+                        className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-3 px-4 rounded-xl text-sm font-semibold text-slate-900 placeholder-slate-400 font-mono"
+                        placeholder="e.g. 22AAAAA0000A1Z5"
+                        maxLength={15}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block mb-1.5">Business Address</label>
+                      <textarea
+                        value={editBusinessAddress}
+                        onChange={(e) => setEditBusinessAddress(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-3 px-4 rounded-xl text-sm font-semibold text-slate-900 placeholder-slate-400 leading-normal"
+                        placeholder="Complete business storefront or corporate address details..."
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Tab: PAYMENT & WEBHOOK */}
+              {profileModalTab === 'payment' && (
+                <div className="space-y-5 animate-fadeIn">
+                  <div>
+                    <h4 className="text-base font-black text-slate-900">Deposit UPI & Outbound Webhook</h4>
+                    <p className="text-[11px] text-slate-500 font-medium">Configure where customer funds are settled and webhook callbacks are dispatched.</p>
+                  </div>
+
+                  <div className="space-y-4 font-semibold text-xs text-slate-700">
+                    <div>
+                      <label className="block mb-1.5">UPI ID (VPA) for Direct Settlements</label>
+                      <input
+                        type="text"
+                        value={editUpiId}
+                        onChange={(e) => setEditUpiId(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-3 px-4 rounded-xl text-sm font-semibold text-slate-900 placeholder-slate-400 font-mono"
+                        placeholder="e.g. yourshop@paytm"
+                      />
+                      <p className="text-[10px] text-slate-400 mt-1.5 font-medium leading-relaxed">Transactions are directly deposited into this VPA in real-time. Double check to avoid settlement redirection issues.</p>
+                    </div>
+
+                    <div>
+                      <label className="block mb-1.5">Custom Webhook Integration URL <span className="text-[9px] bg-slate-200 text-slate-500 px-2 py-0.5 rounded font-black uppercase tracking-wider">Optional</span></label>
+                      <div className="flex items-center">
+                        <input
+                          type="url"
+                          value={editWebhookUrl}
+                          onChange={(e) => setEditWebhookUrl(e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-l-xl py-3 px-4 border-r-0 focus:border-blue-500 focus:bg-white focus:outline-none transition-all text-sm font-semibold text-slate-900 placeholder-slate-400 font-mono"
+                          placeholder="https://your-server.com"
+                        />
+                        <div className="bg-slate-100 border border-slate-200 border-l-0 rounded-r-xl py-3 px-4 text-xs font-mono font-bold text-slate-500">
+                          /api/webhook
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-slate-400 mt-1.5 font-medium leading-relaxed">We fire signed HMAC payload POST calls to this destination receiver when checkouts are successfully matched.</p>
+                    </div>
+
+                    <div>
+                      <label className="block mb-1.5">Custom Brand Theme Color</label>
+                      <div className="flex items-center gap-3">
+                        <input 
+                          type="color" 
+                          value={editThemeColor} 
+                          onChange={(e) => setEditThemeColor(e.target.value)}
+                          className="w-12 h-12 bg-white border border-slate-200 rounded-xl cursor-pointer p-1 shrink-0"
+                        />
+                        <input 
+                          type="text" 
+                          value={editThemeColor} 
+                          onChange={(e) => setEditThemeColor(e.target.value)}
+                          className="flex-1 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-3 px-4 rounded-xl text-sm font-semibold text-slate-900 font-mono"
+                          placeholder="#3B82F6"
+                        />
+                      </div>
+                      <p className="text-[10px] text-slate-400 mt-1.5 font-medium">This brand accent color is active across your scanning checkout UI.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Tab: ACCOUNT SECURITY */}
+              {profileModalTab === 'security' && (
+                <div className="space-y-5 animate-fadeIn">
+                  <div>
+                    <h4 className="text-base font-black text-slate-900">Account Security</h4>
+                    <p className="text-[11px] text-slate-500 font-medium">Modify your secret login credentials or change your account password instantly.</p>
+                  </div>
+
+                  {/* Info Notice Box */}
+                  <div className="p-4 bg-blue-50/50 border border-blue-200/50 rounded-2xl flex gap-3 text-blue-750">
+                    <Shield className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs font-bold leading-normal">Direct Password Change</p>
+                      <p className="text-[10px] text-blue-600/90 font-medium leading-normal mt-0.5">You can safely reset your login credentials in real time. Passwords must be at least 6 characters in length to ensure system compliance.</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 font-semibold text-xs text-slate-700">
+                    <div>
+                      <label className="block mb-1.5">New Password</label>
+                      <input
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-3 px-4 rounded-xl text-sm font-semibold text-slate-900 font-mono"
+                        placeholder="••••••••"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block mb-1.5">Confirm New Password</label>
+                      <input
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-3 px-4 rounded-xl text-sm font-semibold text-slate-900 font-mono"
+                        placeholder="••••••••"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Modal Footer Controls */}
+              {profileModalTab !== 'security' ? (
+                <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-4 mt-auto">
+                  <div className="flex-1 min-w-0">
+                    {profileSuccessMsg && (
+                      <span className="text-xs font-bold text-emerald-600 flex items-center gap-1.5 animate-fadeIn">
+                        <CheckCircle className="w-4 h-4 shrink-0" /> <span className="truncate">{profileSuccessMsg}</span>
+                      </span>
+                    )}
+                    {profileErrorMsg && (
+                      <span className="text-xs font-bold text-red-500 flex items-center gap-1.5 animate-fadeIn">
+                        <AlertCircle className="w-4 h-4 shrink-0" /> <span className="truncate">{profileErrorMsg}</span>
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      onClick={() => setIsProfileModalOpen(false)}
+                      className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all border border-slate-200"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSaveProfileModal}
+                      disabled={profileSaving}
+                      className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-sm shadow-blue-500/10"
+                    >
+                      {profileSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                      <span>{profileSaving ? 'Saving...' : 'Save Details'}</span>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-4 mt-auto">
+                  <div className="flex-1 min-w-0">
+                    {passwordResetSuccess && (
+                      <span className="text-xs font-bold text-emerald-600 flex items-center gap-1.5 animate-fadeIn">
+                        <CheckCircle className="w-4 h-4 shrink-0" /> <span className="truncate">{passwordResetSuccess}</span>
+                      </span>
+                    )}
+                    {passwordResetError && (
+                      <span className="text-xs font-bold text-red-500 flex items-center gap-1.5 animate-fadeIn">
+                        <AlertCircle className="w-4 h-4 shrink-0" /> <span className="truncate">{passwordResetError}</span>
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      onClick={() => setIsProfileModalOpen(false)}
+                      className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all border border-slate-200"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleChangePassword}
+                      disabled={passwordResetLoading}
+                      className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-sm shadow-blue-500/10"
+                    >
+                      {passwordResetLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Key className="w-3.5 h-3.5" />}
+                      <span>{passwordResetLoading ? 'Updating...' : 'Update Password'}</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
