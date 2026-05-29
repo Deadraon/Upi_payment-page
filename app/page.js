@@ -140,15 +140,12 @@ print("Checkout Link generated:", data.get("orderId"))`
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 overflow-x-hidden selection:bg-blue-500/10 selection:text-blue-600">
       
-      {/* ────────────────────────────────────────────────────────
-         STICKY HEADER NAVIGATION
-         ──────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/60 transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between relative">
+        <div className="w-full px-6 md:px-10 h-20 flex items-center justify-between relative">
           
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 select-none group">
-            <MyMobPayLogo className="w-36 h-auto" />
+            <MyMobPayLogo className="w-48 h-auto" />
           </Link>
 
           {/* Navigation Links (Desktop) */}
