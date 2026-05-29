@@ -4728,6 +4728,8 @@ async function checkOrderStatus(orderId) {
             </div>
           </div>
         </div>
+      )}
+
       {/* Command Palette Working Search Panel Overlay */}
       {isCommandPaletteOpen && (
         <div 
