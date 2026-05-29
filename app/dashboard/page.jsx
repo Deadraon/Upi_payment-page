@@ -1553,15 +1553,17 @@ echo "Order Created: " . $data['orderId'];
             onClick={handleScrollToSubscription}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-black text-sm transition-all border ${
               activeTab === 'subscription'
-                ? 'border-violet-400 bg-violet-500/20 text-violet-700 shadow-sm shadow-violet-500/10'
-                : 'border-violet-500/30 bg-violet-500/10 text-violet-450 hover:text-violet-300 hover:bg-violet-500/20 hover:border-violet-500/50 shadow-sm shadow-violet-500/5'
+                ? 'border-violet-500 bg-violet-500/20 text-violet-700 shadow-sm shadow-violet-500/10'
+                : 'border-violet-300 bg-violet-50 text-violet-700 hover:bg-violet-100 hover:border-violet-400 shadow-sm shadow-violet-500/5'
             }`}
           >
-            <Star className="w-4.5 h-4.5 text-violet-500 fill-violet-500/10 shrink-0" />
+            <Star className="w-4 h-4 text-violet-500 fill-violet-400 shrink-0" />
             <span className="flex-1 text-left">Subscription</span>
-            {profile?.subscription_status === 'active' && profile?.subscription_expires_at && (() => {
-              const d = Math.ceil((new Date(profile.subscription_expires_at) - new Date()) / 86400000);
-              return <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-violet-500/20 text-violet-600">{d}d left</span>;
+            {profile?.subscription_status === 'active' && (() => {
+              const expiresAt = profile?.subscription_expires_at ? new Date(profile.subscription_expires_at) : null;
+              const isValid = expiresAt && !isNaN(expiresAt.getTime()) && expiresAt.getTime() > Date.now();
+              const d = isValid ? Math.ceil((expiresAt - new Date()) / 86400000) : null;
+              return <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-violet-500/20 text-violet-700">{d ? `${d}d left` : 'Active'}</span>;
             })()}
           </button>
 
@@ -1746,13 +1748,15 @@ echo "Order Created: " . $data['orderId'];
                   setIsMobileMenuOpen(false);
                   handleScrollToSubscription();
                 }}
-                className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-xs font-black transition-all border border-violet-500/30 bg-violet-500/10 text-violet-450 hover:bg-violet-500/20 hover:text-violet-300 hover:border-violet-500/50 shadow-sm shadow-violet-500/5"
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-black transition-all border border-violet-300 bg-violet-50 text-violet-700 hover:bg-violet-100 hover:border-violet-400 shadow-sm shadow-violet-500/5"
               >
-                <Star className="w-4 h-4 text-violet-400 fill-violet-400/10" />
+                <Star className="w-4 h-4 text-violet-500 fill-violet-400 shrink-0" />
                 <span className="flex-1 text-left">Subscription</span>
-                {profile?.subscription_status === 'active' && profile?.subscription_expires_at && (() => {
-                  const d = Math.ceil((new Date(profile.subscription_expires_at) - new Date()) / 86400000);
-                  return <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-400">{d}d left</span>;
+                {profile?.subscription_status === 'active' && (() => {
+                  const expiresAt = profile?.subscription_expires_at ? new Date(profile.subscription_expires_at) : null;
+                  const isValid = expiresAt && !isNaN(expiresAt.getTime()) && expiresAt.getTime() > Date.now();
+                  const d = isValid ? Math.ceil((expiresAt - new Date()) / 86400000) : null;
+                  return <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-700">{d ? `${d}d left` : 'Active'}</span>;
                 })()}
               </button>
               <div className="border-t border-slate-100 my-3" />
