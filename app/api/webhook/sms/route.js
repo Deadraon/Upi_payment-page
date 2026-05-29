@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { parseBankSms } from '@/lib/parseSms';
 import { CONFIG } from '@/lib/config';
 import { triggerMerchantWebhook } from '@/lib/webhook';
+import { checkAndProcessSubscription } from '@/lib/adminSettings';
 
 export async function POST(request) {
   try {
@@ -145,6 +146,9 @@ export async function POST(request) {
       console.error('Error updating order status:', updateError);
       return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
+
+    // Call subscription renewal check
+    await checkAndProcessSubscription(updatedOrder, apiKey);
 
     // Trigger outbound webhook safely
     await triggerMerchantWebhook(matchedOrder.id);

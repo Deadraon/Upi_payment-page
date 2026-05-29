@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { parseTransactionText } from '@/lib/parseSms';
 import { CONFIG } from '@/lib/config';
 import { triggerMerchantWebhook } from '@/lib/webhook';
+import { checkAndProcessSubscription } from '@/lib/adminSettings';
 
 export async function POST(request) {
   try {
@@ -138,27 +139,7 @@ export async function POST(request) {
     }
 
     // 6. SaaS Subscription Renewal Logic
-    // If the merchant receiving this payment is the Platform Admin AND it is a subscription renewal
-    if (api_key === CONFIG.platformApiKey && matchedOrder.note === 'Subscription_Renewal' && matchedOrder.external_ref) {
-      const targetMerchantId = matchedOrder.external_ref;
-      
-      const newExpiry = new Date();
-      newExpiry.setDate(newExpiry.getDate() + 30); // Add 30 days
-
-      const { error: subUpdateError } = await supabaseAdmin
-        .from('merchants')
-        .update({
-          subscription_status: 'active',
-          subscription_expires_at: newExpiry.toISOString()
-        })
-        .eq('id', targetMerchantId);
-
-      if (subUpdateError) {
-        console.error('Failed to update subscription status for merchant:', targetMerchantId);
-      } else {
-        console.log(`Successfully renewed subscription for merchant: ${targetMerchantId}`);
-      }
-    }
+    await checkAndProcessSubscription(updatedOrder, api_key);
 
     // 7. Trigger merchant outbound webhook safely
     await triggerMerchantWebhook(matchedOrder.id);

@@ -1,16 +1,15 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { verifyAdminAuth } from '@/lib/adminSettings';
 
 // GET: Fetch all registered merchants (bypassing RLS)
 export async function GET(request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const password = request.headers.get('x-admin-password') || searchParams.get('password');
-    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+    const isAuthorized = await verifyAdminAuth(request);
 
     // Verify admin access
-    if (!password || password !== adminPassword) {
-      return NextResponse.json({ error: 'Unauthorized: Invalid password' }, { status: 401 });
+    if (!isAuthorized) {
+      return NextResponse.json({ error: 'Unauthorized: Access Denied' }, { status: 401 });
     }
 
     const { data: merchants, error } = await supabaseAdmin
@@ -31,7 +30,7 @@ export async function GET(request) {
           }
        }
        return m;
-    });
+     });
 
     return NextResponse.json({ success: true, merchants: processedMerchants });
   } catch (err) {
@@ -47,9 +46,11 @@ export async function POST(request) {
     const { password, merchantId, action, status } = body;
     const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
 
+    const isAuthorized = (await verifyAdminAuth(request)) || (password && password === adminPassword);
+
     // Verify admin access
-    if (!password || password !== adminPassword) {
-      return NextResponse.json({ error: 'Unauthorized: Invalid password' }, { status: 401 });
+    if (!isAuthorized) {
+      return NextResponse.json({ error: 'Unauthorized: Access Denied' }, { status: 401 });
     }
 
     if (!merchantId) {

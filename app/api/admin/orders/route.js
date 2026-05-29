@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { triggerMerchantWebhook } from '@/lib/webhook';
+import { verifyAdminAuth, checkAndProcessSubscription } from '@/lib/adminSettings';
 
 export async function POST(request) {
   try {
@@ -8,10 +9,11 @@ export async function POST(request) {
     const { password, orderId, action, utr } = body;
 
     const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+    const isAuthorized = (await verifyAdminAuth(request)) || (password && password === adminPassword);
 
     // Verify password
-    if (!password || password !== adminPassword) {
-      return NextResponse.json({ error: 'Unauthorized: Invalid password' }, { status: 401 });
+    if (!isAuthorized) {
+      return NextResponse.json({ error: 'Unauthorized: Access Denied' }, { status: 401 });
     }
 
     if (!orderId) {
@@ -47,8 +49,15 @@ export async function POST(request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // Trigger outbound webhook for the merchant upon verification
+    // Trigger outbound webhook for the merchant and check subscription upon verification
     if (action === 'verify') {
+      const { data: merchantData } = await supabaseAdmin
+        .from('merchants')
+        .select('api_key')
+        .eq('id', data.merchant_id)
+        .single();
+
+      await checkAndProcessSubscription(data, merchantData?.api_key);
       await triggerMerchantWebhook(orderId);
     }
 

@@ -42,6 +42,8 @@ export default function DashboardPage() {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [selectedMonths, setSelectedMonths] = useState(1);
   const [customMonths, setCustomMonths] = useState('');
+  const [showManageSection, setShowManageSection] = useState(false);
+  const [statusChecking, setStatusChecking] = useState(false);
 
   // Transaction States
   const [orders, setOrders] = useState([]);
@@ -244,6 +246,7 @@ export default function DashboardPage() {
 
   const handleScrollToSubscription = () => {
     setActiveTab('overview');
+    setShowManageSection(true);
     setTimeout(() => {
       const el = document.getElementById('subscription-section');
       if (el) {
@@ -769,6 +772,202 @@ echo "Order Created: " . $data['orderId'];
       </div>
     );
   }
+  
+  const renderPaywallBlocker = () => {
+    const handleRefreshStatus = async () => {
+      setStatusChecking(true);
+      if (user?.id) {
+        await fetchProfile(user.id);
+      }
+      setStatusChecking(false);
+    };
+
+    const months = customMonths ? parseInt(customMonths) || 1 : selectedMonths;
+    const total = CONFIG.subscriptionFee * months;
+    const payUrl = `/pay?api_key=${CONFIG.platformApiKey}&amount=${total}&ref=${profile?.id}&note=Subscription_${months}Month`;
+
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 md:p-8 relative overflow-hidden">
+        {/* Glow Effects */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-red-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-1/4 left-1/4 w-72 h-72 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="w-full max-w-4xl bg-white border border-slate-200 rounded-3xl shadow-xl p-6 md:p-8 flex flex-col gap-6 relative z-10 overflow-hidden">
+          <div className="absolute right-0 top-0 w-64 h-64 bg-gradient-to-bl from-red-500/5 to-transparent rounded-bl-full pointer-events-none" />
+          
+          {/* Header Row */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+            <MyMobPayLogo className="w-40 h-auto" />
+            <div className="flex items-center gap-2 bg-red-50 border border-red-100 text-red-700 px-3.5 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider">
+              <AlertCircle className="w-4 h-4 text-red-500 animate-pulse" />
+              Subscription Expired / Inactive
+            </div>
+          </div>
+
+          {/* Paywall Alert Message */}
+          <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 flex items-start gap-4">
+            <div className="w-10 h-10 bg-red-50 border border-red-100 rounded-xl flex items-center justify-center text-red-500 shrink-0">
+              <Shield className="w-5 h-5 text-red-500" />
+            </div>
+            <div>
+              <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide">Access Locked</h3>
+              <p className="text-xs font-semibold text-slate-500 mt-1 leading-relaxed">
+                Your merchant console access is locked because your premium subscription tier is expired or inactive. 
+                Please renew your subscription plan below to automatically reactivate api request routing, checkouts, and dashboard analytics.
+              </p>
+            </div>
+          </div>
+
+          {/* Billing & History Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-2">
+            
+            {/* Pay Renew Options */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-1">
+                <div className="w-8 h-8 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center text-blue-600">
+                  <Zap className="w-4.5 h-4.5" />
+                </div>
+                <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">Select Subscription Term</h4>
+              </div>
+
+              <div className="grid grid-cols-4 gap-2">
+                {[1, 2, 3].map(m => (
+                  <button
+                    key={m}
+                    onClick={() => { setSelectedMonths(m); setCustomMonths(''); }}
+                    className={`py-2 px-1 rounded-xl border-2 font-black text-xs transition-all flex flex-col items-center justify-center gap-0.5 ${
+                      selectedMonths === m && !customMonths
+                        ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm'
+                        : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-350'
+                    }`}
+                  >
+                    <span>{m} Mo{m > 1 ? 's' : ''}</span>
+                    <span className="text-[9px] font-bold opacity-75">₹{CONFIG.subscriptionFee * m}</span>
+                  </button>
+                ))}
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="1"
+                    max="24"
+                    placeholder="Custom"
+                    value={customMonths}
+                    onChange={e => { setCustomMonths(e.target.value); setSelectedMonths(0); }}
+                    className={`w-full h-full py-2 px-2 rounded-xl border-2 font-black text-xs text-center transition-all focus:outline-none placeholder-slate-400 ${
+                      customMonths
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-slate-200 bg-slate-50 text-slate-600 focus:border-slate-350'
+                    }`}
+                  />
+                  {customMonths && (
+                    <span className="absolute bottom-0.5 left-0 right-0 text-center text-[7px] font-bold text-slate-400">
+                      ₹{CONFIG.subscriptionFee * parseInt(customMonths || 1)}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex flex-col gap-3">
+                <div className="flex justify-between items-center text-xs font-bold text-slate-500">
+                  <span>Total (for {months} Month{months > 1 ? 's' : ''})</span>
+                  <span className="text-slate-900 font-black">₹{total.toLocaleString('en-IN')}</span>
+                </div>
+                
+                <button
+                  onClick={() => window.open(payUrl, '_blank')}
+                  className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-md shadow-blue-500/20"
+                >
+                  <CreditCard className="w-3.5 h-3.5" />
+                  Pay ₹{total.toLocaleString('en-IN')} via UPI
+                </button>
+              </div>
+
+              {/* Status Sync Check */}
+              <button
+                onClick={handleRefreshStatus}
+                disabled={statusChecking}
+                className="w-full py-3 border border-slate-200 hover:border-slate-350 bg-white text-slate-800 rounded-xl font-black text-xs flex items-center justify-center gap-2 transition-all shadow-sm disabled:opacity-50 hover:bg-slate-50"
+              >
+                {statusChecking ? (
+                  <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-4 h-4 text-slate-500" />
+                )}
+                Check Payment & Unlock Status
+              </button>
+            </div>
+
+            {/* Payment History List */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-1">
+                <div className="w-8 h-8 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center text-blue-600">
+                  <Clock className="w-4.5 h-4.5" />
+                </div>
+                <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">Past Subscription Payments</h4>
+              </div>
+
+              {historyLoading ? (
+                <div className="py-8 flex flex-col items-center justify-center gap-2 bg-slate-50 border border-slate-100 rounded-2xl">
+                  <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
+                  <p className="text-[10px] text-slate-400 font-bold">Loading payment logs...</p>
+                </div>
+              ) : historyOrders.length === 0 ? (
+                <div className="py-12 text-center text-xs font-semibold text-slate-500 bg-slate-50 border border-slate-100 rounded-2xl">
+                  No subscription renewals found.
+                </div>
+              ) : (
+                <div className="max-h-[220px] overflow-y-auto space-y-2 pr-1.5 scrollbar-thin">
+                  {historyOrders.map(order => {
+                    const dateStr = new Date(order.created_at).toLocaleDateString('en-IN', {
+                      day: '2-digit',
+                      month: 'short',
+                      year: 'numeric'
+                    });
+                    return (
+                      <div key={order.id} className="flex items-center justify-between p-3 bg-slate-50 border border-slate-150 rounded-xl text-xs">
+                        <div>
+                          <p className="font-black text-slate-800">₹{parseFloat(order.amount).toLocaleString('en-IN')}</p>
+                          <p className="text-[9px] font-bold text-slate-400 mt-0.5">{dateStr} · Ref: {order.id.slice(0, 8)}</p>
+                        </div>
+                        <span className={`text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+                          order.status === 'verified'
+                            ? 'bg-emerald-100 text-emerald-700'
+                            : order.status === 'pending'
+                              ? 'bg-amber-100 text-amber-700'
+                              : 'bg-red-100 text-red-700'
+                        }`}>
+                          {order.status}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+          </div>
+
+          {/* Footer Card */}
+          <div className="flex justify-between items-center border-t border-slate-100 pt-5 mt-2">
+            <span className="text-[10px] text-slate-400 font-semibold flex items-center gap-1">
+              <Shield className="w-3.5 h-3.5 text-red-400" /> Secure platform access gateway.
+            </span>
+            <button
+              onClick={handleSignOut}
+              className="flex items-center gap-1.5 px-4 py-2 border border-slate-200 hover:border-slate-350 hover:bg-slate-50 text-slate-700 text-xs font-black rounded-xl transition-all shadow-sm"
+            >
+              <LogOut className="w-4 h-4 text-slate-500" />
+              Sign Out
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  if (profile && profile.subscription_status !== 'active') {
+    return renderPaywallBlocker();
+  }
 
   // Helper: days left from expiry date
   const getDaysLeft = () => {
@@ -781,130 +980,127 @@ echo "Order Created: " . $data['orderId'];
     const isActive = profile?.subscription_status === 'active';
     
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden flex flex-col gap-6">
+        <div className="absolute right-0 top-0 w-64 h-64 bg-gradient-to-bl from-blue-500/5 to-transparent rounded-bl-full pointer-events-none" />
         
-        {/* BOX 1: DAYS REMAINING */}
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between relative overflow-hidden">
-          <div className="absolute right-0 top-0 w-48 h-48 bg-gradient-to-bl from-blue-500/5 to-transparent rounded-bl-full pointer-events-none" />
-          <div>
-            <div className="flex items-center justify-between gap-3 mb-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-50 border border-blue-100 rounded-2xl flex items-center justify-center text-blue-600">
-                  <Star className="w-5 h-5 animate-pulse" />
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Account Tier</p>
-                  <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-                    Premium Plan
-                  </h3>
-                </div>
-              </div>
-              <span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider ${
-                isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
-              }`}>
-                {isActive ? 'Active' : profile?.subscription_status || 'Inactive'}
-              </span>
+        {/* TOP ROW: Header & Toggle Button */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 z-10">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-50 border border-blue-100 rounded-2xl flex items-center justify-center text-blue-600">
+              <Star className="w-5 h-5 animate-pulse" />
             </div>
-
-            {/* Circular Progress & Info */}
-            <div className="flex flex-col sm:flex-row items-center justify-around gap-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl p-4">
-              <div className="relative flex items-center justify-center">
-                {(() => {
-                  const maxDays = 30;
-                  const percentage = daysLeft !== null ? Math.min(100, Math.max(0, (daysLeft / maxDays) * 100)) : 0;
-                  const circumference = 2 * Math.PI * 40;
-                  const strokeDashoffset = circumference - (percentage / 100) * circumference;
-                  const strokeColor = daysLeft === null ? 'stroke-slate-200' : daysLeft <= 3 ? 'stroke-red-500' : daysLeft <= 7 ? 'stroke-amber-500' : 'stroke-blue-600';
-                  
-                  return (
-                    <>
-                      <svg className="w-28 h-28 transform -rotate-90">
-                        <circle cx="56" cy="56" r="40" className="stroke-slate-100" strokeWidth="6" fill="transparent" />
-                        <circle 
-                          cx="56" 
-                          cy="56" 
-                          r="40" 
-                          className={`${strokeColor} transition-all duration-500`}
-                          strokeWidth="6" 
-                          fill="transparent" 
-                          strokeDasharray={circumference}
-                          strokeDashoffset={strokeDashoffset}
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                      <div className="absolute flex flex-col items-center justify-center">
-                        <p className={`text-2xl font-black ${
-                          daysLeft === null ? 'text-slate-400' : daysLeft <= 3 ? 'text-red-600' : daysLeft <= 7 ? 'text-amber-600' : 'text-slate-900'
-                        }`}>
-                          {daysLeft !== null ? daysLeft : '—'}
-                        </p>
-                        <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">days left</p>
-                      </div>
-                    </>
-                  );
-                })()}
-              </div>
-
-              <div className="space-y-3 flex-1 min-w-[150px]">
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Subscribed Since</p>
-                  <p className="text-xs font-black text-slate-800 flex items-center gap-1 mt-0.5">
-                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                    {profile?.created_at ? new Date(profile.created_at).toLocaleDateString('en-IN', { dateStyle: 'medium' }) : '—'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Expires On</p>
-                  <p className="text-xs font-black text-slate-800 flex items-center gap-1 mt-0.5">
-                    <Clock className="w-3.5 h-3.5 text-slate-400" />
-                    {profile?.subscription_expires_at ? new Date(profile.subscription_expires_at).toLocaleDateString('en-IN', { dateStyle: 'medium' }) : 'No Active Subscription'}
-                  </p>
-                </div>
-              </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 font-sans">Account Tier</p>
+              <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+                Premium Plan
+                <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+                  isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+                }`}>
+                  {isActive ? 'Active' : profile?.subscription_status || 'Inactive'}
+                </span>
+              </h3>
             </div>
           </div>
-          <p className="text-[10px] text-slate-400 font-semibold mt-4 flex items-center gap-1">
-            <Shield className="w-3.5 h-3.5 text-emerald-500" /> Active accounts process transactions in real-time.
-          </p>
+          
+          {/* Toggle Button */}
+          <button
+            onClick={() => setShowManageSection(!showManageSection)}
+            className="flex items-center gap-1.5 px-4 py-2 border border-slate-200 hover:border-slate-350 hover:bg-slate-50 text-slate-700 text-xs font-black rounded-xl transition-all shadow-sm z-10"
+          >
+            {showManageSection ? 'Hide Details' : 'Manage Subscription'}
+            <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${showManageSection ? 'rotate-180' : ''}`} />
+          </button>
         </div>
 
-        {/* BOX 2: MANAGE & RENEW */}
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between gap-4">
-          <div>
-            {/* Header with inner tabs */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 mb-4 gap-3">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center text-blue-600">
-                  <Zap className="w-4.5 h-4.5" />
-                </div>
-                <h3 className="text-sm font-black text-slate-900">Manage Plan</h3>
-              </div>
-
-              {/* Inner tab switches */}
-              <div className="flex bg-slate-50 border border-slate-200 p-0.5 rounded-xl text-[10px]">
-                <button
-                  onClick={() => setManageTab('renew')}
-                  className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
-                    manageTab === 'renew' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'
-                  }`}
-                >
-                  Renew
-                </button>
-                <button
-                  onClick={() => setManageTab('history')}
-                  className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
-                    manageTab === 'history' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'
-                  }`}
-                >
-                  Payment History
-                </button>
-              </div>
+        {/* MIDDLE ROW: Circular Progress & Details */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl p-4 z-10">
+          {/* Circular Countdown Progress */}
+          <div className="flex items-center gap-6">
+            <div className="relative flex items-center justify-center">
+              {(() => {
+                const maxDays = 30;
+                const percentage = daysLeft !== null ? Math.min(100, Math.max(0, (daysLeft / maxDays) * 100)) : 0;
+                const circumference = 2 * Math.PI * 40;
+                const strokeDashoffset = circumference - (percentage / 100) * circumference;
+                const strokeColor = daysLeft === null ? 'stroke-slate-200' : daysLeft <= 3 ? 'stroke-red-500' : daysLeft <= 7 ? 'stroke-amber-500' : 'stroke-blue-600';
+                
+                return (
+                  <>
+                    <svg className="w-28 h-28 transform -rotate-90">
+                      <circle cx="56" cy="56" r="40" className="stroke-slate-100" strokeWidth="6" fill="transparent" />
+                      <circle 
+                        cx="56" 
+                        cy="56" 
+                        r="40" 
+                        className={`${strokeColor} transition-all duration-500`}
+                        strokeWidth="6" 
+                        fill="transparent" 
+                        strokeDasharray={circumference}
+                        strokeDashoffset={strokeDashoffset}
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    <div className="absolute flex flex-col items-center justify-center">
+                      <p className={`text-2xl font-black ${
+                        daysLeft === null ? 'text-slate-400' : daysLeft <= 3 ? 'text-red-600' : daysLeft <= 7 ? 'text-amber-600' : 'text-slate-900'
+                      }`}>
+                        {daysLeft !== null ? daysLeft : '—'}
+                      </p>
+                      <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">days left</p>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
 
-            {/* Inner Content depending on tab */}
-            {manageTab === 'renew' && (
+            <div className="space-y-1">
+              <h4 className="text-sm font-black text-slate-900">
+                {daysLeft !== null ? `${daysLeft} Days Remaining` : 'No Active Subscription'}
+              </h4>
+              <p className="text-[11px] text-slate-500 font-semibold leading-normal">
+                {isActive ? 'Your merchant account has active transaction routing privileges.' : 'Your dashboard features and APIs are currently locked.'}
+              </p>
+            </div>
+          </div>
+
+          {/* Date Info Fields */}
+          <div className="grid grid-cols-2 gap-6 w-full md:w-auto md:min-w-[300px] border-t md:border-t-0 md:border-l border-slate-200/60 pt-4 md:pt-0 md:pl-6">
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                Subscribed Since
+              </p>
+              <p className="text-xs font-black text-slate-800 mt-1">
+                {profile?.created_at ? new Date(profile.created_at).toLocaleDateString('en-IN', { dateStyle: 'medium' }) : '—'}
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5 text-slate-400" />
+                Expires On
+              </p>
+              <p className="text-xs font-black text-slate-800 mt-1">
+                {profile?.subscription_expires_at ? new Date(profile.subscription_expires_at).toLocaleDateString('en-IN', { dateStyle: 'medium' }) : 'No Active Subscription'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* EXPANDABLE PORTION: RENEWAL & HISTORY */}
+        {showManageSection && (
+          <div className="z-10 animate-fade-up">
+            <div className="border-t border-slate-150 my-2" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+              
+              {/* Payment Renewal Section */}
               <div className="space-y-4">
-                {/* Pricing Selectors */}
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center text-blue-600">
+                    <Zap className="w-4.5 h-4.5" />
+                  </div>
+                  <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">Select Renewal Term</h3>
+                </div>
+
                 <div className="grid grid-cols-4 gap-2">
                   {[1, 2, 3].map(m => (
                     <button
@@ -942,7 +1138,6 @@ echo "Order Created: " . $data['orderId'];
                   </div>
                 </div>
 
-                {/* Total + Checkout Button */}
                 {(() => {
                   const months = customMonths ? parseInt(customMonths) || 1 : selectedMonths;
                   const total = CONFIG.subscriptionFee * months;
@@ -965,13 +1160,18 @@ echo "Order Created: " . $data['orderId'];
                   );
                 })()}
               </div>
-            )}
 
-            {manageTab === 'history' && (
-              <div className="space-y-3">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Past subscription payments</p>
+              {/* Payment History Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center text-blue-600">
+                    <Clock className="w-4.5 h-4.5" />
+                  </div>
+                  <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">Payment History</h3>
+                </div>
+
                 {historyLoading ? (
-                  <div className="py-8 flex flex-col items-center justify-center gap-2">
+                  <div className="py-8 flex flex-col items-center justify-center gap-2 bg-slate-50 border border-slate-100 rounded-2xl">
                     <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
                     <p className="text-[10px] text-slate-400 font-bold">Loading payment logs...</p>
                   </div>
@@ -980,7 +1180,7 @@ echo "Order Created: " . $data['orderId'];
                     No subscription renewals found.
                   </div>
                 ) : (
-                  <div className="max-h-[160px] overflow-y-auto space-y-2 pr-1.5 scrollbar-thin">
+                  <div className="max-h-[180px] overflow-y-auto space-y-2 pr-1.5 scrollbar-thin">
                     {historyOrders.map(order => {
                       const dateStr = new Date(order.created_at).toLocaleDateString('en-IN', {
                         day: '2-digit',
@@ -1008,10 +1208,14 @@ echo "Order Created: " . $data['orderId'];
                   </div>
                 )}
               </div>
-            )}
-          </div>
-        </div>
 
+            </div>
+          </div>
+        )}
+
+        <p className="text-[10px] text-slate-400 font-semibold flex items-center gap-1 z-10">
+          <Shield className="w-3.5 h-3.5 text-emerald-500" /> Active accounts process transactions in real-time.
+        </p>
       </div>
     );
   };
@@ -1029,10 +1233,10 @@ echo "Order Created: " . $data['orderId'];
           {/* Subscription tab — pinned at top */}
           <button
             onClick={handleScrollToSubscription}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all border border-slate-100/50 bg-slate-50/50 text-slate-400 hover:text-slate-900 hover:bg-slate-50"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-black text-sm transition-all border border-violet-500/30 bg-violet-500/10 text-violet-450 hover:text-violet-300 hover:bg-violet-500/20 hover:border-violet-500/50 shadow-sm shadow-violet-500/5"
           >
-            <Star className="w-4 h-4 text-violet-400" />
-            <span className="flex-1 text-left text-slate-350">Subscription</span>
+            <Star className="w-4 h-4 text-violet-400 fill-violet-400/10" />
+            <span className="flex-1 text-left">Subscription</span>
             {profile?.subscription_status === 'active' && profile?.subscription_expires_at && (() => {
               const d = Math.ceil((new Date(profile.subscription_expires_at) - new Date()) / 86400000);
               return <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-400">{d}d left</span>;
@@ -1143,9 +1347,9 @@ echo "Order Created: " . $data['orderId'];
                   setIsMobileMenuOpen(false);
                   handleScrollToSubscription();
                 }}
-                className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-xs font-bold transition-all border border-slate-200 bg-slate-50 text-slate-350"
+                className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-xs font-black transition-all border border-violet-500/30 bg-violet-500/10 text-violet-450 hover:bg-violet-500/20 hover:text-violet-300 hover:border-violet-500/50 shadow-sm shadow-violet-500/5"
               >
-                <Star className="w-4 h-4 text-violet-400" />
+                <Star className="w-4 h-4 text-violet-400 fill-violet-400/10" />
                 <span className="flex-1 text-left">Subscription</span>
                 {profile?.subscription_status === 'active' && profile?.subscription_expires_at && (() => {
                   const d = Math.ceil((new Date(profile.subscription_expires_at) - new Date()) / 86400000);

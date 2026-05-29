@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { CONFIG } from '@/lib/config';
+import QRCode from 'react-qr-code';
 import { 
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid 
 } from 'recharts';
@@ -34,7 +35,12 @@ import {
   ArrowUpRight,
   ExternalLink,
   Menu,
-  X
+  X,
+  Shield,
+  Key,
+  Mail,
+  Zap,
+  CheckCircle
 } from 'lucide-react';
 
 const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = '#FFFFFF' }) => (
@@ -84,13 +90,115 @@ export default function AdminPage() {
   const [manualUtr, setManualUtr] = useState('');
   const [utrPromptId, setUtrPromptId] = useState(null);
 
-  // Sync auth state from session storage on mount
-  useEffect(() => {
-    const savedPassword = sessionStorage.getItem('admin_pwd');
-    if (savedPassword) {
-      setPassword(savedPassword);
-      setIsLoggedIn(true);
+  // Double Security & platform config states
+  const [require2fa, setRequire2fa] = useState(false);
+  const [totpCode, setTotpCode] = useState('');
+  const [adminUpi, setAdminUpi] = useState('');
+  const [adminEmail, setAdminEmail] = useState('');
+  const [totpEnabled, setTotpEnabled] = useState(false);
+  const [totpSecret, setTotpSecret] = useState('');
+  const [totpVerifyCode, setTotpVerifyCode] = useState('');
+  const [qrCodeUri, setQrCodeUri] = useState('');
+  
+  // Verification states
+  const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
+  const [verificationPassword, setVerificationPassword] = useState('');
+  const [pendingAction, setPendingAction] = useState(null);
+  
+  // Settings API states
+  const [settingsLoading, setSettingsLoading] = useState(false);
+  const [settingsError, setSettingsError] = useState('');
+  const [settingsSuccess, setSettingsSuccess] = useState('');
+
+  // Platform Metrics
+  const [totalEarnings, setTotalEarnings] = useState(0);
+  const [subscriptionOrders, setSubscriptionOrders] = useState([]);
+  
+  // Google User session
+  const [googleUser, setGoogleUser] = useState(null);
+
+  // Helper to dynamically build authorization headers (password vs OAuth token)
+  const getAuthHeaders = useCallback(async () => {
+    const headers = {};
+    const savedPwd = sessionStorage.getItem('admin_pwd') || password;
+    const isGoogleLoggedIn = sessionStorage.getItem('admin_google_logged_in') === 'true';
+
+    if (isGoogleLoggedIn) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
+    } else if (savedPwd) {
+      headers['x-admin-password'] = savedPwd;
     }
+    return headers;
+  }, [password]);
+
+  // Fetch Platform settings configurations
+  const fetchSettings = useCallback(async () => {
+    if (!isLoggedIn) return;
+    setSettingsLoading(true);
+    setSettingsError('');
+    try {
+      const headers = await getAuthHeaders();
+      const res = await fetch('/api/admin/settings', { headers });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to fetch settings');
+
+      setAdminUpi(data.upi_id || '');
+      setTotpEnabled(data.totp_enabled || false);
+      setAdminEmail(data.admin_email || '');
+      setTotalEarnings(data.total_earnings || 0);
+      setSubscriptionOrders(data.subscription_orders || []);
+    } catch (err) {
+      console.error('fetchSettings error:', err);
+      setSettingsError('Could not load platform payment configurations.');
+    } finally {
+      setSettingsLoading(false);
+    }
+  }, [isLoggedIn, getAuthHeaders]);
+
+  // Sync auth state from session storage / Google OAuth on mount
+  useEffect(() => {
+    async function checkAuth() {
+      // 1. Check if we have password login in session
+      const savedPassword = sessionStorage.getItem('admin_pwd');
+      if (savedPassword) {
+        setPassword(savedPassword);
+        setIsLoggedIn(true);
+        return;
+      }
+
+      // 2. Check if we have Google OAuth session active
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session && session.user) {
+        setGoogleUser(session.user);
+        
+        try {
+          const res = await fetch('/api/admin/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              provider: 'google', 
+              token: session.access_token 
+            })
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            sessionStorage.setItem('admin_google_logged_in', 'true');
+            setIsLoggedIn(true);
+          } else {
+            await supabase.auth.signOut();
+            setGoogleUser(null);
+            sessionStorage.removeItem('admin_google_logged_in');
+          }
+        } catch (e) {
+          console.error('Google verification error on mount:', e);
+        }
+      }
+    }
+    
+    checkAuth();
   }, []);
 
   // Lock scroll when mobile menu is open
@@ -110,11 +218,8 @@ export default function AdminPage() {
     if (!isLoggedIn) return;
     setMerchantsLoading(true);
     try {
-      const res = await fetch('/api/admin/merchants', {
-        headers: {
-          'x-admin-password': password
-        }
-      });
+      const headers = await getAuthHeaders();
+      const res = await fetch('/api/admin/merchants', { headers });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to fetch merchants');
       setMerchants(data.merchants || []);
@@ -124,7 +229,7 @@ export default function AdminPage() {
     } finally {
       setMerchantsLoading(false);
     }
-  }, [isLoggedIn, password]);
+  }, [isLoggedIn, getAuthHeaders]);
 
   // Fetch all orders
   const fetchOrders = useCallback(async () => {
@@ -151,7 +256,8 @@ export default function AdminPage() {
   const handleRefreshAll = useCallback(() => {
     fetchOrders();
     fetchMerchants();
-  }, [fetchOrders, fetchMerchants]);
+    fetchSettings();
+  }, [fetchOrders, fetchMerchants, fetchSettings]);
 
   // Trigger fetch on login
   useEffect(() => {
@@ -167,7 +273,7 @@ export default function AdminPage() {
     }
   }, [isLoggedIn, handleRefreshAll]);
 
-  // Password submission login
+  // Password / TOTP submission login
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setAuthError('');
@@ -177,7 +283,10 @@ export default function AdminPage() {
       const res = await fetch('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ 
+          password,
+          totpCode: require2fa ? totpCode : undefined
+        }),
       });
 
       const data = await res.json();
@@ -185,8 +294,16 @@ export default function AdminPage() {
         throw new Error(data.error || 'Login failed');
       }
 
+      if (data.require2fa) {
+        setRequire2fa(true);
+        setAuthLoading(false);
+        return;
+      }
+
       sessionStorage.setItem('admin_pwd', password);
       setIsLoggedIn(true);
+      setRequire2fa(false);
+      setTotpCode('');
     } catch (err) {
       setAuthError(err.message || 'Incorrect Admin Password');
     } finally {
@@ -194,23 +311,49 @@ export default function AdminPage() {
     }
   };
 
-  const handleLogout = () => {
+  // Google OAuth Login
+  const handleGoogleLogin = async () => {
+    setAuthLoading(true);
+    setAuthError('');
+    try {
+      const { error: authError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/admin`,
+        },
+      });
+      if (authError) throw authError;
+    } catch (err) {
+      setAuthError(err.message || 'An error occurred during Google authentication.');
+      setAuthLoading(false);
+    }
+  };
+
+  // Logout
+  const handleLogout = async () => {
     sessionStorage.removeItem('admin_pwd');
+    sessionStorage.removeItem('admin_google_logged_in');
+    await supabase.auth.signOut();
     setPassword('');
     setIsLoggedIn(false);
+    setRequire2fa(false);
+    setTotpCode('');
     setOrders([]);
     setMerchants([]);
+    setGoogleUser(null);
   };
 
   // Toggle Merchant subscription status
   const handleToggleSubscription = async (merchantId, currentStatus) => {
     const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
     try {
+      const headers = await getAuthHeaders();
+      headers['Content-Type'] = 'application/json';
       const res = await fetch('/api/admin/merchants', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
-          password,
+          password: password || undefined,
           merchantId,
           action: 'toggleSubscription',
           status: newStatus
@@ -231,11 +374,13 @@ export default function AdminPage() {
   const handleOrderAction = async (orderId, action, utrVal = '') => {
     setActionLoading(orderId);
     try {
+      const headers = await getAuthHeaders();
+      headers['Content-Type'] = 'application/json';
       const res = await fetch('/api/admin/orders', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
-          password,
+          password: password || undefined,
           orderId,
           action,
           utr: utrVal
@@ -255,6 +400,84 @@ export default function AdminPage() {
       alert(err.message || 'Operation failed');
     } finally {
       setActionLoading(null);
+    }
+  };
+
+  // Trigger modal validation for settings changes
+  const openVerification = (action) => {
+    setPendingAction(action);
+    setVerificationPassword('');
+    setIsVerificationModalOpen(true);
+    setSettingsError('');
+    setSettingsSuccess('');
+  };
+
+  const handleVerifyAndConfirm = async (e) => {
+    e.preventDefault();
+    setIsVerificationModalOpen(false);
+    setSettingsLoading(true);
+    setSettingsError('');
+    setSettingsSuccess('');
+
+    try {
+      const headers = await getAuthHeaders();
+      headers['Content-Type'] = 'application/json';
+
+      const res = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          password: verificationPassword,
+          action: pendingAction.type,
+          ...pendingAction.data
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Action verification failed.');
+
+      setSettingsSuccess(data.message || 'Configurations updated successfully.');
+      await fetchSettings();
+      
+      if (pendingAction.type === 'enable_totp') {
+        setTotpSecret('');
+        setTotpVerifyCode('');
+      }
+    } catch (err) {
+      setSettingsError(err.message || 'Failed to apply setting change.');
+    } finally {
+      setSettingsLoading(false);
+      setPendingAction(null);
+      setVerificationPassword('');
+    }
+  };
+
+  const handleGenerateTotpSecret = async () => {
+    setSettingsLoading(true);
+    setSettingsError('');
+    setSettingsSuccess('');
+    try {
+      const headers = await getAuthHeaders();
+      headers['Content-Type'] = 'application/json';
+      const res = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          password: password || undefined,
+          action: 'generate_totp'
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to generate 2FA token');
+
+      setTotpSecret(data.secret);
+      const uri = `otpauth://totp/MyMobPay%20Admin?secret=${data.secret}&issuer=MyMobPay`;
+      setQrCodeUri(uri);
+    } catch (err) {
+      setSettingsError(err.message || 'Failed to retrieve 2FA key details.');
+    } finally {
+      setSettingsLoading(false);
     }
   };
 
@@ -445,39 +668,117 @@ export default function AdminPage() {
             </div>
           )}
 
-          <form onSubmit={handleLoginSubmit} className="space-y-5 font-semibold text-xs text-slate-700">
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Access Password</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                  <Lock className="w-4 h-4 text-slate-400" />
+          {require2fa ? (
+            <form onSubmit={handleLoginSubmit} className="space-y-5 font-semibold text-xs text-slate-700">
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Two-Factor Verification Code</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <Shield className="w-4.5 h-4.5 text-slate-400" />
+                  </div>
+                  <input
+                    type="text"
+                    pattern="[0-9]*"
+                    inputMode="numeric"
+                    maxLength="6"
+                    placeholder="Enter 6-digit code"
+                    required
+                    autoFocus
+                    value={totpCode}
+                    onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ''))}
+                    className="w-full bg-white border border-slate-300 rounded-xl py-3.5 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-455 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/40 transition-all font-bold tracking-[0.2em] text-center"
+                  />
                 </div>
-                <input
-                  type="password"
-                  placeholder="••••••••••••"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-white border border-slate-300 rounded-xl py-3.5 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/40 transition-all font-semibold"
-                />
+                <p className="text-[9px] text-slate-400 font-semibold text-center mt-1">Open Google Authenticator and enter the current 6-digit code.</p>
               </div>
-            </div>
 
-            <button
-              type="submit"
-              disabled={authLoading}
-              className="w-full py-3.5 rounded-xl text-white font-bold text-sm tracking-wide bg-blue-600 hover:bg-blue-700 flex items-center justify-center gap-2.5 transition-transform active:scale-[0.99] disabled:opacity-50 shadow-sm shadow-blue-500/20"
-            >
-              {authLoading ? (
-                <RefreshCw className="w-4 h-4 animate-spin" />
-              ) : (
-                <>
-                  <span>Unlock SaaS Console</span>
-                  <Unlock className="w-4 h-4" />
-                </>
-              )}
-            </button>
-          </form>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRequire2fa(false);
+                    setTotpCode('');
+                  }}
+                  className="w-1/3 py-3 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-500 font-bold transition-all text-xs"
+                >
+                  Back
+                </button>
+                <button
+                  type="submit"
+                  disabled={authLoading || totpCode.length !== 6}
+                  className="flex-1 py-3 rounded-xl text-white font-bold text-sm tracking-wide bg-blue-600 hover:bg-blue-700 flex items-center justify-center gap-2.5 transition-transform active:scale-[0.99] disabled:opacity-50 shadow-sm shadow-blue-500/20"
+                >
+                  {authLoading ? (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      <span>Verify Code</span>
+                      <CheckCircle className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          ) : (
+            <>
+              <form onSubmit={handleLoginSubmit} className="space-y-5 font-semibold text-xs text-slate-700">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Access Password</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                      <Lock className="w-4 h-4 text-slate-400" />
+                    </div>
+                    <input
+                      type="password"
+                      placeholder="••••••••••••"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full bg-white border border-slate-300 rounded-xl py-3.5 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/40 transition-all font-semibold"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={authLoading}
+                  className="w-full py-3.5 rounded-xl text-white font-bold text-sm tracking-wide bg-blue-600 hover:bg-blue-700 flex items-center justify-center gap-2.5 transition-transform active:scale-[0.99] disabled:opacity-50 shadow-sm shadow-blue-500/20"
+                >
+                  {authLoading ? (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      <span>Unlock SaaS Console</span>
+                      <Unlock className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </form>
+
+              <div className="relative my-3 flex items-center">
+                <div className="flex-grow border-t border-slate-200"></div>
+                <span className="flex-shrink mx-4 text-slate-400 text-[8px] font-extrabold uppercase tracking-widest">or double security</span>
+                <div className="flex-grow border-t border-slate-200"></div>
+              </div>
+
+              {/* Google OAuth Login */}
+              <button
+                onClick={handleGoogleLogin}
+                disabled={authLoading}
+                className="w-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold py-3.5 px-4 rounded-xl transition-all disabled:opacity-55 flex items-center justify-center gap-2.5 shadow-sm text-xs"
+              >
+                <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+                  <g transform="matrix(1, 0, 0, 1, 0, 0)">
+                    <path d="M21.35,11.1H12v2.7h5.38c-0.24,1.28 -0.96,2.37 -2.05,3.1v2.57h3.32c1.94,-1.78 3.05,-4.4 3.05,-7.47c0,-0.3 -0.03,-0.6 -0.08,-0.9Z" fill="#4285F4" />
+                    <path d="M12,20.7c2.35,0 4.32,-0.78 5.76,-2.13l-3.32,-2.57c-0.92,0.62 -2.1,0.98 -3.44,0.98c-2.28,0 -4.21,-1.54 -4.9,-3.61H2.68v2.66c1.47,2.92 4.5,4.67 7.92,4.67Z" fill="#34A853" />
+                    <path d="M7.1,13.38c-0.18,-0.52 -0.28,-1.09 -0.28,-1.68c0,-0.59 0.1,-1.16 0.28,-1.68V7.36H2.68C2.06,8.6 1.7,10.01 1.7,11.7c0,1.69 0.36,3.1 0.98,4.34l3.74,-2.91c-0.18,-0.52 -0.18,-0.75 -0.32,-1.75Z" fill="#FBBC05" />
+                    <path d="M12,5.68c1.28,0 2.43,0.44 3.34,1.3l2.5,-2.5C16.31,3.07 14.34,2.7 12,2.7c-3.42,0 -6.45,1.75 -7.92,4.67l4.4,3.38C9.17,7.22 10.1,5.68 12,5.68Z" fill="#EA4335" />
+                  </g>
+                </svg>
+                <span>SaaS Admin Google Login</span>
+              </button>
+            </>
+          )}
         </div>
       </div>
     );
@@ -1321,23 +1622,265 @@ export default function AdminPage() {
         )}
 
         {/* ═══════════════════════════════════════════════════════════
-           TAB 4: DEVELOPER & SYSTEM DIAGNOSTICS
+           TAB 4: PLATFORM CONFIGURATION & DOUBLE SECURITY SETTINGS
            ═══════════════════════════════════════════════════════════ */}
         {activeTab === 'config' && (
-          <section className="bg-white border border-slate-200 backdrop-blur-xl rounded-2xl p-6 shadow-sm space-y-6 animate-fadeIn">
-            <div className="pb-4 border-b border-slate-200 space-y-1">
-              <h2 className="text-lg font-bold text-slate-900 tracking-wide">Developer & System Diagnostics</h2>
-              <p className="text-xs text-slate-400">Configure global configurations, inspect environment integration, and monitor server diagnostics</p>
-            </div>
+          <div className="space-y-6 animate-fadeIn">
+            
+            {/* Global Success/Error Alerts */}
+            {settingsError && (
+              <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-3">
+                <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                <span className="font-bold">{settingsError}</span>
+              </div>
+            )}
+            {settingsSuccess && (
+              <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-450 text-xs flex items-center gap-3">
+                <CheckCircle className="w-5 h-5 flex-shrink-0" />
+                <span className="font-bold">{settingsSuccess}</span>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               
-              {/* Env variable health */}
-              <div className="p-6 bg-slate-55 rounded-2xl border border-slate-200 space-y-4">
+              {/* UPI ID Management Card */}
+              <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+                <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                    <IndianRupee className="w-4.5 h-4.5 text-blue-600" /> Platform UPI Configuration
+                  </h3>
+                  <span className="text-[9px] bg-slate-55 border border-slate-200 px-2 py-0.5 rounded text-slate-500 font-bold uppercase">PAYMENTS</span>
+                </div>
+
+                <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex justify-between items-center">
+                  <div>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Platform Subscriptions</p>
+                    <p className="text-xl font-black text-slate-950 mt-1">₹{totalEarnings.toLocaleString('en-IN')}</p>
+                  </div>
+                  <div className="bg-emerald-50 border border-emerald-100 text-emerald-700 px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wide">
+                    {subscriptionOrders.length} Paid Subscriptions
+                  </div>
+                </div>
+
+                <div className="space-y-3 pt-2 text-xs font-semibold text-slate-700">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Receiving UPI ID</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="platform@upi"
+                        value={adminUpi}
+                        onChange={(e) => setAdminUpi(e.target.value)}
+                        className="flex-1 bg-white border border-slate-250 rounded-xl px-4 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
+                      />
+                      <button
+                        onClick={() => openVerification({ type: 'update_upi', data: { upi_id: adminUpi } })}
+                        className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-sm"
+                      >
+                        Update
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-slate-400 font-semibold leading-relaxed">
+                    💡 All merchant subscription payments (monthly, annual, custom term checkouts) will be dynamically routed and credited to this platform UPI ID.
+                  </p>
+                </div>
+              </div>
+
+              {/* Double Security (2FA & OAuth) Card */}
+              <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+                <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                    <Shield className="w-4.5 h-4.5 text-blue-600" /> Double Security & MFA
+                  </h3>
+                  <span className="text-[9px] bg-slate-55 border border-slate-200 px-2 py-0.5 rounded text-slate-500 font-bold uppercase">SECURITY</span>
+                </div>
+
+                {/* Google Authenticator Section */}
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="text-xs font-bold text-slate-900">Google Authenticator (2FA)</p>
+                      <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Require a 6-digit verification code when logging in</p>
+                    </div>
+                    <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${totpEnabled ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                      {totpEnabled ? 'Active' : 'Disabled'}
+                    </span>
+                  </div>
+
+                  {totpEnabled ? (
+                    <button
+                      onClick={() => openVerification({ type: 'disable_totp' })}
+                      className="w-full py-2.5 border border-red-205 hover:bg-red-50 text-red-600 font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-1.5"
+                    >
+                      <Lock className="w-4 h-4" /> Deactivate Authenticator 2FA
+                    </button>
+                  ) : (
+                    <div className="space-y-4 bg-slate-50 border border-slate-150 rounded-2xl p-4">
+                      {!totpSecret ? (
+                        <button
+                          onClick={handleGenerateTotpSecret}
+                          className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm"
+                        >
+                          <Unlock className="w-4 h-4" /> Setup Authenticator 2FA
+                        </button>
+                      ) : (
+                        <div className="flex flex-col items-center gap-3 animate-fade-up animate-duration-200">
+                          <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest text-center">Scan QR in Authenticator App</p>
+                          <div className="bg-white p-3 rounded-2xl border border-slate-200">
+                            <QRCode value={qrCodeUri} size={130} />
+                          </div>
+                          <div className="text-center space-y-1">
+                            <p className="text-[10px] font-mono text-slate-700 bg-white border border-slate-200 px-3 py-1 rounded-lg select-all font-bold">
+                              Key: {totpSecret}
+                            </p>
+                            <p className="text-[9px] text-slate-400 font-semibold leading-relaxed">
+                              Scan this QR or copy the manual key to your Google/Microsoft Authenticator.
+                            </p>
+                          </div>
+                          <div className="w-full space-y-2 pt-2 border-t border-slate-200 flex flex-col items-stretch text-xs">
+                            <input
+                              type="text"
+                              maxLength="6"
+                              placeholder="Enter 6-digit verify code"
+                              value={totpVerifyCode}
+                              onChange={(e) => setTotpVerifyCode(e.target.value.replace(/\D/g, ''))}
+                              className="w-full bg-white border border-slate-250 rounded-xl px-4 py-2 text-center font-bold tracking-[0.2em]"
+                            />
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => setTotpSecret('')}
+                                className="w-1/3 py-2 border border-slate-200 hover:bg-slate-50 text-slate-500 font-bold rounded-xl"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                type="button"
+                                disabled={totpVerifyCode.length !== 6}
+                                onClick={() => openVerification({ 
+                                  type: 'enable_totp', 
+                                  data: { secret: totpSecret, code: totpVerifyCode } 
+                                })}
+                                className="flex-grow py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl"
+                              >
+                                Confirm & Activate
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div className="border-t border-slate-105 pt-4 space-y-3 font-semibold text-xs text-slate-705">
+                  {/* Google OAuth Config */}
+                  <div className="space-y-1.5">
+                    <div>
+                      <p className="text-xs font-bold text-slate-900">Google OAuth Admin Email</p>
+                      <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Authorizes specific Google Sign-in accounts for console access</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <div className="relative flex-grow">
+                        <Mail className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+                        <input
+                          type="email"
+                          placeholder="admin@example.com"
+                          value={adminEmail}
+                          onChange={(e) => setAdminEmail(e.target.value)}
+                          className="w-full bg-white border border-slate-250 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
+                        />
+                      </div>
+                      <button
+                        onClick={() => openVerification({ type: 'update_email', data: { admin_email: adminEmail } })}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-sm"
+                      >
+                        Update
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Platform Subscriptions Ledger */}
+            <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+              <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                  <FileText className="w-4.5 h-4.5 text-blue-600" /> Subscription Payments Ledger
+                </h3>
+                <span className="text-[9px] bg-slate-55 border border-slate-200 px-2 py-0.5 rounded text-slate-500 font-bold uppercase">LEDGER</span>
+              </div>
+
+              <div className="overflow-x-auto rounded-xl border border-slate-200">
+                <table className="min-w-full divide-y divide-slate-200 text-xs font-semibold text-slate-700">
+                  <thead className="bg-slate-50 text-[9px] font-bold text-slate-500 uppercase tracking-wider">
+                    <tr>
+                      <th className="px-5 py-3 text-left">Order ID</th>
+                      <th className="px-5 py-3 text-left">Date</th>
+                      <th className="px-5 py-3 text-left">Subscriber Reference</th>
+                      <th className="px-5 py-3 text-left">Billing Term</th>
+                      <th className="px-5 py-3 text-right">Amount (INR)</th>
+                      <th className="px-5 py-3 text-center">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 bg-white text-xs">
+                    {settingsLoading ? (
+                      <tr>
+                        <td colSpan="6" className="px-5 py-6 text-center text-slate-450">
+                          <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-blue-500" /> Loading payment logs...
+                        </td>
+                      </tr>
+                    ) : subscriptionOrders.length === 0 ? (
+                      <tr>
+                        <td colSpan="6" className="px-5 py-6 text-center text-slate-450">
+                          No subscription renewals recorded on this platform.
+                        </td>
+                      </tr>
+                    ) : (
+                      subscriptionOrders.map((order) => (
+                        <tr key={order.id} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="px-5 py-3 font-mono font-bold text-slate-900">{order.id}</td>
+                          <td className="px-5 py-3 text-slate-500">
+                            {new Date(order.created_at).toLocaleDateString('en-IN', {
+                              dateStyle: 'medium',
+                              timeStyle: 'short'
+                            })}
+                          </td>
+                          <td className="px-5 py-3 font-mono text-[10px] text-slate-400" title={order.external_ref}>
+                            {order.external_ref ? order.external_ref.slice(0, 18) + '...' : '—'}
+                          </td>
+                          <td className="px-5 py-3 text-slate-600">
+                            <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-lg text-[10px] font-bold">
+                              {order.note || 'Subscription'}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3 text-right font-bold text-slate-900">
+                            ₹{parseFloat(order.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                          </td>
+                          <td className="px-5 py-3 text-center">
+                            <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-100 text-emerald-700">
+                              {order.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Original variables and diagnostics split row */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              
+              {/* Variable Health */}
+              <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
                 <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
                   <ShieldAlert className="w-4 h-4 text-amber-500" /> Platform Key Credentials
                 </h4>
-
                 <div className="space-y-3">
                   {[
                     { name: 'NEXT_PUBLIC_SUPABASE_URL', status: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Active' : 'Missing' },
@@ -1355,12 +1898,11 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              {/* DLT Templates Config */}
-              <div className="p-6 bg-slate-55 rounded-2xl border border-slate-200 space-y-4">
+              {/* DLT Configuration */}
+              <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
                 <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
                   <FileText className="w-4 h-4 text-blue-600" /> TRAI DLT Templates Configuration
                 </h4>
-
                 <div className="space-y-3 text-xs">
                   <div className="flex justify-between items-start py-2 border-b border-slate-200">
                     <div>
@@ -1384,7 +1926,60 @@ export default function AdminPage() {
               </div>
 
             </div>
-          </section>
+
+          </div>
+        )}
+
+        {/* Password Verification Modal */}
+        {isVerificationModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 animate-fadeIn">
+            <div className="bg-white border border-slate-200 rounded-[2rem] p-8 w-full max-w-md shadow-2xl space-y-6 animate-scale-up relative">
+              <div className="absolute top-0 left-0 right-0 h-[3px] bg-amber-500"></div>
+              
+              <div className="flex items-center gap-3 text-amber-600">
+                <ShieldAlert className="w-6 h-6 text-amber-500" />
+                <h3 className="text-sm font-black uppercase tracking-wider text-slate-900">Authorize Platform Change</h3>
+              </div>
+              
+              <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                You are modifying sensitive platform-wide payment or credentials settings. Please re-enter the admin access password to authorize this action.
+              </p>
+              
+              <form onSubmit={handleVerifyAndConfirm} className="space-y-5 font-semibold text-xs text-slate-700">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Admin Password</label>
+                  <input
+                    type="password"
+                    placeholder="••••••••••••"
+                    required
+                    value={verificationPassword}
+                    onChange={(e) => setVerificationPassword(e.target.value)}
+                    className="w-full bg-white border border-slate-350 rounded-xl py-3 px-4 text-slate-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/40 transition-all font-semibold"
+                  />
+                </div>
+                
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsVerificationModalOpen(false);
+                      setPendingAction(null);
+                      setVerificationPassword('');
+                    }}
+                    className="flex-1 py-3 border border-slate-200 hover:bg-slate-50 text-slate-500 font-bold rounded-xl text-xs transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-grow py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition-all"
+                  >
+                    Verify & Confirm
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         )}
 
       </main>
