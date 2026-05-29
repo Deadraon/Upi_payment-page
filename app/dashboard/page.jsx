@@ -1003,7 +1003,7 @@ echo "Order Created: " . $data['orderId'];
       {/* Sidebar (Desktop) */}
       <aside className="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col sticky top-0 h-screen">
         <div className="h-20 flex items-center px-8 border-b border-slate-100">
-          <MyMobPayLogo className="w-36 h-auto" textColor="#0F172A" />
+          <MyMobPayLogo className="w-36 h-auto" />
         </div>
         
         <nav className="flex-1 p-5 space-y-2 overflow-y-auto">
@@ -1092,7 +1092,7 @@ echo "Order Created: " . $data['orderId'];
         
         {/* Mobile Header Bar */}
         <header className="md:hidden h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-40 shadow-sm">
-          <MyMobPayLogo className="w-32 h-auto" textColor="#0F172A" />
+          <MyMobPayLogo className="w-32 h-auto" />
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}

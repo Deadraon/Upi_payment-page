@@ -434,7 +434,7 @@ export default function AdminPage() {
           <div className="absolute top-0 left-0 right-0 h-[3px] bg-blue-600"></div>
 
           <div className="text-center space-y-2 flex flex-col items-center">
-            <MyMobPayLogo className="w-36 h-auto" textColor="#0F172A" />
+            <MyMobPayLogo className="w-36 h-auto" />
             <p className="text-[10px] text-slate-400 font-bold tracking-widest uppercase mt-0.5">SaaS Super Admin Console</p>
           </div>
 
@@ -493,7 +493,7 @@ export default function AdminPage() {
           <div className="flex items-center gap-3">
             <div>
               <div className="flex items-center gap-2">
-                <MyMobPayLogo className="w-32 h-auto" textColor="#0F172A" />
+                <MyMobPayLogo className="w-32 h-auto" />
                 <span className="px-2 py-0.5 text-[9px] rounded bg-blue-50 text-blue-600 border border-blue-100 font-bold uppercase">SaaS OWNER</span>
               </div>
               <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Gateway Platform Admin</p>

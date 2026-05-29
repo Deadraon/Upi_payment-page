@@ -148,7 +148,7 @@ print("Checkout Link generated:", data.get("orderId"))`
           
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 select-none group">
-            <MyMobPayLogo className="w-36 h-auto" textColor="#0F172A" />
+            <MyMobPayLogo className="w-36 h-auto" />
           </Link>
 
           {/* Navigation Links (Desktop) */}
