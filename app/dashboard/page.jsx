@@ -15,14 +15,14 @@ import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid 
 } from 'recharts';
 
-const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = '#FFFFFF' }) => (
+const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = 'var(--text-primary)' }) => (
   <svg viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
     {/* Single unified wordmark with unique mixed fonts */}
     <text x="2" y="42" letterSpacing="0">
       {/* MyMob */}
       <tspan fontFamily="'Outfit', sans-serif" fontWeight="800" fontSize="36" fill={textColor}>MyMob</tspan>
       {/* Pay */}
-      <tspan fontFamily="'Orbitron', sans-serif" fontWeight="900" fontStyle="italic" fontSize="36" fill="#3B82F6" dx="3">Pay</tspan>
+      <tspan fontFamily="'Orbitron', sans-serif" fontWeight="900" fontStyle="italic" fontSize="36" fill="var(--accent)" dx="3">Pay</tspan>
     </text>
   </svg>
 );
@@ -1547,48 +1547,75 @@ echo "Order Created: " . $data['orderId'];
           <MyMobPayLogo className="w-36 h-auto" />
         </div>
         
-        <nav className="flex-1 p-5 space-y-2 overflow-y-auto">
+        <nav className="flex-1 p-5 space-y-1.5 overflow-y-auto">
           {/* Subscription tab — pinned at top */}
           <button
             onClick={handleScrollToSubscription}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-black text-sm transition-all border ${
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-black text-[15px] transition-all border ${
               activeTab === 'subscription'
                 ? 'border-violet-400 bg-violet-500/20 text-violet-700 shadow-sm shadow-violet-500/10'
                 : 'border-violet-500/30 bg-violet-500/10 text-violet-450 hover:text-violet-300 hover:bg-violet-500/20 hover:border-violet-500/50 shadow-sm shadow-violet-500/5'
             }`}
           >
-            <Star className="w-4 h-4 text-violet-400 fill-violet-400/10" />
+            <Star className="w-4.5 h-4.5 text-violet-500 fill-violet-500/10 shrink-0" />
             <span className="flex-1 text-left">Subscription</span>
             {profile?.subscription_status === 'active' && profile?.subscription_expires_at && (() => {
               const d = Math.ceil((new Date(profile.subscription_expires_at) - new Date()) / 86400000);
-              return <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-400">{d}d left</span>;
+              return <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-violet-500/20 text-violet-600">{d}d left</span>;
             })()}
           </button>
 
-          <div className="border-t border-slate-100 my-1" />
+          <div className="border-t border-slate-100 my-3" />
+
+          {/* Category: General */}
+          <p className="text-[10.5px] font-black text-slate-450 uppercase tracking-widest px-4 mb-2 select-none">
+            General
+          </p>
 
           <button 
             onClick={() => setActiveTab('overview')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all ${activeTab === 'overview' ? 'bg-blue-50 text-blue-700 shadow-sm shadow-blue-500/10' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold text-[15px] transition-all border ${
+              activeTab === 'overview' 
+                ? 'bg-blue-50 text-blue-700 border-blue-100 shadow-sm shadow-blue-500/5' 
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-transparent'
+            }`}
           >
-            <LayoutDashboard className="w-4 h-4" /> Overview
+            <LayoutDashboard className="w-4.5 h-4.5 shrink-0" /> Overview
           </button>
           
+          {/* Category: Reports */}
+          <p className="text-[10.5px] font-black text-slate-450 uppercase tracking-widest px-4 pt-3 mb-2 select-none">
+            Reports
+          </p>
+
           <button 
             onClick={() => setActiveTab('transactions')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all ${activeTab === 'transactions' ? 'bg-blue-50 text-blue-700 shadow-sm shadow-blue-500/10' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold text-[15px] transition-all border ${
+              activeTab === 'transactions' 
+                ? 'bg-blue-50 text-blue-700 border-blue-100 shadow-sm shadow-blue-500/5' 
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-transparent'
+            }`}
           >
-            <CreditCard className="w-4 h-4" /> Transactions
+            <CreditCard className="w-4.5 h-4.5 shrink-0" /> Transactions
           </button>
+
+          {/* Category: Connections */}
+          <p className="text-[10.5px] font-black text-slate-450 uppercase tracking-widest px-4 pt-3 mb-2 select-none">
+            Integrations
+          </p>
 
           <button 
             onClick={() => {
               setActiveTab('connections');
               setIntegrationTarget('email_forwarding');
             }}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all ${activeTab === 'connections' ? 'bg-blue-50 text-blue-700 shadow-sm shadow-blue-500/10' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold text-[15px] transition-all border ${
+              activeTab === 'connections' 
+                ? 'bg-blue-50 text-blue-700 border-blue-100 shadow-sm shadow-blue-500/5' 
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-transparent'
+            }`}
           >
-            <LinkIcon className="w-4 h-4" /> Connections
+            <LinkIcon className="w-4.5 h-4.5 shrink-0" /> Connections
           </button>
 
           <button 
@@ -1598,23 +1625,40 @@ echo "Order Created: " . $data['orderId'];
                 setIntegrationTarget('website');
               }
             }}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all ${activeTab === 'developer' ? 'bg-blue-50 text-blue-700 shadow-sm shadow-blue-500/10' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold text-[15px] transition-all border ${
+              activeTab === 'developer' 
+                ? 'bg-blue-50 text-blue-700 border-blue-100 shadow-sm shadow-blue-500/5' 
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-transparent'
+            }`}
           >
-            <BookOpen className="w-4 h-4" /> Developer API
-          </button>
-
-          <button 
-            onClick={() => setActiveTab('settings')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all ${activeTab === 'settings' ? 'bg-blue-50 text-blue-700 shadow-sm shadow-blue-500/10' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}
-          >
-            <Briefcase className="w-4 h-4" /> Settings
+            <BookOpen className="w-4.5 h-4.5 shrink-0" /> Developer API
           </button>
 
           <button 
             onClick={() => setActiveTab('api')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all ${activeTab === 'api' ? 'bg-blue-50 text-blue-700 shadow-sm shadow-blue-500/10' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold text-[15px] transition-all border ${
+              activeTab === 'api' 
+                ? 'bg-blue-50 text-blue-700 border-blue-100 shadow-sm shadow-blue-500/5' 
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-transparent'
+            }`}
           >
-            <Key className="w-4 h-4" /> API Keys
+            <Key className="w-4.5 h-4.5 shrink-0" /> API Keys
+          </button>
+
+          {/* Category: Settings */}
+          <p className="text-[10.5px] font-black text-slate-450 uppercase tracking-widest px-4 pt-3 mb-2 select-none">
+            Settings
+          </p>
+
+          <button 
+            onClick={() => setActiveTab('settings')}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold text-[15px] transition-all border ${
+              activeTab === 'settings' 
+                ? 'bg-blue-50 text-blue-700 border-blue-100 shadow-sm shadow-blue-500/5' 
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-transparent'
+            }`}
+          >
+            <Briefcase className="w-4.5 h-4.5 shrink-0" /> Settings
           </button>
         </nav>
 
@@ -1711,32 +1755,47 @@ echo "Order Created: " . $data['orderId'];
                   return <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-400">{d}d left</span>;
                 })()}
               </button>
-              <div className="border-t border-slate-100 my-1" />
+              <div className="border-t border-slate-100 my-3" />
               {[
+                { type: 'header', label: 'General' },
                 { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+                { type: 'header', label: 'Reports' },
                 { id: 'transactions', label: 'Transactions', icon: CreditCard },
+                { type: 'header', label: 'Integrations' },
                 { id: 'connections', label: 'Connections', icon: LinkIcon },
                 { id: 'developer', label: 'Developer API', icon: BookOpen },
-                { id: 'settings', label: 'Settings', icon: Briefcase },
                 { id: 'api', label: 'API Keys', icon: Key },
-              ].map(tab => {
-                const Icon = tab.icon;
+                { type: 'header', label: 'Settings' },
+                { id: 'settings', label: 'Settings', icon: Briefcase },
+              ].map((item, idx) => {
+                if (item.type === 'header') {
+                  return (
+                    <p key={`mh-${idx}`} className="text-[10px] font-black text-slate-450 uppercase tracking-widest px-3 mt-4 mb-1 select-none">
+                      {item.label}
+                    </p>
+                  );
+                }
+                const Icon = item.icon;
                 return (
                   <button
-                    key={tab.id}
+                    key={item.id}
                     onClick={() => {
-                      setActiveTab(tab.id);
+                      setActiveTab(item.id);
                       setIsMobileMenuOpen(false);
-                      if (tab.id === 'connections') {
+                      if (item.id === 'connections') {
                         setIntegrationTarget('email_forwarding');
-                      } else if (tab.id === 'developer' && integrationTarget === 'email_forwarding') {
+                      } else if (item.id === 'developer' && integrationTarget === 'email_forwarding') {
                         setIntegrationTarget('website');
                       }
                     }}
-                    className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl text-xs font-bold transition-all border ${activeTab === tab.id ? 'bg-blue-50/60 text-blue-600 border-blue-100 shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 border-transparent'}`}
+                    className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-[15px] font-bold transition-all border ${
+                      activeTab === item.id 
+                        ? 'bg-blue-50 text-blue-700 border-blue-100 shadow-sm shadow-blue-500/5' 
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-transparent'
+                    }`}
                   >
-                    <Icon className="w-4.5 h-4.5" />
-                    <span>{tab.label}</span>
+                    <Icon className="w-4.5 h-4.5 shrink-0" />
+                    <span>{item.label}</span>
                   </button>
                 );
               })}
@@ -1758,15 +1817,15 @@ echo "Order Created: " . $data['orderId'];
         )}
 
         {/* Desktop Sticky Header / Navbar */}
-        <header className="hidden md:flex h-20 bg-white/85 backdrop-blur-md border-b border-slate-200/80 items-center justify-between px-10 sticky top-0 z-30 select-none">
+        <header className="hidden md:flex h-20 bg-white border-b border-slate-200/85 items-center justify-between px-10 sticky top-0 z-30 select-none shadow-xs">
           {/* Left: Command Search Bar */}
           <button 
             onClick={() => setIsCommandPaletteOpen(true)}
-            className="flex items-center gap-3 bg-slate-50 border border-slate-200/80 rounded-2xl px-4 py-2.5 w-80 text-slate-400 hover:border-slate-350 hover:bg-white transition-all shadow-xs text-left cursor-pointer group"
+            className="flex items-center gap-3 bg-slate-50 border border-slate-200/80 rounded-2xl px-4 py-2.5 w-80 text-slate-500 hover:border-slate-350 hover:bg-white transition-all shadow-xs text-left cursor-pointer group"
           >
-            <Search className="w-4 h-4 text-slate-400 group-hover:text-blue-500 transition-colors shrink-0" />
-            <span className="text-xs font-semibold text-slate-400 w-full">Search or type command...</span>
-            <span className="text-[10px] font-black bg-slate-200/80 text-slate-500 px-2 py-0.5 rounded-lg font-mono shrink-0">⌘K</span>
+            <Search className="w-4 h-4 text-slate-550 group-hover:text-blue-500 transition-colors shrink-0" />
+            <span className="text-xs font-semibold text-slate-550 w-full">Search or type command...</span>
+            <span className="text-[10px] font-black bg-slate-200 text-slate-600 px-2 py-0.5 rounded-lg font-mono shrink-0">⌘K</span>
           </button>
 
           {/* Right: Actions, Subscription Details, and Profile Dropdown */}
@@ -1774,7 +1833,10 @@ echo "Order Created: " . $data['orderId'];
             
             {/* Subscription Details Pill */}
             {profile?.subscription_status === 'active' ? (() => {
-              const d = Math.ceil((new Date(profile.subscription_expires_at) - new Date()) / 86400000);
+              const expiresAt = profile?.subscription_expires_at ? new Date(profile.subscription_expires_at) : null;
+              const isValidDate = expiresAt && !isNaN(expiresAt.getTime()) && expiresAt.getTime() > Date.now();
+              const d = isValidDate ? Math.ceil((expiresAt - new Date()) / 86400000) : -1;
+              const text = d > 0 ? `Premium · ${d} days left` : 'Premium · Active';
               return (
                 <button 
                   onClick={handleScrollToSubscription}
@@ -1782,7 +1844,7 @@ echo "Order Created: " . $data['orderId'];
                   title="View Premium Subscription"
                 >
                   <span className="w-2 h-2 rounded-full bg-violet-500 animate-pulse" />
-                  <span className="text-[10px] font-black text-violet-750 uppercase tracking-wider">Premium · {d} days left</span>
+                  <span className="text-[10px] font-black text-violet-750 uppercase tracking-wider">{text}</span>
                 </button>
               );
             })() : (
