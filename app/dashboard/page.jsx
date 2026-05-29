@@ -84,6 +84,9 @@ export default function DashboardPage() {
   const [staffError, setStaffError] = useState(null);
   const [staffProvider, setStaffProvider] = useState('gpay');
 
+  // Connections Tab Sub-tab Selection State
+  const [connectionSubTab, setConnectionSubTab] = useState('email');
+
   const fetchStaffDetails = async (providerName) => {
     setStaffLoading(true);
     setStaffError(null);
@@ -1361,7 +1364,22 @@ echo "Order Created: " . $data['orderId'];
           </button>
 
           <button 
-            onClick={() => setActiveTab('developer')}
+            onClick={() => {
+              setActiveTab('connections');
+              setIntegrationTarget('email_forwarding');
+            }}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all ${activeTab === 'connections' ? 'bg-blue-50 text-blue-700 shadow-sm shadow-blue-500/10' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}
+          >
+            <LinkIcon className="w-4 h-4" /> Connections
+          </button>
+
+          <button 
+            onClick={() => {
+              setActiveTab('developer');
+              if (integrationTarget === 'email_forwarding') {
+                setIntegrationTarget('website');
+              }
+            }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all ${activeTab === 'developer' ? 'bg-blue-50 text-blue-700 shadow-sm shadow-blue-500/10' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}
           >
             <BookOpen className="w-4 h-4" /> Developer API
@@ -1461,6 +1479,7 @@ echo "Order Created: " . $data['orderId'];
               {[
                 { id: 'overview', label: 'Overview', icon: LayoutDashboard },
                 { id: 'transactions', label: 'Transactions', icon: CreditCard },
+                { id: 'connections', label: 'Connections', icon: LinkIcon },
                 { id: 'developer', label: 'Developer API', icon: BookOpen },
                 { id: 'settings', label: 'Settings', icon: Briefcase },
                 { id: 'api', label: 'API Keys', icon: Key },
@@ -1472,6 +1491,11 @@ echo "Order Created: " . $data['orderId'];
                     onClick={() => {
                       setActiveTab(tab.id);
                       setIsMobileMenuOpen(false);
+                      if (tab.id === 'connections') {
+                        setIntegrationTarget('email_forwarding');
+                      } else if (tab.id === 'developer' && integrationTarget === 'email_forwarding') {
+                        setIntegrationTarget('website');
+                      }
                     }}
                     className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl text-xs font-bold transition-all border ${activeTab === tab.id ? 'bg-blue-50/60 text-blue-600 border-blue-100 shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 border-transparent'}`}
                   >
@@ -1504,11 +1528,12 @@ echo "Order Created: " . $data['orderId'];
             {/* Header section with active tab label and sandbox toggle */}
             <div className="mb-6 pt-2 md:pt-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h2 className="text-3xl font-black text-slate-900 capitalize">{activeTab === 'api' ? 'API Credentials' : activeTab === 'developer' ? 'Developer Portal' : activeTab === 'subscription' ? 'Subscription Console' : activeTab}</h2>
+                <h2 className="text-3xl font-black text-slate-900 capitalize">{activeTab === 'api' ? 'API Credentials' : activeTab === 'developer' ? 'Developer Portal' : activeTab === 'subscription' ? 'Subscription Console' : activeTab === 'connections' ? 'Connections' : activeTab}</h2>
                 <p className="text-sm text-slate-500 font-medium mt-1">
                   {activeTab === 'overview' && 'Real-time overview of business revenue and platform subscription details.'}
                   {activeTab === 'subscription' && 'Monitor subscription status, calculate renewals, and extend your active platform plan.'}
                   {activeTab === 'transactions' && 'Monitor and filter payment orders. Export history instantly.'}
+                  {activeTab === 'connections' && 'Connect automated verification channels such as email forwarding and cashier staff accounts.'}
                   {activeTab === 'developer' && 'Configure custom integrations, fetch orders via REST APIs, or copy-paste client SDK snippets.'}
                   {activeTab === 'settings' && 'Customize your business metadata, direct UPI deposit addresses, and brand colors.'}
                   {activeTab === 'api' && 'Secret credential tokens for creating programmatic checkouts.'}
@@ -1945,13 +1970,6 @@ echo "Order Created: " . $data['orderId'];
                       </svg>
                       Mobile App SDK
                     </button>
-                    <button
-                      onClick={() => setIntegrationTarget('email_forwarding')}
-                      className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all duration-300 flex items-center gap-2 ${integrationTarget === 'email_forwarding' ? 'bg-white text-blue-600 shadow-md shadow-blue-500/5 border border-slate-250' : 'text-slate-500 hover:text-slate-800'}`}
-                    >
-                      <Mail className="w-4 h-4 text-blue-600" />
-                      Email Forwarding
-                    </button>
                   </div>
                 </div>
 
@@ -2332,10 +2350,10 @@ echo "Order Created: " . $data['orderId'];
                       <div className="border-b border-slate-100 pb-4 mb-5 select-none">
                         <div className="flex items-center justify-between">
                           {[
-                            { step: 1, label: integrationTarget === 'website' ? 'Credentials' : integrationTarget === 'mobile_app' ? 'UPI Vitals' : 'Target Email' },
-                            { step: 2, label: integrationTarget === 'website' ? 'POST API' : integrationTarget === 'mobile_app' ? 'Deep Link' : 'Gmail Setup' },
-                            { step: 3, label: integrationTarget === 'website' ? 'Redirect' : integrationTarget === 'mobile_app' ? 'Polling Loop' : 'Verification' },
-                            { step: 4, label: integrationTarget === 'email_forwarding' ? 'Gmail Filter' : 'Outbound HMAC Webhook' }
+                            { step: 1, label: integrationTarget === 'website' ? 'Credentials' : 'UPI Vitals' },
+                            { step: 2, label: integrationTarget === 'website' ? 'POST API' : 'Deep Link' },
+                            { step: 3, label: integrationTarget === 'website' ? 'Redirect' : 'Polling Loop' },
+                            { step: 4, label: 'Outbound HMAC Webhook' }
                           ].map((s, idx) => (
                             <div key={s.step} className="flex items-center flex-1 last:flex-none">
                               <div className="flex flex-col items-center">
@@ -3027,158 +3045,6 @@ async function checkOrderStatus(orderId) {
                           </div>
                         )}
 
-                        {integrationTarget === 'email_forwarding' && (
-                          <div className="space-y-4">
-                            {/* Step 1: Target Email */}
-                            {wizardStep === 1 && (
-                              <div className="space-y-4 animate-fadeIn">
-                                <div className="space-y-1">
-                                  <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
-                                    📧 Step 1: Copy Your Inbound Email Address
-                                  </h4>
-                                  <p className="text-xs text-slate-500 font-semibold leading-relaxed">
-                                    This is your unique platform email address. Google Mail forwarding rules will send bank alerts here to trigger automatic matches.
-                                  </p>
-                                </div>
-
-                                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
-                                  <div className="flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-wider">
-                                    <span>Copyable Forwarding Email Address</span>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <code className="flex-1 bg-white border border-slate-250 px-3.5 py-2 rounded-xl text-xs font-mono break-all text-slate-800 font-bold select-all">
-                                      {`${profile?.api_key || 'YOUR_API_KEY'}@${typeof window !== 'undefined' ? window.location.host.replace(/^www\./, '') : 'mymob.tech'}`}
-                                    </code>
-                                    <button 
-                                      onClick={() => {
-                                        const emailAddr = `${profile?.api_key || 'YOUR_API_KEY'}@${typeof window !== 'undefined' ? window.location.host.replace(/^www\./, '') : 'mymob.tech'}`;
-                                        navigator.clipboard.writeText(emailAddr);
-                                        setCopied(true);
-                                        setTimeout(() => setCopied(false), 2000);
-                                      }}
-                                      className="p-2.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl transition-all border border-blue-200"
-                                      title="Copy Email Address"
-                                    >
-                                      {copied ? <CheckCircle className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-                                    </button>
-                                  </div>
-                                </div>
-
-                                <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-2xl text-[11px] text-blue-800 font-semibold space-y-1.5 leading-normal">
-                                  <p className="font-bold flex items-center gap-1.5 uppercase text-[9.5px] tracking-wider text-blue-700">💡 Domain Warning</p>
-                                  <p>Make sure your Cloudflare Worker is active on this host domain. The username prefix is your raw, prefix-free merchant API Key (UUID).</p>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Step 2: Gmail Setup */}
-                            {wizardStep === 2 && (
-                              <div className="space-y-4 animate-fadeIn">
-                                <div className="space-y-1">
-                                  <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
-                                    ⚙️ Step 2: Configure Forwarding in Gmail Settings
-                                  </h4>
-                                  <p className="text-xs text-slate-500 font-semibold leading-relaxed">
-                                    Register your gateway target email address in Gmail settings to start routing transaction alerts.
-                                  </p>
-                                </div>
-
-                                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs text-slate-700 font-medium space-y-3 leading-relaxed">
-                                  <ol className="list-decimal pl-5 space-y-2">
-                                    <li>Open your merchant Gmail account on a desktop browser.</li>
-                                    <li>Click the **Gear icon** (top right) → **See all settings**.</li>
-                                    <li>Select the **Forwarding and POP/IMAP** tab at the top.</li>
-                                    <li>Click the **Add a forwarding address** button.</li>
-                                    <li>Paste your copied forwarding email address from Step 1 and click **Next** → **Proceed** → **OK**.</li>
-                                  </ol>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Step 3: Verification */}
-                            {wizardStep === 3 && (
-                              <div className="space-y-4 animate-fadeIn">
-                                <div className="space-y-1">
-                                  <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
-                                    🔐 Step 3: Intercept Google Verification Link
-                                  </h4>
-                                  <p className="text-xs text-slate-500 font-semibold leading-relaxed">
-                                    Google will send a confirmation link to your unique forwarding address. Our webhook will automatically catch it and show it below.
-                                  </p>
-                                </div>
-
-                                {profile?.gmail_verification_code ? (
-                                  <div className="p-4 bg-emerald-50 border border-emerald-250 rounded-2xl text-emerald-900 space-y-3 shadow-sm">
-                                    <strong className="text-xs font-bold text-emerald-850 flex items-center gap-1.5 uppercase">
-                                      ✓ Google link intercepted!
-                                    </strong>
-                                    <p className="text-[11px] leading-relaxed text-emerald-700 font-medium">
-                                      We have intercepted the Google confirmation email. Click the link below to confirm the forwarding permission on Google.
-                                    </p>
-                                    <div className="flex gap-2">
-                                      <a
-                                        href={profile.gmail_verification_code}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="flex-1 py-2 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-center text-xs font-bold shadow-sm"
-                                      >
-                                        Authorize Forwarding on Google
-                                      </a>
-                                      <button
-                                        onClick={() => {
-                                          navigator.clipboard.writeText(profile.gmail_verification_code);
-                                          setCopiedLink(true);
-                                          setTimeout(() => setCopiedLink(false), 2000);
-                                        }}
-                                        className="py-2 px-3 bg-white border border-emerald-250 text-emerald-600 rounded-xl text-xs font-bold"
-                                      >
-                                        {copiedLink ? 'Copied' : 'Copy Link'}
-                                      </button>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <div className="p-6 bg-slate-50 border border-slate-200 border-dashed rounded-2xl text-center flex flex-col items-center justify-center space-y-3 select-none animate-pulse">
-                                    <RefreshCw className="w-6 h-6 text-slate-450 animate-spin" />
-                                    <div>
-                                      <p className="text-xs font-bold text-slate-750">Waiting for Google email...</p>
-                                      <p className="text-[10px] text-slate-450 font-medium mt-0.5">Click &apos;Proceed&apos; on Gmail in Step 2 to trigger the verification mail.</p>
-                                    </div>
-                                    <button 
-                                      onClick={() => fetchProfile(user?.id)}
-                                      className="px-4 py-1.5 bg-white border border-slate-250 text-slate-600 rounded-xl text-[10px] font-bold shadow-xs hover:bg-slate-50 flex items-center gap-1"
-                                    >
-                                      <RefreshCw className="w-3.5 h-3.5" /> Refresh Status
-                                    </button>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-
-                            {/* Step 4: Gmail Filter */}
-                            {wizardStep === 4 && (
-                              <div className="space-y-4 animate-fadeIn">
-                                <div className="space-y-1">
-                                  <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
-                                    ✉️ Step 4: Create Gmail Filtering Rule
-                                  </h4>
-                                  <p className="text-xs text-slate-500 font-semibold leading-relaxed">
-                                    Set up a filter to only route transaction/credit alerts from your bank to prevent spam.
-                                  </p>
-                                </div>
-
-                                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs text-slate-700 font-medium space-y-3 leading-relaxed">
-                                  <ol className="list-decimal pl-5 space-y-2">
-                                    <li>In your Gmail search bar, type your bank&apos;s notification email address (e.g., `alerts@sbi.co.in` or `customercare@hdfcbank.com`) or keywords like `credited`.</li>
-                                    <li>Click **Show search options** (the sliders icon in the search bar).</li>
-                                    <li>Click **Create filter** at the bottom of the options window.</li>
-                                    <li>Check the box **Forward it to:** and select your verified forwarding email.</li>
-                                    <li>Click **Create filter**. All incoming bank credits will now instantly verify payments on your checkout pages!</li>
-                                  </ol>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
                       </div>
                     )
 
@@ -3402,6 +3268,679 @@ async function checkOrderStatus(orderId) {
             )}
 
             {/* ═══════════════════════════════════════════════════════════
+               TAB: CONNECTIONS
+               ═══════════════════════════════════════════════════════════ */}
+            {activeTab === 'connections' && (
+              <div className="space-y-6 animate-fadeIn">
+                
+                {/* Connection Sub-tab Switcher Selector */}
+                <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex flex-col md:flex-row items-center justify-between gap-5">
+                  <div className="space-y-1">
+                    <h3 className="text-base font-black text-slate-900 flex items-center gap-2 select-none">
+                      <span className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-ping" />
+                      Verification Channels
+                    </h3>
+                    <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                      Choose an automated channel to verify customer UPI payments seamlessly in the background.
+                    </p>
+                  </div>
+                  
+                  <div className="flex bg-slate-100 p-1 rounded-2xl border border-slate-200/60 select-none">
+                    <button
+                      onClick={() => {
+                        setConnectionSubTab('email');
+                        setIntegrationTarget('email_forwarding');
+                        setWizardStep(0);
+                        setStepTestResult(null);
+                        setStepTestMsg('');
+                        setStepTestDetail('');
+                      }}
+                      className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all duration-300 flex items-center gap-2 ${connectionSubTab === 'email' ? 'bg-white text-blue-600 shadow-md shadow-blue-500/5 border border-slate-250' : 'text-slate-500 hover:text-slate-800'}`}
+                    >
+                      <Mail className="w-4 h-4 text-blue-600" />
+                      Email Forwarding
+                    </button>
+                    <button
+                      onClick={() => {
+                        setConnectionSubTab('staff');
+                        setWizardStep(0);
+                        setStepTestResult(null);
+                      }}
+                      className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all duration-300 flex items-center gap-2 ${connectionSubTab === 'staff' ? 'bg-white text-blue-600 shadow-md shadow-blue-500/5 border border-slate-250' : 'text-slate-500 hover:text-slate-800'}`}
+                    >
+                      <Star className="w-4 h-4 text-blue-600" />
+                      Cashier Staff Setup
+                    </button>
+                  </div>
+                </div>
+
+                {/* Sub-tab 1: Email Forwarding */}
+                {connectionSubTab === 'email' && (
+                  <div className="space-y-6">
+                    {profile?.setup_progress?.email_forwarding && !rerunWizard ? (
+                      /* ACTIVE STATE: logs, stats, modify setup */
+                      <div className="bg-white p-8 rounded-3xl border border-slate-200/80 shadow-[0_4px_25px_rgba(0,0,0,0.02)] animate-fadeIn">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 pb-6 border-b border-slate-100">
+                          <div>
+                            <h3 className="text-xl font-black text-slate-900 flex items-center gap-2">
+                              <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+                              Email Routing Active
+                            </h3>
+                            <p className="text-sm text-slate-500 font-medium mt-1">
+                              Your Gmail forwarding integration is complete and listening for real-time UPI payment notifications.
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => {
+                              setRerunWizard(true);
+                              setWizardStep(1);
+                              setStepTestResult(null);
+                            }}
+                            className="px-4 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold text-xs rounded-xl border border-slate-200 transition-all flex items-center gap-2 shrink-0 cursor-pointer"
+                          >
+                            <RefreshCw className="w-3.5 h-3.5" /> Modify Configuration
+                          </button>
+                        </div>
+
+                        <div className="space-y-6">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100">
+                              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Total Forwarded</p>
+                              <p className="text-2xl font-black text-slate-800">{emailLogs.length}</p>
+                            </div>
+                            <div className="p-5 bg-emerald-50 rounded-2xl border border-emerald-100">
+                              <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">Matched Orders</p>
+                              <p className="text-2xl font-black text-emerald-700">{emailLogs.filter(l => l.status === 'matched').length}</p>
+                            </div>
+                            <div className="p-5 bg-blue-50 rounded-2xl border border-blue-100">
+                              <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Parsed (No Match)</p>
+                              <p className="text-2xl font-black text-blue-700">{emailLogs.filter(l => l.status === 'parsed').length}</p>
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="flex items-center justify-between mb-3">
+                              <h4 className="text-sm font-bold text-slate-800">Live Email Routing Logs</h4>
+                              <button onClick={() => fetchEmailLogs(profile.id)} className="text-[10px] font-bold text-blue-600 uppercase flex items-center gap-1 hover:underline cursor-pointer">
+                                <RefreshCw className={`w-3 h-3 ${emailLogsLoading ? 'animate-spin' : ''}`} /> Refresh Logs
+                              </button>
+                            </div>
+                            <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm overflow-x-auto">
+                              <table className="w-full text-left border-collapse min-w-[500px]">
+                                <thead>
+                                  <tr className="bg-slate-50 border-b border-slate-100">
+                                    <th className="px-4 py-3 text-[10px] font-black text-slate-500 uppercase tracking-wider">Time</th>
+                                    <th className="px-4 py-3 text-[10px] font-black text-slate-500 uppercase tracking-wider">Sender</th>
+                                    <th className="px-4 py-3 text-[10px] font-black text-slate-500 uppercase tracking-wider">Snippet</th>
+                                    <th className="px-4 py-3 text-[10px] font-black text-slate-500 uppercase tracking-wider text-right">Status</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                  {emailLogs.length === 0 ? (
+                                    <tr>
+                                      <td colSpan="4" className="px-4 py-12 text-center text-sm font-medium text-slate-400">
+                                        No emails received yet. Send a test payment to your UPI ID to trigger a bank email!
+                                      </td>
+                                    </tr>
+                                  ) : (
+                                    emailLogs.slice(0, 10).map((log) => (
+                                      <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
+                                        <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-500 font-medium">
+                                          {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </td>
+                                        <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700 font-bold">
+                                          {log.sender}
+                                        </td>
+                                        <td className="px-4 py-3.5 text-xs text-slate-500 truncate max-w-[200px]" title={log.body_snippet}>
+                                          {log.body_snippet}
+                                        </td>
+                                        <td className="px-4 py-3.5 whitespace-nowrap text-right">
+                                          {log.status === 'matched' ? (
+                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-extrabold uppercase bg-emerald-100 text-emerald-700">Matched</span>
+                                          ) : log.status === 'parsed' ? (
+                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-extrabold uppercase bg-blue-100 text-blue-700">Parsed</span>
+                                          ) : (
+                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-extrabold uppercase bg-slate-100 text-slate-600">Ignored</span>
+                                          )}
+                                        </td>
+                                      </tr>
+                                    ))
+                                  )}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : wizardStep === 0 ? (
+                      /* WELCOME SCREEN */
+                      <div className="bg-white p-8 rounded-3xl border border-slate-200/80 shadow-[0_4px_25px_rgba(0,0,0,0.02)] flex flex-col items-center text-center max-w-2xl mx-auto space-y-6 py-12 animate-fadeIn select-none">
+                        <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center border border-blue-100 shadow-sm">
+                          <Mail className="w-8 h-8" />
+                        </div>
+                        <div className="space-y-2">
+                          <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+                            Universal Email Forwarding Setup
+                          </h3>
+                          <p className="text-sm text-slate-500 font-semibold max-w-md mx-auto leading-relaxed">
+                            Auto-verify direct UPI payments instantly 24/7 without apps or phone dependencies. Intercept and route real-time bank credit alerts directly from Gmail.
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => setWizardStep(1)}
+                          className="px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-sm transition-all duration-300 shadow-lg shadow-blue-500/25 flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                        >
+                          <span>Begin Guided Email Setup</span>
+                          <ChevronRight className="w-4.5 h-4.5" />
+                        </button>
+                      </div>
+                    ) : wizardStep === 5 ? (
+                      /* CONGRATS ONBOARDING COMPLETION */
+                      <div className="bg-white p-8 rounded-3xl border border-emerald-250 shadow-[0_4px_25px_rgba(16,185,129,0.02)] flex flex-col items-center text-center max-w-2xl mx-auto space-y-6 py-12 animate-fadeIn select-none">
+                        <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center border border-emerald-100 shadow-sm animate-bounce">
+                          <CheckCircle2 className="w-8 h-8" />
+                        </div>
+                        <div className="space-y-2">
+                          <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+                            🎉 Email Onboarding Completed!
+                          </h3>
+                          <p className="text-sm text-slate-500 font-semibold max-w-md mx-auto leading-relaxed">
+                            Excellent job! Gmail email routing forwarding is now fully set up. Payments received on your merchant account will now auto-verify instantly.
+                          </p>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                          <button
+                            onClick={async () => {
+                              const currentProgress = profile?.setup_progress || { email_forwarding: false, website: false, android_sdk: false };
+                              const newProgress = { ...currentProgress, email_forwarding: true };
+                              await supabase.from('merchants').update({ setup_progress: newProgress }).eq('id', profile.id);
+                              setProfile({ ...profile, setup_progress: newProgress });
+                              setRerunWizard(false);
+                              setWizardStep(0);
+                            }}
+                            className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all text-sm font-bold shadow-md shadow-emerald-500/20 cursor-pointer"
+                          >
+                            Finish & Save Connections
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      /* MULTI STEP WIZARD */
+                      <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200/80 shadow-[0_4px_25px_rgba(0,0,0,0.02)] space-y-8 animate-fadeIn">
+                        
+                        {/* Horizontal Stepper Indicator */}
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-6 overflow-x-auto select-none gap-2">
+                          {[
+                            { step: 1, label: 'Target Email' },
+                            { step: 2, label: 'Gmail Setup' },
+                            { step: 3, label: 'Verification' },
+                            { step: 4, label: 'Gmail Filter' }
+                          ].map((s, idx) => (
+                            <div key={s.step} className="flex items-center flex-1 last:flex-none">
+                              <div className="flex flex-col items-center">
+                                <div 
+                                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black transition-all ${
+                                    wizardStep > s.step 
+                                      ? 'bg-emerald-500 text-white shadow-sm' 
+                                      : wizardStep === s.step 
+                                        ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 ring-4 ring-blue-50 animate-pulse' 
+                                        : 'bg-slate-100 text-slate-400'
+                                  }`}
+                                >
+                                  {wizardStep > s.step ? '✓' : s.step}
+                                </div>
+                                <span className={`text-[9px] font-bold mt-1.5 whitespace-nowrap ${wizardStep === s.step ? 'text-blue-600 font-extrabold' : 'text-slate-400'}`}>
+                                  {s.label}
+                                </span>
+                              </div>
+                              {idx < 3 && (
+                                <div className="flex-1 h-0.5 mx-2 bg-slate-100 relative -top-3">
+                                  <div 
+                                    className="absolute inset-y-0 left-0 bg-blue-500 transition-all duration-550" 
+                                    style={{ width: wizardStep > s.step ? '100%' : '0%' }}
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Step Details block */}
+                        {wizardStep === 1 && (
+                          <div className="space-y-4 animate-fadeIn">
+                            <div className="space-y-1">
+                              <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
+                                📧 Step 1: Copy Your Inbound Email Address
+                              </h4>
+                              <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                                This is your unique platform email address. Google Mail forwarding rules will send bank alerts here to trigger automatic matches.
+                              </p>
+                            </div>
+
+                            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+                              <div className="flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                                <span>Copyable Forwarding Email Address</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <code className="flex-1 bg-white border border-slate-250 px-3.5 py-2 rounded-xl text-xs font-mono break-all text-slate-800 font-bold select-all">
+                                  {`${profile?.api_key || 'YOUR_API_KEY'}@${typeof window !== 'undefined' ? window.location.host.replace(/^www\./, '') : 'mymob.tech'}`}
+                                </code>
+                                <button 
+                                  onClick={() => {
+                                    const emailAddr = `${profile?.api_key || 'YOUR_API_KEY'}@${typeof window !== 'undefined' ? window.location.host.replace(/^www\./, '') : 'mymob.tech'}`;
+                                    navigator.clipboard.writeText(emailAddr);
+                                    setCopied(true);
+                                    setTimeout(() => setCopied(false), 2000);
+                                  }}
+                                  className="p-2.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl transition-all border border-blue-200 cursor-pointer"
+                                  title="Copy Email Address"
+                                >
+                                  {copied ? <CheckCircle className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                                </button>
+                              </div>
+                            </div>
+
+                            <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-2xl text-[11px] text-blue-800 font-semibold space-y-1.5 leading-normal">
+                              <p className="font-bold flex items-center gap-1.5 uppercase text-[9.5px] tracking-wider text-blue-700">💡 Domain Warning</p>
+                              <p>Make sure your Cloudflare Worker is active on this host domain. The username prefix is your raw, prefix-free merchant API Key (UUID).</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {wizardStep === 2 && (
+                          <div className="space-y-4 animate-fadeIn">
+                            <div className="space-y-1">
+                              <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
+                                ⚙️ Step 2: Configure Forwarding in Gmail Settings
+                              </h4>
+                              <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                                Register your gateway target email address in Gmail settings to start routing transaction alerts.
+                              </p>
+                            </div>
+
+                            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs text-slate-705 font-medium space-y-3 leading-relaxed">
+                              <ol className="list-decimal pl-5 space-y-2">
+                                <li>Open your merchant Gmail account on a desktop browser.</li>
+                                <li>Click the **Gear icon** (top right) → **See all settings**.</li>
+                                <li>Select the **Forwarding and POP/IMAP** tab at the top.</li>
+                                <li>Click the **Add a forwarding address** button.</li>
+                                <li>Paste your copied forwarding email address from Step 1 and click **Next** → **Proceed** → **OK**.</li>
+                              </ol>
+                            </div>
+                          </div>
+                        )}
+
+                        {wizardStep === 3 && (
+                          <div className="space-y-4 animate-fadeIn">
+                            <div className="space-y-1">
+                              <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
+                                🔐 Step 3: Intercept Google Verification Link
+                              </h4>
+                              <p className="text-xs text-slate-505 font-semibold leading-relaxed">
+                                Google will send a confirmation link to your unique forwarding address. Our webhook will automatically catch it and show it below.
+                              </p>
+                            </div>
+
+                            {profile?.gmail_verification_code ? (
+                              <div className="p-4 bg-emerald-50 border border-emerald-250 rounded-2xl text-emerald-900 space-y-3 shadow-sm">
+                                <strong className="text-xs font-bold text-emerald-850 flex items-center gap-1.5 uppercase">
+                                  ✓ Google link intercepted!
+                                </strong>
+                                <p className="text-[11px] leading-relaxed text-emerald-700 font-medium">
+                                  We have intercepted the Google confirmation email. Click the link below to confirm the forwarding permission on Google.
+                                </p>
+                                <div className="flex gap-2">
+                                  <a
+                                    href={profile.gmail_verification_code}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="flex-1 py-2 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-center text-xs font-bold shadow-sm"
+                                  >
+                                    Authorize Forwarding on Google
+                                  </a>
+                                  <button
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(profile.gmail_verification_code);
+                                      setCopiedLink(true);
+                                      setTimeout(() => setCopiedLink(false), 2000);
+                                    }}
+                                    className="py-2 px-3 bg-white border border-emerald-250 text-emerald-600 rounded-xl text-xs font-bold cursor-pointer"
+                                  >
+                                    {copiedLink ? 'Copied' : 'Copy Link'}
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="p-6 bg-slate-50 border border-slate-200 border-dashed rounded-2xl text-center flex flex-col items-center justify-center space-y-3 select-none animate-pulse">
+                                <RefreshCw className="w-6 h-6 text-slate-450 animate-spin" />
+                                <div>
+                                  <p className="text-xs font-bold text-slate-750">Waiting for Google email...</p>
+                                  <p className="text-[10px] text-slate-450 font-medium mt-0.5">Click &apos;Proceed&apos; on Gmail in Step 2 to trigger the verification mail.</p>
+                                </div>
+                                <button 
+                                  onClick={() => fetchProfile(user?.id)}
+                                  className="px-4 py-1.5 bg-white border border-slate-250 text-slate-600 rounded-xl text-[10px] font-bold shadow-xs hover:bg-slate-50 flex items-center gap-1 cursor-pointer"
+                                >
+                                  <RefreshCw className="w-3.5 h-3.5" /> Refresh Status
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {wizardStep === 4 && (
+                          <div className="space-y-4 animate-fadeIn">
+                            <div className="space-y-1">
+                              <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
+                                ✉️ Step 4: Create Gmail Filtering Rule
+                              </h4>
+                              <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                                Set up a filter to only route transaction/credit alerts from your bank to prevent spam.
+                              </p>
+                            </div>
+
+                            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs text-slate-700 font-medium space-y-3 leading-relaxed">
+                              <ol className="list-decimal pl-5 space-y-2">
+                                <li>In your Gmail search bar, type your bank&apos;s notification email address (e.g., `alerts@sbi.co.in` or `customercare@hdfcbank.com`) or keywords like `credited`.</li>
+                                <li>Click **Show search options** (the sliders icon in the search bar).</li>
+                                <li>Click **Create filter** at the bottom of the options window.</li>
+                                <li>Check the box **Forward it to:** and select your verified forwarding email.</li>
+                                <li>Click **Create filter**. All incoming bank credits will now instantly verify payments on your checkout pages!</li>
+                              </ol>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Diagnostic live test block */}
+                        <div className="border-t border-slate-150 pt-6">
+                          <button
+                            onClick={runStepTest}
+                            disabled={stepTestResult === 'testing'}
+                            className={`w-full py-3.5 px-4 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 border select-none cursor-pointer ${
+                              stepTestResult === 'pass'
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100/50'
+                                : stepTestResult === 'fail'
+                                  ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100/50'
+                                  : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200 shadow-sm'
+                            }`}
+                          >
+                            {stepTestResult === 'testing' ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : stepTestResult === 'pass' ? (
+                              <CheckCircle className="w-3.5 h-3.5" />
+                            ) : stepTestResult === 'fail' ? (
+                              <AlertCircle className="w-3.5 h-3.5" />
+                            ) : null}
+                            {stepTestResult === 'testing'
+                              ? 'Running live test...'
+                              : stepTestResult === 'pass'
+                                ? 'Test Passed — Re-run Test'
+                                : stepTestResult === 'fail'
+                                  ? 'Test Failed — Retry'
+                                  : wizardStep === 1
+                                    ? '▶ Run Test: Verify Email Forwarding Target'
+                                    : wizardStep === 2
+                                      ? '▶ Run Test: Initializing Gmail Setup'
+                                      : wizardStep === 3
+                                        ? '▶ Run Test: Verify Google Forwarding Link'
+                                        : '▶ Run Test: Verify Bank Alert Routing'}
+                          </button>
+
+                          {stepTestResult && stepTestResult !== 'testing' && (
+                            <div className={`mt-3 border-l-4 rounded-r-xl px-3 py-2.5 animate-fadeIn text-[11.5px] font-semibold leading-relaxed ${
+                              stepTestResult === 'pass'
+                                ? 'bg-emerald-50/50 border-emerald-500 text-emerald-800'
+                                : 'bg-red-50/50 border-red-500 text-red-800'
+                            }`}>
+                              <p className="font-black text-xs mb-0.5">{stepTestMsg}</p>
+                              <p>
+                                {stepTestResult === 'fail' && <span className="font-black">Fix: </span>}
+                                {stepTestDetail}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Stepper Footer Navigation Controls */}
+                        <div className="border-t border-slate-100 pt-4 flex items-center justify-between mt-4 select-none">
+                          {wizardStep > 1 ? (
+                            <button
+                              onClick={() => {
+                                setWizardStep(wizardStep - 1);
+                                setStepTestResult(null);
+                              }}
+                              className="px-4 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all text-[11px] font-extrabold text-slate-600 flex items-center gap-1.5 cursor-pointer"
+                            >
+                              ← Previous Step
+                            </button>
+                          ) : (
+                            <div />
+                          )}
+
+                          {wizardStep < 4 ? (
+                            <button
+                              onClick={() => {
+                                setWizardStep(wizardStep + 1);
+                                setStepTestResult(null);
+                              }}
+                              disabled={stepTestResult !== 'pass'}
+                              title={stepTestResult !== 'pass' ? 'Run the step test above to unlock next step' : ''}
+                              className={`px-5 py-2.5 rounded-xl transition-all text-[11px] font-black shadow-md flex items-center gap-1.5 cursor-pointer ${
+                                stepTestResult === 'pass'
+                                  ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/10'
+                                  : 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none border border-slate-200'
+                              }`}
+                            >
+                              {stepTestResult === 'pass' ? 'Next Step →' : '🔒 Run Test to Unlock'}
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => setWizardStep(5)}
+                              disabled={stepTestResult !== 'pass'}
+                              title={stepTestResult !== 'pass' ? 'Run the webhook test above to finish' : ''}
+                              className={`px-5 py-2.5 rounded-xl transition-all text-[11px] font-black shadow-md flex items-center gap-1.5 cursor-pointer ${
+                                stepTestResult === 'pass'
+                                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/10 animate-bounce'
+                                  : 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none border border-slate-200'
+                              }`}
+                            >
+                              {stepTestResult === 'pass' ? '✓ Finish Onboarding' : '🔒 Test Webhook First'}
+                            </button>
+                          )}
+                        </div>
+
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Sub-tab 2: Cashier Staff Setup */}
+                {connectionSubTab === 'staff' && (
+                  <div className="bg-white p-8 rounded-3xl border border-slate-200/80 shadow-[0_4px_25px_rgba(0,0,0,0.02)] space-y-6 animate-fadeIn">
+                    <div className="space-y-1 pb-4 border-b border-slate-100">
+                      <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+                        <Star className="w-5 h-5 text-blue-600 animate-pulse" />
+                        Automatic Cashier Setup (Staff Connection)
+                      </h3>
+                      <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                        Add our system phone number as a Cashier / Staff in your GPay/PhonePe Business app for silent, automated, 24/7 checkout matching with zero phone dependency.
+                      </p>
+                    </div>
+
+                    {profile?.verification_method !== 'staff_verification' && (
+                      /* SELECT PROVIDER STEP */
+                      <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 space-y-5">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Choose Your Merchant Platform</span>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          {[
+                            { id: 'gpay', name: 'Google Pay for Business', desc: 'Add cashier staff via phone number or business owner invitation.' },
+                            { id: 'phonepe', name: 'PhonePe Business', desc: 'Add store cashier to capture direct UPI push alerts instantly.' },
+                            { id: 'paytm', name: 'Paytm for Business', desc: 'Connect Paytm merchant console cashier to read incoming credits.' }
+                          ].map(prov => (
+                            <button
+                              key={prov.id}
+                              onClick={() => {
+                                setStaffProvider(prov.id);
+                                fetchStaffDetails(prov.id);
+                              }}
+                              disabled={staffLoading}
+                              className="bg-white hover:bg-blue-50/20 border border-slate-200 hover:border-blue-400 rounded-2xl p-5 text-left transition-all duration-350 group flex flex-col justify-between h-[150px] shadow-sm cursor-pointer disabled:opacity-50"
+                            >
+                              <div>
+                                <span className={`text-[9px] px-2 py-0.5 rounded font-black uppercase text-white ${
+                                  prov.id === 'gpay' ? 'bg-blue-500' : prov.id === 'phonepe' ? 'bg-violet-600' : 'bg-[#00BAF2]'
+                                }`}>
+                                  {prov.id === 'gpay' ? 'Google Pay' : prov.id === 'phonepe' ? 'PhonePe' : 'Paytm'}
+                                </span>
+                                <h4 className="text-sm font-black text-slate-800 mt-2.5 group-hover:text-blue-600 transition-colors">
+                                  {prov.name}
+                                </h4>
+                                <p className="text-[10px] text-slate-400 mt-1 font-semibold leading-normal">
+                                  {prov.desc}
+                                </p>
+                              </div>
+                              <span className="text-[10px] font-bold text-blue-500 group-hover:translate-x-1.5 transition-transform inline-flex items-center gap-0.5 mt-2">
+                                Connect App →
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {profile?.verification_method === 'staff_verification' && profile?.staff_connection_status === 'pending_invite' && (
+                      /* ACTIVE PENDING INVITATION STEP - STEP BY STEP GUIDE */
+                      <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 space-y-6">
+                        
+                        {/* Status bar */}
+                        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 border-b border-slate-200 pb-4">
+                          <div>
+                            <span className="text-[9px] px-2.5 py-0.5 bg-amber-100 text-amber-700 font-black rounded-full uppercase tracking-wider animate-pulse">
+                              Awaiting staff invitation
+                            </span>
+                            <h4 className="text-sm font-black text-slate-800 mt-1">Connecting to {staffProvider === 'gpay' ? 'Google Pay' : staffProvider === 'phonepe' ? 'PhonePe' : 'Paytm'} Business</h4>
+                          </div>
+
+                          <button
+                            onClick={handleDisconnectStaff}
+                            disabled={staffLoading}
+                            className="text-xs font-bold text-red-500 hover:text-red-700 transition-colors px-3 py-1.5 rounded-lg hover:bg-red-50/50 cursor-pointer"
+                          >
+                            Cancel Connection
+                          </button>
+                        </div>
+
+                        {/* Allocated Number display */}
+                        <div className="bg-white border border-slate-250 p-5 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm">
+                          <div className="space-y-1">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Your Assigned Staff Phone Number</span>
+                            <code className="text-base font-black text-slate-900 font-mono tracking-wider block">
+                              {staffGateway?.phone_number || 'Loading allocation...'}
+                            </code>
+                          </div>
+                          
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(staffGateway?.phone_number || '');
+                              alert('Copied staff number to clipboard!');
+                            }}
+                            className="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+                          >
+                            <Copy className="w-3.5 h-3.5" /> Copy Staff Number
+                          </button>
+                        </div>
+
+                        {/* Visual Step-by-Step guides */}
+                        <div className="space-y-4">
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Step-by-Step Setup Guide</span>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-left">
+                            {[
+                              { step: 1, text: `Open ${staffProvider === 'gpay' ? 'GPay for Business' : 'PhonePe Business'} App on your phone.` },
+                              { step: 2, text: "Go to Profile / Account Settings Menu." },
+                              { step: 3, text: `Tap "Staff management" or "Users" -> "Add new staff" (Cashier).` },
+                              { step: 4, text: `Enter the phone number displayed above, select Cashier role, and click Save.` }
+                            ].map(s => (
+                              <div key={s.step} className="bg-white p-4 rounded-2xl border border-slate-200 flex flex-col justify-between h-[120px] shadow-xs select-none">
+                                <span className="w-6 h-6 rounded-full bg-blue-50 text-blue-600 font-black text-xs flex items-center justify-center border border-blue-150">
+                                  {s.step}
+                                </span>
+                                <p className="text-[10.5px] text-slate-600 font-semibold leading-normal mt-2.5">
+                                  {s.text}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Interactive confirmation bar */}
+                        <div className="bg-blue-50/50 border border-blue-150 rounded-2xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                          <div className="space-y-0.5">
+                            <h5 className="text-xs font-black text-blue-900">Have you added our gateway number as a staff?</h5>
+                            <p className="text-[10px] text-blue-700 font-medium">Once added, click below to accept the invitation and activate 24/7 scanning.</p>
+                          </div>
+                          
+                          <button
+                            onClick={handleConfirmStaffConnected}
+                            disabled={staffLoading}
+                            className="w-full sm:w-auto px-6 py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black transition-all shadow-md shadow-blue-500/20 cursor-pointer flex items-center justify-center gap-2"
+                          >
+                            {staffLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                            I have sent the invitation
+                          </button>
+                        </div>
+
+                      </div>
+                    )}
+
+                    {profile?.verification_method === 'staff_verification' && profile?.staff_connection_status === 'connected' && (
+                      /* CONNECTED STATE */
+                      <div className="bg-white border border-slate-250 rounded-3xl p-6 space-y-6 relative overflow-hidden shadow-xs">
+                        
+                        {/* Glow effect */}
+                        <div className="absolute right-0 top-0 w-48 h-48 bg-emerald-500/5 rounded-bl-full pointer-events-none" />
+
+                        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                          <div className="flex items-center gap-4">
+                            <div className="relative flex items-center justify-center shrink-0">
+                              <span className="absolute w-8 h-8 rounded-full bg-emerald-500/20 animate-ping" />
+                              <div className="w-10 h-10 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600 relative z-10 shadow-sm">
+                                <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+                              </div>
+                            </div>
+
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h4 className="text-base font-black text-slate-800">Automatic Cashier verification Active</h4>
+                                <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center gap-1 select-none">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Active
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-slate-500 font-semibold leading-normal mt-1 max-w-lg">
+                                Payment matching is completely automated. Payments made to GPay/PhonePe are captured via our secure staff SIM: <code className="bg-slate-100 px-1 rounded font-bold font-mono">{staffGateway?.phone_number || '+91 90123 45678'}</code>
+                              </p>
+                            </div>
+                          </div>
+
+                          <button
+                            onClick={handleDisconnectStaff}
+                            disabled={staffLoading}
+                            className="w-full sm:w-auto px-5 py-3 border border-red-200 hover:border-red-300 hover:bg-red-50/50 text-red-500 hover:text-red-700 rounded-xl transition-all text-xs font-black flex items-center justify-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-50"
+                          >
+                            Disconnect Setup
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+              </div>
+            )}
+
+            {/* ═══════════════════════════════════════════════════════════
                TAB: SETTINGS
                ═══════════════════════════════════════════════════════════ */}
             {activeTab === 'settings' && (
@@ -3490,187 +4029,6 @@ async function checkOrderStatus(orderId) {
                       </span>
                     )}
                   </div>
-
-                  {/* STAFF CONNECTION WIZARD SECTION */}
-                  <div className="border-t border-slate-100 pt-8 mt-8 space-y-6">
-                    <div className="space-y-1">
-                      <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-                        <Star className="w-5 h-5 text-blue-600 animate-pulse" />
-                        Automatic Cashier Setup (Staff Connection)
-                      </h3>
-                      <p className="text-xs text-slate-505 font-semibold leading-relaxed">
-                        Add our system phone number as a Cashier / Staff in your GPay/PhonePe Business app for silent, automated, 24/7 checkout matching with zero phone dependency.
-                      </p>
-                    </div>
-
-                    {profile?.verification_method !== 'staff_verification' && (
-                      /* SELECT PROVIDER STEP */
-                      <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 space-y-5">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Choose Your Merchant Platform</span>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          {[
-                            { id: 'gpay', name: 'Google Pay for Business', desc: 'Add cashier staff via phone number or business owner invitation.' },
-                            { id: 'phonepe', name: 'PhonePe Business', desc: 'Add store cashier to capture direct UPI push alerts instantly.' },
-                            { id: 'paytm', name: 'Paytm for Business', desc: 'Connect Paytm merchant console cashier to read incoming credits.' }
-                          ].map(prov => (
-                            <button
-                              key={prov.id}
-                              onClick={() => {
-                                setStaffProvider(prov.id);
-                                fetchStaffDetails(prov.id);
-                              }}
-                              disabled={staffLoading}
-                              className="bg-white hover:bg-blue-50/20 border border-slate-200 hover:border-blue-400 rounded-2xl p-5 text-left transition-all duration-300 group flex flex-col justify-between h-[150px] shadow-sm cursor-pointer disabled:opacity-50"
-                            >
-                              <div>
-                                <span className={`text-[9px] px-2 py-0.5 rounded font-black uppercase text-white ${
-                                  prov.id === 'gpay' ? 'bg-blue-500' : prov.id === 'phonepe' ? 'bg-violet-600' : 'bg-[#00BAF2]'
-                                }`}>
-                                  {prov.id === 'gpay' ? 'Google Pay' : prov.id === 'phonepe' ? 'PhonePe' : 'Paytm'}
-                                </span>
-                                <h4 className="text-sm font-black text-slate-800 mt-2.5 group-hover:text-blue-600 transition-colors">
-                                  {prov.name}
-                                </h4>
-                                <p className="text-[10px] text-slate-400 mt-1 font-semibold leading-normal">
-                                  {prov.desc}
-                                </p>
-                              </div>
-                              <span className="text-[10px] font-bold text-blue-500 group-hover:translate-x-1.5 transition-transform inline-flex items-center gap-0.5 mt-2">
-                                Connect App →
-                              </span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {profile?.verification_method === 'staff_verification' && profile?.staff_connection_status === 'pending_invite' && (
-                      /* ACTIVE PENDING INVITATION STEP - STEP BY STEP GUIDE */
-                      <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 space-y-6">
-                        
-                        {/* Status bar */}
-                        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 border-b border-slate-200 pb-4">
-                          <div>
-                            <span className="text-[9px] px-2.5 py-0.5 bg-amber-100 text-amber-700 font-black rounded-full uppercase tracking-wider animate-pulse">
-                              Awaiting staff invitation
-                            </span>
-                            <h4 className="text-sm font-black text-slate-800 mt-1">Connecting to {staffProvider === 'gpay' ? 'Google Pay' : staffProvider === 'phonepe' ? 'PhonePe' : 'Paytm'} Business</h4>
-                          </div>
-
-                          <button
-                            onClick={handleDisconnectStaff}
-                            disabled={staffLoading}
-                            className="text-xs font-bold text-red-500 hover:text-red-700 transition-colors px-3 py-1.5 rounded-lg hover:bg-red-50/50"
-                          >
-                            Cancel Connection
-                          </button>
-                        </div>
-
-                        {/* Allocated Number display */}
-                        <div className="bg-white border border-slate-250 p-5 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm">
-                          <div className="space-y-1">
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Your Assigned Staff Phone Number</span>
-                            <code className="text-base font-black text-slate-900 font-mono tracking-wider block">
-                              {staffGateway?.phone_number || 'Loading allocation...'}
-                            </code>
-                          </div>
-                          
-                          <button
-                            onClick={() => {
-                              navigator.clipboard.writeText(staffGateway?.phone_number || '');
-                              alert('Copied staff number to clipboard!');
-                            }}
-                            className="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
-                          >
-                            <Copy className="w-3.5 h-3.5" /> Copy Staff Number
-                          </button>
-                        </div>
-
-                        {/* Visual Step-by-Step guides */}
-                        <div className="space-y-4">
-                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Step-by-Step Setup Guide</span>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-left">
-                            {[
-                              { step: 1, text: `Open ${staffProvider === 'gpay' ? 'GPay for Business' : 'PhonePe Business'} App on your phone.` },
-                              { step: 2, text: "Go to Profile / Account Settings Menu." },
-                              { step: 3, text: `Tap "Staff management" or "Users" -> "Add new staff" (Cashier).` },
-                              { step: 4, text: `Enter the phone number displayed above, select Cashier role, and click Save.` }
-                            ].map(s => (
-                              <div key={s.step} className="bg-white p-4 rounded-2xl border border-slate-200 flex flex-col justify-between h-[120px] shadow-xs select-none">
-                                <span className="w-6 h-6 rounded-full bg-blue-50 text-blue-600 font-black text-xs flex items-center justify-center border border-blue-150">
-                                  {s.step}
-                                </span>
-                                <p className="text-[10.5px] text-slate-600 font-semibold leading-normal mt-2.5">
-                                  {s.text}
-                                </p>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Interactive confirmation bar */}
-                        <div className="bg-blue-50/50 border border-blue-150 rounded-2xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                          <div className="space-y-0.5">
-                            <h5 className="text-xs font-black text-blue-900">Have you added our gateway number as a staff?</h5>
-                            <p className="text-[10px] text-blue-700 font-medium">Once added, click below to accept the invitation and activate 24/7 scanning.</p>
-                          </div>
-                          
-                          <button
-                            onClick={handleConfirmStaffConnected}
-                            disabled={staffLoading}
-                            className="w-full sm:w-auto px-6 py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black transition-all shadow-md shadow-blue-500/20 cursor-pointer flex items-center justify-center gap-2"
-                          >
-                            {staffLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                            I have sent the invitation
-                          </button>
-                        </div>
-
-                      </div>
-                    )}
-
-                    {profile?.verification_method === 'staff_verification' && profile?.staff_connection_status === 'connected' && (
-                      /* CONNECTED STATE */
-                      <div className="bg-white border border-slate-200 rounded-3xl p-6 space-y-6 relative overflow-hidden">
-                        
-                        {/* Glow effect */}
-                        <div className="absolute right-0 top-0 w-48 h-48 bg-emerald-500/5 rounded-bl-full pointer-events-none" />
-
-                        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                          <div className="flex items-center gap-4">
-                            <div className="relative flex items-center justify-center shrink-0">
-                              <span className="absolute w-8 h-8 rounded-full bg-emerald-500/20 animate-ping" />
-                              <div className="w-10 h-10 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600 relative z-10 shadow-sm">
-                                <CheckCircle2 className="w-6 h-6 text-emerald-500" />
-                              </div>
-                            </div>
-
-                            <div>
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <h4 className="text-base font-black text-slate-800">Automatic Cashier verification Active</h4>
-                                <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center gap-1 select-none">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Active
-                                </span>
-                              </div>
-                              <p className="text-[11px] text-slate-500 font-semibold leading-normal mt-1 max-w-lg">
-                                Payment matching is completely automated. Payments made to GPay/PhonePe are captured via our secure staff SIM: <code className="bg-slate-100 px-1 rounded font-bold font-mono">{staffGateway?.phone_number || '+91 90123 45678'}</code>
-                              </p>
-                            </div>
-                          </div>
-
-                          <button
-                            onClick={handleDisconnectStaff}
-                            disabled={staffLoading}
-                            className="w-full sm:w-auto px-5 py-3 border border-red-200 hover:border-red-300 hover:bg-red-50/50 text-red-500 hover:text-red-700 rounded-xl transition-all text-xs font-black flex items-center justify-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-50"
-                          >
-                            Disconnect Setup
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
                 </div>
               </div>
             )}
