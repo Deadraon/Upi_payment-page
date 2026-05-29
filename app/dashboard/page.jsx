@@ -1844,7 +1844,7 @@ echo "Order Created: " . $data['orderId'];
                   title="View Premium Subscription"
                 >
                   <span className="w-2 h-2 rounded-full bg-violet-500 animate-pulse" />
-                  <span className="text-[10px] font-black text-violet-750 uppercase tracking-wider">{text}</span>
+                  <span className="text-[10px] font-black text-violet-700 uppercase tracking-wider">{text}</span>
                 </button>
               );
             })() : (
@@ -1854,7 +1854,7 @@ echo "Order Created: " . $data['orderId'];
                 title="Renew Active Plan"
               >
                 <span className="w-2 h-2 rounded-full bg-red-500" />
-                <span className="text-[10px] font-black text-red-750 uppercase tracking-wider">Inactive · Renew Plan</span>
+                <span className="text-[10px] font-black text-red-700 uppercase tracking-wider">Inactive · Renew Plan</span>
               </button>
             )}
 
