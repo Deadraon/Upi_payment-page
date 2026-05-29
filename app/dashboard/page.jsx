@@ -9,7 +9,7 @@ import {
   Loader2, Copy, CheckCircle, CreditCard, Mail, X, 
   LayoutDashboard, Search, Download, RefreshCw, IndianRupee,
   Clock, CheckCircle2, XCircle, Code, ChevronRight, BookOpen,
-  Menu, TrendingUp, AlertCircle
+  Menu, TrendingUp, AlertCircle, Star, Shield, Calendar, Zap, ChevronDown
 } from 'lucide-react';
 import { 
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid 
@@ -25,6 +25,9 @@ export default function DashboardPage() {
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [selectedMonths, setSelectedMonths] = useState(1);
+  const [customMonths, setCustomMonths] = useState('');
 
   // Transaction States
   const [orders, setOrders] = useState([]);
@@ -723,7 +726,179 @@ echo "Order Created: " . $data['orderId'];
     );
   }
 
+  // Helper: days left from expiry date
+  const getDaysLeft = () => {
+    if (!profile?.subscription_expires_at) return null;
+    return Math.ceil((new Date(profile.subscription_expires_at) - new Date()) / 86400000);
+  };
+
   return (
+    <>
+    {/* ═══════════ SUBSCRIPTION MODAL ═══════════ */}
+    {showSubscriptionModal && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        style={{ background: 'rgba(15,23,42,0.65)', backdropFilter: 'blur(6px)' }}
+        onClick={(e) => { if (e.target === e.currentTarget) setShowSubscriptionModal(false); }}
+      >
+        <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-fadeIn">
+          {/* Modal Header */}
+          <div className="relative bg-gradient-to-br from-violet-600 to-purple-700 p-7 text-white">
+            <button
+              onClick={() => setShowSubscriptionModal(false)}
+              className="absolute top-4 right-4 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-white/15 rounded-2xl flex items-center justify-center border border-white/20">
+                <Star className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-violet-200">MyMobPay</p>
+                <h2 className="text-xl font-black">Subscription Details</h2>
+              </div>
+            </div>
+
+            {/* Status row */}
+            <div className="flex items-center justify-between bg-white/10 rounded-2xl px-5 py-3 border border-white/15">
+              <div className="flex items-center gap-2">
+                <div className={`w-2.5 h-2.5 rounded-full ${
+                  profile?.subscription_status === 'active' ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]' : 'bg-red-400'
+                } animate-pulse`} />
+                <span className="font-extrabold text-sm capitalize">
+                  {profile?.subscription_status === 'active' ? 'Active Plan' : profile?.subscription_status || 'No Plan'}
+                </span>
+              </div>
+              {getDaysLeft() !== null && (
+                <span className={`text-xs font-black px-3 py-1 rounded-full ${
+                  getDaysLeft() <= 3 ? 'bg-red-400/30 text-red-100' :
+                  getDaysLeft() <= 7 ? 'bg-amber-400/30 text-amber-100' :
+                  'bg-emerald-400/20 text-emerald-100'
+                }`}>
+                  {getDaysLeft()} days left
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Modal Body */}
+          <div className="p-6 space-y-5">
+
+            {/* Plan Info Grid */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                  <Calendar className="w-3 h-3" /> Subscribed Since
+                </p>
+                <p className="text-sm font-black text-slate-800">
+                  {profile?.created_at
+                    ? new Date(profile.created_at).toLocaleDateString('en-IN', { dateStyle: 'medium' })
+                    : '—'}
+                </p>
+              </div>
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                  <Shield className="w-3 h-3" /> Expires On
+                </p>
+                <p className="text-sm font-black text-slate-800">
+                  {profile?.subscription_expires_at
+                    ? new Date(profile.subscription_expires_at).toLocaleDateString('en-IN', { dateStyle: 'medium' })
+                    : '—'}
+                </p>
+              </div>
+              <div className="p-4 bg-violet-50 rounded-2xl border border-violet-100 col-span-2">
+                <p className="text-[10px] font-bold text-violet-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                  <Zap className="w-3 h-3" /> Days Remaining
+                </p>
+                <div className="flex items-end gap-2">
+                  <p className={`text-3xl font-black ${
+                    getDaysLeft() === null ? 'text-slate-400' :
+                    getDaysLeft() <= 3 ? 'text-red-600' :
+                    getDaysLeft() <= 7 ? 'text-amber-600' :
+                    'text-violet-700'
+                  }`}>
+                    {getDaysLeft() !== null ? getDaysLeft() : '—'}
+                  </p>
+                  <p className="text-sm font-bold text-slate-400 mb-1">days</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Renew Section */}
+            <div>
+              <p className="text-xs font-black text-slate-700 mb-3 uppercase tracking-wider">Extend Subscription</p>
+              
+              {/* Month selector */}
+              <div className="flex gap-2 mb-4 flex-wrap">
+                {[1, 2, 3].map(m => (
+                  <button
+                    key={m}
+                    onClick={() => { setSelectedMonths(m); setCustomMonths(''); }}
+                    className={`flex-1 py-3 rounded-2xl border-2 font-black text-sm transition-all ${
+                      selectedMonths === m && !customMonths
+                        ? 'border-violet-500 bg-violet-50 text-violet-700 shadow-md shadow-violet-500/15'
+                        : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-violet-300'
+                    }`}
+                  >
+                    {m} Month{m > 1 ? 's' : ''}
+                    <span className="block text-[10px] font-bold mt-0.5 opacity-70">₹{CONFIG.subscriptionFee * m}</span>
+                  </button>
+                ))}
+                <div className="flex-1 relative">
+                  <input
+                    type="number"
+                    min="1"
+                    max="24"
+                    placeholder="Custom"
+                    value={customMonths}
+                    onChange={e => { setCustomMonths(e.target.value); setSelectedMonths(0); }}
+                    className={`w-full py-3 px-3 rounded-2xl border-2 font-black text-sm text-center transition-all focus:outline-none ${
+                      customMonths
+                        ? 'border-violet-500 bg-violet-50 text-violet-700'
+                        : 'border-slate-200 bg-slate-50 text-slate-600'
+                    }`}
+                  />
+                  {customMonths && (
+                    <span className="absolute bottom-1 left-0 right-0 text-center text-[10px] font-bold text-slate-400">₹{CONFIG.subscriptionFee * parseInt(customMonths || 1)}</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Total + Pay CTA */}
+              {(() => {
+                const months = customMonths ? parseInt(customMonths) || 1 : selectedMonths;
+                const total = CONFIG.subscriptionFee * months;
+                const payUrl = `/pay?api_key=${CONFIG.platformApiKey}&amount=${total}&ref=${profile?.id}&note=Subscription_${months}Month`;
+                return (
+                  <div className="bg-gradient-to-r from-violet-50 to-purple-50 rounded-2xl p-4 border border-violet-100">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Payable</p>
+                        <p className="text-2xl font-black text-slate-900">₹{total.toLocaleString('en-IN')}</p>
+                        <p className="text-[10px] text-slate-400 font-medium">for {months} month{months > 1 ? 's' : ''} · +{months * 30} days added</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] font-bold text-violet-500 uppercase tracking-wider">Rate</p>
+                        <p className="text-sm font-black text-violet-700">₹{CONFIG.subscriptionFee}/mo</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => window.open(payUrl, '_blank')}
+                      className="w-full py-3.5 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-violet-500/30 hover:scale-[1.01] active:scale-[0.99]"
+                    >
+                      <CreditCard className="w-4 h-4" />
+                      Pay ₹{total.toLocaleString('en-IN')} via UPI
+                    </button>
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
       
       {/* Sidebar (Desktop) */}
@@ -735,6 +910,25 @@ echo "Order Created: " . $data['orderId'];
         </div>
         
         <nav className="flex-1 p-5 space-y-2 overflow-y-auto">
+          {/* Subscription tab — pinned at top */}
+          <button
+            onClick={() => setShowSubscriptionModal(true)}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all ${
+              profile?.subscription_status === 'active'
+                ? 'bg-gradient-to-r from-violet-50 to-purple-50 text-violet-700 border border-violet-100 shadow-sm'
+                : 'bg-red-50 text-red-600 border border-red-100'
+            }`}
+          >
+            <Star className="w-4 h-4" />
+            <span className="flex-1 text-left">Subscription</span>
+            {profile?.subscription_status === 'active' && profile?.subscription_expires_at && (() => {
+              const d = Math.ceil((new Date(profile.subscription_expires_at) - new Date()) / 86400000);
+              return <span className="text-[10px] font-extrabold bg-violet-100 text-violet-700 px-2 py-0.5 rounded-full">{d}d left</span>;
+            })()}
+          </button>
+
+          <div className="border-t border-slate-100 my-1" />
+
           <button 
             onClick={() => setActiveTab('overview')}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all ${activeTab === 'overview' ? 'bg-blue-50 text-blue-700 shadow-sm shadow-blue-500/10' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}
@@ -833,6 +1027,23 @@ echo "Order Created: " . $data['orderId'];
             {/* Navigation Options */}
             <div className="flex flex-col space-y-2">
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 mb-1">Menu Navigation</p>
+              {/* Subscription button — top of mobile nav */}
+              <button
+                onClick={() => { setShowSubscriptionModal(true); setIsMobileMenuOpen(false); }}
+                className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl text-xs font-bold transition-all border ${
+                  profile?.subscription_status === 'active'
+                    ? 'bg-violet-50/60 text-violet-700 border-violet-100'
+                    : 'bg-red-50 text-red-600 border-red-100'
+                }`}
+              >
+                <Star className="w-4 h-4" />
+                <span className="flex-1 text-left">Subscription</span>
+                {profile?.subscription_status === 'active' && profile?.subscription_expires_at && (() => {
+                  const d = Math.ceil((new Date(profile.subscription_expires_at) - new Date()) / 86400000);
+                  return <span className="text-[10px] font-extrabold bg-violet-100 text-violet-700 px-2 py-0.5 rounded-full">{d}d left</span>;
+                })()}
+              </button>
+              <div className="border-t border-slate-100 my-1" />
               {[
                 { id: 'overview', label: 'Overview', icon: LayoutDashboard },
                 { id: 'transactions', label: 'Transactions', icon: CreditCard },
@@ -1083,50 +1294,67 @@ echo "Order Created: " . $data['orderId'];
                 </div>
 
                 {/* Account / Subscription Status Card */}
-                <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
-                  <div>
-                    <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-2">
-                      <User className="w-3.5 h-3.5" /> Account Subscription
-                    </h3>
-                    <div className="flex items-center gap-3 mt-3">
-                      <div className={`w-3 h-3 rounded-full ${profile?.subscription_status === 'active' ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-red-500'}`} />
-                      <span className="font-extrabold text-lg text-slate-900 capitalize">
-                         {profile?.subscription_status === 'active' && profile?.subscription_expires_at ? (
-                           (() => {
-                             const daysLeft = Math.ceil((new Date(profile.subscription_expires_at) - new Date()) / (1000 * 60 * 60 * 24));
-                             return daysLeft <= 3 ? `Trial Active (${daysLeft} days left)` : `Active (${daysLeft} days left)`;
-                           })()
-                         ) : profile?.subscription_status || 'Inactive'}
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-500 mt-1 font-medium">Active accounts process API transactions and SMS triggers in real-time.</p>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row items-center gap-4">
-                    {profile?.subscription_status === 'active' && (
-                      <div className="px-5 py-3 rounded-xl bg-slate-50 border border-slate-100 text-right w-full sm:w-auto">
-                        <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Expiration Date</p>
-                        <p className="text-sm font-mono font-bold text-slate-800 mt-0.5">
-                          {profile?.subscription_expires_at ? new Date(profile.subscription_expires_at).toLocaleDateString('en-IN', { dateStyle: 'medium' }) : 'Next billing cycle'}
-                        </p>
+                {(() => {
+                  const daysLeft = profile?.subscription_expires_at
+                    ? Math.ceil((new Date(profile.subscription_expires_at) - new Date()) / 86400000)
+                    : null;
+                  const isActive = profile?.subscription_status === 'active';
+                  const isExpiringSoon = daysLeft !== null && daysLeft <= 5;
+                  return (
+                    <div className={`bg-white p-6 rounded-3xl border shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 ${
+                      isActive ? (isExpiringSoon ? 'border-amber-200' : 'border-slate-200') : 'border-red-200'
+                    }`}>
+                      <div>
+                        <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-2">
+                          <Star className="w-3.5 h-3.5" /> Account Subscription
+                        </h3>
+                        <div className="flex items-center gap-3 mt-3">
+                          <div className={`w-3 h-3 rounded-full ${
+                            isActive ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-red-500'
+                          }`} />
+                          <span className="font-extrabold text-lg text-slate-900 capitalize">
+                            {isActive ? 'Active' : profile?.subscription_status || 'Inactive'}
+                          </span>
+                          {isActive && daysLeft !== null && (
+                            <span className={`text-xs font-extrabold px-3 py-1 rounded-full ${
+                              daysLeft <= 3 ? 'bg-red-100 text-red-600' :
+                              daysLeft <= 7 ? 'bg-amber-100 text-amber-700' :
+                              'bg-emerald-100 text-emerald-700'
+                            }`}>
+                              {daysLeft} days left
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-slate-500 mt-1 font-medium">Active accounts process API transactions and SMS triggers in real-time.</p>
                       </div>
-                    )}
-                    <button
-                      onClick={() => {
-                        const url = `/pay?api_key=${CONFIG.platformApiKey}&amount=${CONFIG.subscriptionFee}&ref=${profile.id}&note=Subscription_Renewal`;
-                        window.open(url, '_blank');
-                      }}
-                      className={`px-6 py-3.5 w-full sm:w-auto rounded-xl transition-all text-sm font-bold flex items-center justify-center gap-2 shadow-md ${
-                        profile?.subscription_status === 'active' 
-                          ? 'bg-slate-800 hover:bg-slate-900 text-white shadow-slate-900/20' 
-                          : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/20'
-                      }`}
-                    >
-                      <CreditCard className="w-4 h-4" /> 
-                      {profile?.subscription_status === 'active' ? 'Manage Subscription' : `Renew for ₹${CONFIG.subscriptionFee}/mo`}
-                    </button>
-                  </div>
-                </div>
+
+                      <div className="flex flex-col sm:flex-row items-center gap-4">
+                        {isActive && daysLeft !== null && (
+                          <div className="px-5 py-3 rounded-xl bg-slate-50 border border-slate-100 text-right w-full sm:w-auto">
+                            <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Days Remaining</p>
+                            <p className={`text-2xl font-black mt-0.5 ${
+                              daysLeft <= 3 ? 'text-red-600' : daysLeft <= 7 ? 'text-amber-600' : 'text-emerald-600'
+                            }`}>{daysLeft}<span className="text-sm font-bold text-slate-400 ml-1">days</span></p>
+                            <p className="text-[10px] text-slate-400 font-medium mt-0.5">
+                              Expires {new Date(profile.subscription_expires_at).toLocaleDateString('en-IN', { dateStyle: 'medium' })}
+                            </p>
+                          </div>
+                        )}
+                        <button
+                          onClick={() => setShowSubscriptionModal(true)}
+                          className={`px-6 py-3.5 w-full sm:w-auto rounded-xl transition-all text-sm font-bold flex items-center justify-center gap-2 shadow-md ${
+                            isActive
+                              ? 'bg-violet-600 hover:bg-violet-700 text-white shadow-violet-500/25'
+                              : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/20'
+                          }`}
+                        >
+                          <Star className="w-4 h-4" />
+                          {isActive ? 'Manage Subscription' : `Activate for ₹${CONFIG.subscriptionFee}/mo`}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()}
 
               </div>
             )}
@@ -2914,5 +3142,6 @@ async function checkOrderStatus(orderId) {
         </div>
       </main>
     </div>
+    </>
   );
 }
