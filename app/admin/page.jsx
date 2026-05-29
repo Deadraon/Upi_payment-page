@@ -1845,7 +1845,7 @@ export default function AdminPage() {
                         <tr key={order.id} className="hover:bg-slate-50/50 transition-colors">
                           <td className="px-5 py-3 font-mono font-bold text-slate-900">{order.id}</td>
                           <td className="px-5 py-3 text-slate-500">
-                            {new Date(order.created_at).toLocaleDateString('en-IN', {
+                            {new Date(order.created_at).toLocaleString('en-IN', {
                               dateStyle: 'medium',
                               timeStyle: 'short'
                             })}
