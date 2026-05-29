@@ -115,6 +115,33 @@ export default function DashboardPage() {
   const [profileSuccessMsg, setProfileSuccessMsg] = useState(null);
   const [profileErrorMsg, setProfileErrorMsg] = useState(null);
 
+  const allShortcuts = [
+    { name: 'Go to Overview Dashboard', tab: 'overview', icon: LayoutDashboard },
+    { name: 'Go to Transactions Logs', tab: 'transactions', icon: CreditCard },
+    { name: 'Go to Connections & Cashiers', tab: 'connections', icon: LinkIcon },
+    { name: 'Go to Developer API Portal', tab: 'developer', icon: BookOpen },
+    { name: 'Go to Settings Panel', tab: 'settings', icon: Briefcase },
+    { name: 'Edit Profile & Business Info', action: 'profile', icon: User },
+    { name: 'Reset Account Security Password', action: 'security', icon: Key }
+  ];
+
+  const matchedShortcuts = useMemo(() => {
+    if (!paletteSearchQuery.trim()) return allShortcuts;
+    const query = paletteSearchQuery.toLowerCase();
+    return allShortcuts.filter(s => s.name.toLowerCase().includes(query));
+  }, [paletteSearchQuery]);
+
+  const matchedOrders = useMemo(() => {
+    if (!paletteSearchQuery.trim()) return [];
+    const query = paletteSearchQuery.toLowerCase();
+    return orders.filter(o => 
+      (o.id && o.id.toLowerCase().includes(query)) ||
+      (o.amount && String(o.amount).includes(query)) ||
+      (o.status && o.status.toLowerCase().includes(query)) ||
+      (o.external_ref && o.external_ref.toLowerCase().includes(query))
+    ).slice(0, 5);
+  }, [paletteSearchQuery, orders]);
+
   const openProfileModal = (tabName = 'profile') => {
     if (profile) {
       setEditOwnerName(profile.owner_name || '');
@@ -1238,32 +1265,7 @@ echo "Order Created: " . $data['orderId'];
     );
   };
 
-  const allShortcuts = [
-    { name: 'Go to Overview Dashboard', tab: 'overview', icon: LayoutDashboard },
-    { name: 'Go to Transactions Logs', tab: 'transactions', icon: CreditCard },
-    { name: 'Go to Connections & Cashiers', tab: 'connections', icon: LinkIcon },
-    { name: 'Go to Developer API Portal', tab: 'developer', icon: BookOpen },
-    { name: 'Go to Settings Panel', tab: 'settings', icon: Briefcase },
-    { name: 'Edit Profile & Business Info', action: 'profile', icon: User },
-    { name: 'Reset Account Security Password', action: 'security', icon: Key }
-  ];
 
-  const matchedShortcuts = useMemo(() => {
-    if (!paletteSearchQuery.trim()) return allShortcuts;
-    const query = paletteSearchQuery.toLowerCase();
-    return allShortcuts.filter(s => s.name.toLowerCase().includes(query));
-  }, [paletteSearchQuery]);
-
-  const matchedOrders = useMemo(() => {
-    if (!paletteSearchQuery.trim()) return [];
-    const query = paletteSearchQuery.toLowerCase();
-    return orders.filter(o => 
-      (o.id && o.id.toLowerCase().includes(query)) ||
-      (o.amount && String(o.amount).includes(query)) ||
-      (o.status && o.status.toLowerCase().includes(query)) ||
-      (o.external_ref && o.external_ref.toLowerCase().includes(query))
-    ).slice(0, 5);
-  }, [paletteSearchQuery, orders]);
 
   if (profile && profile.subscription_status !== 'active') {
     return renderPaywallBlocker();
