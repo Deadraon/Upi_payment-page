@@ -29,17 +29,17 @@
 
 /* ─── Light Mode Theme Tokens ────────────────────────────── */
 .light-theme {
-  --bg-base:        #DFE6ED; /* Premium blueish grey slate-200/250 */
+  --bg-base:        #F8FAFC; /* Clean, premium slate-50 background */
   --bg-card:        #FFFFFF; /* Pure white cards */
-  --bg-input:       #F8FAFC; /* Slate 50 for clean inputs */
-  --border-subtle:  #CBD5E1; /* Slate 300 - more defined borders */
-  --border-hover:   #94A3B8; /* Slate 400 */
-  --accent:         #1E40AF; /* Deep professional indigo-blue */
-  --accent-light:   #2563EB; /* Premium royal blue */
-  --accent-glow:    rgba(37, 99, 235, 0.06);
-  --text-primary:   #0F172A; /* Slate 900 for high-contrast text */
-  --text-secondary: #334155; /* Slate 700 for secondary text */
-  --text-muted:     #64748B; /* Slate 500 for muted text */
+  --bg-input:       #F1F5F9; /* Slate-100 for clear input fields inside white cards */
+  --border-subtle:  #E2E8F0; /* Slate-200 for clean, elegant borders */
+  --border-hover:   #CBD5E1; /* Slate-300 */
+  --accent:         #2563EB; /* Premium royal blue */
+  --accent-light:   #3B82F6; /* Electric blue */
+  --accent-glow:    rgba(37, 99, 235, 0.05);
+  --text-primary:   #0F172A; /* Slate-900 high contrast text */
+  --text-secondary: #334155; /* Slate-700 secondary text */
+  --text-muted:     #64748B; /* Slate-500 muted text */
 }
 
 /* ─── Base Reset ─────────────────────────────────────────── */
