@@ -2303,7 +2303,7 @@ echo "Order Created: " . $data['orderId'];
       <main className="flex-1 flex flex-col min-w-0 min-h-screen">
         
         {/* Mobile Header Bar */}
-        <header className="md:hidden h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-40 shadow-sm">
+        <header className="md:hidden h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-40 shadow-sm">
           <MyMobPayLogo className="w-32 h-auto" />
           <div className="flex items-center gap-2">
             <button
@@ -2341,7 +2341,7 @@ echo "Order Created: " . $data['orderId'];
 
         {/* Mobile Navigation Drawer (Razorpay Style) */}
         {isMobileMenuOpen && (
-          <div className="md:hidden fixed inset-x-0 bottom-0 top-[64px] z-30 bg-white/95 backdrop-blur-md flex flex-col pt-6 px-6 pb-6 animate-fadeIn">
+          <div className="md:hidden fixed inset-x-0 bottom-0 top-[64px] z-30 bg-white/70 backdrop-blur-lg flex flex-col pt-6 px-6 pb-6 animate-fadeIn overflow-y-auto">
             {/* Drawer Header Info */}
             <button
               onClick={() => {
@@ -2446,7 +2446,7 @@ echo "Order Created: " . $data['orderId'];
         )}
 
         {/* Desktop Sticky Header / Navbar */}
-        <header className="hidden md:flex h-20 bg-white border-b border-slate-200/85 items-center justify-between px-10 sticky top-0 z-30 select-none shadow-xs">
+        <header className="hidden md:flex h-20 bg-white/80 backdrop-blur-md border-b border-slate-200/85 items-center justify-between px-10 sticky top-0 z-30 select-none shadow-xs">
           {/* Left: Command Search Bar */}
           <button 
             onClick={() => setIsCommandPaletteOpen(true)}
