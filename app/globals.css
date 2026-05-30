@@ -432,33 +432,33 @@ input[type=number] {
 .phone-glow-backdrop {
   position: absolute;
   inset: -12px;
-  background: linear-gradient(135deg, rgba(51, 149, 255, 0.4), rgba(139, 92, 246, 0.3), rgba(56, 189, 248, 0.25));
+  background: linear-gradient(135deg, rgba(51, 149, 255, 0.2), rgba(139, 92, 246, 0.15), rgba(56, 189, 248, 0.12));
   filter: blur(40px);
   border-radius: 48px;
-  opacity: 0.35;
+  opacity: 0.15;
   transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   pointer-events: none;
   z-index: -10;
 }
 
 .phone-glow-container:hover .phone-glow-backdrop {
-  opacity: 0.65;
+  opacity: 0.28;
   filter: blur(55px);
   inset: -20px;
 }
 
 .premium-phone-shadow {
   box-shadow: 
-    0 0 50px -12px rgba(51, 149, 255, 0.3), 
+    0 0 50px -12px rgba(51, 149, 255, 0.12), 
     0 25px 60px -20px rgba(0, 0, 0, 0.85),
-    0 0 90px -20px rgba(139, 92, 246, 0.15) !important;
+    0 0 90px -20px rgba(139, 92, 246, 0.08) !important;
   transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .phone-glow-container:hover .premium-phone-shadow {
   box-shadow: 
-    0 0 70px -5px rgba(51, 149, 255, 0.45), 
+    0 0 70px -5px rgba(51, 149, 255, 0.2), 
     0 35px 80px -15px rgba(0, 0, 0, 0.9),
-    0 0 110px -10px rgba(139, 92, 246, 0.25) !important;
+    0 0 110px -10px rgba(139, 92, 246, 0.15) !important;
 }
 

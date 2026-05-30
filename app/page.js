@@ -449,7 +449,7 @@ print("Checkout Link generated:", data.get("orderId"))`
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#1D2D44_1px,transparent_1px),linear-gradient(to_bottom,#1D2D44_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-35 -z-20" />
 
         {/* Animated Wave Background at the Bottom of Hero */}
-        <div className="absolute bottom-0 left-0 right-0 w-full overflow-hidden leading-none pointer-events-none select-none -z-10" style={{ height: '140px' }}>
+        <div className="absolute bottom-0 left-0 right-0 w-full overflow-hidden leading-none pointer-events-none select-none z-0" style={{ height: '140px' }}>
           <div className="relative w-[200%] h-full flex">
             {/* Wave Layer 1 (Slowest - Blue) */}
             <svg viewBox="0 0 2400 120" preserveAspectRatio="none" className="absolute bottom-0 w-full h-[120px] opacity-15 animate-wave-slow-1 text-blue-500 fill-current">
@@ -468,7 +468,7 @@ print("Checkout Link generated:", data.get("orderId"))`
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+        <div className="relative z-10 max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           
           {/* Left Column Copywriting */}
           <div className="lg:col-span-7 space-y-8 text-center lg:text-left">
