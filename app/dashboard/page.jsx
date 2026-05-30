@@ -10,7 +10,7 @@ import {
   LayoutDashboard, Search, Download, RefreshCw, IndianRupee,
   Clock, CheckCircle2, XCircle, Code, ChevronRight, BookOpen,
   Menu, TrendingUp, AlertCircle, Star, Shield, Calendar, Zap, ChevronDown,
-  QrCode, Share2, Trash2, Plus, ExternalLink
+  QrCode, Share2, Trash2, Plus, ExternalLink, Sparkles
 } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { 
