@@ -2446,11 +2446,11 @@ echo "Order Created: " . $data['orderId'];
         )}
 
         {/* Desktop Sticky Header / Navbar */}
-        <header className="hidden md:flex h-20 bg-white/80 backdrop-blur-md border-b border-slate-200/85 items-center justify-between px-10 sticky top-0 z-30 select-none shadow-xs">
+        <header className="hidden md:flex h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 items-center justify-between px-10 sticky top-0 z-30 select-none shadow-xs">
           {/* Left: Command Search Bar */}
           <button 
             onClick={() => setIsCommandPaletteOpen(true)}
-            className="flex items-center gap-3 bg-slate-50 border border-slate-200/80 rounded-2xl px-4 py-2.5 w-80 text-slate-500 hover:border-slate-350 hover:bg-white transition-all shadow-xs text-left cursor-pointer group"
+            className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 w-80 text-slate-500 hover:border-slate-350 hover:bg-white transition-all shadow-xs text-left cursor-pointer group"
           >
             <Search className="w-4 h-4 text-slate-550 group-hover:text-blue-500 transition-colors shrink-0" />
             <span className="text-xs font-semibold text-slate-550 w-full">Search or type command...</span>
@@ -2488,7 +2488,7 @@ echo "Order Created: " . $data['orderId'];
             )}
 
             {/* Sandbox Toggle Switch */}
-            <div className="flex items-center gap-2.5 bg-slate-50 border border-slate-200/85 px-3.5 py-2 rounded-2xl shadow-xs select-none">
+            <div className="flex items-center gap-2.5 bg-slate-50 border border-slate-200 px-3.5 py-2 rounded-2xl shadow-xs select-none">
               <span className={`text-[9px] font-extrabold uppercase tracking-wider ${profile?.sandbox_mode !== false ? 'text-amber-600' : 'text-slate-400'}`}>
                 {profile?.sandbox_mode !== false ? 'Sandbox' : 'Live'}
               </span>
@@ -2504,7 +2504,7 @@ echo "Order Created: " . $data['orderId'];
             {/* Dark & Light Theme Mode Toggle Button */}
             <button 
               onClick={toggleTheme}
-              className="p-2.5 rounded-2xl border border-slate-200/80 bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-900 transition-all shadow-xs flex items-center justify-center cursor-pointer" 
+              className="p-2.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-900 transition-all shadow-xs flex items-center justify-center cursor-pointer" 
               title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
             >
               {theme === 'light' ? (
@@ -2527,7 +2527,7 @@ echo "Order Created: " . $data['orderId'];
             </button>
 
             {/* Bell Notification Icon */}
-            <button className="p-2.5 rounded-2xl border border-slate-200/80 bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-900 transition-all shadow-xs flex items-center justify-center relative cursor-pointer" title="Notifications">
+            <button className="p-2.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-900 transition-all shadow-xs flex items-center justify-center relative cursor-pointer" title="Notifications">
               <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-blue-500" />
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
@@ -2556,7 +2556,7 @@ echo "Order Created: " . $data['orderId'];
               </button>
 
               {isProfileDropdownOpen && (
-                <div className="absolute right-0 mt-2.5 w-60 bg-white border border-slate-200/80 rounded-3xl shadow-xl z-50 animate-fadeIn p-4 space-y-3.5">
+                <div className="absolute right-0 mt-2.5 w-60 bg-white border border-slate-200 rounded-3xl shadow-xl z-50 animate-fadeIn p-4 space-y-3.5">
                   <div className="pb-3 border-b border-slate-100">
                     <p className="text-sm font-black text-slate-900 truncate">
                       {profile?.owner_name || 'Owner Profile'}
