@@ -72,6 +72,7 @@ export default function DashboardPage() {
   const [payLinkHistory, setPayLinkHistory] = useState([]);
   const [payLinkSearch, setPayLinkSearch] = useState('');
   const [payLinkCopied, setPayLinkCopied] = useState(false);
+  const [showOptionalDetails, setShowOptionalDetails] = useState(false);
 
   // Error Banner
   const [dbError, setDbError] = useState(null);
@@ -1712,91 +1713,108 @@ echo "Order Created: " . $data['orderId'];
               </div>
 
               <form onSubmit={handleCreateLink} className="space-y-5">
-                {/* Section 1: Transaction details */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Amount (INR)</label>
-                    <div className="relative">
-                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">₹</span>
-                      <input 
-                        type="number"
-                        step="0.01"
-                        min="1"
-                        placeholder="Enter amount (Optional)"
-                        value={payLinkAmount}
-                        onChange={e => setPayLinkAmount(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-2.5 pl-8 pr-3.5 text-xs font-semibold text-slate-900 rounded-xl"
-                      />
-                    </div>
-                    <span className="text-[9px] text-slate-400 font-medium mt-1.5 block">Leave empty to allow the customer to enter amount.</span>
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Payment Note / Purpose</label>
+                {/* Main Big Box: Amount Input */}
+                <div className="bg-slate-50/60 border border-slate-200 rounded-2xl p-5 space-y-2.5 transition-all">
+                  <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Amount to Request (INR)</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-black text-2xl select-none">₹</span>
                     <input 
-                      type="text"
-                      required
-                      placeholder="Enter payment note or description"
-                      value={payLinkPurpose}
-                      onChange={e => setPayLinkPurpose(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-2.5 px-3.5 text-xs font-semibold text-slate-900 rounded-xl"
+                      type="number"
+                      step="0.01"
+                      min="1"
+                      placeholder="0.00"
+                      value={payLinkAmount}
+                      onChange={e => setPayLinkAmount(e.target.value)}
+                      className="w-full bg-white border border-slate-200 focus:border-blue-500 focus:outline-none transition-all py-3.5 pl-10 pr-4 text-3xl font-black text-slate-900 rounded-xl placeholder:text-slate-200 tabular-nums"
                     />
                   </div>
+                  <span className="text-[9px] text-slate-400 font-semibold block leading-tight">Leave empty to let the customer decide their own transfer amount.</span>
                 </div>
 
-                {/* Section 2: Customer Details */}
-                <div className="border-t border-slate-200 pt-4">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Customer Details (Optional)</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Customer Name</label>
-                      <input 
-                        type="text"
-                        placeholder="Enter customer name (Optional)"
-                        value={payLinkCustomerName}
-                        onChange={e => setPayLinkCustomerName(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-2.5 px-3.5 text-xs font-semibold text-slate-900 rounded-xl"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Customer Phone</label>
-                      <input 
-                        type="text"
-                        placeholder="Enter customer phone (Optional)"
-                        value={payLinkCustomerPhone}
-                        onChange={e => setPayLinkCustomerPhone(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-2.5 px-3.5 text-xs font-semibold text-slate-900 rounded-xl"
-                      />
-                    </div>
-                  </div>
+                {/* Optional parameters toggle */}
+                <div className="flex justify-start">
+                  <button
+                    type="button"
+                    onClick={() => setShowOptionalDetails(!showOptionalDetails)}
+                    className="flex items-center gap-1.5 text-[10px] font-black text-slate-500 hover:text-slate-900 transition-colors uppercase tracking-wider select-none cursor-pointer"
+                  >
+                    <span>{showOptionalDetails ? 'Hide Optional Details' : 'Add Note, Customer Info & Advanced Parameters (Optional)'}</span>
+                    <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${showOptionalDetails ? 'rotate-180' : ''}`} />
+                  </button>
                 </div>
 
-                {/* Section 3: Advanced details */}
-                <div className="border-t border-slate-200 pt-4">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Advanced Parameters (Optional)</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Collapsible details drawer */}
+                {showOptionalDetails && (
+                  <div className="space-y-5 pt-2 animate-fade-up animate-duration-200">
+                    
+                    {/* Note / Purpose */}
                     <div>
-                      <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Custom Reference / Order ID</label>
+                      <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Payment Note / Purpose</label>
                       <input 
                         type="text"
-                        placeholder="Enter reference ID (Optional)"
-                        value={payLinkRef}
-                        onChange={e => setPayLinkRef(e.target.value)}
+                        placeholder="e.g. Services, Donation, Invoice payment"
+                        value={payLinkPurpose}
+                        onChange={e => setPayLinkPurpose(e.target.value)}
                         className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-2.5 px-3.5 text-xs font-semibold text-slate-900 rounded-xl"
                       />
                     </div>
-                    <div>
-                      <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Project / Brand Name Override</label>
-                      <input 
-                        type="text"
-                        placeholder="Enter brand override (Optional)"
-                        value={payLinkProject}
-                        onChange={e => setPayLinkProject(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-2.5 px-3.5 text-xs font-semibold text-slate-900 rounded-xl"
-                      />
+
+                    {/* Customer Details */}
+                    <div className="border-t border-slate-100 pt-4">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Customer Information</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Customer Name</label>
+                          <input 
+                            type="text"
+                            placeholder="Enter name"
+                            value={payLinkCustomerName}
+                            onChange={e => setPayLinkCustomerName(e.target.value)}
+                            className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-2.5 px-3.5 text-xs font-semibold text-slate-900 rounded-xl"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Customer Phone</label>
+                          <input 
+                            type="text"
+                            placeholder="Enter mobile number"
+                            value={payLinkCustomerPhone}
+                            onChange={e => setPayLinkCustomerPhone(e.target.value)}
+                            className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-2.5 px-3.5 text-xs font-semibold text-slate-900 rounded-xl"
+                          />
+                        </div>
+                      </div>
                     </div>
+
+                    {/* Advanced Parameters */}
+                    <div className="border-t border-slate-100 pt-4">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Advanced Parameters</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Custom Reference / Order ID</label>
+                          <input 
+                            type="text"
+                            placeholder="Enter reference ID"
+                            value={payLinkRef}
+                            onChange={e => setPayLinkRef(e.target.value)}
+                            className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-2.5 px-3.5 text-xs font-semibold text-slate-900 rounded-xl"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Project / Brand Name Override</label>
+                          <input 
+                            type="text"
+                            placeholder="Enter brand override name"
+                            value={payLinkProject}
+                            onChange={e => setPayLinkProject(e.target.value)}
+                            className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-2.5 px-3.5 text-xs font-semibold text-slate-900 rounded-xl"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
                   </div>
-                </div>
+                )}
 
                 <button
                   type="submit"
