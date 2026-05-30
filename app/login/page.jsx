@@ -49,7 +49,7 @@ export default function LoginPage() {
             .from('merchants')
             .insert({
               id: data.user.id,
-              business_name: 'My Business',
+              business_name: 'Business',
               upi_id: 'pending@upi',
             });
           
@@ -266,7 +266,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full bg-white border border-slate-200 rounded-xl py-2.5 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all"
-                  placeholder="merchant@example.com"
+                  placeholder="email@example.com"
                 />
               </div>
             </div>

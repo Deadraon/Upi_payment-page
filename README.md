@@ -145,7 +145,7 @@ To auto-verify payments without user intervention, we leverage an Android SMS Fo
    npm run dev
    ```
 2. Open `http://localhost:3000/pay` in your browser.
-3. Fill in the payment form (e.g. amount `₹500.00`, Customer: `John Doe`) and click **Generate QR**.
+3. Fill in the payment form (e.g. amount `₹500.00`, Customer: `CUSTOMER_NAME`) and click **Generate QR**.
 4. Click **I have paid successfully**. The screen will transition to the **Pending verification** polling spinner.
 5. Simulate an incoming bank SMS by firing a mock API request to your webhook (simulate the Android forwarder app):
    ```bash
@@ -164,7 +164,7 @@ To auto-verify payments without user intervention, we leverage an Android SMS Fo
 
 This gateway is modular. To redirect users here from your primary landing page/website:
 1. Simply direct users to your payment gateway URL with optional query parameters:
-   `https://your-gateway.com/pay?amount=500&name=John&phone=9876543210`
+   `https://your-gateway.com/pay?amount=500&name=CUSTOMER_NAME&phone=CUSTOMER_PHONE`
 2. We can configure `/pay` to auto-read query parameters to pre-populate checkout details immediately.
 
 ---

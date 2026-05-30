@@ -1053,8 +1053,8 @@ const createOrder = async () => {
     body: JSON.stringify({
       api_key: "${profile?.api_key || 'YOUR_API_KEY'}",
       amount: ${parseFloat(linkAmount) || 500.00},
-      customer_name: "John Doe",
-      customer_phone: "9876543210",
+      customer_name: "CUSTOMER_NAME",
+      customer_phone: "CUSTOMER_PHONE",
       note: "${linkNote}",
       callback_url: "https://your-website.com/api/callback"
     })
@@ -1069,8 +1069,8 @@ import requests
 payload = {
     "api_key": "${profile?.api_key || 'YOUR_API_KEY'}",
     "amount": ${parseFloat(linkAmount) || 500.00},
-    "customer_name": "John Doe",
-    "customer_phone": "9876543210",
+    "customer_name": "CUSTOMER_NAME",
+    "customer_phone": "CUSTOMER_PHONE",
     "note": "${linkNote}",
     "callback_url": "https://your-website.com/api/callback"
 }
@@ -1083,8 +1083,8 @@ print("Order ID:", data.get("orderId"))`,
 $payload = [
     "api_key" => "${profile?.api_key || 'YOUR_API_KEY'}",
     "amount" => ${parseFloat(linkAmount) || 500.00},
-    "customer_name" => "John Doe",
-    "customer_phone" => "9876543210",
+    "customer_name" => "CUSTOMER_NAME",
+    "customer_phone" => "CUSTOMER_PHONE",
     "note" => "${linkNote}",
     "callback_url" => "https://your-website.com/api/callback"
 ];
@@ -1539,7 +1539,7 @@ echo "Order Created: " . $data['orderId'];
       const newLink = {
         id: Math.random().toString(36).substr(2, 9),
         amount: payLinkAmount ? parseFloat(payLinkAmount).toFixed(2) : 'Flexible',
-        purpose: payLinkPurpose || 'General Payment',
+        purpose: payLinkPurpose || 'Payment',
         url: url,
         createdAt: new Date().toISOString()
       };
@@ -1577,7 +1577,7 @@ echo "Order Created: " . $data['orderId'];
       link.url.toLowerCase().includes(payLinkSearch.toLowerCase())
     );
 
-    const activeBusinessName = payLinkProject || profile?.business_name || 'My Business';
+    const activeBusinessName = payLinkProject || profile?.business_name || 'Business';
 
     return (
       <div className="flex flex-col gap-6 max-w-5xl mx-auto w-full animate-fade-up">
@@ -1607,7 +1607,7 @@ echo "Order Created: " . $data['orderId'];
                         type="number"
                         step="0.01"
                         min="1"
-                        placeholder="e.g. 500.00 (Optional)"
+                        placeholder="Enter amount (Optional)"
                         value={payLinkAmount}
                         onChange={e => setPayLinkAmount(e.target.value)}
                         className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-2.5 pl-8 pr-3.5 text-xs font-semibold text-slate-900 rounded-xl"
@@ -1621,7 +1621,7 @@ echo "Order Created: " . $data['orderId'];
                     <input 
                       type="text"
                       required
-                      placeholder="e.g. Invoice #102, Services render"
+                      placeholder="Enter payment note or description"
                       value={payLinkPurpose}
                       onChange={e => setPayLinkPurpose(e.target.value)}
                       className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-2.5 px-3.5 text-xs font-semibold text-slate-900 rounded-xl"
@@ -1637,7 +1637,7 @@ echo "Order Created: " . $data['orderId'];
                       <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Customer Name</label>
                       <input 
                         type="text"
-                        placeholder="e.g. John Doe"
+                        placeholder="Enter customer name (Optional)"
                         value={payLinkCustomerName}
                         onChange={e => setPayLinkCustomerName(e.target.value)}
                         className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-2.5 px-3.5 text-xs font-semibold text-slate-900 rounded-xl"
@@ -1647,7 +1647,7 @@ echo "Order Created: " . $data['orderId'];
                       <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Customer Phone</label>
                       <input 
                         type="text"
-                        placeholder="e.g. 9876543210"
+                        placeholder="Enter customer phone (Optional)"
                         value={payLinkCustomerPhone}
                         onChange={e => setPayLinkCustomerPhone(e.target.value)}
                         className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-2.5 px-3.5 text-xs font-semibold text-slate-900 rounded-xl"
@@ -1664,7 +1664,7 @@ echo "Order Created: " . $data['orderId'];
                       <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Custom Reference / Order ID</label>
                       <input 
                         type="text"
-                        placeholder="e.g. INV-2026-987"
+                        placeholder="Enter reference ID (Optional)"
                         value={payLinkRef}
                         onChange={e => setPayLinkRef(e.target.value)}
                         className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-2.5 px-3.5 text-xs font-semibold text-slate-900 rounded-xl"
@@ -1674,7 +1674,7 @@ echo "Order Created: " . $data['orderId'];
                       <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Project / Brand Name Override</label>
                       <input 
                         type="text"
-                        placeholder={`e.g. ${profile?.business_name || 'My Shop'}`}
+                        placeholder="Enter brand override (Optional)"
                         value={payLinkProject}
                         onChange={e => setPayLinkProject(e.target.value)}
                         className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-2.5 px-3.5 text-xs font-semibold text-slate-900 rounded-xl"
@@ -1737,7 +1737,7 @@ echo "Order Created: " . $data['orderId'];
                           <span className="text-[#3395FF] font-extrabold bg-[#0B2447] px-1 py-0.2 rounded text-[4.5px]">VERIFIED</span>
                         </div>
                         <p className="text-[8.5px] font-black text-white truncate">{activeBusinessName}</p>
-                        <p className="text-[6px] text-slate-455 font-semibold truncate -mt-0.5">UPI: {profile?.upi_id || 'merchant@upi'}</p>
+                        <p className="text-[6px] text-slate-455 font-semibold truncate -mt-0.5">UPI: {profile?.upi_id || ''}</p>
                       </div>
 
                       {/* Amount and Note */}
@@ -1757,7 +1757,7 @@ echo "Order Created: " . $data['orderId'];
                         </div>
                         
                         <div className="flex justify-between items-center text-[5.5px] text-slate-455 pt-1.5 border-t border-[#1D2D44] font-medium">
-                          <span className="truncate">Note: <span className="font-extrabold text-slate-200">{payLinkPurpose || 'General Payment'}</span></span>
+                          <span className="truncate">Note: <span className="font-extrabold text-slate-200">{payLinkPurpose || ''}</span></span>
                         </div>
                       </div>
 
@@ -3362,9 +3362,9 @@ echo "Order Created: " . $data['orderId'];
   -d '{
     "api_key": "${profile?.api_key ? (profile.sandbox_mode !== false ? 'test_' : 'live_') + profile.api_key : 'YOUR_API_KEY'}",
     "amount": ${parseFloat(linkAmount) || 500.00},
-    "customer_name": "John Doe",
-    "customer_phone": "9876543210",
-    "note": "${linkNote || 'Order_123'}",
+    "customer_name": "CUSTOMER_NAME",
+    "customer_phone": "CUSTOMER_PHONE",
+    "note": "${linkNote || 'PAYMENT_NOTE'}",
     "callback_url": "${profile?.webhook_url || 'https://your-server.com/api/callback'}"
   }'`
                                           : apiLang === 'js' 
@@ -3386,9 +3386,9 @@ echo "Order Created: " . $data['orderId'];
   -d '{
     "api_key": "${profile?.api_key ? (profile.sandbox_mode !== false ? 'test_' : 'live_') + profile.api_key : 'YOUR_API_KEY'}",
     "amount": ${parseFloat(linkAmount) || 500.00},
-    "customer_name": "John Doe",
-    "customer_phone": "9876543210",
-    "note": "${linkNote || 'Order_123'}",
+    "customer_name": "CUSTOMER_NAME",
+    "customer_phone": "CUSTOMER_PHONE",
+    "note": "${linkNote || 'PAYMENT_NOTE'}",
     "callback_url": "${profile?.webhook_url || 'https://your-server.com/api/callback'}"
   }'`}
                                       </code>
@@ -4857,7 +4857,7 @@ async function checkOrderStatus(orderId) {
                       value={profile?.upi_id || ''} 
                       onChange={(e) => setProfile({...profile, upi_id: e.target.value})}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 focus:border-blue-500 focus:outline-none font-mono text-sm font-semibold text-slate-900"
-                      placeholder="merchant@upi"
+                      placeholder="Enter UPI ID"
                     />
                     <p className="text-xs text-slate-400 mt-1.5 font-medium">UPI deposits will be directly routed to this bank VPA account instantly.</p>
                   </div>

@@ -33,7 +33,7 @@ export default function HomePage() {
 
   // Interactive Live Invoice demo states
   const [demoAmount, setDemoAmount] = useState('500');
-  const [demoNote, setDemoNote] = useState('Mock_Order');
+  const [demoNote, setDemoNote] = useState('Payment_Note');
 
   // Dynamic Typewriter visual states
   const words = useMemo(() => ['founders', 'indie hackers', 'SaaS startups', 'creators', 'developers'], []);
@@ -100,9 +100,9 @@ export default function HomePage() {
   -d '{
     "api_key": "test_your_private_api_key",
     "amount": ${parseFloat(demoAmount) || 500.00},
-    "customer_name": "Vinay Dube",
-    "customer_phone": "9876543210",
-    "note": "${demoNote}",
+    "customer_name": "CUSTOMER_NAME",
+    "customer_phone": "CUSTOMER_PHONE",
+    "note": "${demoNote || 'PAYMENT_NOTE'}",
     "callback_url": "https://your-website.com/api/callback"
   }'`,
     javascript: `// Create payment order programmatically
@@ -112,8 +112,8 @@ const response = await fetch('https://mymobpay.com/api/orders', {
   body: JSON.stringify({
     api_key: "test_your_private_api_key",
     amount: ${parseFloat(demoAmount) || 500.00},
-    customer_name: "Vinay Dube",
-    customer_phone: "9876543210",
+    customer_name: "CUSTOMER_NAME",
+    customer_phone: "CUSTOMER_PHONE",
     note: "${demoNote}",
     callback_url: "https://your-website.com/api/callback"
   })
@@ -126,9 +126,9 @@ console.log("Checkout URL:", \`https://mymobpay.com/pay?api_key=test_your_privat
 payload = {
     "api_key": "test_your_private_api_key",
     "amount": ${parseFloat(demoAmount) || 500.00},
-    "customer_name": "Vinay Dube",
-    "customer_phone": "9876543210",
-    "note": "${demoNote}",
+    "customer_name": "CUSTOMER_NAME",
+    "customer_phone": "CUSTOMER_PHONE",
+    "note": "${demoNote || 'PAYMENT_NOTE'}",
     "callback_url": "https://your-website.com/api/callback"
 }
 
