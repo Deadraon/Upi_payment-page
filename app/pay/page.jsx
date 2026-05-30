@@ -327,7 +327,7 @@ function PayPageContent() {
       <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
         <div className="bg-white p-8 rounded-2xl max-w-md w-full border border-red-500/20 text-center">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-white mb-2">Checkout Unavailable</h2>
+          <h2 className="text-xl font-bold text-slate-900 mb-2">Checkout Unavailable</h2>
           <p className="text-slate-500 text-sm">{initError}</p>
         </div>
       </div>
@@ -605,10 +605,10 @@ function PayPageContent() {
                             >
                               <div className="flex-shrink-0">{app.logo}</div>
                               <div>
-                                <p className={`text-[12px] font-bold leading-tight transition-colors ${isSelected ? 'text-slate-900' : 'text-slate-500'}`}>
+                                <p className={`text-[12px] font-bold leading-tight transition-colors ${isSelected ? 'text-white-pure' : 'text-slate-500'}`}>
                                   {app.label}
                                 </p>
-                                <p className="text-[9px] text-slate-500 mt-0.5">
+                                <p className={`text-[9px] mt-0.5 ${isSelected ? 'text-slate-950/65' : 'text-slate-400'}`}>
                                   {isSelected ? '✓ Selected' : 'Tap to select'}
                                 </p>
                               </div>

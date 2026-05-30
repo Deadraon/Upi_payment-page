@@ -1232,7 +1232,7 @@ echo "Order Created: " . $data['orderId'];
                 
                 <button
                   onClick={() => window.open(payUrl, '_blank')}
-                  className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-md shadow-blue-500/20"
+                  className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white-pure rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-md shadow-blue-500/20"
                 >
                   <CreditCard className="w-3.5 h-3.5" />
                   Pay ₹{total.toLocaleString('en-IN')} via UPI
@@ -1364,7 +1364,7 @@ echo "Order Created: " . $data['orderId'];
         </div>
 
         {/* ── HIGH CONTRAST HERO STATUS CARD ── */}
-        <div className="relative rounded-3xl bg-[#090D1A] text-white border border-[#1E293B] overflow-hidden p-8 shadow-xl">
+        <div className="relative rounded-3xl bg-[#090D1A] text-slate-950 border border-[#1E293B] overflow-hidden p-8 shadow-xl">
           {/* decorative blobs */}
           <div className="absolute top-0 right-0 w-72 h-72 bg-blue-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-indigo-500/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
@@ -1380,7 +1380,7 @@ echo "Order Created: " . $data['orderId'];
                   {isActive ? 'API LICENSE ACTIVE' : 'LICENSE EXPIRED'}
                 </span>
                 
-                <span className="text-slate-500 text-[10px] font-bold uppercase tracking-wider font-mono bg-white/5 px-2.5 py-0.5 rounded-md">
+                <span className="text-slate-950/60 text-[10px] font-bold uppercase tracking-wider font-mono bg-white/5 px-2.5 py-0.5 rounded-md">
                   UID: {profile?.id ? profile.id.substring(0, 8) + '...' : 'N/A'}
                 </span>
               </div>
@@ -1396,7 +1396,7 @@ echo "Order Created: " . $data['orderId'];
                   )}
                 </h4>
                 
-                <p className="text-slate-400 text-xs mt-2 font-medium leading-relaxed max-w-md">
+                <p className="text-slate-955/70 text-xs mt-2 font-medium leading-relaxed max-w-md">
                   {isActive 
                     ? `Your payment gateway operates fully. Next billing on ${expiresAt ? expiresAt.toLocaleDateString('en-IN', { dateStyle: 'long' }) : 'Not configured'}.`
                     : 'Your API routing is locked. Renew your monthly license to restore webhook relays and bank deposits matches.'
@@ -1409,7 +1409,7 @@ echo "Order Created: " . $data['orderId'];
             <div className="md:col-span-4 flex flex-col gap-2.5 w-full shrink-0">
               <button
                 onClick={() => setShowManageSection(!showManageSection)}
-                className="w-full py-3 bg-white hover:bg-slate-100 text-slate-950 rounded-xl transition-all text-xs font-black flex items-center justify-center gap-1.5 shadow-md active:scale-98 cursor-pointer"
+                className="w-full py-3 bg-white hover:bg-slate-100 text-slate-900 rounded-xl transition-all text-xs font-black flex items-center justify-center gap-1.5 shadow-md active:scale-98 cursor-pointer"
               >
                 {showManageSection ? 'Close Renewal Drawer' : 'Extend API License'}
                 <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${showManageSection ? 'rotate-180' : ''}`} />
@@ -1418,7 +1418,7 @@ echo "Order Created: " . $data['orderId'];
               <button
                 onClick={handleRefreshStatus}
                 disabled={statusChecking}
-                className="w-full py-2.5 bg-[#121829] hover:bg-[#1A233A] border border-[#1E293B] text-slate-355 hover:text-white rounded-xl transition-all text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                className="w-full py-2.5 bg-[#121829] hover:bg-[#1A233A] border border-[#1E293B] text-slate-950/80 hover:text-white-pure rounded-xl transition-all text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
               >
                 {statusChecking ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
                 Sync Database Status
@@ -1461,7 +1461,7 @@ echo "Order Created: " . $data['orderId'];
                     className={`p-4 rounded-2xl border-2 text-left transition-all flex flex-col justify-between h-[115px] cursor-pointer relative ${
                       isSelected
                         ? 'border-blue-600 bg-blue-50/20 text-slate-900 shadow-sm'
-                        : 'border-slate-200 bg-slate-50/50 hover:bg-white hover:border-slate-300 text-slate-750'
+                        : 'border-slate-200 bg-slate-50/50 hover:bg-white hover:border-slate-300 text-slate-700'
                     }`}
                   >
                     {pkg.badge && (
@@ -1475,7 +1475,7 @@ echo "Order Created: " . $data['orderId'];
                     </div>
                     <div className="flex items-baseline gap-0.5">
                       <span className="text-xs font-bold text-slate-400">₹</span>
-                      <span className="text-lg font-black text-slate-950">{(CONFIG.subscriptionFee * pkg.months).toLocaleString('en-IN')}</span>
+                      <span className="text-lg font-black text-slate-900">{(CONFIG.subscriptionFee * pkg.months).toLocaleString('en-IN')}</span>
                     </div>
                   </button>
                 );
@@ -1524,7 +1524,7 @@ echo "Order Created: " . $data['orderId'];
               <div className="flex sm:flex-row items-center gap-5 shrink-0 self-end sm:self-auto">
                 <div className="text-right sm:text-right flex flex-col sm:items-end">
                   <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">NET AMOUNT DUE</span>
-                  <span className="text-xl font-black text-slate-955 tracking-tight font-mono leading-none mt-1">
+                  <span className="text-xl font-black text-slate-900 tracking-tight font-mono leading-none mt-1">
                     ₹{total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                   </span>
                 </div>
@@ -1569,7 +1569,7 @@ echo "Order Created: " . $data['orderId'];
             </div>
           ) : historyOrders.length === 0 ? (
             <div className="py-10 flex flex-col items-center gap-2 bg-slate-50 rounded-2xl">
-              <Calendar className="w-8 h-8 text-slate-300" />
+              <Calendar className="w-8 h-8 text-slate-400" />
               <p className="text-xs text-slate-400 font-semibold">No payment history yet</p>
             </div>
           ) : (
@@ -1800,7 +1800,7 @@ echo "Order Created: " . $data['orderId'];
 
                 <button
                   type="submit"
-                  className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all shadow-md shadow-blue-500/25 mt-3 cursor-pointer"
+                  className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white-pure rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all shadow-md shadow-blue-500/25 mt-3 cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
                   Generate Payment Link
@@ -1830,7 +1830,7 @@ echo "Order Created: " . $data['orderId'];
                   </div>
 
                   {/* Screen Content */}
-                  <div className="flex-1 bg-[#0B192C] pt-4 px-3 pb-3 flex flex-col justify-between font-sans text-white text-[9px]">
+                  <div className="flex-1 bg-[#0B192C] pt-4 px-3 pb-3 flex flex-col justify-between font-sans text-white-pure text-[9px]">
                     <div className="space-y-2">
                       {/* Top Bar */}
                       <div className="flex justify-between items-center text-[5.5px] font-extrabold text-slate-400 px-0.5">
@@ -1847,23 +1847,23 @@ echo "Order Created: " . $data['orderId'];
 
                       {/* Paying To */}
                       <div className="bg-[#0F1E36] border border-[#1D2D44] rounded-xl p-2.5 shadow-sm space-y-1">
-                        <div className="flex justify-between items-center text-[5px] text-slate-455 font-bold uppercase">
+                        <div className="flex justify-between items-center text-[5px] text-slate-400 font-bold uppercase">
                           <span>Paying To</span>
                           <span className="text-[#3395FF] font-extrabold bg-[#0B2447] px-1 py-0.2 rounded text-[4.5px]">VERIFIED</span>
                         </div>
-                        <p className="text-[8.5px] font-black text-white truncate">{activeBusinessName}</p>
-                        <p className="text-[6px] text-slate-455 font-semibold truncate -mt-0.5">UPI: {profile?.upi_id || ''}</p>
+                        <p className="text-[8.5px] font-black text-white-pure truncate">{activeBusinessName}</p>
+                        <p className="text-[6px] text-slate-400 font-semibold truncate -mt-0.5">UPI: {profile?.upi_id || ''}</p>
                       </div>
 
                       {/* Amount and Note */}
                       <div className="bg-[#0F1E36] border border-[#1D2D44] rounded-xl p-2.5 shadow-sm space-y-1.5">
-                        <div className="flex justify-between items-center text-[5px] text-slate-455 font-bold uppercase">
+                        <div className="flex justify-between items-center text-[5px] text-slate-400 font-bold uppercase">
                           <span>Total Due</span>
                         </div>
                         <div className="flex items-baseline gap-0.5">
-                          <span className="text-[8px] font-bold text-slate-455">₹</span>
+                          <span className="text-[8px] font-bold text-slate-400">₹</span>
                           {payLinkAmount ? (
-                            <span className="text-sm font-black text-white tracking-tight leading-none">
+                            <span className="text-sm font-black text-white-pure tracking-tight leading-none">
                               {parseFloat(payLinkAmount) ? parseFloat(payLinkAmount).toFixed(2) : '0.00'}
                             </span>
                           ) : (
@@ -1871,14 +1871,14 @@ echo "Order Created: " . $data['orderId'];
                           )}
                         </div>
                         
-                        <div className="flex justify-between items-center text-[5.5px] text-slate-455 pt-1.5 border-t border-[#1D2D44] font-medium">
-                          <span className="truncate">Note: <span className="font-extrabold text-slate-200">{payLinkPurpose || ''}</span></span>
+                        <div className="flex justify-between items-center text-[5.5px] text-slate-400 pt-1.5 border-t border-[#1D2D44] font-medium">
+                          <span className="truncate">Note: <span className="font-extrabold text-white-pure/80">{payLinkPurpose || ''}</span></span>
                         </div>
                       </div>
 
                       {/* UPI Selection Mockup */}
                       <div className="bg-[#0F1E36] border border-[#1D2D44] rounded-xl p-2 shadow-sm space-y-1">
-                        <span className="text-[5px] text-slate-455 font-extrabold uppercase tracking-wider block">Scan QR or Tap UPI App</span>
+                        <span className="text-[5px] text-slate-400 font-extrabold uppercase tracking-wider block">Scan QR or Tap UPI App</span>
                         <div className="grid grid-cols-2 gap-1 pt-0.5">
                           {['GPay', 'PhonePe', 'Paytm', 'BHIM'].map(app => (
                             <div key={app} className="p-1 bg-[#0B192C] border border-[#1D2D44] rounded flex items-center gap-1">
@@ -1915,7 +1915,7 @@ echo "Order Created: " . $data['orderId'];
                 {/* QR Code Container */}
                 <div className="bg-slate-50 border border-slate-200 rounded-3xl p-5 shadow-inner flex flex-col items-center justify-center my-4 transition-transform hover:scale-[1.01]">
                   <QRCode value={payLinkGeneratedUrl} size={150} level="H" fgColor="#0f172a" bgColor="#FFFFFF" />
-                  <span className="text-[9px] text-slate-455 font-extrabold uppercase tracking-wider mt-3">Scan to Pay via UPI</span>
+                  <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider mt-3">Scan to Pay via UPI</span>
                 </div>
 
                 {/* Sharing Options */}
@@ -1949,7 +1949,7 @@ echo "Order Created: " . $data['orderId'];
                       href={payLinkGeneratedUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-250 text-slate-750 rounded-xl transition-all text-xs font-bold flex items-center justify-center gap-1.5 block cursor-pointer shadow-sm"
+                      className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-250 text-slate-700 rounded-xl transition-all text-xs font-bold flex items-center justify-center gap-1.5 block cursor-pointer shadow-sm"
                     >
                       <ExternalLink className="w-4 h-4" />
                       Open checkout
@@ -2574,7 +2574,7 @@ echo "Order Created: " . $data['orderId'];
                 <button 
                   onClick={downloadCSV}
                   disabled={filteredOrders.length === 0}
-                  className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm flex items-center gap-2 transition-all shadow-md shadow-blue-500/20 disabled:opacity-50"
+                  className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white-pure rounded-xl font-bold text-sm flex items-center gap-2 transition-all shadow-md shadow-blue-500/20 disabled:opacity-50"
                 >
                   <Download className="w-4 h-4" /> Export CSV Report
                 </button>
@@ -2602,7 +2602,7 @@ echo "Order Created: " . $data['orderId'];
                     target="_blank" 
                     rel="noreferrer"
                     onClick={handleDismissVerification}
-                    className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl whitespace-nowrap transition-all shadow-sm shadow-blue-500/20"
+                    className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white-pure font-bold text-sm rounded-xl whitespace-nowrap transition-all shadow-sm shadow-blue-500/20"
                   >
                     Click Here to Verify
                   </a>
@@ -2879,7 +2879,7 @@ echo "Order Created: " . $data['orderId'];
                               </td>
 
                               {/* Amount */}
-                              <td className="px-6 py-4 whitespace-nowrap text-xs font-black text-slate-950 flex items-center gap-0.5">
+                              <td className="px-6 py-4 whitespace-nowrap text-xs font-black text-slate-900 flex items-center gap-0.5">
                                 <span className="text-slate-400 font-bold">₹</span>
                                 {parseFloat(order.amount).toFixed(2)}
                               </td>
@@ -2962,7 +2962,7 @@ echo "Order Created: " . $data['orderId'];
                       <span className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-ping" />
                       Integration Setup Wizard
                     </h3>
-                    <p className="text-xs text-slate-505 font-semibold leading-relaxed">
+                    <p className="text-xs text-slate-500 font-semibold leading-relaxed">
                       Select where you want to collect payments. We will adapt your step-by-step setup guides, credentials, and codebases in real time.
                     </p>
                   </div>
@@ -3142,7 +3142,7 @@ echo "Order Created: " . $data['orderId'];
 
                     <button
                       onClick={() => setWizardStep(1)}
-                      className="px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-sm transition-all duration-300 shadow-lg shadow-blue-500/25 flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
+                      className="px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white-pure rounded-2xl font-black text-sm transition-all duration-300 shadow-lg shadow-blue-500/25 flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
                     >
                       <span>Start Guided Configuration</span>
                       <ChevronRight className="w-4.5 h-4.5" />
@@ -3216,7 +3216,7 @@ echo "Order Created: " . $data['orderId'];
                             </div>
                           </div>
                           <div>
-                            <label className="block text-[10px] font-bold text-slate-505 uppercase tracking-wider mb-1">Payload Note / ID</label>
+                            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Payload Note / ID</label>
                             <input 
                               type="text"
                               value={linkNote}
@@ -3237,7 +3237,7 @@ echo "Order Created: " . $data['orderId'];
                         </div>
 
                         {/* Screen Content */}
-                        <div className="flex-1 bg-[#0B192C] pt-5 px-3 pb-3 flex flex-col justify-between font-sans text-white text-[9px] select-none">
+                        <div className="flex-1 bg-[#0B192C] pt-5 px-3 pb-3 flex flex-col justify-between font-sans text-white-pure text-[9px] select-none">
                           
                           <div className="space-y-2">
                             <div className="flex justify-between items-center text-[6px] font-extrabold text-slate-400 px-0.5">
@@ -3258,7 +3258,7 @@ echo "Order Created: " . $data['orderId'];
                                 <span>Paying To</span>
                                 <span className="text-[#3395FF] font-extrabold bg-[#0B2447] px-1 py-0.2 rounded text-[4.5px]">VERIFIED</span>
                               </div>
-                              <p className="text-[8.5px] font-extrabold text-white truncate">
+                              <p className="text-[8.5px] font-extrabold text-white-pure truncate">
                                 {profile?.business_name || 'Demo Store'}
                               </p>
                               <p className="text-[6px] text-slate-450 font-semibold truncate -mt-0.5">
@@ -3273,12 +3273,12 @@ echo "Order Created: " . $data['orderId'];
                               </div>
                               <div className="flex items-baseline gap-0.5">
                                 <span className="text-[8px] font-bold text-slate-450">₹</span>
-                                <span className="text-sm font-black text-white tracking-tight leading-none">
+                                <span className="text-sm font-black text-white-pure tracking-tight leading-none">
                                   {parseFloat(linkAmount) ? parseFloat(linkAmount).toFixed(2) : '0.00'}
                                 </span>
                               </div>
                               <div className="flex justify-between items-center text-[5.5px] text-slate-450 pt-1 border-t border-[#1D2D44] font-medium">
-                                <span>Note: <span className="font-extrabold text-slate-200 truncate max-w-[70px] inline-block align-bottom">{linkNote || 'Order_123'}</span></span>
+                                <span>Note: <span className="font-extrabold text-white-pure/80 truncate max-w-[70px] inline-block align-bottom">{linkNote || 'Order_123'}</span></span>
                               </div>
                             </div>
 
@@ -3415,7 +3415,7 @@ echo "Order Created: " . $data['orderId'];
                                   <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
                                     🔑 Step 1: Retrieve API Credentials
                                   </h4>
-                                  <p className="text-xs text-slate-505 font-semibold leading-relaxed">
+                                  <p className="text-xs text-slate-500 font-semibold leading-relaxed">
                                     Authenticate programmatic checkouts. Toggle Sandbox/Live mode at the top right to switch environments.
                                   </p>
                                 </div>
@@ -3507,7 +3507,7 @@ echo "Order Created: " . $data['orderId'];
                                       <span>{copiedSnippet === 'apiCode' ? 'Copied' : 'Copy'}</span>
                                     </button>
                                   </div>
-                                  <pre className="p-3.5 text-[9px] font-mono text-slate-200 overflow-x-auto leading-relaxed max-h-[170px]">
+                                  <pre className="p-3.5 text-[9px] font-mono text-white-pure/80 overflow-x-auto leading-relaxed max-h-[170px]">
                                     {apiLang === 'curl' ? (
                                       <code>
 {`curl -X POST https://mymob.tech/api/orders \\
@@ -3615,7 +3615,7 @@ app.post('/api/webhook', (req, res) => {
                                       <span>{copiedSnippet === 'webhookVerifyCode' ? 'Copied' : 'Copy'}</span>
                                     </button>
                                   </div>
-                                  <pre className="p-3.5 text-[9px] font-mono text-slate-200 overflow-x-auto leading-relaxed max-h-[170px]">
+                                  <pre className="p-3.5 text-[9px] font-mono text-white-pure/80 overflow-x-auto leading-relaxed max-h-[170px]">
                                     <code>{`// NodeJS Express Webhook HMAC signature validator
 const crypto = require('crypto');
 
@@ -3719,7 +3719,7 @@ app.post('/api/webhook', (req, res) => {
                                   </div>
                                 </div>
 
-                                <p className="text-xs text-slate-505 font-semibold leading-relaxed">
+                                <p className="text-xs text-slate-500 font-semibold leading-relaxed">
                                   In-app social media webviews intercept raw `upi://` URI schemas and load blank screens. Bypass this sandboxing restriction by wrapping deep links in custom native Android package selectors.
                                 </p>
 
@@ -3791,7 +3791,7 @@ const MyMobPaySDK = {
                                       <span>{copiedSnippet === 'sdkCode' ? 'Copied' : 'Copy'}</span>
                                     </button>
                                   </div>
-                                  <pre className="p-3.5 text-[9px] font-mono text-slate-200 overflow-x-auto leading-relaxed max-h-[170px]">
+                                  <pre className="p-3.5 text-[9px] font-mono text-white-pure/80 overflow-x-auto leading-relaxed max-h-[170px]">
                                     {mobileSdk === 'flutter' ? (
                                       <code>
 {`// Flutter Direct Webview-Bypass deep-linking
@@ -3857,7 +3857,7 @@ const MyMobPaySDK = {
                                   <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
                                     🔄 Step 3: Status Verification Polling loop
                                   </h4>
-                                  <p className="text-xs text-slate-505 font-semibold leading-relaxed">
+                                  <p className="text-xs text-slate-500 font-semibold leading-relaxed">
                                     Because standalone mobile client applications cannot host webhook server ports, query our rapid status lookup endpoint recursively in the background until the transaction settles.
                                   </p>
                                 </div>
@@ -3923,7 +3923,7 @@ async function pollOrderStatus(orderId) {
                                       <span>{copiedSnippet === 'pollCode' ? 'Copied' : 'Copy'}</span>
                                     </button>
                                   </div>
-                                  <pre className="p-3.5 text-[9px] font-mono text-slate-200 overflow-x-auto leading-relaxed max-h-[170px]">
+                                  <pre className="p-3.5 text-[9px] font-mono text-white-pure/80 overflow-x-auto leading-relaxed max-h-[170px]">
                                     {mobileSdk === 'flutter' ? (
                                       <code>
 {`// Flutter polling routine
@@ -4131,7 +4131,7 @@ async function checkOrderStatus(orderId) {
                     <button
                       onClick={handleTestWebhook}
                       disabled={testingWebhook || !profile?.webhook_url}
-                      className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-blue-500/10 flex items-center justify-center gap-2"
+                      className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white-pure rounded-xl text-xs font-bold transition-all shadow-md shadow-blue-500/10 flex items-center justify-center gap-2"
                     >
                       {testingWebhook ? (
                         <>
@@ -4195,7 +4195,7 @@ async function checkOrderStatus(orderId) {
                       </div>
 
                       {/* Terminal Body */}
-                      <div className="flex-1 font-mono text-[9.5px] text-slate-300 overflow-y-auto space-y-2.5 leading-relaxed pr-1">
+                      <div className="flex-1 font-mono text-[9.5px] text-white-pure/90 overflow-y-auto space-y-2.5 leading-relaxed pr-1">
                         
                         {webhookLogs.length === 0 ? (
                           <div className="h-full flex flex-col items-center justify-center text-slate-600 gap-1.5 select-none pt-2">
@@ -4211,24 +4211,24 @@ async function checkOrderStatus(orderId) {
                               
                               <div className="flex flex-wrap items-center justify-between gap-2">
                                 <div className="flex items-center gap-1.5">
-                                  <span className="text-slate-500">[{log.timestamp}]</span>
+                                  <span className="text-white-pure/50">[{log.timestamp}]</span>
                                   <span className="text-blue-450 font-bold">POST</span>
-                                  <span className="text-slate-200 font-bold truncate max-w-[150px]" title={log.url}>{log.url}</span>
+                                  <span className="text-white-pure font-bold truncate max-w-[150px]" title={log.url}>{log.url}</span>
                                 </div>
                                 <div className="flex items-center gap-1.5">
                                   <span className={`px-1.5 py-0.2 rounded text-[8px] font-black ${log.success ? 'bg-emerald-950/80 text-emerald-400 border border-emerald-900/50' : 'bg-red-950/80 text-red-400 border border-red-900/50'}`}>
                                     {log.status ? `${log.status} ${log.statusText}` : 'FAIL'}
                                   </span>
-                                  <span className="text-slate-550 font-bold">{log.latency}ms</span>
+                                  <span className="text-white-pure/50 font-bold">{log.latency}ms</span>
                                 </div>
                               </div>
 
                               <div className="bg-[#0b0e1a] border border-slate-900/80 p-2.5 rounded-xl space-y-1 text-slate-400 text-[8.5px]">
-                                <p><span className="text-slate-550 font-bold">Event Type:</span> payment.verified</p>
-                                <p className="truncate"><span className="text-slate-550 font-bold">HMAC Signature Header:</span> <span className="text-blue-400 font-bold select-all">{log.response?.startsWith('Failed') ? 'None' : 'computed_sha256_hex'}</span></p>
+                                <p><span className="text-white-pure/50 font-bold">Event Type:</span> payment.verified</p>
+                                <p className="truncate"><span className="text-white-pure/50 font-bold">HMAC Signature Header:</span> <span className="text-blue-400 font-bold select-all">{log.response?.startsWith('Failed') ? 'None' : 'computed_sha256_hex'}</span></p>
                                 <div className="pt-1.5 border-t border-slate-900 mt-1.5">
-                                  <span className="text-slate-550 font-bold block mb-0.5">Remote Server Payout Callback Response:</span>
-                                  <code className="text-slate-300 select-all whitespace-pre-wrap block bg-slate-950/50 p-1.5 rounded border border-slate-900/60 font-semibold break-all text-[8px]">
+                                  <span className="text-white-pure/50 font-bold block mb-0.5">Remote Server Payout Callback Response:</span>
+                                  <code className="text-white-pure/90 select-all whitespace-pre-wrap block bg-slate-950/50 p-1.5 rounded border border-slate-900/60 font-semibold break-all text-[8px]">
                                     {log.response || 'Empty payload response returned.'}
                                   </code>
                                 </div>
@@ -4444,7 +4444,7 @@ async function checkOrderStatus(orderId) {
                         </div>
                         <button
                           onClick={() => setWizardStep(1)}
-                          className="px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-sm transition-all duration-300 shadow-lg shadow-blue-500/25 flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                          className="px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white-pure rounded-2xl font-black text-sm transition-all duration-300 shadow-lg shadow-blue-500/25 flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
                         >
                           <span>Begin Guided Email Setup</span>
                           <ChevronRight className="w-4.5 h-4.5" />
@@ -4593,7 +4593,7 @@ async function checkOrderStatus(orderId) {
                               <h4 className="text-sm font-black text-slate-900 flex items-center gap-2">
                                 🔐 Step 3: Intercept Google Verification Link
                               </h4>
-                              <p className="text-xs text-slate-505 font-semibold leading-relaxed">
+                              <p className="text-xs text-slate-500 font-semibold leading-relaxed">
                                 Google will send a confirmation link to your unique forwarding address. Our webhook will automatically catch it and show it below.
                               </p>
                             </div>
@@ -4631,7 +4631,7 @@ async function checkOrderStatus(orderId) {
                               <div className="p-6 bg-slate-50 border border-slate-200 border-dashed rounded-2xl text-center flex flex-col items-center justify-center space-y-3 select-none animate-pulse">
                                 <RefreshCw className="w-6 h-6 text-slate-450 animate-spin" />
                                 <div>
-                                  <p className="text-xs font-bold text-slate-750">Waiting for Google email...</p>
+                                  <p className="text-xs font-bold text-slate-700">Waiting for Google email...</p>
                                   <p className="text-[10px] text-slate-450 font-medium mt-0.5">Click &apos;Proceed&apos; on Gmail in Step 2 to trigger the verification mail.</p>
                                 </div>
                                 <button 
@@ -4901,7 +4901,7 @@ async function checkOrderStatus(orderId) {
                           <button
                             onClick={handleConfirmStaffConnected}
                             disabled={staffLoading}
-                            className="w-full sm:w-auto px-6 py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black transition-all shadow-md shadow-blue-500/20 cursor-pointer flex items-center justify-center gap-2"
+                            className="w-full sm:w-auto px-6 py-3.5 bg-blue-600 hover:bg-blue-700 text-white-pure rounded-xl text-xs font-black transition-all shadow-md shadow-blue-500/20 cursor-pointer flex items-center justify-center gap-2"
                           >
                             {staffLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                             I have sent the invitation
@@ -5034,7 +5034,7 @@ async function checkOrderStatus(orderId) {
                     <button 
                       onClick={handleSave}
                       disabled={saving}
-                      className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all disabled:opacity-50 flex items-center gap-2 shadow-sm shadow-blue-500/20"
+                      className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white-pure font-bold rounded-xl transition-all disabled:opacity-50 flex items-center gap-2 shadow-sm shadow-blue-500/20"
                     >
                       {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
                       {saving ? 'Saving Profile...' : 'Save Profile'}
@@ -5376,7 +5376,7 @@ async function checkOrderStatus(orderId) {
                     <button
                       onClick={handleSaveProfileModal}
                       disabled={profileSaving}
-                      className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-sm shadow-blue-500/10"
+                      className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white-pure rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-sm shadow-blue-500/10"
                     >
                       {profileSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
                       <span>{profileSaving ? 'Saving...' : 'Save Details'}</span>
@@ -5407,7 +5407,7 @@ async function checkOrderStatus(orderId) {
                     <button
                       onClick={handleChangePassword}
                       disabled={passwordResetLoading}
-                      className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-sm shadow-blue-500/10"
+                      className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white-pure rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-sm shadow-blue-500/10"
                     >
                       {passwordResetLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Key className="w-3.5 h-3.5" />}
                       <span>{passwordResetLoading ? 'Updating...' : 'Update Password'}</span>

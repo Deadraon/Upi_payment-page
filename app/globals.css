@@ -363,3 +363,13 @@ input[type=number] {
 .animate-laser {
   animation: laserSweep 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
+
+/* ─── Text White Override Safeguard ─────────────────────── */
+/* Force text-white and hover:text-white to be actual white color,
+   bypassing the Tailwind white override of var(--bg-card) */
+.text-white {
+  color: #ffffff !important;
+}
+.hover\:text-white:hover {
+  color: #ffffff !important;
+}

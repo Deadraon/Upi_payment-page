@@ -972,7 +972,7 @@ print("Checkout Link generated:", data.get("orderId"))`
                   <button
                     key={snippetTab.id}
                     onClick={() => setActiveCodeTab(snippetTab.id)}
-                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${activeCodeTab === snippetTab.id ? 'bg-slate-800 text-blue-400' : 'text-slate-500 hover:text-slate-300'}`}
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${activeCodeTab === snippetTab.id ? 'bg-slate-800 text-blue-400' : 'text-slate-500 hover:text-white-pure'}`}
                   >
                     {snippetTab.label}
                   </button>
@@ -981,14 +981,14 @@ print("Checkout Link generated:", data.get("orderId"))`
 
               <button
                 onClick={() => copyCodeSnippet(codeSnippets[activeCodeTab])}
-                className="flex items-center justify-center gap-1.5 text-[9px] font-bold bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white px-3 py-1.5 border border-slate-700 rounded-lg transition-all"
+                className="flex items-center justify-center gap-1.5 text-[9px] font-bold bg-slate-800 hover:bg-slate-750 text-slate-950/80 hover:text-white-pure px-3 py-1.5 border border-slate-700 rounded-lg transition-all"
               >
                 {copiedCode ? 'Copied Snippet!' : 'Copy Code'}
               </button>
             </div>
 
             {/* Code Content */}
-            <pre className="p-6 text-[10px] sm:text-xs font-mono text-slate-300 overflow-x-auto leading-relaxed bg-slate-950/80 min-h-[220px]">
+            <pre className="p-6 text-[10px] sm:text-xs font-mono text-slate-950/90 overflow-x-auto leading-relaxed bg-slate-950/80 min-h-[220px]">
               {codeSnippets[activeCodeTab]}
             </pre>
 
