@@ -448,6 +448,26 @@ print("Checkout Link generated:", data.get("orderId"))`
         {/* Decorative Grid Line Background */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#1D2D44_1px,transparent_1px),linear-gradient(to_bottom,#1D2D44_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-35 -z-20" />
 
+        {/* Animated Wave Background at the Bottom of Hero */}
+        <div className="absolute bottom-0 left-0 right-0 w-full overflow-hidden leading-none pointer-events-none select-none -z-10" style={{ height: '140px' }}>
+          <div className="relative w-[200%] h-full flex">
+            {/* Wave Layer 1 (Slowest - Blue) */}
+            <svg viewBox="0 0 2400 120" preserveAspectRatio="none" className="absolute bottom-0 w-full h-[120px] opacity-15 animate-wave-slow-1 text-blue-500 fill-current">
+              <path d="M0,60 C300,10 600,110 900,30 C1050,-10 1200,60 1200,60 C1500,10 1800,110 2100,30 C2250,-10 2400,60 2400,60 L2400,120 L0,120 Z" />
+            </svg>
+
+            {/* Wave Layer 2 (Medium - Violet) */}
+            <svg viewBox="0 0 2400 120" preserveAspectRatio="none" className="absolute bottom-0 w-full h-[100px] opacity-20 animate-wave-slow-2 text-indigo-500 fill-current">
+              <path d="M0,80 C300,110 600,40 900,90 C1050,110 1200,80 1200,80 C1500,110 1800,40 2100,90 C2250,110 2400,80 2400,80 L2400,120 L0,120 Z" />
+            </svg>
+
+            {/* Wave Layer 3 (Fastest - Sky Blue) */}
+            <svg viewBox="0 0 2400 120" preserveAspectRatio="none" className="absolute bottom-0 w-full h-[80px] opacity-25 animate-wave-slow-3 text-sky-400 fill-current">
+              <path d="M0,95 C300,70 600,115 900,80 C1050,60 1200,95 1200,95 C1500,70 1800,115 2100,80 C2250,60 2400,95 2400,95 L2400,120 L0,120 Z" />
+            </svg>
+          </div>
+        </div>
+
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           
           {/* Left Column Copywriting */}
@@ -515,11 +535,14 @@ print("Checkout Link generated:", data.get("orderId"))`
           {/* Right Column Custom Render Mockup Graphic */}
           <div className="lg:col-span-5 relative flex items-center justify-center lg:justify-end animate-scale-up">
             
-            {/* Custom glowing background ring */}
-            <div className="absolute -inset-4 bg-gradient-to-tr from-blue-500 to-indigo-500 rounded-3xl opacity-[0.05] blur-xl" />
+            {/* Premium Interactive Phone Glow Container */}
+            <div className="phone-glow-container w-full max-w-[340px]">
+              
+              {/* Dynamic breathing glowing background backdrop */}
+              <div className="phone-glow-backdrop animate-aurora-breathe" />
 
-            {/* Premium Simulated Smartphone Frame displaying Actual MyMobPay checkout screen */}
-            <div className="relative w-full max-w-[340px] bg-slate-900 border-8 border-slate-800 rounded-[44px] shadow-[0_24px_50px_rgba(0,0,0,0.15)] overflow-hidden aspect-[9/18.5] flex flex-col">
+              {/* Premium Simulated Smartphone Frame displaying Actual MyMobPay checkout screen */}
+              <div className="relative w-full bg-slate-900 border-8 border-slate-800 rounded-[44px] premium-phone-shadow overflow-hidden aspect-[9/18.5] flex flex-col">
               
               {/* Speaker / Camera Notch (Dynamic Island) */}
               <div className="absolute top-0 inset-x-0 h-6 flex justify-center z-30">
@@ -631,6 +654,8 @@ print("Checkout Link generated:", data.get("orderId"))`
               </div>
 
             </div>
+
+            </div> {/* closes phone-glow-container */}
 
             {/* Metric float chips */}
             <div className="absolute -left-6 top-1/4 bg-white border border-slate-200 p-4 rounded-2xl shadow-xl flex flex-col gap-1 -rotate-6 animate-float">
