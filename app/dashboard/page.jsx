@@ -307,6 +307,24 @@ export default function DashboardPage() {
     fetchSession();
   }, [router]);
 
+  // Real-time Order updates subscription
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase.channel(`dashboard-orders-${user.id}`)
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'orders', 
+        filter: `merchant_id=eq.${user.id}` 
+      }, (payload) => {
+        fetchOrders(user.id);
+      })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
   // Lock scroll when mobile menu is open
   useEffect(() => {
     if (isMobileMenuOpen) {
@@ -1513,8 +1531,28 @@ echo "Order Created: " . $data['orderId'];
   };
 
   const renderPaymentLinksPanel = () => {
+    // Helper to calculate status of payment link
+    const getLinkPaymentStatus = (link) => {
+      const matchingOrders = orders.filter(o => {
+        if (o.external_ref) {
+          if (o.external_ref === link.id || o.external_ref.startsWith(link.id + ":")) {
+            return true;
+          }
+        }
+        const isFlexible = link.amount === 'Flexible';
+        const orderAmt = parseFloat(o.amount);
+        const linkAmt = parseFloat(link.amount);
+        const amtMatches = isFlexible || (Math.abs(orderAmt - linkAmt) < 2.0);
+        const purposeMatches = o.note === link.purpose;
+        return amtMatches && purposeMatches;
+      });
+
+      const isPaid = matchingOrders.some(o => o.status === 'verified');
+      return isPaid ? 'Paid' : 'Pending';
+    };
+
     // Generate URL dynamically on form input changes or when "Generate" is clicked
-    const generateUrl = () => {
+    const generateUrl = (linkId) => {
       if (typeof window === 'undefined') return '';
       const host = window.location.origin;
       const key = profile?.api_key || 'YOUR_API_KEY';
@@ -1527,21 +1565,24 @@ echo "Order Created: " . $data['orderId'];
       if (payLinkProject) params.append('project', payLinkProject);
       if (payLinkCustomerName) params.append('name', payLinkCustomerName);
       if (payLinkCustomerPhone) params.append('phone', payLinkCustomerPhone);
+      if (linkId) params.append('lid', linkId);
       
       return `${host}/pay?${params.toString()}`;
     };
 
     const handleCreateLink = (e) => {
       e.preventDefault();
-      const url = generateUrl();
+      const linkId = Math.random().toString(36).substr(2, 9);
+      const url = generateUrl(linkId);
       setPayLinkGeneratedUrl(url);
 
       const newLink = {
-        id: Math.random().toString(36).substr(2, 9),
+        id: linkId,
         amount: payLinkAmount ? parseFloat(payLinkAmount).toFixed(2) : 'Flexible',
         purpose: payLinkPurpose || 'Payment',
         url: url,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        ref: payLinkRef || '',
       };
 
       const updatedHistory = [newLink, ...payLinkHistory];
@@ -1893,6 +1934,7 @@ echo "Order Created: " . $data['orderId'];
                     <th className="pb-3">Created At</th>
                     <th className="pb-3">Purpose / Note</th>
                     <th className="pb-3 text-right">Amount</th>
+                    <th className="pb-3 text-center">Status</th>
                     <th className="pb-3 pl-6">Actions</th>
                   </tr>
                 </thead>
@@ -1909,6 +1951,19 @@ echo "Order Created: " . $data['orderId'];
                         <td className="py-3.5 font-bold text-slate-800">{link.purpose}</td>
                         <td className="py-3.5 font-black text-slate-900 text-right">
                           {isFlexible ? <span className="text-[10px] font-bold bg-slate-50 border border-slate-200 text-slate-650 px-2 py-0.5 rounded-lg font-mono">Flexible</span> : `₹${parseFloat(link.amount).toLocaleString('en-IN')}`}
+                        </td>
+                        <td className="py-3.5 text-center">
+                          {getLinkPaymentStatus(link) === 'Paid' ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                              Paid
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-slate-50 text-slate-400 border border-slate-200">
+                              <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                              Pending
+                            </span>
+                          )}
                         </td>
                         <td className="py-3.5 pl-6 flex items-center gap-2">
                           <button

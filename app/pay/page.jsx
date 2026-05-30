@@ -174,6 +174,7 @@ function PayPageContent() {
   const paramPhone    = searchParams.get('phone') || '';
   const paramRef      = searchParams.get('ref') || '';
   const paramNote     = searchParams.get('note') || '';
+  const paramLid      = searchParams.get('lid') || '';
 
   const [merchant, setMerchant]   = useState(null);
   const [initLoading, setInitLoading] = useState(true);
@@ -283,7 +284,7 @@ function PayPageContent() {
           note: paramNote || paramRef || '',
           project: paramProject || undefined,
           callback_url: paramCallback || undefined,
-          external_ref: paramRef || undefined,
+          external_ref: paramLid ? (paramRef ? `${paramLid}:${paramRef}` : paramLid) : paramRef,
         }),
       });
       const data = await res.json();
