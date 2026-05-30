@@ -1352,128 +1352,202 @@ echo "Order Created: " . $data['orderId'];
 
     return (
       <div className="flex flex-col gap-6 max-w-3xl mx-auto w-full animate-fade-up">
+        {/* Title */}
+        <div className="flex flex-col gap-1.5 border-b border-slate-100 pb-5">
+          <h3 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+            <Star className="w-5 h-5 text-violet-500 fill-violet-400" />
+            API License & Subscription
+          </h3>
+          <p className="text-xs text-slate-500 font-semibold">
+            Monitor API operational status, extend runtime license, and retrieve historical transactions.
+          </p>
+        </div>
 
-        {/* ── HERO STATUS CARD ── */}
-        <div className={`relative rounded-3xl overflow-hidden p-8 ${
-          isActive
-            ? 'bg-gradient-to-br from-violet-600 via-indigo-600 to-blue-700'
-            : 'bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900'
-        }`}>
+        {/* ── HIGH CONTRAST HERO STATUS CARD ── */}
+        <div className="relative rounded-3xl bg-[#090D1A] text-white border border-[#1E293B] overflow-hidden p-8 shadow-xl">
           {/* decorative blobs */}
-          <div className="absolute top-0 right-0 w-72 h-72 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+          <div className="absolute top-0 right-0 w-72 h-72 bg-blue-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-indigo-500/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
 
-          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-            {/* Left: Status */}
-            <div className="flex flex-col gap-2">
+          <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+            {/* Left Info: 8 cols */}
+            <div className="md:col-span-8 flex flex-col gap-4">
               <div className="flex items-center gap-2">
-                <span className={`w-2.5 h-2.5 rounded-full ${isActive ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`} />
-                <span className="text-white/70 text-xs font-bold uppercase tracking-widest">
-                  {isActive ? 'Premium Plan — Active' : 'Plan Inactive'}
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-white/10 ${
+                  isActive ? 'text-emerald-400' : 'text-rose-400'
+                }`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-400 animate-pulse' : 'bg-rose-500'}`} />
+                  {isActive ? 'API LICENSE ACTIVE' : 'LICENSE EXPIRED'}
+                </span>
+                
+                <span className="text-slate-500 text-[10px] font-bold uppercase tracking-wider font-mono bg-white/5 px-2.5 py-0.5 rounded-md">
+                  UID: {profile?.id ? profile.id.substring(0, 8) + '...' : 'N/A'}
                 </span>
               </div>
-              <h2 className="text-3xl font-black text-white leading-tight">
-                {daysLeft !== null
-                  ? <>{daysLeft} <span className="text-white/60 text-xl font-bold">days left</span></>
-                  : isActive ? <span className="text-xl">No Expiry Set</span> : <span className="text-xl">Subscription Expired</span>
-                }
-              </h2>
-              <p className="text-white/50 text-sm font-medium">
-                {isActive
-                  ? `Expires: ${expiresAt ? expiresAt.toLocaleDateString('en-IN', { dateStyle: 'long' }) : 'Not set'}`
-                  : 'Renew below to reactivate API access & dashboard features'
-                }
-              </p>
+
+              <div>
+                <h4 className="text-2xl font-black tracking-tight leading-tight">
+                  {daysLeft !== null ? (
+                    <>{daysLeft} <span className="text-slate-400 text-lg font-bold">days remaining</span></>
+                  ) : isActive ? (
+                    'Developer Access Active'
+                  ) : (
+                    'License Inactive'
+                  )}
+                </h4>
+                
+                <p className="text-slate-400 text-xs mt-2 font-medium leading-relaxed max-w-md">
+                  {isActive 
+                    ? `Your payment gateway operates fully. Next billing on ${expiresAt ? expiresAt.toLocaleDateString('en-IN', { dateStyle: 'long' }) : 'Not configured'}.`
+                    : 'Your API routing is locked. Renew your monthly license to restore webhook relays and bank deposits matches.'
+                  }
+                </p>
+              </div>
             </div>
 
-            {/* Right: Quick Action */}
-            <div className="flex flex-col gap-2 shrink-0">
+            {/* Right Action: 4 cols */}
+            <div className="md:col-span-4 flex flex-col gap-2.5 w-full shrink-0">
               <button
                 onClick={() => setShowManageSection(!showManageSection)}
-                className="px-5 py-2.5 bg-white/15 hover:bg-white/25 border border-white/20 text-white text-sm font-bold rounded-2xl transition-all backdrop-blur-sm flex items-center gap-2 cursor-pointer"
+                className="w-full py-3 bg-white hover:bg-slate-100 text-slate-950 rounded-xl transition-all text-xs font-black flex items-center justify-center gap-1.5 shadow-md active:scale-98 cursor-pointer"
               >
-                {showManageSection ? 'Hide Renewal' : 'Renew / Manage'}
+                {showManageSection ? 'Close Renewal Drawer' : 'Extend API License'}
                 <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${showManageSection ? 'rotate-180' : ''}`} />
               </button>
+              
               <button
                 onClick={handleRefreshStatus}
                 disabled={statusChecking}
-                className="px-5 py-2 bg-transparent hover:bg-white/10 border border-white/15 text-white/70 hover:text-white text-xs font-semibold rounded-2xl transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                className="w-full py-2.5 bg-[#121829] hover:bg-[#1A233A] border border-[#1E293B] text-slate-355 hover:text-white rounded-xl transition-all text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
               >
                 {statusChecking ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
-                Refresh Status
+                Sync Database Status
               </button>
             </div>
           </div>
 
           {/* Urgent Warning Banner */}
           {isUrgent && (
-            <div className="relative z-10 mt-5 flex items-center gap-3 bg-amber-500/20 border border-amber-400/30 rounded-2xl px-4 py-3">
-              <AlertCircle className="w-4 h-4 text-amber-300 shrink-0" />
-              <p className="text-amber-200 text-xs font-bold">Your subscription expires in {daysLeft} day{daysLeft !== 1 ? 's' : ''}. Renew now to avoid service interruption.</p>
+            <div className="relative z-10 mt-6 flex items-start gap-3 bg-amber-500/10 border border-amber-400/20 rounded-2xl px-4 py-3">
+              <AlertCircle className="w-4.5 h-4.5 text-amber-400 shrink-0 mt-0.5" />
+              <div className="text-xs">
+                <p className="text-amber-200 font-bold uppercase tracking-wider text-[10px]">Action Required</p>
+                <p className="text-amber-300/80 font-medium mt-0.5">Your subscription expires in {daysLeft} day{daysLeft !== 1 ? 's' : ''}. Renew your license to avoid sandbox or live API blocks.</p>
+              </div>
             </div>
           )}
         </div>
 
-        {/* ── RENEWAL SECTION (expandable) ── */}
+        {/* ── RENEWAL DRAWER (expandable) ── */}
         {showManageSection && (
-          <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex flex-col gap-5 animate-fade-up">
+          <div className="bg-white border border-slate-200 rounded-3xl p-7 shadow-sm flex flex-col gap-6 animate-fade-up">
             <div>
-              <h3 className="text-sm font-black text-slate-900">Select Renewal Duration</h3>
-              <p className="text-xs text-slate-500 font-medium mt-0.5">Add months to your current plan. ₹{CONFIG.subscriptionFee}/month.</p>
+              <h3 className="text-sm font-black text-slate-900">Select Renewal Plan</h3>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">Choose a license duration to extend gateway run-time. Billed at flat ₹{CONFIG.subscriptionFee}/mo.</p>
             </div>
 
-            {/* Duration Chips */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {[1, 2, 3].map(m => (
-                <button
-                  key={m}
-                  onClick={() => { setSelectedMonths(m); setCustomMonths(''); }}
-                  className={`py-3.5 px-2 rounded-2xl border-2 font-bold text-sm transition-all flex flex-col items-center gap-1 cursor-pointer ${
-                    selectedMonths === m && !customMonths
-                      ? 'border-indigo-500 bg-indigo-50 text-indigo-700 shadow-sm shadow-indigo-500/10'
-                      : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300 hover:bg-white'
-                  }`}
-                >
-                  <span className="font-black">{m} Mo{m > 1 ? 's' : ''}</span>
-                  <span className="text-xs opacity-70 font-semibold">₹{(CONFIG.subscriptionFee * m).toLocaleString('en-IN')}</span>
-                </button>
-              ))}
-              <div className="relative">
-                <input
-                  type="number"
-                  min="1"
-                  max="24"
-                  placeholder="Custom"
-                  value={customMonths}
-                  onChange={e => { setCustomMonths(e.target.value); setSelectedMonths(0); }}
-                  className={`w-full py-3.5 px-3 rounded-2xl border-2 font-bold text-sm text-center transition-all focus:outline-none placeholder:text-slate-400 placeholder:font-medium ${
-                    customMonths
-                      ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                      : 'border-slate-200 bg-slate-50 text-slate-700 focus:border-slate-300'
-                  }`}
-                />
-                {customMonths && (
-                  <span className="absolute bottom-1 left-0 right-0 text-center text-[10px] font-bold text-slate-500">
-                    ₹{(CONFIG.subscriptionFee * (parseInt(customMonths) || 1)).toLocaleString('en-IN')}
+            {/* Renewal Packages Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+              {[
+                { months: 1, title: '1 Month Standard', label: 'Basic', badge: null },
+                { months: 2, title: '2 Months Passage', label: 'Standard', badge: null },
+                { months: 3, title: '3 Months Quarterly', label: 'Popular', badge: 'POPULAR' },
+              ].map(pkg => {
+                const isSelected = selectedMonths === pkg.months && !customMonths;
+                return (
+                  <button
+                    key={pkg.months}
+                    onClick={() => { setSelectedMonths(pkg.months); setCustomMonths(''); }}
+                    className={`p-4 rounded-2xl border-2 text-left transition-all flex flex-col justify-between h-[115px] cursor-pointer relative ${
+                      isSelected
+                        ? 'border-blue-600 bg-blue-50/20 text-slate-900 shadow-sm'
+                        : 'border-slate-200 bg-slate-50/50 hover:bg-white hover:border-slate-300 text-slate-750'
+                    }`}
+                  >
+                    {pkg.badge && (
+                      <span className="absolute -top-2.5 right-3 px-2 py-0.5 rounded bg-indigo-650 text-white text-[8px] font-black uppercase tracking-widest shadow-sm">
+                        {pkg.badge}
+                      </span>
+                    )}
+                    <div>
+                      <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">{pkg.label}</span>
+                      <span className="text-xs font-black text-slate-900 block mt-1">{pkg.title}</span>
+                    </div>
+                    <div className="flex items-baseline gap-0.5">
+                      <span className="text-xs font-bold text-slate-400">₹</span>
+                      <span className="text-lg font-black text-slate-950">{(CONFIG.subscriptionFee * pkg.months).toLocaleString('en-IN')}</span>
+                    </div>
+                  </button>
+                );
+              })}
+
+              {/* Custom Input Package */}
+              <div className={`p-4 rounded-2xl border-2 transition-all flex flex-col justify-between h-[115px] relative ${
+                customMonths
+                  ? 'border-blue-600 bg-blue-50/20'
+                  : 'border-slate-200 bg-slate-50/50 focus-within:bg-white focus-within:border-slate-300'
+              }`}>
+                <div>
+                  <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">Flexible</span>
+                  <span className="text-xs font-black text-slate-900 block mt-1">Custom Months</span>
+                </div>
+                
+                <div className="relative flex items-center mt-2">
+                  <input
+                    type="number"
+                    min="1"
+                    max="24"
+                    placeholder="Enter"
+                    value={customMonths}
+                    onChange={e => { setCustomMonths(e.target.value); setSelectedMonths(0); }}
+                    className="w-full bg-white border border-slate-200 rounded-lg py-1 px-2.5 text-xs font-black text-slate-900 focus:outline-none focus:border-blue-500 pr-10 placeholder:text-slate-400 placeholder:font-bold"
+                  />
+                  <span className="absolute right-2 text-[9px] font-bold text-slate-400 font-mono">Mos</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Receipt Summary Box */}
+            <div className="border border-slate-200 rounded-2xl p-5 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-5 mt-2">
+              <div className="space-y-1">
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">ORDER DETAILS</span>
+                <p className="text-xs text-slate-700 font-bold flex items-center gap-1.5">
+                  <Star className="w-3.5 h-3.5 text-indigo-500 fill-indigo-400" />
+                  Premium Developer Gateway — {months} Month{months > 1 ? 's' : ''} Extension
+                </p>
+                <div className="flex gap-4 text-[10px] text-slate-400 font-bold uppercase tracking-wider font-mono pt-1">
+                  <span>Rate: ₹{CONFIG.subscriptionFee}/mo</span>
+                  <span>Surcharge: ₹0.00</span>
+                </div>
+              </div>
+
+              <div className="flex sm:flex-row items-center gap-5 shrink-0 self-end sm:self-auto">
+                <div className="text-right sm:text-right flex flex-col sm:items-end">
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">NET AMOUNT DUE</span>
+                  <span className="text-xl font-black text-slate-955 tracking-tight font-mono leading-none mt-1">
+                    ₹{total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                   </span>
-                )}
+                </div>
+
+                <button
+                  onClick={() => window.open(payUrl, '_blank')}
+                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-black text-xs transition-all shadow-md shadow-indigo-500/20 flex items-center gap-1.5 cursor-pointer active:scale-98"
+                >
+                  <QrCode className="w-4 h-4" />
+                  Activate via UPI
+                </button>
               </div>
             </div>
-
-            {/* Summary + Pay Button */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50 border border-slate-100 rounded-2xl p-4">
-              <div>
-                <p className="text-xs text-slate-500 font-semibold">{months} month{months > 1 ? 's' : ''} subscription</p>
-                <p className="text-2xl font-black text-slate-900 mt-0.5">₹{total.toLocaleString('en-IN')}</p>
+            
+            {/* VPA and security notice */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-slate-100 pt-4 text-[10px] text-slate-400 font-bold select-none uppercase tracking-wider">
+              <span className="flex items-center gap-1.5"><Shield className="w-4 h-4 text-emerald-500" /> Secured B2B P2P checkout transaction</span>
+              <div className="flex gap-2">
+                <span className="px-1.5 py-0.5 bg-slate-100 rounded">GPAY</span>
+                <span className="px-1.5 py-0.5 bg-slate-100 rounded">PHONEPE</span>
+                <span className="px-1.5 py-0.5 bg-slate-100 rounded">PAYTM</span>
+                <span className="px-1.5 py-0.5 bg-slate-100 rounded">BHIM</span>
               </div>
-              <button
-                onClick={() => window.open(payUrl, '_blank')}
-                className="flex items-center justify-center gap-2 px-7 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-sm transition-all shadow-lg shadow-indigo-500/25 cursor-pointer shrink-0"
-              >
-                <CreditCard className="w-4 h-4" />
-                Pay via UPI
-              </button>
             </div>
           </div>
         )}
