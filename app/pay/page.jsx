@@ -51,7 +51,7 @@ const GPayLogo    = () => <Image src="/logos/gpay.svg"    alt="Google Pay"  widt
 const PhonePeLogo = () => <Image src="/logos/phonepe.svg" alt="PhonePe"     width={32} height={32} className="w-8 h-8 object-contain bg-white-pure p-1.5 rounded-xl" />;
 const PaytmLogo   = () => <Image src="/logos/paytm.svg"   alt="Paytm"       width={32} height={32} className="w-8 h-8 object-contain bg-white-pure p-1.5 rounded-xl" />;
 const BhimLogo    = () => <Image src="/logos/bhim.svg"    alt="BHIM UPI"    width={32} height={32} className="w-8 h-8 object-contain bg-white-pure p-1.5 rounded-xl" />;
-const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = '#FFFFFF' }) => (
+const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = 'var(--text-primary)' }) => (
   <svg viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
     {/* Single unified wordmark with unique mixed fonts */}
     <text x="2" y="42" letterSpacing="0">
@@ -624,16 +624,16 @@ function PayPageContent() {
                               onClick={() => setSelectedApp(isSelected ? null : app)}
                               className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all active:scale-95 ${
                                 isSelected
-                                  ? 'bg-[#1C2B4A] border-[#388BFD] shadow-sm shadow-blue-500/20'
-                                  : 'bg-slate-100 border-slate-200 hover:border-[#484F58] hover:bg-[#282E37]'
+                                  ? 'bg-blue-50 border-blue-500 shadow-sm shadow-blue-500/10'
+                                  : 'bg-white border-slate-200 hover:border-blue-500/50 hover:bg-slate-50/50'
                               }`}
                             >
                               <div className="flex-shrink-0">{app.logo}</div>
                               <div>
-                                <p className={`text-[12px] font-bold leading-tight transition-colors ${isSelected ? 'text-white-pure' : 'text-slate-500'}`}>
+                                <p className={`text-[12px] font-bold leading-tight transition-colors ${isSelected ? 'text-slate-900' : 'text-slate-500'}`}>
                                   {app.label}
                                 </p>
-                                <p className={`text-[9px] mt-0.5 ${isSelected ? 'text-slate-950/65' : 'text-slate-400'}`}>
+                                <p className={`text-[9px] mt-0.5 ${isSelected ? 'text-blue-500' : 'text-slate-400'}`}>
                                   {isSelected ? '✓ Selected' : 'Tap to select'}
                                 </p>
                               </div>
@@ -669,7 +669,7 @@ function PayPageContent() {
                       </div>
 
                       {/* Copy row */}
-                      <div className="flex items-center justify-between p-3 rounded-xl bg-slate-100 border border-slate-200">
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
                         <div>
                           <p className="text-[9px] text-slate-500 uppercase tracking-wider mb-0.5">Pay to UPI ID</p>
                           <p className="text-[11px] font-mono font-bold text-slate-700">{merchant?.upi_id || CONFIG.upiId}</p>
@@ -677,14 +677,14 @@ function PayPageContent() {
                         <div className="flex gap-1.5">
                           <button onClick={copyUPI}
                             className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-semibold border transition-all ${
-                              copied ? 'bg-emerald-900/40 border-emerald-600/40 text-emerald-400' : 'bg-white border-slate-200 text-slate-500 hover:border-[#484F58] hover:text-slate-700'
+                              copied ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600' : 'bg-white border-slate-200 text-slate-500 hover:border-slate-400 hover:text-slate-700'
                             }`}>
                             {copied ? <CheckCircle className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                             {copied ? 'Copied' : 'Copy ID'}
                           </button>
                           <button onClick={copyAmt}
                             className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-semibold border transition-all ${
-                              copiedAmt ? 'bg-emerald-900/40 border-emerald-600/40 text-emerald-400' : 'bg-white border-slate-200 text-slate-500 hover:border-[#484F58] hover:text-slate-700'
+                              copiedAmt ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600' : 'bg-white border-slate-200 text-slate-500 hover:border-slate-400 hover:text-slate-700'
                             }`}>
                             {copiedAmt ? <CheckCircle className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                             {copiedAmt ? 'Copied' : 'Copy ₹'}

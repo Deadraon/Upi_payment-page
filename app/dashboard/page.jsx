@@ -356,6 +356,14 @@ export default function DashboardPage() {
     setTheme(savedTheme);
   }, []);
 
+  useEffect(() => {
+    if (theme === 'light') {
+      document.documentElement.classList.add('light-theme');
+    } else {
+      document.documentElement.classList.remove('light-theme');
+    }
+  }, [theme]);
+
   // Load Payment Links History
   useEffect(() => {
     const history = localStorage.getItem('mymobpay_payment_links');

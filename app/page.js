@@ -11,7 +11,7 @@ import {
   Key, Landmark, Code, Play, Star, Plus, Minus, Info, Lock
 } from 'lucide-react';
 
-const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = '#FFFFFF' }) => (
+const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = 'var(--text-primary)' }) => (
   <svg viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
     <text x="2" y="42" letterSpacing="0">
       {/* MyMob */}
@@ -545,7 +545,7 @@ print("Checkout Link generated:", data.get("orderId"))`
 
                   {/* Logo */}
                   <div className="flex flex-col items-center justify-center pt-2">
-                    <MyMobPayLogo className="w-36 h-auto" />
+                    <MyMobPayLogo className="w-36 h-auto" textColor="#FFFFFF" />
                     <p className="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest mt-1">Direct Bank Checkout</p>
                   </div>
 

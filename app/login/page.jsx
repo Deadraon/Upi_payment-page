@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { Loader2, Lock, Mail, ArrowRight, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 
-const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = '#FFFFFF' }) => (
+const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = 'var(--text-primary)' }) => (
   <svg viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
     <text x="2" y="42" letterSpacing="0">
       {/* MyMob */}
@@ -166,7 +166,7 @@ export default function LoginPage() {
                   </div>
 
                   <div className="flex flex-col items-center pt-1">
-                    <MyMobPayLogo className="w-24 h-auto" />
+                    <MyMobPayLogo className="w-24 h-auto" textColor="#FFFFFF" />
                     <p className="text-[6px] text-slate-400 font-extrabold uppercase tracking-wider mt-0.5">Direct Bank Checkout</p>
                   </div>
 

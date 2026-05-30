@@ -34,12 +34,12 @@ const Row = ({ label, value, mono = false, green = false }) => (
   </div>
 );
 
-const MyMobPayLogo = ({ className = 'w-48 h-auto' }) => (
+const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = 'var(--text-primary)' }) => (
   <svg viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
     {/* Single unified wordmark with unique mixed fonts */}
     <text x="2" y="42" letterSpacing="0">
       {/* MyMob */}
-      <tspan fontFamily="'Outfit', sans-serif" fontWeight="800" fontSize="36" fill="#FFFFFF">MyMob</tspan>
+      <tspan fontFamily="'Outfit', sans-serif" fontWeight="800" fontSize="36" fill={textColor}>MyMob</tspan>
       {/* Pay */}
       <tspan fontFamily="'Orbitron', sans-serif" fontWeight="900" fontStyle="italic" fontSize="36" fill="#3B82F6" dx="3">Pay</tspan>
     </text>
@@ -50,7 +50,7 @@ const MyMobPayLogo = ({ className = 'w-48 h-auto' }) => (
 const Header = ({ badge }) => (
   <header className="w-full border-b border-slate-200 bg-[#0D0D12] px-5 py-3.5 flex items-center justify-between">
     <div className="flex items-center">
-      <MyMobPayLogo className="h-6 w-auto object-contain" />
+      <MyMobPayLogo className="h-6 w-auto object-contain" textColor="#FFFFFF" />
     </div>
     {badge}
   </header>

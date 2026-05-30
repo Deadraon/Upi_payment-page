@@ -132,6 +132,23 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
+        {/* Theme detection script running inline before rendering */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var theme = localStorage.getItem('theme') || 'dark';
+                  if (theme === 'light') {
+                    document.documentElement.classList.add('light-theme');
+                  } else {
+                    document.documentElement.classList.remove('light-theme');
+                  }
+                } catch (e) {}
+              })();
+            `
+          }}
+        />
         {/* Fonts */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
