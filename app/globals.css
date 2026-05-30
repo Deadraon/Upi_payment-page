@@ -32,8 +32,8 @@
   --bg-base:        #F1F5F9; /* Crisp, premium slate-100 background */
   --bg-card:        #FFFFFF; /* Pure white cards */
   --bg-input:       #F8FAFC; /* Slate-50 for inputs inside white cards */
-  --border-subtle:  #E2E8F0; /* Slate-200 for clean, elegant borders */
-  --border-hover:   #CBD5E1; /* Slate-300 */
+  --border-subtle:  #CBD5E1; /* Slate-300 for visible, elegant borders */
+  --border-hover:   #94A3B8; /* Slate-400 */
   --accent:         #2563EB; /* Premium royal blue */
   --accent-light:   #3B82F6; /* Electric blue */
   --accent-glow:    rgba(37, 99, 235, 0.05);
