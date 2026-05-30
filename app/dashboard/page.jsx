@@ -1561,140 +1561,259 @@ echo "Order Created: " . $data['orderId'];
       localStorage.setItem('mymobpay_payment_links', JSON.stringify(updatedHistory));
     };
 
+    const handleResetForm = () => {
+      setPayLinkAmount('');
+      setPayLinkPurpose('');
+      setPayLinkCustomerName('');
+      setPayLinkCustomerPhone('');
+      setPayLinkRef('');
+      setPayLinkProject('');
+      setPayLinkGeneratedUrl('');
+    };
+
     const filteredLinks = payLinkHistory.filter(link => 
       link.purpose.toLowerCase().includes(payLinkSearch.toLowerCase()) ||
       link.amount.toLowerCase().includes(payLinkSearch.toLowerCase()) ||
       link.url.toLowerCase().includes(payLinkSearch.toLowerCase())
     );
 
+    const activeBusinessName = payLinkProject || profile?.business_name || 'My Business';
+
     return (
       <div className="flex flex-col gap-6 max-w-5xl mx-auto w-full animate-fade-up">
+        
+        {/* TOP: Form & Preview grid */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           
-          {/* LEFT: Link Creator Form (3 cols) */}
-          <div className="lg:col-span-3 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex flex-col gap-5">
-            <div>
-              <h3 className="text-sm font-black text-slate-900">Create Payment Link</h3>
-              <p className="text-xs text-slate-500 font-medium mt-0.5">Fill in the fields to instantly generate a checkout link or QR code.</p>
-            </div>
-
-            <form onSubmit={handleCreateLink} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Amount (INR)</label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-2 text-slate-400 font-bold text-xs">₹</span>
-                    <input 
-                      type="number"
-                      step="0.01"
-                      min="1"
-                      placeholder="e.g. 500 (Optional)"
-                      value={payLinkAmount}
-                      onChange={e => setPayLinkAmount(e.target.value)}
-                      className="w-full bg-slate-550 border border-slate-200 rounded-xl py-2 pl-7 pr-3 focus:outline-none focus:border-blue-500 text-xs font-semibold text-slate-900"
-                    />
-                  </div>
-                  <span className="text-[9px] text-slate-400 font-medium mt-0.5 block">Leave blank for a flexible checkout where customers choose the amount.</span>
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-505 uppercase tracking-wider mb-1">Purpose / Description</label>
-                  <input 
-                    type="text"
-                    required
-                    placeholder="e.g. Invoice #102, Consulting fee"
-                    value={payLinkPurpose}
-                    onChange={e => setPayLinkPurpose(e.target.value)}
-                    className="w-full bg-slate-550 border border-slate-200 rounded-xl py-2 px-3 focus:outline-none focus:border-blue-500 text-xs font-semibold text-slate-900"
-                  />
-                </div>
+          {/* LEFT: Premium Link Builder Form (3 cols) */}
+          <div className="lg:col-span-3 bg-white border border-slate-200 rounded-3xl p-7 shadow-sm flex flex-col justify-between">
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-blue-500" />
+                  Link Generator
+                </h3>
+                <p className="text-xs text-slate-550 font-medium mt-1">Configure checkout parameters to request secure payments via UPI.</p>
               </div>
 
-              <div className="border-t border-slate-105 pt-4">
-                <p className="text-[10px] font-bold text-slate-405 uppercase tracking-widest mb-3">Additional Details (Optional)</p>
+              <form onSubmit={handleCreateLink} className="space-y-5">
+                {/* Section 1: Transaction details */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-505 uppercase tracking-wider mb-1">Customer Name</label>
-                    <input 
-                      type="text"
-                      placeholder="e.g. John Doe"
-                      value={payLinkCustomerName}
-                      onChange={e => setPayLinkCustomerName(e.target.value)}
-                      className="w-full bg-slate-550 border border-slate-200 rounded-xl py-2 px-3 focus:outline-none focus:border-blue-500 text-xs font-semibold text-slate-900"
-                    />
+                    <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Amount (INR)</label>
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">₹</span>
+                      <input 
+                        type="number"
+                        step="0.01"
+                        min="1"
+                        placeholder="e.g. 500.00 (Optional)"
+                        value={payLinkAmount}
+                        onChange={e => setPayLinkAmount(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-2.5 pl-8 pr-3.5 text-xs font-semibold text-slate-900 rounded-xl"
+                      />
+                    </div>
+                    <span className="text-[9px] text-slate-400 font-medium mt-1.5 block">Leave empty to allow the customer to enter amount.</span>
                   </div>
+
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-505 uppercase tracking-wider mb-1">Customer Phone</label>
+                    <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Payment Note / Purpose</label>
                     <input 
                       type="text"
-                      placeholder="e.g. 9876543210"
-                      value={payLinkCustomerPhone}
-                      onChange={e => setPayLinkCustomerPhone(e.target.value)}
-                      className="w-full bg-slate-550 border border-slate-200 rounded-xl py-2 px-3 focus:outline-none focus:border-blue-500 text-xs font-semibold text-slate-900"
+                      required
+                      placeholder="e.g. Invoice #102, Services render"
+                      value={payLinkPurpose}
+                      onChange={e => setPayLinkPurpose(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-2.5 px-3.5 text-xs font-semibold text-slate-900 rounded-xl"
                     />
                   </div>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-505 uppercase tracking-wider mb-1">Custom Reference / Order ID</label>
-                  <input 
-                    type="text"
-                    placeholder="e.g. REF-109283"
-                    value={payLinkRef}
-                    onChange={e => setPayLinkRef(e.target.value)}
-                    className="w-full bg-slate-550 border border-slate-200 rounded-xl py-2 px-3 focus:outline-none focus:border-blue-500 text-xs font-semibold text-slate-900"
-                  />
+                {/* Section 2: Customer Details */}
+                <div className="border-t border-slate-200 pt-4">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Customer Details (Optional)</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Customer Name</label>
+                      <input 
+                        type="text"
+                        placeholder="e.g. John Doe"
+                        value={payLinkCustomerName}
+                        onChange={e => setPayLinkCustomerName(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-2.5 px-3.5 text-xs font-semibold text-slate-900 rounded-xl"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Customer Phone</label>
+                      <input 
+                        type="text"
+                        placeholder="e.g. 9876543210"
+                        value={payLinkCustomerPhone}
+                        onChange={e => setPayLinkCustomerPhone(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-2.5 px-3.5 text-xs font-semibold text-slate-900 rounded-xl"
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-505 uppercase tracking-wider mb-1">Project Name Override</label>
-                  <input 
-                    type="text"
-                    placeholder={`e.g. ${profile?.business_name || 'My Business'}`}
-                    value={payLinkProject}
-                    onChange={e => setPayLinkProject(e.target.value)}
-                    className="w-full bg-slate-550 border border-slate-200 rounded-xl py-2 px-3 focus:outline-none focus:border-blue-500 text-xs font-semibold text-slate-900"
-                  />
-                </div>
-              </div>
 
-              <button
-                type="submit"
-                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all shadow-md shadow-blue-500/25 mt-2 cursor-pointer"
-              >
-                <Plus className="w-4 h-4" />
-                Generate Payment Link
-              </button>
-            </form>
+                {/* Section 3: Advanced details */}
+                <div className="border-t border-slate-200 pt-4">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Advanced Parameters (Optional)</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Custom Reference / Order ID</label>
+                      <input 
+                        type="text"
+                        placeholder="e.g. INV-2026-987"
+                        value={payLinkRef}
+                        onChange={e => setPayLinkRef(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-2.5 px-3.5 text-xs font-semibold text-slate-900 rounded-xl"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Project / Brand Name Override</label>
+                      <input 
+                        type="text"
+                        placeholder={`e.g. ${profile?.business_name || 'My Shop'}`}
+                        value={payLinkProject}
+                        onChange={e => setPayLinkProject(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-2.5 px-3.5 text-xs font-semibold text-slate-900 rounded-xl"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all shadow-md shadow-blue-500/25 mt-3 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  Generate Payment Link
+                </button>
+              </form>
+            </div>
           </div>
 
-          {/* RIGHT: Generated Output & QR Code (2 cols) */}
-          <div className="lg:col-span-2 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex flex-col justify-between items-center text-center min-h-[400px]">
-            {payLinkGeneratedUrl ? (
-              <div className="w-full flex flex-col items-center gap-4 animate-fade-up">
-                <div className="w-full">
-                  <h3 className="text-sm font-black text-slate-900">Your Payment Link</h3>
-                  <p className="text-xs text-slate-500 font-medium mt-0.5">Ready to share with your customer</p>
+          {/* RIGHT: Live Interactive Preview / Success Screen (2 cols) */}
+          <div className="lg:col-span-2 bg-white border border-slate-200 rounded-3xl p-7 shadow-sm flex flex-col justify-between items-center min-h-[480px] relative overflow-hidden">
+            
+            {!payLinkGeneratedUrl ? (
+              /* MOCKUP SIMULATOR PREVIEW STATE */
+              <div className="w-full h-full flex flex-col justify-between items-center animate-fade-in flex-1">
+                <div className="w-full text-center">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50 border border-slate-200 px-3 py-1 rounded-full inline-block">
+                    Live Checkout Preview
+                  </span>
+                  <p className="text-[10px] text-slate-500 font-semibold mt-2">Updates in real-time as you fill the generator</p>
+                </div>
+
+                {/* Smartphone Bezel */}
+                <div className="my-6 relative w-full max-w-[210px] bg-slate-950 border-4 border-slate-800 rounded-[32px] shadow-2xl overflow-hidden aspect-[9/18.5] flex flex-col select-none">
+                  {/* Notch */}
+                  <div className="absolute top-0 inset-x-0 h-3 flex justify-center z-30">
+                    <div className="bg-slate-850 w-14 h-2 rounded-b-md" />
+                  </div>
+
+                  {/* Screen Content */}
+                  <div className="flex-1 bg-[#0B192C] pt-4 px-3 pb-3 flex flex-col justify-between font-sans text-white text-[9px]">
+                    <div className="space-y-2">
+                      {/* Top Bar */}
+                      <div className="flex justify-between items-center text-[5.5px] font-extrabold text-slate-400 px-0.5">
+                        <span>12:45 PM</span>
+                        <span className="flex items-center gap-0.5">
+                          <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" /> LTE
+                        </span>
+                      </div>
+
+                      {/* Header */}
+                      <div className="flex flex-col items-center pt-0.5 border-b border-[#1D2D44] pb-2">
+                        <MyMobPayLogo className="w-20 h-auto" textColor="#FFFFFF" />
+                      </div>
+
+                      {/* Paying To */}
+                      <div className="bg-[#0F1E36] border border-[#1D2D44] rounded-xl p-2.5 shadow-sm space-y-1">
+                        <div className="flex justify-between items-center text-[5px] text-slate-455 font-bold uppercase">
+                          <span>Paying To</span>
+                          <span className="text-[#3395FF] font-extrabold bg-[#0B2447] px-1 py-0.2 rounded text-[4.5px]">VERIFIED</span>
+                        </div>
+                        <p className="text-[8.5px] font-black text-white truncate">{activeBusinessName}</p>
+                        <p className="text-[6px] text-slate-455 font-semibold truncate -mt-0.5">UPI: {profile?.upi_id || 'merchant@upi'}</p>
+                      </div>
+
+                      {/* Amount and Note */}
+                      <div className="bg-[#0F1E36] border border-[#1D2D44] rounded-xl p-2.5 shadow-sm space-y-1.5">
+                        <div className="flex justify-between items-center text-[5px] text-slate-455 font-bold uppercase">
+                          <span>Total Due</span>
+                        </div>
+                        <div className="flex items-baseline gap-0.5">
+                          <span className="text-[8px] font-bold text-slate-455">₹</span>
+                          {payLinkAmount ? (
+                            <span className="text-sm font-black text-white tracking-tight leading-none">
+                              {parseFloat(payLinkAmount) ? parseFloat(payLinkAmount).toFixed(2) : '0.00'}
+                            </span>
+                          ) : (
+                            <span className="text-[9px] font-semibold text-slate-400 italic">Enter Amount on Pay</span>
+                          )}
+                        </div>
+                        
+                        <div className="flex justify-between items-center text-[5.5px] text-slate-455 pt-1.5 border-t border-[#1D2D44] font-medium">
+                          <span className="truncate">Note: <span className="font-extrabold text-slate-200">{payLinkPurpose || 'General Payment'}</span></span>
+                        </div>
+                      </div>
+
+                      {/* UPI Selection Mockup */}
+                      <div className="bg-[#0F1E36] border border-[#1D2D44] rounded-xl p-2 shadow-sm space-y-1">
+                        <span className="text-[5px] text-slate-455 font-extrabold uppercase tracking-wider block">Scan QR or Tap UPI App</span>
+                        <div className="grid grid-cols-2 gap-1 pt-0.5">
+                          {['GPay', 'PhonePe', 'Paytm', 'BHIM'].map(app => (
+                            <div key={app} className="p-1 bg-[#0B192C] border border-[#1D2D44] rounded flex items-center gap-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                              <span className="font-extrabold text-[5px] text-slate-400">{app}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                    </div>
+
+                    <div className="pt-2 border-t border-[#1D2D44] text-center text-[5.5px] font-bold text-slate-400 uppercase tracking-wider">
+                      🔒 Secured by MyMobPay
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-[10px] text-slate-400 font-semibold px-4">
+                  Fill in the details on the left and click Generate to secure this payment link.
+                </div>
+              </div>
+            ) : (
+              /* SUCCESS STATE: QR CODE & SHARING ACTION */
+              <div className="w-full h-full flex flex-col justify-between items-center animate-fade-in flex-1">
+                <div className="w-full text-center">
+                  <div className="inline-flex p-2 bg-emerald-50 rounded-full border border-emerald-100 text-emerald-600 mb-2">
+                    <CheckCircle className="w-6 h-6 animate-scale-up" />
+                  </div>
+                  <h3 className="text-sm font-black text-slate-900">Payment Link Generated</h3>
+                  <p className="text-xs text-slate-500 font-medium mt-0.5">UPI link &amp; QR are active and live</p>
                 </div>
 
                 {/* QR Code Container */}
-                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 shadow-inner flex flex-col items-center justify-center">
+                <div className="bg-slate-50 border border-slate-200 rounded-3xl p-5 shadow-inner flex flex-col items-center justify-center my-4 transition-transform hover:scale-[1.01]">
                   <QRCode value={payLinkGeneratedUrl} size={150} level="H" fgColor="#0f172a" bgColor="#FFFFFF" />
-                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-3">Scan to open checkout</span>
+                  <span className="text-[9px] text-slate-455 font-extrabold uppercase tracking-wider mt-3">Scan to Pay via UPI</span>
                 </div>
 
-                {/* Link display & Copy row */}
+                {/* Sharing Options */}
                 <div className="w-full space-y-2 mt-2">
                   <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-left">
                     <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-1">Payment URL</p>
-                    <p className="text-xs font-mono font-bold text-slate-700 break-all select-all">{payLinkGeneratedUrl}</p>
+                    <p className="text-[11px] font-mono font-bold text-slate-700 break-all select-all">{payLinkGeneratedUrl}</p>
                   </div>
 
                   <div className="flex gap-2">
                     <button
                       onClick={() => copyToClipboard(payLinkGeneratedUrl)}
-                      className="flex-1 py-2.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 rounded-xl transition-all text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="flex-1 py-2.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 rounded-xl transition-all text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
                     >
                       {payLinkCopied ? <CheckCircle className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
                       <span>{payLinkCopied ? 'Copied URL' : 'Copy Link'}</span>
@@ -1703,40 +1822,39 @@ echo "Order Created: " . $data['orderId'];
                       href={`https://wa.me/?text=${encodeURIComponent("Please make the payment here: " + payLinkGeneratedUrl)}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 rounded-xl transition-all text-xs font-bold flex items-center justify-center gap-1.5"
+                      className="px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 rounded-xl transition-all text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm"
                     >
                       <Share2 className="w-4 h-4" />
                       <span>WhatsApp</span>
                     </a>
                   </div>
 
-                  <a
-                    href={payLinkGeneratedUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-250 text-slate-750 rounded-xl transition-all text-xs font-bold flex items-center justify-center gap-1.5 block cursor-pointer"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                    Open Checkout Page
-                  </a>
-                </div>
-              </div>
-            ) : (
-              <div className="flex-1 flex flex-col items-center justify-center gap-3 py-10">
-                <div className="p-4 bg-blue-50 rounded-full border border-blue-100 text-blue-500">
-                  <QrCode className="w-8 h-8 animate-pulse" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-black text-slate-800">No Link Generated Yet</h4>
-                  <p className="text-xs text-slate-400 font-semibold max-w-[200px] mx-auto mt-1 leading-normal">Fill out the creation form and click generate to build a payment link.</p>
+                  <div className="flex gap-2">
+                    <a
+                      href={payLinkGeneratedUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-250 text-slate-750 rounded-xl transition-all text-xs font-bold flex items-center justify-center gap-1.5 block cursor-pointer shadow-sm"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      Open checkout
+                    </a>
+                    <button
+                      onClick={handleResetForm}
+                      className="px-4 py-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 hover:text-slate-900 rounded-xl transition-all text-xs font-bold flex items-center justify-center gap-1 cursor-pointer shadow-sm"
+                    >
+                      Create New
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
+
           </div>
 
         </div>
 
-        {/* BOTTOM: History Log Section */}
+        {/* BOTTOM: History Log Directory Section */}
         <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex flex-col gap-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -1746,7 +1864,7 @@ echo "Order Created: " . $data['orderId'];
             
             {/* Search Input */}
             <div className="relative">
-              <Search className="w-4 h-4 text-slate-455 absolute left-3.5 top-2.5" />
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5" />
               <input 
                 type="text"
                 placeholder="Search history..."
@@ -1790,7 +1908,7 @@ echo "Order Created: " . $data['orderId'];
                         <td className="py-3.5 font-semibold text-slate-500">{dateStr}</td>
                         <td className="py-3.5 font-bold text-slate-800">{link.purpose}</td>
                         <td className="py-3.5 font-black text-slate-900 text-right">
-                          {isFlexible ? <span className="text-[10px] font-bold bg-slate-200 text-slate-600 px-2 py-0.5 rounded-lg font-mono">Flexible</span> : `₹${parseFloat(link.amount).toLocaleString('en-IN')}`}
+                          {isFlexible ? <span className="text-[10px] font-bold bg-slate-50 border border-slate-200 text-slate-650 px-2 py-0.5 rounded-lg font-mono">Flexible</span> : `₹${parseFloat(link.amount).toLocaleString('en-IN')}`}
                         </td>
                         <td className="py-3.5 pl-6 flex items-center gap-2">
                           <button
@@ -1799,7 +1917,7 @@ echo "Order Created: " . $data['orderId'];
                               // Copy it automatically for convenience
                               copyToClipboard(link.url);
                             }}
-                            className="p-1.5 bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-200 rounded-lg text-slate-500 hover:text-blue-600 transition-all flex items-center gap-1 font-bold text-[10px] cursor-pointer"
+                            className="p-1.5 bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-200 rounded-lg text-slate-500 hover:text-blue-600 transition-all flex items-center gap-1 font-bold text-[10px] cursor-pointer shadow-xs"
                             title="Load Link & Copy"
                           >
                             <Copy className="w-3.5 h-3.5" />
@@ -1809,14 +1927,14 @@ echo "Order Created: " . $data['orderId'];
                             href={link.url}
                             target="_blank"
                             rel="noreferrer"
-                            className="p-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-550 hover:text-slate-800 transition-all flex items-center justify-center cursor-pointer"
+                            className="p-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-550 hover:text-slate-800 transition-all flex items-center justify-center cursor-pointer shadow-xs"
                             title="Open Link"
                           >
                             <ExternalLink className="w-3.5 h-3.5" />
                           </a>
                           <button
                             onClick={() => handleDeleteLink(link.id)}
-                            className="p-1.5 bg-slate-50 hover:bg-red-50 border border-slate-200 hover:border-red-200 rounded-lg text-slate-500 hover:text-red-650 transition-all flex items-center justify-center cursor-pointer"
+                            className="p-1.5 bg-slate-50 hover:bg-red-50 border border-slate-200 hover:border-red-200 rounded-lg text-slate-500 hover:text-red-650 transition-all flex items-center justify-center cursor-pointer shadow-xs"
                             title="Delete Link"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
