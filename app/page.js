@@ -909,7 +909,7 @@ print("Checkout Link generated:", data.get("orderId"))`
       {/* ────────────────────────────────────────────────────────
          DEVELOPER PORTAL & API CODE PREVIEW SECTION
          ──────────────────────────────────────────────────────── */}
-      <section id="developer-section" className="py-24 bg-slate-950 text-white relative overflow-hidden">
+      <section id="developer-section" className="py-24 bg-[#0B192C] text-[#F8FAFC] relative overflow-hidden">
         
         {/* Neon blue ambient light spots */}
         <div className="absolute top-1/4 right-0 w-[400px] h-[400px] bg-blue-500/10 rounded-full filter blur-[100px] pointer-events-none" />
@@ -922,34 +922,34 @@ print("Checkout Link generated:", data.get("orderId"))`
             <span className="text-[9px] font-extrabold uppercase text-blue-400 tracking-widest bg-blue-900/40 border border-blue-800 px-3 py-1 rounded-full">
               Developer Portal
             </span>
-            <h2 className="text-3xl sm:text-4xl font-black tracking-tight leading-tight">
+            <h2 className="text-3xl sm:text-4xl font-black text-white-pure tracking-tight leading-tight">
               Create payments programmatically in under 30 seconds
             </h2>
-            <p className="text-sm text-slate-400 font-medium leading-relaxed">
+            <p className="text-sm text-[#94A3B8] font-medium leading-relaxed">
               Integrate checkout links seamlessly into your billing flow. Receive secure, signed outbound webhooks carrying SHA-256 signatures immediately upon client bank deposit match.
             </p>
 
             {/* Interactive demo payload fields */}
-            <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl space-y-3">
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Customize Live Code Payload</p>
+            <div className="p-4 bg-[#0F1E36] border border-[#1D2D44] rounded-2xl space-y-3">
+              <p className="text-[10px] font-bold text-[#64748B] uppercase tracking-widest">Customize Live Code Payload</p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider mb-1">Invoice Amount</label>
+                  <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-wider mb-1">Invoice Amount</label>
                   <input 
                     type="number"
                     value={demoAmount}
                     onChange={e => setDemoAmount(e.target.value)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl py-1.5 px-3 text-[10px] text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[#07111F] border border-[#1D2D44] rounded-xl py-1.5 px-3 text-[10px] text-[#F8FAFC] focus:outline-none focus:border-blue-500"
                     placeholder="500"
                   />
                 </div>
                 <div>
-                  <label className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider mb-1">Transaction Note</label>
+                  <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-wider mb-1">Transaction Note</label>
                   <input 
                     type="text"
                     value={demoNote}
                     onChange={e => setDemoNote(e.target.value)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl py-1.5 px-3 text-[10px] text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[#07111F] border border-[#1D2D44] rounded-xl py-1.5 px-3 text-[10px] text-[#F8FAFC] focus:outline-none focus:border-blue-500"
                     placeholder="Invoice_101"
                   />
                 </div>
@@ -959,10 +959,10 @@ print("Checkout Link generated:", data.get("orderId"))`
           </div>
 
           {/* Right REST Code Preview block */}
-          <div className="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl">
+          <div className="lg:col-span-7 bg-[#0F1E36] border border-[#1D2D44] rounded-3xl overflow-hidden shadow-2xl">
             
             {/* Snippet Tabs */}
-            <div className="bg-slate-920 px-6 py-4 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="bg-[#07111F] px-6 py-4 border-b border-[#1D2D44] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-1">
                 {[
                   { id: 'curl', label: 'cURL HTTP' },
@@ -972,7 +972,7 @@ print("Checkout Link generated:", data.get("orderId"))`
                   <button
                     key={snippetTab.id}
                     onClick={() => setActiveCodeTab(snippetTab.id)}
-                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${activeCodeTab === snippetTab.id ? 'bg-slate-800 text-blue-400' : 'text-slate-500 hover:text-white-pure'}`}
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${activeCodeTab === snippetTab.id ? 'bg-[#0F1E36] text-blue-400' : 'text-[#94A3B8] hover:text-white-pure'}`}
                   >
                     {snippetTab.label}
                   </button>
@@ -981,14 +981,14 @@ print("Checkout Link generated:", data.get("orderId"))`
 
               <button
                 onClick={() => copyCodeSnippet(codeSnippets[activeCodeTab])}
-                className="flex items-center justify-center gap-1.5 text-[9px] font-bold bg-slate-800 hover:bg-slate-750 text-slate-950/80 hover:text-white-pure px-3 py-1.5 border border-slate-700 rounded-lg transition-all"
+                className="flex items-center justify-center gap-1.5 text-[9px] font-bold bg-[#07111F] hover:bg-[#0F1E36] text-[#F8FAFC] px-3 py-1.5 border border-[#1D2D44] rounded-lg transition-all"
               >
                 {copiedCode ? 'Copied Snippet!' : 'Copy Code'}
               </button>
             </div>
 
             {/* Code Content */}
-            <pre className="p-6 text-[10px] sm:text-xs font-mono text-slate-950/90 overflow-x-auto leading-relaxed bg-slate-950/80 min-h-[220px]">
+            <pre className="p-6 text-[10px] sm:text-xs font-mono text-[#F8FAFC]/90 overflow-x-auto leading-relaxed bg-[#07111F] min-h-[220px]">
               {codeSnippets[activeCodeTab]}
             </pre>
 
@@ -1117,18 +1117,18 @@ print("Checkout Link generated:", data.get("orderId"))`
       {/* ────────────────────────────────────────────────────────
          PREMIUM SYSTEM FOOTER
          ──────────────────────────────────────────────────────── */}
-      <footer className="bg-slate-950 text-slate-400 py-16 border-t border-slate-900">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 pb-12 border-b border-slate-900">
+      <footer className="bg-[#0B192C] text-[#94A3B8] py-16 border-t border-[#1D2D44]">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 pb-12 border-b border-[#1D2D44]">
           
           <div className="md:col-span-4 space-y-4">
             <MyMobPayLogo className="w-32 h-auto" textColor="#FFFFFF" />
-            <p className="text-xs text-slate-500 leading-relaxed font-medium max-w-xs">
+            <p className="text-xs text-[#64748B] leading-relaxed font-medium max-w-xs">
               Instant Direct P2P UPI Payment gateway designed to eliminate intermediary transaction transaction costs for modern builders.
             </p>
           </div>
 
           <div className="md:col-span-2 space-y-3">
-            <p className="text-[10px] font-bold text-white uppercase tracking-wider">Product</p>
+            <p className="text-[10px] font-bold text-[#F8FAFC] uppercase tracking-wider">Product</p>
             <ul className="space-y-2 text-xs font-semibold">
               <li><button onClick={() => document.getElementById('products-section')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-white transition-colors">Accept Payments</button></li>
               <li><button onClick={() => { setActiveProductTab('payouts'); document.getElementById('products-section')?.scrollIntoView({ behavior: 'smooth' }); }} className="hover:text-white transition-colors">Direct Payouts</button></li>
@@ -1137,7 +1137,7 @@ print("Checkout Link generated:", data.get("orderId"))`
           </div>
 
           <div className="md:col-span-2 space-y-3">
-            <p className="text-[10px] font-bold text-white uppercase tracking-wider">Resources</p>
+            <p className="text-[10px] font-bold text-[#F8FAFC] uppercase tracking-wider">Resources</p>
             <ul className="space-y-2 text-xs font-semibold">
               <li><button onClick={() => document.getElementById('developer-section')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-white transition-colors">API Docs</button></li>
               <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
@@ -1146,15 +1146,15 @@ print("Checkout Link generated:", data.get("orderId"))`
           </div>
 
           <div className="md:col-span-4 space-y-3">
-            <p className="text-[10px] font-bold text-white uppercase tracking-wider">Direct Bank Settlement</p>
-            <p className="text-xs text-slate-500 leading-relaxed font-medium">
+            <p className="text-[10px] font-bold text-[#F8FAFC] uppercase tracking-wider">Direct Bank Settlement</p>
+            <p className="text-xs text-[#64748B] leading-relaxed font-medium">
               Funds are instantly routed to your direct bank UPI VPA (Virtual Payment Address). Security is safeguarded by standardized encryption.
             </p>
           </div>
 
         </div>
 
-        <div className="max-w-7xl mx-auto px-6 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-semibold text-slate-600">
+        <div className="max-w-7xl mx-auto px-6 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-semibold text-[#64748B]">
           <p>© 2026 MyMobPay · B2B Payments Gateway · Built for Builders.</p>
           <div className="flex gap-4">
             <Link href="/terms" className="hover:text-slate-400 transition-colors">Terms</Link>
