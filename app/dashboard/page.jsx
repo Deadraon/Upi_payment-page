@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
@@ -9,8 +9,10 @@ import {
   Loader2, Copy, CheckCircle, CreditCard, Mail, X, 
   LayoutDashboard, Search, Download, RefreshCw, IndianRupee,
   Clock, CheckCircle2, XCircle, Code, ChevronRight, BookOpen,
-  Menu, TrendingUp, AlertCircle, Star, Shield, Calendar, Zap, ChevronDown
+  Menu, TrendingUp, AlertCircle, Star, Shield, Calendar, Zap, ChevronDown,
+  QrCode, Share2, Trash2, Plus, ExternalLink
 } from 'lucide-react';
+import QRCode from 'react-qr-code';
 import { 
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid 
 } from 'recharts';
@@ -58,6 +60,18 @@ export default function DashboardPage() {
   const [linkNote, setLinkNote] = useState('Order_123');
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedSnippet, setCopiedSnippet] = useState(null);
+
+  // Dedicated Payment Links Panel States
+  const [payLinkAmount, setPayLinkAmount] = useState('');
+  const [payLinkPurpose, setPayLinkPurpose] = useState('');
+  const [payLinkCustomerName, setPayLinkCustomerName] = useState('');
+  const [payLinkCustomerPhone, setPayLinkCustomerPhone] = useState('');
+  const [payLinkRef, setPayLinkRef] = useState('');
+  const [payLinkProject, setPayLinkProject] = useState('');
+  const [payLinkGeneratedUrl, setPayLinkGeneratedUrl] = useState('');
+  const [payLinkHistory, setPayLinkHistory] = useState([]);
+  const [payLinkSearch, setPayLinkSearch] = useState('');
+  const [payLinkCopied, setPayLinkCopied] = useState(false);
 
   // Error Banner
   const [dbError, setDbError] = useState(null);
@@ -321,6 +335,18 @@ export default function DashboardPage() {
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') || 'dark';
     setTheme(savedTheme);
+  }, []);
+
+  // Load Payment Links History
+  useEffect(() => {
+    const history = localStorage.getItem('mymobpay_payment_links');
+    if (history) {
+      try {
+        setPayLinkHistory(JSON.parse(history));
+      } catch (e) {
+        console.error("Error loading payment links history:", e);
+      }
+    }
   }, []);
 
   const toggleTheme = () => {
@@ -1486,6 +1512,329 @@ echo "Order Created: " . $data['orderId'];
     );
   };
 
+  const renderPaymentLinksPanel = () => {
+    // Generate URL dynamically on form input changes or when "Generate" is clicked
+    const generateUrl = () => {
+      if (typeof window === 'undefined') return '';
+      const host = window.location.origin;
+      const key = profile?.api_key || 'YOUR_API_KEY';
+      
+      const params = new URLSearchParams();
+      params.append('key', key);
+      if (payLinkAmount) params.append('amount', payLinkAmount);
+      if (payLinkPurpose) params.append('note', payLinkPurpose);
+      if (payLinkRef) params.append('ref', payLinkRef);
+      if (payLinkProject) params.append('project', payLinkProject);
+      if (payLinkCustomerName) params.append('name', payLinkCustomerName);
+      if (payLinkCustomerPhone) params.append('phone', payLinkCustomerPhone);
+      
+      return `${host}/pay?${params.toString()}`;
+    };
+
+    const handleCreateLink = (e) => {
+      e.preventDefault();
+      const url = generateUrl();
+      setPayLinkGeneratedUrl(url);
+
+      const newLink = {
+        id: Math.random().toString(36).substr(2, 9),
+        amount: payLinkAmount ? parseFloat(payLinkAmount).toFixed(2) : 'Flexible',
+        purpose: payLinkPurpose || 'General Payment',
+        url: url,
+        createdAt: new Date().toISOString()
+      };
+
+      const updatedHistory = [newLink, ...payLinkHistory];
+      setPayLinkHistory(updatedHistory);
+      localStorage.setItem('mymobpay_payment_links', JSON.stringify(updatedHistory));
+    };
+
+    const copyToClipboard = (url) => {
+      navigator.clipboard.writeText(url);
+      setPayLinkCopied(true);
+      setTimeout(() => setPayLinkCopied(false), 2000);
+    };
+
+    const handleDeleteLink = (id) => {
+      const updatedHistory = payLinkHistory.filter(item => item.id !== id);
+      setPayLinkHistory(updatedHistory);
+      localStorage.setItem('mymobpay_payment_links', JSON.stringify(updatedHistory));
+    };
+
+    const filteredLinks = payLinkHistory.filter(link => 
+      link.purpose.toLowerCase().includes(payLinkSearch.toLowerCase()) ||
+      link.amount.toLowerCase().includes(payLinkSearch.toLowerCase()) ||
+      link.url.toLowerCase().includes(payLinkSearch.toLowerCase())
+    );
+
+    return (
+      <div className="flex flex-col gap-6 max-w-5xl mx-auto w-full animate-fade-up">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          
+          {/* LEFT: Link Creator Form (3 cols) */}
+          <div className="lg:col-span-3 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex flex-col gap-5">
+            <div>
+              <h3 className="text-sm font-black text-slate-900">Create Payment Link</h3>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">Fill in the fields to instantly generate a checkout link or QR code.</p>
+            </div>
+
+            <form onSubmit={handleCreateLink} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Amount (INR)</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2 text-slate-400 font-bold text-xs">₹</span>
+                    <input 
+                      type="number"
+                      step="0.01"
+                      min="1"
+                      placeholder="e.g. 500 (Optional)"
+                      value={payLinkAmount}
+                      onChange={e => setPayLinkAmount(e.target.value)}
+                      className="w-full bg-slate-550 border border-slate-200 rounded-xl py-2 pl-7 pr-3 focus:outline-none focus:border-blue-500 text-xs font-semibold text-slate-900"
+                    />
+                  </div>
+                  <span className="text-[9px] text-slate-400 font-medium mt-0.5 block">Leave blank for a flexible checkout where customers choose the amount.</span>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-505 uppercase tracking-wider mb-1">Purpose / Description</label>
+                  <input 
+                    type="text"
+                    required
+                    placeholder="e.g. Invoice #102, Consulting fee"
+                    value={payLinkPurpose}
+                    onChange={e => setPayLinkPurpose(e.target.value)}
+                    className="w-full bg-slate-550 border border-slate-200 rounded-xl py-2 px-3 focus:outline-none focus:border-blue-500 text-xs font-semibold text-slate-900"
+                  />
+                </div>
+              </div>
+
+              <div className="border-t border-slate-105 pt-4">
+                <p className="text-[10px] font-bold text-slate-405 uppercase tracking-widest mb-3">Additional Details (Optional)</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-505 uppercase tracking-wider mb-1">Customer Name</label>
+                    <input 
+                      type="text"
+                      placeholder="e.g. John Doe"
+                      value={payLinkCustomerName}
+                      onChange={e => setPayLinkCustomerName(e.target.value)}
+                      className="w-full bg-slate-550 border border-slate-200 rounded-xl py-2 px-3 focus:outline-none focus:border-blue-500 text-xs font-semibold text-slate-900"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-505 uppercase tracking-wider mb-1">Customer Phone</label>
+                    <input 
+                      type="text"
+                      placeholder="e.g. 9876543210"
+                      value={payLinkCustomerPhone}
+                      onChange={e => setPayLinkCustomerPhone(e.target.value)}
+                      className="w-full bg-slate-550 border border-slate-200 rounded-xl py-2 px-3 focus:outline-none focus:border-blue-500 text-xs font-semibold text-slate-900"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-505 uppercase tracking-wider mb-1">Custom Reference / Order ID</label>
+                  <input 
+                    type="text"
+                    placeholder="e.g. REF-109283"
+                    value={payLinkRef}
+                    onChange={e => setPayLinkRef(e.target.value)}
+                    className="w-full bg-slate-550 border border-slate-200 rounded-xl py-2 px-3 focus:outline-none focus:border-blue-500 text-xs font-semibold text-slate-900"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-505 uppercase tracking-wider mb-1">Project Name Override</label>
+                  <input 
+                    type="text"
+                    placeholder={`e.g. ${profile?.business_name || 'My Business'}`}
+                    value={payLinkProject}
+                    onChange={e => setPayLinkProject(e.target.value)}
+                    className="w-full bg-slate-550 border border-slate-200 rounded-xl py-2 px-3 focus:outline-none focus:border-blue-500 text-xs font-semibold text-slate-900"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all shadow-md shadow-blue-500/25 mt-2 cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                Generate Payment Link
+              </button>
+            </form>
+          </div>
+
+          {/* RIGHT: Generated Output & QR Code (2 cols) */}
+          <div className="lg:col-span-2 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex flex-col justify-between items-center text-center min-h-[400px]">
+            {payLinkGeneratedUrl ? (
+              <div className="w-full flex flex-col items-center gap-4 animate-fade-up">
+                <div className="w-full">
+                  <h3 className="text-sm font-black text-slate-900">Your Payment Link</h3>
+                  <p className="text-xs text-slate-500 font-medium mt-0.5">Ready to share with your customer</p>
+                </div>
+
+                {/* QR Code Container */}
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 shadow-inner flex flex-col items-center justify-center">
+                  <QRCode value={payLinkGeneratedUrl} size={150} level="H" fgColor="#0f172a" bgColor="#FFFFFF" />
+                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-3">Scan to open checkout</span>
+                </div>
+
+                {/* Link display & Copy row */}
+                <div className="w-full space-y-2 mt-2">
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-left">
+                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-1">Payment URL</p>
+                    <p className="text-xs font-mono font-bold text-slate-700 break-all select-all">{payLinkGeneratedUrl}</p>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => copyToClipboard(payLinkGeneratedUrl)}
+                      className="flex-1 py-2.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 rounded-xl transition-all text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      {payLinkCopied ? <CheckCircle className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                      <span>{payLinkCopied ? 'Copied URL' : 'Copy Link'}</span>
+                    </button>
+                    <a
+                      href={`https://wa.me/?text=${encodeURIComponent("Please make the payment here: " + payLinkGeneratedUrl)}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 rounded-xl transition-all text-xs font-bold flex items-center justify-center gap-1.5"
+                    >
+                      <Share2 className="w-4 h-4" />
+                      <span>WhatsApp</span>
+                    </a>
+                  </div>
+
+                  <a
+                    href={payLinkGeneratedUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-250 text-slate-750 rounded-xl transition-all text-xs font-bold flex items-center justify-center gap-1.5 block cursor-pointer"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Open Checkout Page
+                  </a>
+                </div>
+              </div>
+            ) : (
+              <div className="flex-1 flex flex-col items-center justify-center gap-3 py-10">
+                <div className="p-4 bg-blue-50 rounded-full border border-blue-100 text-blue-500">
+                  <QrCode className="w-8 h-8 animate-pulse" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-slate-800">No Link Generated Yet</h4>
+                  <p className="text-xs text-slate-400 font-semibold max-w-[200px] mx-auto mt-1 leading-normal">Fill out the creation form and click generate to build a payment link.</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+        </div>
+
+        {/* BOTTOM: History Log Section */}
+        <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-sm font-black text-slate-900">Generated Links Directory</h3>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">Manage and track previously built payment collection links.</p>
+            </div>
+            
+            {/* Search Input */}
+            <div className="relative">
+              <Search className="w-4 h-4 text-slate-455 absolute left-3.5 top-2.5" />
+              <input 
+                type="text"
+                placeholder="Search history..."
+                value={payLinkSearch}
+                onChange={e => setPayLinkSearch(e.target.value)}
+                className="bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-500 w-full sm:w-60"
+              />
+            </div>
+          </div>
+
+          {payLinkHistory.length === 0 ? (
+            <div className="py-12 flex flex-col items-center gap-2 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+              <Calendar className="w-8 h-8 text-slate-350" />
+              <p className="text-xs text-slate-405 font-bold">No generated payment links yet</p>
+            </div>
+          ) : filteredLinks.length === 0 ? (
+            <div className="py-12 flex flex-col items-center gap-2 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+              <Search className="w-8 h-8 text-slate-350" />
+              <p className="text-xs text-slate-405 font-bold">No matching links found</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider select-none font-semibold">
+                    <th className="pb-3">Created At</th>
+                    <th className="pb-3">Purpose / Note</th>
+                    <th className="pb-3 text-right">Amount</th>
+                    <th className="pb-3 pl-6">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredLinks.map(link => {
+                    const dateStr = new Date(link.createdAt).toLocaleDateString('en-IN', {
+                      day: '2-digit', month: 'short', year: 'numeric',
+                      hour: '2-digit', minute: '2-digit'
+                    });
+                    const isFlexible = link.amount === 'Flexible';
+                    return (
+                      <tr key={link.id} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="py-3.5 font-semibold text-slate-500">{dateStr}</td>
+                        <td className="py-3.5 font-bold text-slate-800">{link.purpose}</td>
+                        <td className="py-3.5 font-black text-slate-900 text-right">
+                          {isFlexible ? <span className="text-[10px] font-bold bg-slate-200 text-slate-600 px-2 py-0.5 rounded-lg font-mono">Flexible</span> : `₹${parseFloat(link.amount).toLocaleString('en-IN')}`}
+                        </td>
+                        <td className="py-3.5 pl-6 flex items-center gap-2">
+                          <button
+                            onClick={() => {
+                              setPayLinkGeneratedUrl(link.url);
+                              // Copy it automatically for convenience
+                              copyToClipboard(link.url);
+                            }}
+                            className="p-1.5 bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-200 rounded-lg text-slate-500 hover:text-blue-600 transition-all flex items-center gap-1 font-bold text-[10px] cursor-pointer"
+                            title="Load Link & Copy"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                            <span>Copy</span>
+                          </button>
+                          <a
+                            href={link.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="p-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-550 hover:text-slate-800 transition-all flex items-center justify-center cursor-pointer"
+                            title="Open Link"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </a>
+                          <button
+                            onClick={() => handleDeleteLink(link.id)}
+                            className="p-1.5 bg-slate-50 hover:bg-red-50 border border-slate-200 hover:border-red-200 rounded-lg text-slate-500 hover:text-red-650 transition-all flex items-center justify-center cursor-pointer"
+                            title="Delete Link"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+      </div>
+    );
+  };
+
 
 
   return (
@@ -1535,6 +1884,17 @@ echo "Order Created: " . $data['orderId'];
             }`}
           >
             <LayoutDashboard className="w-4.5 h-4.5 shrink-0" /> Overview
+          </button>
+
+          <button 
+            onClick={() => setActiveTab('payment-links')}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold text-sm transition-all border ${
+              activeTab === 'payment-links' 
+                ? 'bg-blue-50 text-blue-700 border-blue-100 shadow-sm shadow-blue-500/5' 
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-transparent'
+            }`}
+          >
+            <LinkIcon className="w-4.5 h-4.5 shrink-0" /> Payment Links
           </button>
           
           {/* Category: Reports */}
@@ -1715,6 +2075,7 @@ echo "Order Created: " . $data['orderId'];
               {[
                 { type: 'header', label: 'General' },
                 { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+                { id: 'payment-links', label: 'Payment Links', icon: LinkIcon },
                 { type: 'header', label: 'Reports' },
                 { id: 'transactions', label: 'Transactions', icon: CreditCard },
                 { type: 'header', label: 'Integrations' },
@@ -1940,9 +2301,10 @@ echo "Order Created: " . $data['orderId'];
             {/* Header section with active tab label and sandbox toggle */}
             <div className="mb-6 pt-2 md:pt-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h2 className="text-3xl font-black text-slate-900 capitalize">{activeTab === 'api' ? 'API Credentials' : activeTab === 'developer' ? 'Developer Portal' : activeTab === 'subscription' ? 'Subscription Console' : activeTab === 'connections' ? 'Connections' : activeTab}</h2>
+                <h2 className="text-3xl font-black text-slate-900 capitalize">{activeTab === 'api' ? 'API Credentials' : activeTab === 'developer' ? 'Developer Portal' : activeTab === 'subscription' ? 'Subscription Console' : activeTab === 'connections' ? 'Connections' : activeTab === 'payment-links' ? 'Payment Links' : activeTab}</h2>
                 <p className="text-sm text-slate-500 font-medium mt-1">
                   {activeTab === 'overview' && 'Real-time overview of business revenue and platform subscription details.'}
+                  {activeTab === 'payment-links' && 'Generate one-click payment URLs or QR codes to collect custom payments from customers.'}
                   {activeTab === 'subscription' && 'Monitor subscription status, calculate renewals, and extend your active platform plan.'}
                   {activeTab === 'transactions' && 'Monitor and filter payment orders. Export history instantly.'}
                   {activeTab === 'connections' && 'Connect automated verification channels such as email forwarding and cashier staff accounts.'}
@@ -2009,6 +2371,11 @@ echo "Order Created: " . $data['orderId'];
                 <p className="text-[10px] mt-2 text-red-500 font-medium">Make sure the `merchants` and `orders` tables are configured inside Supabase SQL Editor.</p>
               </div>
             )}
+
+            {/* ═══════════════════════════════════════════════════════════
+               TAB: PAYMENT LINKS
+               ═══════════════════════════════════════════════════════════ */}
+            {activeTab === 'payment-links' && renderPaymentLinksPanel()}
 
             {/* ═══════════════════════════════════════════════════════════
                TAB: OVERVIEW
