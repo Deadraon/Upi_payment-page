@@ -175,6 +175,7 @@ function PayPageContent() {
   const paramRef      = searchParams.get('ref') || '';
   const paramNote     = searchParams.get('note') || '';
   const paramLid      = searchParams.get('lid') || '';
+  const paramOrderId  = searchParams.get('order_id') || searchParams.get('id') || '';
 
   const [merchant, setMerchant]   = useState(null);
   const [initLoading, setInitLoading] = useState(true);
@@ -229,9 +230,32 @@ function PayPageContent() {
   const autoCreated = useRef(false);
 
   useEffect(() => {
-    async function fetchMerchant() {
+    async function loadPageData() {
+      // Case 1: Pre-generated order ID is present! Load order details and skip details form
+      if (paramOrderId) {
+        try {
+          const res = await fetch(`/api/orders?id=${encodeURIComponent(paramOrderId)}`);
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Failed to load order details');
+          
+          setOrderId(data.orderId);
+          setOrderAmount(data.amount);
+          setAmount(String(data.amount));
+          setOrderMode(data.mode || 'live');
+          setMerchant(data.merchant);
+          setStep('paying');
+          autoCreated.current = true;
+        } catch (err) {
+          setInitError(err.message);
+        } finally {
+          setInitLoading(false);
+        }
+        return;
+      }
+
+      // Case 2: Classic API key flow (load merchant, create order if amount in URL)
       if (!paramApiKey) {
-        setInitError('Invalid payment link. Missing API Key.');
+        setInitError('Invalid payment link. Missing API Key or Order ID.');
         setInitLoading(false);
         return;
       }
@@ -246,15 +270,16 @@ function PayPageContent() {
         setInitLoading(false);
       }
     }
-    fetchMerchant();
-  }, [paramApiKey]);
+    loadPageData();
+  }, [paramApiKey, paramOrderId]);
 
   useEffect(() => {
-    if (paramAmount && merchant && !autoCreated.current && !initLoading && !initError) {
+    // Only auto-create in classic API key flow if amount is specified
+    if (!paramOrderId && paramAmount && merchant && !autoCreated.current && !initLoading && !initError) {
       autoCreated.current = true;
       createOrder(paramAmount);
     }
-  }, [merchant, initLoading, initError]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [merchant, initLoading, initError, paramOrderId, paramAmount]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (step !== 'paying') return;

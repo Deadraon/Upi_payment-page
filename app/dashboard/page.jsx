@@ -1645,14 +1645,53 @@ echo "Order Created: " . $data['orderId'];
       return `${host}/pay?${params.toString()}`;
     };
 
-    const handleCreateLink = (e) => {
+    const handleCreateLink = async (e) => {
       e.preventDefault();
       const linkId = Math.random().toString(36).substr(2, 9);
-      const url = generateUrl(linkId);
+      
+      let url = '';
+      let isPreGenerated = false;
+      let dbOrderId = '';
+      
+      // Pre-generate order in database immediately if amount is specified
+      if (payLinkAmount && parseFloat(payLinkAmount) > 0) {
+        try {
+          const res = await fetch('/api/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              api_key: profile?.api_key ? (profile.sandbox_mode !== false ? 'test_' : 'live_') + profile.api_key : 'YOUR_API_KEY',
+              amount: parseFloat(payLinkAmount),
+              note: payLinkPurpose || 'Payment',
+              customer_name: payLinkCustomerName || '',
+              customer_phone: payLinkCustomerPhone || '',
+              external_ref: linkId, // store linkId for tracking
+              project: payLinkProject || undefined
+            })
+          });
+          const data = await res.json();
+          if (res.ok && data.orderId) {
+            dbOrderId = data.orderId;
+            url = `${window.location.origin}/pay?order_id=${data.orderId}`;
+            isPreGenerated = true;
+          } else {
+            console.error('Failed to pre-generate order:', data.error);
+          }
+        } catch (err) {
+          console.error('Error pre-generating order:', err);
+        }
+      }
+      
+      // Fallback to client-side URL if amount is flexible or API call fails
+      if (!isPreGenerated) {
+        url = generateUrl(linkId);
+      }
+      
       setPayLinkGeneratedUrl(url);
 
       const newLink = {
         id: linkId,
+        orderId: dbOrderId || null,
         amount: payLinkAmount ? parseFloat(payLinkAmount).toFixed(2) : 'Flexible',
         purpose: payLinkPurpose || 'Payment',
         url: url,
@@ -1714,10 +1753,10 @@ echo "Order Created: " . $data['orderId'];
 
               <form onSubmit={handleCreateLink} className="space-y-5">
                 {/* Main Big Box: Amount Input */}
-                <div className="bg-slate-50/60 border border-slate-200 rounded-2xl p-5 space-y-2.5 transition-all">
-                  <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Amount to Request (INR)</label>
+                <div className="bg-slate-50 border border-slate-250 focus-within:border-blue-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-500/20 rounded-2xl p-5 space-y-2 transition-all shadow-sm">
+                  <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider select-none">Amount to Request (INR)</label>
                   <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-black text-2xl select-none">₹</span>
+                    <span className="absolute left-1 top-1/2 -translate-y-1/2 text-slate-400 font-black text-3xl select-none">₹</span>
                     <input 
                       type="number"
                       step="0.01"
@@ -1725,7 +1764,7 @@ echo "Order Created: " . $data['orderId'];
                       placeholder="0.00"
                       value={payLinkAmount}
                       onChange={e => setPayLinkAmount(e.target.value)}
-                      className="w-full bg-white border border-slate-200 focus:border-blue-500 focus:outline-none transition-all py-3.5 pl-10 pr-4 text-3xl font-black text-slate-900 rounded-xl placeholder:text-slate-200 tabular-nums"
+                      className="w-full bg-transparent border-0 focus:outline-none py-1 pl-8 pr-2 text-3xl font-black text-slate-900 placeholder:text-slate-200 tabular-nums"
                     />
                   </div>
                   <span className="text-[9px] text-slate-400 font-semibold block leading-tight">Leave empty to let the customer decide their own transfer amount.</span>

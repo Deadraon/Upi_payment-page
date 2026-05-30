@@ -139,7 +139,7 @@ export async function GET(request) {
 
     const { data: order, error } = await supabaseAdmin
       .from('orders')
-      .select('id, amount, status, note, created_at, mode, utr')
+      .select('id, amount, status, note, created_at, mode, utr, merchant_id, project')
       .eq('id', id)
       .single();
 
@@ -147,13 +147,22 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
+    // Fetch matching merchant branding settings and UPI ID
+    const { data: merchant } = await supabaseAdmin
+      .from('merchants')
+      .select('business_name, upi_id, theme_color')
+      .eq('id', order.merchant_id)
+      .single();
+
     return NextResponse.json({ 
       orderId: order.id, 
       amount: order.amount, 
       status: order.status, 
       note: order.note,
       mode: order.mode,
-      utr: order.utr
+      utr: order.utr,
+      project: order.project,
+      merchant: merchant || null
     }, { status: 200 });
 
   } catch (err) {
