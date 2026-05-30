@@ -29,9 +29,9 @@
 
 /* ─── Light Mode Theme Tokens ────────────────────────────── */
 .light-theme {
-  --bg-base:        #F8FAFC; /* Clean, premium slate-50 background */
+  --bg-base:        #F1F5F9; /* Crisp, premium slate-100 background */
   --bg-card:        #FFFFFF; /* Pure white cards */
-  --bg-input:       #F1F5F9; /* Slate-100 for clear input fields inside white cards */
+  --bg-input:       #F8FAFC; /* Slate-50 for inputs inside white cards */
   --border-subtle:  #E2E8F0; /* Slate-200 for clean, elegant borders */
   --border-hover:   #CBD5E1; /* Slate-300 */
   --accent:         #2563EB; /* Premium royal blue */
@@ -372,4 +372,16 @@ input[type=number] {
 }
 .hover\:text-white:hover {
   color: #ffffff !important;
+}
+
+/* ─── Premium Light Theme Card Shadows & High Visibility Overrides ─── */
+.light-theme .bg-white {
+  background-color: var(--bg-card) !important;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.06), 0 8px 16px -6px rgba(15, 23, 42, 0.04) !important;
+  border: 1px solid var(--border-subtle) !important;
+}
+
+/* Also add to glass-cards in light mode for extra premium depth */
+.light-theme .glass-card {
+  box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.08) !important;
 }
