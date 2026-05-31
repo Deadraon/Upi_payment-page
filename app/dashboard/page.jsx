@@ -1152,6 +1152,8 @@ echo "Order Created: " . $data['orderId'];
     const callbackUrl = typeof window !== 'undefined' ? `${window.location.origin}/dashboard` : '';
     const payUrl = `/pay?api_key=${CONFIG.platformApiKey}&amount=${total}&ref=${profile?.id}&note=Subscription_${months}Month&callback=${encodeURIComponent(callbackUrl)}`;
 
+    const isNewUser = !profile?.subscription_expires_at;
+
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 md:p-8 relative overflow-hidden">
         {/* Glow Effects */}
@@ -1166,7 +1168,7 @@ echo "Order Created: " . $data['orderId'];
             <MyMobPayLogo className="w-40 h-auto" />
             <div className="flex items-center gap-2 bg-red-50 border border-red-100 text-red-700 px-3.5 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider">
               <AlertCircle className="w-4 h-4 text-red-500 animate-pulse" />
-              Subscription Expired / Inactive
+              {isNewUser ? 'Account Setup Required' : 'Subscription Expired / Inactive'}
             </div>
           </div>
 
@@ -1176,10 +1178,14 @@ echo "Order Created: " . $data['orderId'];
               <Shield className="w-5 h-5 text-red-500" />
             </div>
             <div>
-              <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide">Access Locked</h3>
+              <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide">
+                {isNewUser ? 'Console Setup Required' : 'Access Locked'}
+              </h3>
               <p className="text-xs font-semibold text-slate-500 mt-1 leading-relaxed">
-                Your merchant console access is locked because your premium subscription tier is expired or inactive. 
-                Please renew your subscription plan below to automatically reactivate api request routing, checkouts, and dashboard analytics.
+                {isNewUser 
+                  ? 'Your merchant console is currently locked because your account setup is incomplete. Please activate your 3-day free trial or select a subscription plan below to unlock API routing and analytics.' 
+                  : 'Your merchant console access is locked because your premium subscription tier is expired. Please renew your subscription plan below to automatically reactivate api request routing, checkouts, and dashboard analytics.'
+                }
               </p>
             </div>
           </div>
