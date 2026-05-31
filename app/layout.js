@@ -96,9 +96,9 @@ export const metadata = {
 
   // ── Icons ─────────────────────────────────────────────────────
   icons: {
-    icon: "/logos/monochrome.png",
-    shortcut: "/logos/monochrome.png",
-    apple: "/logos/monochrome.png",
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
   },
 
   // ── Verification ──────────────────────────────────────────────

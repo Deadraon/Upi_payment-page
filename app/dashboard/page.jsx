@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import { supabase } from '@/lib/supabase';
 import { CONFIG } from '@/lib/config';
 import { 
@@ -18,20 +17,16 @@ import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid 
 } from 'recharts';
 
-const MyMobPayLogo = ({ className = '', textColor = 'var(--text-primary)', iconSize = 32 }) => (
-  <div className={`flex items-center gap-2 transition-transform duration-300 hover:scale-[1.02] ${className}`}>
-    <Image
-      src="/logos/black.png"
-      alt="MyMobPay"
-      width={iconSize}
-      height={iconSize}
-      className="object-contain flex-shrink-0"
-      style={{ width: iconSize, height: iconSize }}
-    />
-    <span style={{ fontFamily: "'Outfit', 'Inter', sans-serif", color: textColor, letterSpacing: '-0.02em', lineHeight: 1 }}>
-      <span style={{ fontWeight: 500 }}>mymob</span><span style={{ fontWeight: 800 }}>pay</span>
-    </span>
-  </div>
+const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = 'var(--text-primary)' }) => (
+  <svg viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
+    {/* Single unified wordmark with unique mixed fonts */}
+    <text x="2" y="42" letterSpacing="0">
+      {/* MyMob */}
+      <tspan fontFamily="'Outfit', sans-serif" fontWeight="800" fontSize="36" fill={textColor}>MyMob</tspan>
+      {/* Pay */}
+      <tspan fontFamily="'Orbitron', sans-serif" fontWeight="900" fontStyle="italic" fontSize="36" fill="var(--accent)" dx="3">Pay</tspan>
+    </text>
+  </svg>
 );
 
 export default function DashboardPage() {
@@ -5148,7 +5143,7 @@ async function checkOrderStatus(orderId) {
                             </button>
                           </div>
                         ) : (
-                          <div className="grid grid-cols-1 gap-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {detectedWebsites.map(site => {
                               // Filter transactions matching this website
                               const websiteOrders = orders.filter(o => 
@@ -5166,7 +5161,7 @@ async function checkOrderStatus(orderId) {
                                 <div 
                                   key={site.domain}
                                   onClick={() => setSelectedWebsite(site)}
-                                  className="bg-white border border-slate-200 hover:border-blue-400 rounded-3xl p-6 transition-all duration-300 group flex flex-col justify-between min-h-[190px] h-auto gap-4 shadow-sm hover:shadow-md cursor-pointer relative overflow-hidden"
+                                  className="bg-white border border-slate-200 hover:border-blue-400 rounded-3xl p-6 transition-all duration-300 group flex flex-col justify-between h-[230px] shadow-sm hover:shadow-md cursor-pointer relative overflow-hidden"
                                 >
                                   {/* Decorative visual glow */}
                                   <div className="absolute right-0 top-0 w-24 h-24 bg-blue-500/5 rounded-bl-full pointer-events-none group-hover:bg-blue-500/10 transition-colors" />
@@ -5178,7 +5173,7 @@ async function checkOrderStatus(orderId) {
                                           <LinkIcon className="w-5 h-5" />
                                         </div>
                                         <div>
-                                          <h4 className="text-sm font-black text-slate-800 group-hover:text-blue-600 transition-colors">
+                                          <h4 className="text-sm font-black text-slate-805 group-hover:text-blue-600 transition-colors">
                                             {site.name}
                                           </h4>
                                           <p className="text-[10px] text-slate-400 font-bold tracking-wide mt-0.5 truncate max-w-[180px]">
@@ -5209,7 +5204,7 @@ async function checkOrderStatus(orderId) {
                                     </div>
                                   </div>
 
-                                  <div className="flex justify-between items-center pt-2 border-t border-slate-100/80 text-[10px] font-bold text-slate-500">
+                                  <div className="flex justify-between items-center pt-2 border-t border-slate-100/80 text-[10px] font-bold text-slate-550">
                                     <div className="flex gap-2">
                                       <span className={webhookConfigured ? "text-emerald-600" : "text-amber-600"}>
                                         {webhookConfigured ? '✓ Webhook active' : '⚠️ No webhook'}
@@ -5298,18 +5293,18 @@ async function checkOrderStatus(orderId) {
                                 <div className="space-y-2.5">
                                   
                                   {/* Webhook Endpoint */}
-                                  <div className={`flex items-start gap-3 p-3 rounded-2xl border transition-colors ${
-                                    webhookConfigured ? 'bg-slate-50 border-slate-200' : 'alert-danger'
+                                  <div className={`flex items-start gap-3 p-3 rounded-2xl border ${
+                                    webhookConfigured ? 'bg-slate-50 border-slate-150' : 'bg-red-50/50 border-red-200'
                                   }`}>
                                     <span className={webhookConfigured ? "text-emerald-500 font-black text-sm shrink-0" : "text-red-500 font-black text-sm shrink-0"}>
                                       {webhookConfigured ? '✓' : '⚠️'}
                                     </span>
                                     <div>
-                                      <p className={`text-xs font-bold ${webhookConfigured ? 'text-slate-800' : 'text-current'}`}>Webhook Endpoint Routing</p>
+                                      <p className="text-xs font-bold text-slate-805">Webhook Endpoint Routing</p>
                                       {webhookConfigured ? (
                                         <p className="text-[10px] text-slate-500 font-semibold mt-0.5 truncate max-w-[280px]" title={profile.webhook_url}>{profile.webhook_url}</p>
                                       ) : (
-                                        <p className="text-[10px] font-black mt-0.5 alert-danger-text-muted">
+                                        <p className="text-[10px] text-red-655 font-black mt-0.5">
                                           Missing Settings Webhook URL! Outbound payments verification alerts are not forwarded to this domain.
                                         </p>
                                       )}
@@ -5317,24 +5312,24 @@ async function checkOrderStatus(orderId) {
                                   </div>
 
                                   {/* Outbound HMAC Signature */}
-                                  <div className="flex items-start gap-3 p-3 bg-slate-50 border border-slate-200 rounded-2xl">
+                                  <div className="flex items-start gap-3 p-3 bg-slate-50 border border-slate-150 rounded-2xl">
                                     <span className="text-emerald-500 font-bold text-sm shrink-0">✓</span>
                                     <div>
-                                      <p className="text-xs font-bold text-slate-800">SHA256 HMAC Security</p>
+                                      <p className="text-xs font-bold text-slate-805">SHA256 HMAC Security</p>
                                       <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Callback signature validated with your raw private API Key.</p>
                                     </div>
                                   </div>
 
                                   {/* Email Forwarding alert check */}
-                                  <div className={`flex items-start gap-3 p-3 rounded-2xl border transition-colors ${
-                                    emailRoutingActive ? 'bg-slate-50 border-slate-200' : 'alert-warning'
+                                  <div className={`flex items-start gap-3 p-3 rounded-2xl border ${
+                                    emailRoutingActive ? 'bg-slate-50 border-slate-150' : 'bg-amber-50/55 border-amber-200'
                                   }`}>
                                     <span className={emailRoutingActive ? "text-emerald-500 font-bold text-sm shrink-0" : "text-amber-500 font-bold text-sm shrink-0"}>
                                       {emailRoutingActive ? '✓' : '⚠️'}
                                     </span>
                                     <div>
-                                      <p className={`text-xs font-bold ${emailRoutingActive ? 'text-slate-800' : 'text-current'}`}>Email Routing Alerts</p>
-                                      <p className={`text-[10px] font-semibold mt-0.5 ${emailRoutingActive ? 'text-slate-500' : 'alert-warning-text-muted'}`}>
+                                      <p className="text-xs font-bold text-slate-805">Email Routing Alerts</p>
+                                      <p className="text-[10px] text-slate-500 font-semibold mt-0.5">
                                         {emailRoutingActive 
                                           ? 'Gmail credit forwarding rules active and parsing bank notifications.' 
                                           : 'Gmail setup incomplete! Auto-verify is offline. Incoming credit notifications will not trigger automated payouts.'}
@@ -5343,10 +5338,10 @@ async function checkOrderStatus(orderId) {
                                   </div>
 
                                   {/* Clerk Authentication Exemption */}
-                                  <div className="flex items-start gap-3 p-3 bg-slate-50 border border-slate-200 rounded-2xl">
+                                  <div className="flex items-start gap-3 p-3 bg-slate-50 border border-slate-150 rounded-2xl">
                                     <span className="text-emerald-500 font-bold text-sm shrink-0">✓</span>
                                     <div>
-                                      <p className="text-xs font-bold text-slate-800">Auth & Checkout Middleware Exception</p>
+                                      <p className="text-xs font-bold text-slate-805">Auth & Checkout Middleware Exception</p>
                                       <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Next.js Clerk rules bypassed for webhooks and payment parameter bindings successfully.</p>
                                     </div>
                                   </div>
@@ -5365,7 +5360,7 @@ async function checkOrderStatus(orderId) {
                                     const successRate = websiteOrders.length > 0 ? Math.round((verified.length / websiteOrders.length) * 100) : 100;
                                     
                                     return (
-                                      <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+                                      <div className="p-4 bg-slate-50 border border-slate-150 rounded-2xl space-y-3">
                                         <div className="grid grid-cols-2 gap-2 text-center text-xs font-bold">
                                           <div className="p-2 bg-white rounded-xl border border-slate-200 shadow-xs">
                                             <p className="text-[9px] text-slate-400 font-extrabold uppercase">Matched Sales</p>
@@ -5378,18 +5373,18 @@ async function checkOrderStatus(orderId) {
                                         </div>
 
                                         {failures.length > 0 && (
-                                          <div className="p-3 alert-danger border rounded-xl text-[10.5px] font-semibold flex items-start gap-2 leading-relaxed">
+                                          <div className="p-3 bg-red-50/70 border border-red-150 rounded-xl text-[10.5px] text-red-750 font-semibold flex items-start gap-2 leading-relaxed">
                                             <span className="mt-0.5">⚠️</span>
                                             <div>
                                               <p className="font-bold">Checkout Expirations Detected</p>
-                                              <p className="text-[9.5px] mt-0.5 alert-danger-text-muted font-bold leading-normal">Detected {failures.length} pending checkout order expirations. Ensure that your mobile SMS router or Gmail forwarding permissions are authorized, and verify your Clerk auth middleware filters allow anonymous callbacks.</p>
+                                              <p className="text-[9.5px] mt-0.5 text-red-655 font-black">Detected {failures.length} pending checkout order expirations. Ensure that your mobile SMS router or Gmail forwarding permissions are authorized, and verify your Clerk auth middleware filters allow anonymous callbacks.</p>
                                             </div>
                                           </div>
                                         )}
                                       </div>
                                     );
                                   })() : (
-                                    <div className="p-5 bg-slate-50 border border-slate-200 rounded-2xl text-center text-xs font-semibold text-slate-500 leading-normal">
+                                    <div className="p-5 bg-slate-50 border border-slate-150 rounded-2xl text-center text-xs font-semibold text-slate-500 leading-normal">
                                       No customer transactions created through this website source yet. Use the **Playground** tab to fire simulated test payouts.
                                     </div>
                                   )}
@@ -5460,7 +5455,7 @@ async function checkOrderStatus(orderId) {
                   </div>
 
                 {/* 2. Divider & Verification Channels Section */}
-                <div className="border-t border-slate-200 pt-8 mt-8 space-y-6 animate-fadeIn">
+                <div className="border-t border-slate-150 pt-8 mt-8 space-y-6 animate-fadeIn">
                 {/* Connection Sub-tab Switcher Selector */}
                 <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex flex-col md:flex-row items-center justify-between gap-5">
                   <div className="space-y-1">

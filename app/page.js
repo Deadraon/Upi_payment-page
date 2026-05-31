@@ -11,20 +11,15 @@ import {
   Key, Landmark, Code, Play, Star, Plus, Minus, Info, Lock
 } from 'lucide-react';
 
-const MyMobPayLogo = ({ className = '', textColor = 'var(--text-primary)', iconSize = 32 }) => (
-  <div className={`flex items-center gap-2 transition-transform duration-300 hover:scale-[1.02] ${className}`}>
-    <Image
-      src="/logos/black.png"
-      alt="MyMobPay"
-      width={iconSize}
-      height={iconSize}
-      className="object-contain flex-shrink-0"
-      style={{ width: iconSize, height: iconSize }}
-    />
-    <span style={{ fontFamily: "'Outfit', 'Inter', sans-serif", color: textColor, letterSpacing: '-0.02em', lineHeight: 1 }}>
-      <span style={{ fontWeight: 500 }}>mymob</span><span style={{ fontWeight: 800 }}>pay</span>
-    </span>
-  </div>
+const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = 'var(--text-primary)' }) => (
+  <svg viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
+    <text x="2" y="42" letterSpacing="0">
+      {/* MyMob */}
+      <tspan fontFamily="'Outfit', sans-serif" fontWeight="800" fontSize="36" fill={textColor}>MyMob</tspan>
+      {/* Pay */}
+      <tspan fontFamily="'Orbitron', sans-serif" fontWeight="900" fontStyle="italic" fontSize="36" fill="#3B82F6" dx="3">Pay</tspan>
+    </text>
+  </svg>
 );
 
 export default function HomePage() {
