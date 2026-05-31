@@ -4,7 +4,7 @@ import crypto from 'crypto';
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { api_key, webhook_url, amount, note } = body;
+    const { api_key, webhook_url, amount, note, payload } = body;
 
     if (!api_key) {
       return NextResponse.json({ error: 'Merchant API Key is required to authorize the test webhook.' }, { status: 400 });
@@ -23,7 +23,7 @@ export async function POST(request) {
     }
 
     // Generate high-fidelity simulated checkout verification payload
-    const mockPayload = {
+    const mockPayload = payload || {
       event: 'payment.verified',
       orderId: 'O_TEST_' + Math.random().toString(36).substring(2, 6).toUpperCase(),
       amount: parseFloat(amount) || 500.00,
@@ -56,6 +56,7 @@ export async function POST(request) {
         headers: {
           'Content-Type': 'application/json',
           'X-MyMobPay-Signature': signature,
+          'X-MyMobPay-Event': 'payment.verified',
           'User-Agent': 'MyMobPay-Webhook-Tester/1.0'
         },
         body: payloadString,
