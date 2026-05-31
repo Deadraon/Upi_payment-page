@@ -25,12 +25,18 @@ const AnimatedCheck = () => (
 );
 
 /* ── Receipt row ───────────────────────────────────────────── */
-const Row = ({ label, value, mono = false, green = false }) => (
-  <div className="flex justify-between items-center py-2.5 border-b border-slate-200 last:border-0">
-    <span className="text-xs text-slate-500 font-medium">{label}</span>
-    <span className={`text-xs font-semibold text-right max-w-[55%] break-all ${mono ? 'font-mono' : ''} ${green ? 'text-emerald-450' : 'text-white'}`}>
-      {value}
-    </span>
+const Row = ({ label, value, mono = false, green = false, badge = false }) => (
+  <div className="flex justify-between items-center py-2.5 border-b border-slate-100 last:border-0">
+    <span className="text-[11px] text-slate-400 font-semibold tracking-wide">{label}</span>
+    {badge ? (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-[10px] font-bold text-emerald-600">
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" /> {value}
+      </span>
+    ) : (
+      <span className={`text-xs font-semibold text-right max-w-[60%] break-all ${mono ? 'font-mono text-[11px] tracking-wide' : ''} ${green ? 'text-emerald-600 font-bold' : 'text-slate-800'}`}>
+        {value}
+      </span>
+    )}
   </div>
 );
 
@@ -201,8 +207,12 @@ export default function StatusPage() {
             <div className="mx-5 mb-4 rounded-xl bg-slate-50 border border-slate-100 px-4 py-1">
               <Row label="Order ID" value={orderId} mono />
               <Row label="Amount" value={`₹${parseFloat(order.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`} green />
-              <Row label="UTR / Ref" value={order.utr || 'Auto-verified'} mono />
+              <Row label="Method" value={order.method || 'UPI'} />
+              <Row label="Status" value="Verified" badge />
+              <Row label="UTR / Ref No." value={order.utr || 'Auto-verified'} mono />
+              <Row label="Paid On" value={fmt(order.created_at)} />
               <Row label="Verified At" value={fmt(order.verified_at)} />
+              {order.note && <Row label="Purpose" value={order.note} />}
               {order.customer_name && <Row label="Customer" value={order.customer_name} />}
             </div>
             <div className="px-5 pb-6 space-y-2.5">

@@ -9,7 +9,7 @@ import {
   Loader2, Copy, CheckCircle, CreditCard, Mail, X, 
   LayoutDashboard, Search, Download, RefreshCw, IndianRupee,
   Clock, CheckCircle2, XCircle, Code, ChevronRight, BookOpen,
-  Menu, TrendingUp, AlertCircle, Star, Shield, Calendar, Zap, ChevronDown,
+  Menu, TrendingUp, AlertCircle, Star, Crown, Shield, Calendar, Zap, ChevronDown,
   QrCode, Share2, Trash2, Plus, ExternalLink, Sparkles
 } from 'lucide-react';
 import QRCode from 'react-qr-code';
@@ -76,6 +76,7 @@ export default function DashboardPage() {
 
   // Error Banner
   const [dbError, setDbError] = useState(null);
+  const [selectedHistoryOrder, setSelectedHistoryOrder] = useState(null);
 
   // Setup Wizard & Webhook Simulator States
   const [integrationTarget, setIntegrationTarget] = useState('website');
@@ -2109,28 +2110,58 @@ echo "Order Created: " . $data['orderId'];
                     <th className="pb-3 pl-6">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                 <tbody className="divide-y divide-slate-100">
                   {filteredLinks.map(link => {
                     const dateStr = new Date(link.createdAt).toLocaleDateString('en-IN', {
                       day: '2-digit', month: 'short', year: 'numeric',
                       hour: '2-digit', minute: '2-digit'
                     });
                     const isFlexible = link.amount === 'Flexible';
+                    
+                    const matchingVerifiedOrder = orders.find(o => {
+                      if (o.status !== 'verified') return false;
+                      if (o.external_ref) {
+                        if (o.external_ref === link.id || o.external_ref.startsWith(link.id + ":")) {
+                          return true;
+                        }
+                      }
+                      const isFlex = link.amount === 'Flexible';
+                      const orderAmt = parseFloat(o.amount);
+                      const linkAmt = parseFloat(link.amount);
+                      const amtMatches = isFlex || (Math.abs(orderAmt - linkAmt) < 2.0);
+                      const purposeMatches = o.note === link.purpose;
+                      return amtMatches && purposeMatches;
+                    });
+
                     return (
-                      <tr key={link.id} className="hover:bg-slate-50/50 transition-colors">
+                      <tr 
+                        key={link.id} 
+                        onClick={() => {
+                          if (matchingVerifiedOrder) {
+                            setSelectedHistoryOrder(matchingVerifiedOrder);
+                          }
+                        }}
+                        className={`transition-colors ${matchingVerifiedOrder ? 'cursor-pointer hover:bg-slate-50' : 'hover:bg-slate-50/50'}`}
+                      >
                         <td className="py-3.5 font-semibold text-slate-500">{dateStr}</td>
                         <td className="py-3.5 font-bold text-slate-800">{link.purpose}</td>
                         <td className="py-3.5 font-black text-slate-900 text-right">
                           {isFlexible ? <span className="text-[10px] font-bold bg-slate-50 border border-slate-200 text-slate-650 px-2 py-0.5 rounded-lg font-mono">Flexible</span> : `₹${parseFloat(link.amount).toLocaleString('en-IN')}`}
                         </td>
                         <td className="py-3.5 text-center">
-                          {getLinkPaymentStatus(link) === 'Paid' ? (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          {matchingVerifiedOrder ? (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedHistoryOrder(matchingVerifiedOrder);
+                              }}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 cursor-pointer transition-colors"
+                            >
                               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                               Paid
-                            </span>
+                            </button>
                           ) : (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-slate-50 text-slate-400 border border-slate-200">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-slate-50 text-slate-400 border border-slate-200 select-none">
                               <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
                               Pending
                             </span>
@@ -2138,7 +2169,8 @@ echo "Order Created: " . $data['orderId'];
                         </td>
                         <td className="py-3.5 pl-6 flex items-center gap-2">
                           <button
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation();
                               setPayLinkGeneratedUrl(link.url);
                               // Copy it automatically for convenience
                               copyToClipboard(link.url);
@@ -2153,13 +2185,17 @@ echo "Order Created: " . $data['orderId'];
                             href={link.url}
                             target="_blank"
                             rel="noreferrer"
+                            onClick={(e) => e.stopPropagation()}
                             className="p-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-550 hover:text-slate-800 transition-all flex items-center justify-center cursor-pointer shadow-xs"
                             title="Open Link"
                           >
                             <ExternalLink className="w-3.5 h-3.5" />
                           </a>
                           <button
-                            onClick={() => handleDeleteLink(link.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteLink(link.id);
+                            }}
                             className="p-1.5 bg-slate-50 hover:bg-red-50 border border-slate-200 hover:border-red-200 rounded-lg text-slate-500 hover:text-red-650 transition-all flex items-center justify-center cursor-pointer shadow-xs"
                             title="Delete Link"
                           >
@@ -2196,20 +2232,17 @@ echo "Order Created: " . $data['orderId'];
           {/* Subscription tab — pinned at top */}
           <button
             onClick={handleScrollToSubscription}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-black text-sm transition-all border ${
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all border ${
               activeTab === 'subscription'
-                ? 'border-violet-500 bg-violet-500/20 text-violet-700 shadow-sm shadow-violet-500/10'
-                : 'border-violet-300 bg-violet-50 text-violet-700 hover:bg-violet-100 hover:border-violet-400 shadow-sm shadow-violet-500/5'
+                ? 'bg-blue-50 text-blue-700 border-blue-100 shadow-sm shadow-blue-500/5'
+                : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 shadow-sm'
             }`}
           >
-            <Star className="w-4 h-4 text-violet-500 fill-violet-400 shrink-0" />
-            <span className="flex-1 text-left">Subscription</span>
-            {profile?.subscription_status === 'active' && (() => {
-              const expiresAt = profile?.subscription_expires_at ? new Date(profile.subscription_expires_at) : null;
-              const isValid = expiresAt && !isNaN(expiresAt.getTime()) && expiresAt.getTime() > Date.now();
-              const d = isValid ? Math.ceil((expiresAt - new Date()) / 86400000) : null;
-              return <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-violet-500/20 text-violet-700">{d ? `${d}d left` : 'Active'}</span>;
-            })()}
+            <Crown className={`w-4 h-4 shrink-0 ${activeTab === 'subscription' ? 'text-blue-600' : 'text-slate-400'}`} />
+            <span className="flex-1 text-left font-black tracking-wide">
+              {profile?.subscription_status === 'active' ? 'Premium Active' : 'Premium Subscription'}
+            </span>
+            <span className={`w-1.5 h-1.5 rounded-full ${profile?.subscription_status === 'active' ? 'bg-emerald-500' : 'bg-amber-400'}`} />
           </button>
 
           <div className="border-t border-slate-100 my-3" />
@@ -2404,16 +2437,17 @@ echo "Order Created: " . $data['orderId'];
                   setIsMobileMenuOpen(false);
                   handleScrollToSubscription();
                 }}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-black transition-all border border-violet-300 bg-violet-50 text-violet-700 hover:bg-violet-100 hover:border-violet-400 shadow-sm shadow-violet-500/5"
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all border ${
+                  activeTab === 'subscription'
+                    ? 'bg-blue-50 text-blue-700 border-blue-100 shadow-sm shadow-blue-500/5'
+                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 shadow-sm'
+                }`}
               >
-                <Star className="w-4 h-4 text-violet-500 fill-violet-400 shrink-0" />
-                <span className="flex-1 text-left">Subscription</span>
-                {profile?.subscription_status === 'active' && (() => {
-                  const expiresAt = profile?.subscription_expires_at ? new Date(profile.subscription_expires_at) : null;
-                  const isValid = expiresAt && !isNaN(expiresAt.getTime()) && expiresAt.getTime() > Date.now();
-                  const d = isValid ? Math.ceil((expiresAt - new Date()) / 86400000) : null;
-                  return <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-700">{d ? `${d}d left` : 'Active'}</span>;
-                })()}
+                <Crown className={`w-4 h-4 shrink-0 ${activeTab === 'subscription' ? 'text-blue-600' : 'text-slate-400'}`} />
+                <span className="flex-1 text-left font-black tracking-wide">
+                  {profile?.subscription_status === 'active' ? 'Premium Active' : 'Premium Subscription'}
+                </span>
+                <span className={`w-1.5 h-1.5 rounded-full ${profile?.subscription_status === 'active' ? 'bg-emerald-500' : 'bg-amber-400'}`} />
               </button>
               <div className="border-t border-slate-100 my-3" />
               {[
@@ -2941,13 +2975,22 @@ echo "Order Created: " . $data['orderId'];
                           });
 
                           return (
-                            <tr key={order.id} className="hover:bg-slate-50/50 transition-colors">
+                            <tr 
+                              key={order.id} 
+                              onClick={() => {
+                                if (order.status === 'verified') {
+                                  setSelectedHistoryOrder(order);
+                                }
+                              }}
+                              className={`transition-colors ${order.status === 'verified' ? 'cursor-pointer hover:bg-slate-50' : 'hover:bg-slate-50/50'}`}
+                            >
                               
                               {/* Order ID */}
                               <td className="px-6 py-4 whitespace-nowrap text-xs font-mono font-bold text-slate-400">
                                 <span 
                                   className="cursor-pointer hover:text-blue-600 flex items-center gap-1.5"
-                                  onClick={() => {
+                                  onClick={(e) => {
+                                    e.stopPropagation();
                                     navigator.clipboard.writeText(order.id);
                                     alert("Copied Order ID!");
                                   }}
@@ -5654,6 +5697,119 @@ async function checkOrderStatus(orderId) {
             <div className="px-5 py-3.5 bg-slate-50 border-t border-slate-100 flex justify-between items-center text-[10px] font-bold text-slate-400 select-none">
               <span>Press enter to select · Click to copy Ref</span>
               <span className="font-mono bg-slate-200/80 px-1.5 py-0.5 rounded text-slate-500">ESC to close</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Transaction Details Modal Overlay */}
+      {selectedHistoryOrder && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-fadeIn"
+          onClick={() => setSelectedHistoryOrder(null)}
+        >
+          <div 
+            className="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-sm mx-4 overflow-hidden animate-scaleUp"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="h-1.5 bg-emerald-500 w-full" />
+            
+            <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide">Payment Receipt</h3>
+                <p className="text-[10px] text-slate-400 font-bold mt-0.5 uppercase tracking-wide">Transaction Verified Successfully</p>
+              </div>
+              <button 
+                onClick={() => setSelectedHistoryOrder(null)} 
+                className="p-1.5 rounded-xl hover:bg-slate-50 text-slate-400 hover:text-slate-655 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <div className="px-5 py-3 divide-y divide-slate-100">
+              <div className="flex justify-between items-center py-2.5">
+                <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wide">Order ID</span>
+                <span className="text-xs font-mono font-bold text-slate-800 tracking-wide select-all">{selectedHistoryOrder.id}</span>
+              </div>
+              
+              <div className="flex justify-between items-center py-2.5">
+                <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wide">Amount</span>
+                <span className="text-xs font-black text-emerald-500 font-bold">₹{parseFloat(selectedHistoryOrder.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+              </div>
+              
+              <div className="flex justify-between items-center py-2.5">
+                <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wide">Method</span>
+                <span className="text-xs font-bold text-slate-800">{selectedHistoryOrder.method || 'UPI'}</span>
+              </div>
+              
+              <div className="flex justify-between items-center py-2.5">
+                <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wide">Status</span>
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold text-emerald-500">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse" /> Verified
+                </span>
+              </div>
+              
+              <div className="flex justify-between items-center py-2.5">
+                <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wide">UTR / Ref No.</span>
+                <span className="text-xs font-mono font-bold text-slate-800 tracking-wide select-all">{selectedHistoryOrder.utr || 'Auto-verified'}</span>
+              </div>
+              
+              {selectedHistoryOrder.note && (
+                <div className="flex justify-between items-center py-2.5">
+                  <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wide">Purpose / Note</span>
+                  <span className="text-xs font-bold text-slate-700 max-w-[60%] truncate" title={selectedHistoryOrder.note}>{selectedHistoryOrder.note}</span>
+                </div>
+              )}
+              
+              {selectedHistoryOrder.customer_name && (
+                <div className="flex justify-between items-center py-2.5">
+                  <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wide">Customer</span>
+                  <span className="text-xs font-bold text-slate-800">{selectedHistoryOrder.customer_name}</span>
+                </div>
+              )}
+              
+              {selectedHistoryOrder.customer_phone && (
+                <div className="flex justify-between items-center py-2.5">
+                  <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wide">Phone</span>
+                  <span className="text-xs font-bold font-mono text-slate-800">{selectedHistoryOrder.customer_phone}</span>
+                </div>
+              )}
+              
+              <div className="flex justify-between items-center py-2.5">
+                <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wide">Created</span>
+                <span className="text-xs font-bold text-slate-700">
+                  {new Date(selectedHistoryOrder.created_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' })}
+                </span>
+              </div>
+              
+              {selectedHistoryOrder.verified_at && (
+                <div className="flex justify-between items-center py-2.5">
+                  <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wide">Verified At</span>
+                  <span className="text-xs font-bold text-slate-700">
+                    {new Date(selectedHistoryOrder.verified_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' })}
+                  </span>
+                </div>
+              )}
+            </div>
+            
+            <div className="p-5 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-3">
+              <button 
+                onClick={() => {
+                  navigator.clipboard.writeText(selectedHistoryOrder.id);
+                  alert("Copied Order ID!");
+                }}
+                className="flex-1 py-2.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                <span>Copy ID</span>
+              </button>
+              <button 
+                onClick={() => setSelectedHistoryOrder(null)} 
+                className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white-pure font-bold text-xs rounded-xl transition-all shadow-sm cursor-pointer"
+              >
+                Close Receipt
+              </button>
             </div>
           </div>
         </div>
