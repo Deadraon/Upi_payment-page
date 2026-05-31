@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { triggerMerchantWebhook } from '@/lib/webhook';
+import { checkAndProcessSubscription } from '@/lib/adminSettings';
 
 export async function POST(request) {
   try {
@@ -35,18 +36,23 @@ export async function POST(request) {
       const mockUtr = 'TS_MOCK_' + Math.random().toString(36).substring(2, 11).toUpperCase();
       
       // Update order status to verified in the database
-      const { error: updateError } = await supabaseAdmin
+      const { data: updatedOrder, error: updateError } = await supabaseAdmin
         .from('orders')
         .update({
           status: 'verified',
           utr: mockUtr,
           verified_at: new Date().toISOString()
         })
-        .eq('id', orderId);
+        .eq('id', orderId)
+        .select()
+        .single();
 
       if (updateError) {
         throw updateError;
       }
+
+      // Check and process SaaS billing subscriptions
+      await checkAndProcessSubscription(updatedOrder, '');
 
       console.log(`[Sandbox Simulation] Order ${orderId} successfully simulated as SUCCESS. Dispatching webhooks...`);
 
