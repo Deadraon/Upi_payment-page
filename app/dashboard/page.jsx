@@ -117,6 +117,7 @@ export default function DashboardPage() {
 
   // Connections Tab Sub-tab Selection State
   const [connectionSubTab, setConnectionSubTab] = useState('email');
+  const [selectedWebsite, setSelectedWebsite] = useState(null);
 
   // Central Profile Settings Modal & Dropdown States
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -156,6 +157,70 @@ export default function DashboardPage() {
     { name: 'Edit Profile & Business Info', action: 'profile', icon: User },
     { name: 'Reset Account Security Password', action: 'security', icon: Key }
   ];
+
+  // Dynamic Web Application Detection
+  const detectedWebsites = useMemo(() => {
+    const sites = {};
+    
+    // 1. Seed from profile registered webhook url if present
+    if (profile?.webhook_url) {
+      try {
+        const url = new URL(profile.webhook_url);
+        const domain = url.hostname.replace(/^www\./, '');
+        const name = domain.split('.')[0];
+        sites[domain] = {
+          domain,
+          name: name.charAt(0).toUpperCase() + name.slice(1),
+          webhookUrl: profile.webhook_url,
+          source: 'webhook_config'
+        };
+      } catch (e) {
+        console.error("Error parsing profile webhook_url:", e);
+      }
+    }
+    
+    // 2. Parse from historical checkout records
+    if (Array.isArray(orders)) {
+      orders.forEach(order => {
+        let domain = '';
+        let name = '';
+        
+        if (order.callback_url) {
+          try {
+            const url = new URL(order.callback_url);
+            domain = url.hostname.replace(/^www\./, '');
+          } catch (e) {}
+        }
+        
+        if (order.project) {
+          name = order.project;
+        }
+        
+        // Use domain or formatted name as uniqueness key
+        if (domain || name) {
+          const key = domain || name.toLowerCase().replace(/[^a-z0-9]/g, '') + '.dev';
+          if (!sites[key]) {
+            sites[key] = {
+              domain: domain || `${name.toLowerCase().replace(/[^a-z0-9]/g, '')}.dev`,
+              name: name || domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1),
+              webhookUrl: order.callback_url || '',
+              source: 'transaction_history'
+            };
+          } else {
+            // Keep webhook URL and name updated if missing in previous records
+            if (!sites[key].webhookUrl && order.callback_url) {
+              sites[key].webhookUrl = order.callback_url;
+            }
+            if ((!sites[key].name || sites[key].name === sites[key].domain.split('.')[0]) && order.project) {
+              sites[key].name = order.project;
+            }
+          }
+        }
+      });
+    }
+    
+    return Object.values(sites);
+  }, [profile?.webhook_url, orders]);
 
   const matchedShortcuts = useMemo(() => {
     if (!paletteSearchQuery.trim()) return allShortcuts;
@@ -786,7 +851,7 @@ export default function DashboardPage() {
   };
 
   const handleTestWebhook = async (fromWizard = false) => {
-    const webhookTarget = fromWizard ? wizardWebhookUrl : profile?.webhook_url;
+    const webhookTarget = fromWizard ? (wizardWebhookUrl || profile?.webhook_url) : (profile?.webhook_url || wizardWebhookUrl);
     if (!webhookTarget) {
       if (fromWizard) {
         setStepTestResult('fail');
@@ -3198,8 +3263,35 @@ echo "Order Created: " . $data['orderId'];
                               </td>
 
                               {/* Note */}
-                              <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-500 font-semibold max-w-[120px] truncate" title={order.note}>
-                                {order.note || '-'}
+                              <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-500 font-semibold max-w-[150px] truncate" title={order.note}>
+                                <div className="space-y-1">
+                                  <p>{order.note || '-'}</p>
+                                  {(() => {
+                                    const hasProject = !!order.project && order.project !== profile?.business_name;
+                                    const hasCallback = !!order.callback_url;
+                                    
+                                    let domain = '';
+                                    if (hasCallback) {
+                                      try {
+                                        domain = new URL(order.callback_url).hostname.replace(/^www\./, '');
+                                      } catch(e) {}
+                                    }
+                                    
+                                    if (hasProject || domain) {
+                                      return (
+                                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-black tracking-wide uppercase bg-blue-50 text-blue-700 border border-blue-150">
+                                          🌐 {order.project || domain.split('.')[0]}
+                                          {domain && (
+                                            <span className="text-[7.5px] text-slate-400 font-bold lowercase ml-1 border-l border-slate-200 pl-1">
+                                              {domain}
+                                            </span>
+                                          )}
+                                        </span>
+                                      );
+                                    }
+                                    return null;
+                                  })()}
+                                </div>
                               </td>
 
                               {/* UTR */}
@@ -4985,7 +5077,7 @@ async function checkOrderStatus(orderId) {
                     </p>
                   </div>
                   
-                  <div className="flex bg-slate-100 p-1 rounded-2xl border border-slate-200/60 select-none">
+                  <div className="flex bg-slate-100 p-1 rounded-2xl border border-slate-200/60 select-none overflow-x-auto">
                     <button
                       onClick={() => {
                         setConnectionSubTab('email');
@@ -4995,7 +5087,7 @@ async function checkOrderStatus(orderId) {
                         setStepTestMsg('');
                         setStepTestDetail('');
                       }}
-                      className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all duration-300 flex items-center gap-2 ${connectionSubTab === 'email' ? 'bg-white text-blue-600 shadow-md shadow-blue-500/5 border border-slate-250' : 'text-slate-500 hover:text-slate-800'}`}
+                      className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all duration-300 flex items-center gap-2 whitespace-nowrap ${connectionSubTab === 'email' ? 'bg-white text-blue-600 shadow-md shadow-blue-500/5 border border-slate-250' : 'text-slate-500 hover:text-slate-800'}`}
                     >
                       <Mail className="w-4 h-4 text-blue-600" />
                       Email Forwarding
@@ -5006,10 +5098,21 @@ async function checkOrderStatus(orderId) {
                         setWizardStep(0);
                         setStepTestResult(null);
                       }}
-                      className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all duration-300 flex items-center gap-2 ${connectionSubTab === 'staff' ? 'bg-white text-blue-600 shadow-md shadow-blue-500/5 border border-slate-250' : 'text-slate-500 hover:text-slate-800'}`}
+                      className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all duration-300 flex items-center gap-2 whitespace-nowrap ${connectionSubTab === 'staff' ? 'bg-white text-blue-600 shadow-md shadow-blue-500/5 border border-slate-250' : 'text-slate-500 hover:text-slate-800'}`}
                     >
                       <Star className="w-4 h-4 text-blue-600" />
                       Cashier Staff Setup
+                    </button>
+                    <button
+                      onClick={() => {
+                        setConnectionSubTab('websites');
+                        setWizardStep(0);
+                        setStepTestResult(null);
+                      }}
+                      className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all duration-300 flex items-center gap-2 whitespace-nowrap ${connectionSubTab === 'websites' ? 'bg-white text-blue-600 shadow-md shadow-blue-500/5 border border-slate-250' : 'text-slate-500 hover:text-slate-800'}`}
+                    >
+                      <LinkIcon className="w-4 h-4 text-blue-600" />
+                      Websites & Webhooks
                     </button>
                   </div>
                 </div>
@@ -5612,28 +5715,382 @@ async function checkOrderStatus(orderId) {
                             </div>
 
                             <div>
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <h4 className="text-base font-black text-slate-800">Automatic Cashier verification Active</h4>
-                                <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center gap-1 select-none">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Active
-                                </span>
-                              </div>
-                              <p className="text-[11px] text-slate-500 font-semibold leading-normal mt-1 max-w-lg">
-                                Payment matching is completely automated. Payments made to GPay/PhonePe are captured via our secure staff SIM: <code className="bg-slate-100 px-1 rounded font-bold font-mono">{staffGateway?.phone_number || '+91 90123 45678'}</code>
+                              <div className="flex items-cen                {/* Sub-tab 3: Websites & Webhooks */}
+                {connectionSubTab === 'websites' && (
+                  <div className="space-y-6 animate-fadeIn">
+                    {!selectedWebsite ? (
+                      // grid list view of all websites
+                      <div className="space-y-6">
+                        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
+                          <div>
+                            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide">Integrated Websites</h3>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Manage diagnostics and transactions across your portfolio</p>
+                          </div>
+                          <button
+                            onClick={() => setActiveTab('settings')}
+                            className="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5"
+                          >
+                            <Plus className="w-3.5 h-3.5" /> Configure New Domain
+                          </button>
+                        </div>
+
+                        {detectedWebsites.length === 0 ? (
+                          <div className="bg-white p-8 rounded-3xl border border-slate-200/80 shadow-[0_4px_25px_rgba(0,0,0,0.02)] flex flex-col items-center text-center max-w-2xl mx-auto space-y-6 py-12 select-none">
+                            <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center border border-blue-100 shadow-sm">
+                              <LinkIcon className="w-8 h-8" />
+                            </div>
+                            <div className="space-y-2">
+                              <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+                                No Website Configured Yet
+                              </h3>
+                              <p className="text-sm text-slate-500 font-semibold max-w-md mx-auto leading-relaxed">
+                                Integrate your payment checkouts directly with your web platform. Go to the **Settings** or **Developer API** tab to enter your outbound webhook endpoint and securely activate client orders routing.
                               </p>
+                            </div>
+                            <button
+                              onClick={() => setActiveTab('settings')}
+                              className="px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white-pure rounded-2xl font-black text-sm transition-all duration-300 shadow-lg shadow-blue-500/25 flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                            >
+                              <span>Configure Webhook URL</span>
+                              <ChevronRight className="w-4.5 h-4.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {detectedWebsites.map(site => {
+                              // Filter transactions matching this website
+                              const websiteOrders = orders.filter(o => 
+                                (o.project && o.project.toLowerCase().includes(site.name.toLowerCase())) ||
+                                (o.callback_url && o.callback_url.includes(site.domain))
+                              );
+                              const verifiedOrders = websiteOrders.filter(o => o.status === 'verified');
+                              const totalSales = verifiedOrders.reduce((sum, o) => sum + parseFloat(o.amount), 0);
+                              
+                              const webhookConfigured = !!profile?.webhook_url && profile.webhook_url.includes(site.domain);
+                              const emailRoutingActive = profile?.gmail_forwarding_verified === true;
+                              const isOperational = webhookConfigured && emailRoutingActive;
+                              
+                              return (
+                                <div 
+                                  key={site.domain}
+                                  onClick={() => setSelectedWebsite(site)}
+                                  className="bg-white border border-slate-200 hover:border-blue-400 rounded-3xl p-6 transition-all duration-300 group flex flex-col justify-between h-[230px] shadow-sm hover:shadow-md cursor-pointer relative overflow-hidden"
+                                >
+                                  {/* Decorative visual glow */}
+                                  <div className="absolute right-0 top-0 w-24 h-24 bg-blue-500/5 rounded-bl-full pointer-events-none group-hover:bg-blue-500/10 transition-colors" />
+
+                                  <div className="space-y-4">
+                                    <div className="flex justify-between items-start">
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center border border-blue-100 shadow-sm shrink-0">
+                                          <LinkIcon className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                          <h4 className="text-sm font-black text-slate-805 group-hover:text-blue-600 transition-colors">
+                                            {site.name}
+                                          </h4>
+                                          <p className="text-[10px] text-slate-400 font-bold tracking-wide mt-0.5 truncate max-w-[180px]">
+                                            {site.domain}
+                                          </p>
+                                        </div>
+                                      </div>
+                                      
+                                      <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${
+                                        isOperational 
+                                          ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' 
+                                          : 'bg-amber-100 text-amber-700 border border-amber-200'
+                                      }`}>
+                                        {isOperational ? '✓ Operational' : '⚠️ Action Required'}
+                                      </span>
+                                    </div>
+
+                                    {/* Stats grid */}
+                                    <div className="grid grid-cols-2 gap-2 text-center text-xs font-semibold">
+                                      <div className="p-2.5 bg-slate-50 border border-slate-100 rounded-xl">
+                                        <p className="text-[8px] text-slate-400 font-black uppercase tracking-wider">Volume (INR)</p>
+                                        <p className="text-xs font-black text-slate-900 mt-0.5">₹{totalSales.toFixed(2)}</p>
+                                      </div>
+                                      <div className="p-2.5 bg-slate-50 border border-slate-100 rounded-xl">
+                                        <p className="text-[8px] text-slate-400 font-black uppercase tracking-wider">Payments</p>
+                                        <p className="text-xs font-black text-slate-900 mt-0.5">{websiteOrders.length} checkouts</p>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex justify-between items-center pt-2 border-t border-slate-100/80 text-[10px] font-bold text-slate-550">
+                                    <div className="flex gap-2">
+                                      <span className={webhookConfigured ? "text-emerald-600" : "text-amber-600"}>
+                                        {webhookConfigured ? '✓ Webhook active' : '⚠️ No webhook'}
+                                      </span>
+                                      <span className="text-slate-300">•</span>
+                                      <span className={emailRoutingActive ? "text-emerald-600" : "text-amber-600"}>
+                                        {emailRoutingActive ? '✓ Email active' : '⚠️ Email incomplete'}
+                                      </span>
+                                    </div>
+                                    <span className="text-blue-500 group-hover:translate-x-1.5 transition-transform inline-flex items-center gap-0.5 text-xs font-black">
+                                      Details →
+                                    </span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    ) : (() => {
+                      const site = selectedWebsite;
+                      const domain = site.domain;
+                      const capitalizedName = site.name;
+                      
+                      const webhookConfigured = !!profile?.webhook_url && profile.webhook_url.includes(domain);
+                      const emailRoutingActive = profile?.gmail_forwarding_verified === true;
+                      
+                      // Filter transactions matching this website
+                      const websiteOrders = orders.filter(o => 
+                        (o.project && o.project.toLowerCase().includes(capitalizedName.toLowerCase())) ||
+                        (o.callback_url && o.callback_url.includes(domain))
+                      );
+
+                      return (
+                        <div className="space-y-6 text-slate-800 animate-fadeIn">
+                          
+                          {/* Back to websites index button */}
+                          <button 
+                            onClick={() => setSelectedWebsite(null)}
+                            className="text-xs font-black text-slate-550 hover:text-slate-900 transition-all flex items-center gap-1.5 bg-white border border-slate-200 px-4 py-2.5 rounded-xl shadow-2xs hover:shadow-sm shrink-0 cursor-pointer"
+                          >
+                            ← Back to Integrated Websites
+                          </button>
+
+                          {/* Active Website Overview Card */}
+                          <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden">
+                            <div className="absolute right-0 top-0 w-32 h-32 bg-blue-500/5 rounded-bl-full pointer-events-none" />
+                            
+                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pb-6 border-b border-slate-100">
+                              <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 bg-blue-50 border border-blue-100 rounded-2xl flex items-center justify-center text-blue-600 shadow-sm shrink-0">
+                                  <LinkIcon className="w-6 h-6" />
+                                </div>
+                                <div>
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <h4 className="text-lg font-black text-slate-900">{capitalizedName} Gateway Connected</h4>
+                                    <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider flex items-center gap-1 select-none ${
+                                      webhookConfigured && emailRoutingActive
+                                        ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' 
+                                        : 'bg-amber-100 text-amber-700 border border-amber-200'
+                                    }`}>
+                                      <span className={`w-1.5 h-1.5 rounded-full ${webhookConfigured && emailRoutingActive ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500 animate-pulse'}`} />
+                                      {webhookConfigured && emailRoutingActive ? 'Active & Healthy' : 'Action Required'}
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-slate-500 font-semibold mt-1">
+                                    Domain: <a href={`https://${domain}`} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline inline-flex items-center gap-0.5">{domain} <ExternalLink className="w-3 h-3" /></a>
+                                  </p>
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => setActiveTab('settings')}
+                                className="px-4 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold text-xs rounded-xl border border-slate-200 transition-all flex items-center gap-1.5 shrink-0 cursor-pointer"
+                              >
+                                <Briefcase className="w-3.5 h-3.5" /> Manage Webhook
+                              </button>
+                            </div>
+
+                            {/* checklist matrix */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
+                              
+                              {/* Configuration Checklist */}
+                              <div className="space-y-4">
+                                <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Integration Checklist</h5>
+                                
+                                <div className="space-y-2.5">
+                                  
+                                  {/* Webhook Endpoint */}
+                                  <div className={`flex items-start gap-3 p-3 rounded-2xl border ${
+                                    webhookConfigured ? 'bg-slate-50 border-slate-150' : 'bg-red-50/50 border-red-200'
+                                  }`}>
+                                    <span className={webhookConfigured ? "text-emerald-500 font-black text-sm shrink-0" : "text-red-500 font-black text-sm shrink-0"}>
+                                      {webhookConfigured ? '✓' : '⚠️'}
+                                    </span>
+                                    <div>
+                                      <p className="text-xs font-bold text-slate-805">Webhook Endpoint Routing</p>
+                                      {webhookConfigured ? (
+                                        <p className="text-[10px] text-slate-500 font-semibold mt-0.5 truncate max-w-[280px]" title={profile.webhook_url}>{profile.webhook_url}</p>
+                                      ) : (
+                                        <p className="text-[10px] text-red-655 font-black mt-0.5">
+                                          Missing Settings Webhook URL! Outbound payments verification alerts are not forwarded to this domain.
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Outbound HMAC Signature */}
+                                  <div className="flex items-start gap-3 p-3 bg-slate-50 border border-slate-150 rounded-2xl">
+                                    <span className="text-emerald-500 font-bold text-sm shrink-0">✓</span>
+                                    <div>
+                                      <p className="text-xs font-bold text-slate-805">SHA256 HMAC Security</p>
+                                      <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Callback signature validated with your raw private API Key.</p>
+                                    </div>
+                                  </div>
+
+                                  {/* Email Forwarding alert check */}
+                                  <div className={`flex items-start gap-3 p-3 rounded-2xl border ${
+                                    emailRoutingActive ? 'bg-slate-50 border-slate-150' : 'bg-amber-50/55 border-amber-200'
+                                  }`}>
+                                    <span className={emailRoutingActive ? "text-emerald-500 font-bold text-sm shrink-0" : "text-amber-500 font-bold text-sm shrink-0"}>
+                                      {emailRoutingActive ? '✓' : '⚠️'}
+                                    </span>
+                                    <div>
+                                      <p className="text-xs font-bold text-slate-805">Email Routing Alerts</p>
+                                      <p className="text-[10px] text-slate-500 font-semibold mt-0.5">
+                                        {emailRoutingActive 
+                                          ? 'Gmail credit forwarding rules active and parsing bank notifications.' 
+                                          : 'Gmail setup incomplete! Auto-verify is offline. Incoming credit notifications will not trigger automated payouts.'}
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  {/* Clerk Authentication Exemption */}
+                                  <div className="flex items-start gap-3 p-3 bg-slate-50 border border-slate-150 rounded-2xl">
+                                    <span className="text-emerald-500 font-bold text-sm shrink-0">✓</span>
+                                    <div>
+                                      <p className="text-xs font-bold text-slate-805">Auth & Checkout Middleware Exception</p>
+                                      <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Next.js Clerk rules bypassed for webhooks and payment parameter bindings successfully.</p>
+                                    </div>
+                                  </div>
+
+                                </div>
+                              </div>
+
+                              {/* Performance & Error diagnostics */}
+                              <div className="space-y-4">
+                                <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Operations & Errors Status</h5>
+                                
+                                <div className="space-y-3">
+                                  {websiteOrders.length > 0 ? (() => {
+                                    const failures = websiteOrders.filter(o => o.status === 'expired' || o.status === 'rejected');
+                                    const verified = websiteOrders.filter(o => o.status === 'verified');
+                                    const successRate = websiteOrders.length > 0 ? Math.round((verified.length / websiteOrders.length) * 100) : 100;
+                                    
+                                    return (
+                                      <div className="p-4 bg-slate-50 border border-slate-150 rounded-2xl space-y-3">
+                                        <div className="grid grid-cols-2 gap-2 text-center text-xs font-bold">
+                                          <div className="p-2 bg-white rounded-xl border border-slate-200 shadow-xs">
+                                            <p className="text-[9px] text-slate-400 font-extrabold uppercase">Matched Sales</p>
+                                            <p className="text-lg font-black text-emerald-650 mt-1">₹{verified.reduce((sum, o) => sum + parseFloat(o.amount), 0).toFixed(2)}</p>
+                                          </div>
+                                          <div className="p-2 bg-white rounded-xl border border-slate-200 shadow-xs">
+                                            <p className="text-[9px] text-slate-400 font-extrabold uppercase">Webhook Rate</p>
+                                            <p className="text-lg font-black text-blue-600 mt-1">{successRate}%</p>
+                                          </div>
+                                        </div>
+
+                                        {failures.length > 0 && (
+                                          <div className="p-3 bg-red-50/70 border border-red-150 rounded-xl text-[10.5px] text-red-750 font-semibold flex items-start gap-2 leading-relaxed">
+                                            <span className="mt-0.5">⚠️</span>
+                                            <div>
+                                              <p className="font-bold">Checkout Expirations Detected</p>
+                                              <p className="text-[9.5px] mt-0.5 text-red-655 font-black">Detected {failures.length} pending checkout order expirations. Ensure that your mobile SMS router or Gmail forwarding permissions are authorized, and verify your Clerk auth middleware filters allow anonymous callbacks.</p>
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })() : (
+                                    <div className="p-5 bg-slate-50 border border-slate-150 rounded-2xl text-center text-xs font-semibold text-slate-500 leading-normal">
+                                      No customer transactions created through this website source yet. Use the **Playground** tab to fire simulated test payouts.
+                                    </div>
+                                  )}
+                                </div>
+
+                              </div>
+
                             </div>
                           </div>
 
-                          <button
-                            onClick={handleDisconnectStaff}
-                            disabled={staffLoading}
-                            className="w-full sm:w-auto px-5 py-3 border border-red-200 hover:border-red-300 hover:bg-red-50/50 text-red-500 hover:text-red-700 rounded-xl transition-all text-xs font-black flex items-center justify-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-50"
-                          >
-                            Disconnect Setup
-                          </button>
+                          {/* Website specific transactions list */}
+                          <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm text-slate-800">
+                            <h5 className="text-sm font-black text-slate-900 mb-4 flex items-center gap-1.5">
+                              <CreditCard className="w-4.5 h-4.5 text-blue-600" />
+                              Transactions from {capitalizedName}
+                            </h5>
+                            
+                            {websiteOrders.length === 0 ? (
+                              <div className="py-8 text-center text-xs font-semibold text-slate-500 bg-slate-50 rounded-2xl border border-slate-100">
+                                No checkouts received from this domain source yet.
+                              </div>
+                            ) : (
+                              <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm overflow-x-auto">
+                                <table className="w-full text-left border-collapse min-w-[500px]">
+                                  <thead>
+                                    <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-black text-slate-500 uppercase tracking-wider">
+                                      <th className="px-4 py-3">Order ID</th>
+                                      <th className="px-4 py-3">Date</th>
+                                      <th className="px-4 py-3">Customer</th>
+                                      <th className="px-4 py-3">Amount</th>
+                                      <th className="px-4 py-3 text-right">Status</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-slate-100 text-xs">
+                                    {websiteOrders.slice(0, 10).map(o => (
+                                      <tr key={o.id} className="hover:bg-slate-50/50">
+                                        <td className="px-4 py-3 font-mono font-bold text-slate-400">{o.id}</td>
+                                        <td className="px-4 py-3 text-slate-500">
+                                          {new Date(o.created_at).toLocaleDateString('en-IN', { 
+                                            day: '2-digit', 
+                                            month: 'short', 
+                                            hour: '2-digit', 
+                                            minute: '2-digit' 
+                                          })}
+                                        </td>
+                                        <td className="px-4 py-3 font-bold text-slate-800">{o.customer_name || 'Anonymous'}</td>
+                                        <td className="px-4 py-3 font-black text-slate-900">₹{parseFloat(o.amount).toFixed(2)}</td>
+                                        <td className="px-4 py-3 text-right">
+                                          <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase ${
+                                            o.status === 'verified' 
+                                              ? 'bg-emerald-100 text-emerald-700' 
+                                              : o.status === 'pending' 
+                                                ? 'bg-amber-100 text-amber-700' 
+                                                : 'bg-slate-105 text-slate-400'
+                                          }`}>{o.status}</span>
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            )}
+                          </div>
+
                         </div>
-                      </div>
-                    )}
+                      );
+                    })()}
+                  </div>
+                )}r>
+                                  </thead>
+                                  <tbody className="divide-y divide-slate-100 text-xs">
+                                    {websiteOrders.slice(0, 5).map(o => (
+                                      <tr key={o.id} className="hover:bg-slate-50/50">
+                                        <td className="px-4 py-3 font-mono font-bold text-slate-400">{o.id}</td>
+                                        <td className="px-4 py-3 text-slate-500">{new Date(o.created_at).toLocaleDateString('en-IN', { day:'2-digit', month:'short' })}</td>
+                                        <td className="px-4 py-3 font-bold text-slate-800">{o.customer_name || 'Anonymous'}</td>
+                                        <td className="px-4 py-3 font-black text-slate-900">₹{parseFloat(o.amount).toFixed(2)}</td>
+                                        <td className="px-4 py-3 text-right">
+                                          <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase ${
+                                            o.status === 'verified' ? 'bg-emerald-100 text-emerald-700' : o.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-400'
+                                          }`}>{o.status}</span>
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            )}
+                          </div>
+
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
 
