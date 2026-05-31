@@ -322,7 +322,7 @@ function PayPageContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           api_key: paramApiKey,
-          amount: parseFloat(amt), method: 'GENERIC',
+          amount: parseFloat(amt), method: paramLid ? 'LINK' : (paramCallback ? 'API' : 'GENERIC'),
           customer_name: customerName, customer_phone: customerPhone,
           note: paramNote || paramRef || '',
           project: paramProject || undefined,

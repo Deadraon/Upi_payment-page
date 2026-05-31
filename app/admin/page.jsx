@@ -1321,9 +1321,58 @@ export default function AdminPage() {
                             </div>
                           </td>
 
-                          {/* Note */}
-                          <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-500 font-bold max-w-[120px] truncate" title={order.note}>
-                            {order.note || '-'}
+                           {/* Note */}
+                          <td className="px-6 py-4 text-xs text-slate-500 font-bold max-w-[280px]" title={order.note}>
+                            <div className="space-y-1">
+                              <p className="truncate max-w-[240px]">{order.note || '-'}</p>
+                              {(() => {
+                                const hasCallback = !!order.callback_url;
+                                
+                                let domain = '';
+                                if (hasCallback) {
+                                  try {
+                                    domain = new URL(order.callback_url).hostname.replace(/^www\./, '');
+                                  } catch(e) {}
+                                }
+                                
+                                // Don't label mymob.tech / mymobpay
+                                const isMymob = domain && (domain.includes('mymob.tech') || domain.includes('mymobpay'));
+                                const showDomainBadge = domain && !isMymob;
+
+                                // Determine method labeling
+                                const methodUpper = (order.method || '').toUpperCase();
+                                const isLink = methodUpper === 'LINK' || !!order.external_ref;
+                                const isApi = methodUpper === 'API' || (!isLink && !!order.callback_url);
+                                
+                                let methodLabel = 'UPI';
+                                let methodColor = 'bg-slate-50 text-slate-600 border-slate-200';
+                                
+                                if (isLink) {
+                                  methodLabel = 'Link';
+                                  methodColor = 'bg-indigo-50 text-indigo-700 border-indigo-200';
+                                } else if (isApi) {
+                                  methodLabel = 'API';
+                                  methodColor = 'bg-amber-50 text-amber-700 border-amber-200';
+                                } else if (methodUpper && methodUpper !== 'GENERIC') {
+                                  methodLabel = methodUpper;
+                                }
+
+                                return (
+                                  <div className="flex flex-wrap gap-1.5 mt-1 select-none font-semibold">
+                                    {/* External Domain Badge */}
+                                    {showDomainBadge && (
+                                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-black tracking-wide bg-blue-50 text-blue-700 border border-blue-200">
+                                        🌐 {domain}
+                                      </span>
+                                    )}
+                                    {/* Method Badge */}
+                                    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-black tracking-wide uppercase border ${methodColor}`}>
+                                      {isLink ? '🔗' : isApi ? '⚡' : '💳'} {methodLabel}
+                                    </span>
+                                  </div>
+                                );
+                              })()}
+                            </div>
                           </td>
 
                           {/* UTR */}
