@@ -6090,7 +6090,7 @@ async function checkOrderStatus(orderId) {
                   </div>
                 </div>
 
-              </div>
+
             )}
 
             {/* ═══════════════════════════════════════════════════════════
