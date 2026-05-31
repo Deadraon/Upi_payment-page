@@ -743,16 +743,37 @@ function PayPageContent() {
                   {/* ── QR VIEW ── */}
                   {payView === 'qr' && (
                     <div className="flex flex-col items-center space-y-4 animate-fade-up">
-                      <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Scan with any UPI app</p>
-                      {upiQrValue ? (
-                        <div className="bg-white-pure rounded-2xl p-5 shadow-xl">
-                          <QRCode value={upiQrValue} size={185} level="H" fgColor="#0f172a" bgColor="#FFFFFF" />
-                          <div className="mt-3 pt-3 border-t border-gray-100 text-center">
-                            <p className="text-[9px] text-gray-500 font-medium uppercase tracking-wider">
-                              Open UPI app → Scan → Pay ₹{displayAmt ? parseFloat(displayAmt).toFixed(2) : ''}
+                      {isMandate ? (
+                        <div className="text-center space-y-3.5 max-w-[280px]">
+                          <div className="mx-auto w-12 h-12 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-full flex items-center justify-center animate-pulse">
+                            <AlertCircle className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <h4 className="text-xs font-black text-slate-900 uppercase tracking-wide">Autopay Scan Restriction</h4>
+                            <p className="text-[10px] text-slate-500 mt-1 leading-relaxed font-semibold">
+                              NPCI regulations strictly require UPI Autopay scan-to-pay QR codes to be cryptographically signed by an official banking partner. Unsigned QR codes will be rejected by Paytm, GPay, and PhonePe as <strong>"Invalid QR"</strong>.
                             </p>
                           </div>
+                          <div className="p-3 bg-violet-600/10 border border-violet-500/20 rounded-xl text-left">
+                            <h5 className="text-[9px] font-black text-violet-400 uppercase tracking-wider">How to complete setup:</h5>
+                            <ul className="text-[9px] text-slate-500 font-semibold list-disc pl-3.5 space-y-1 mt-1">
+                              <li>Open this checkout link directly on a <strong>mobile device</strong> and use the <strong>"UPI Apps"</strong> tab to trigger direct, secure app deep-links.</li>
+                              <li>Or, use the <strong>"I've Paid — Verify Now"</strong> button to simulate mandate confirmation in Sandbox mode.</li>
+                            </ul>
+                          </div>
                         </div>
+                      ) : upiQrValue ? (
+                        <>
+                          <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Scan with any UPI app</p>
+                          <div className="bg-white-pure rounded-2xl p-5 shadow-xl">
+                            <QRCode value={upiQrValue} size={185} level="H" fgColor="#0f172a" bgColor="#FFFFFF" />
+                            <div className="mt-3 pt-3 border-t border-gray-100 text-center">
+                              <p className="text-[9px] text-gray-500 font-medium uppercase tracking-wider">
+                                Open UPI app → Scan → Pay ₹{displayAmt ? parseFloat(displayAmt).toFixed(2) : ''}
+                              </p>
+                            </div>
+                          </div>
+                        </>
                       ) : (
                         <div className="h-[220px] flex items-center justify-center">
                           <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
