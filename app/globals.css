@@ -462,3 +462,40 @@ input[type=number] {
     0 0 110px -10px rgba(139, 92, 246, 0.15) !important;
 }
 
+/* ─── Premium Warning and Alert CSS Classes ────────────────── */
+.alert-warning {
+  background-color: rgba(245, 158, 11, 0.1) !important;
+  border-color: rgba(245, 158, 11, 0.25) !important;
+  color: #fbbf24 !important; /* Highly visible yellow-gold */
+}
+.alert-warning-text-muted {
+  color: rgba(251, 191, 36, 0.85) !important;
+}
+
+.light-theme .alert-warning {
+  background-color: #fef3c7 !important; /* Amber-50 */
+  border-color: #fde68a !important; /* Amber-200 */
+  color: #78350f !important; /* Amber-900 */
+}
+.light-theme .alert-warning-text-muted {
+  color: #92400e !important; /* Amber-800 */
+}
+
+.alert-danger {
+  background-color: rgba(239, 68, 68, 0.1) !important;
+  border-color: rgba(239, 68, 68, 0.25) !important;
+  color: #fca5a5 !important; /* Highly visible light red */
+}
+.alert-danger-text-muted {
+  color: rgba(252, 165, 165, 0.85) !important;
+}
+
+.light-theme .alert-danger {
+  background-color: #fef2f2 !important; /* Red-50 */
+  border-color: #fee2e2 !important; /* Red-200 */
+  color: #7f1d1d !important; /* Red-900 */
+}
+.light-theme .alert-danger-text-muted {
+  color: #991b1b !important; /* Red-800 */
+}
+
