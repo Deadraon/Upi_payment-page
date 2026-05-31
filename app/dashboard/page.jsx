@@ -5715,7 +5715,32 @@ async function checkOrderStatus(orderId) {
                             </div>
 
                             <div>
-                              <div className="flex items-cen                {/* Sub-tab 3: Websites & Webhooks */}
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h4 className="text-base font-black text-slate-800">Automatic Cashier verification Active</h4>
+                                <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center gap-1 select-none">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Active
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-slate-500 font-semibold leading-normal mt-1 max-w-lg">
+                                Payment matching is completely automated. Payments made to GPay/PhonePe are captured via our secure staff SIM: <code className="bg-slate-100 px-1 rounded font-bold font-mono">{staffGateway?.phone_number || '+91 90123 45678'}</code>
+                              </p>
+                            </div>
+                          </div>
+
+                          <button
+                            onClick={handleDisconnectStaff}
+                            disabled={staffLoading}
+                            className="w-full sm:w-auto px-5 py-3 border border-red-200 hover:border-red-300 hover:bg-red-50/50 text-red-500 hover:text-red-700 rounded-xl transition-all text-xs font-black flex items-center justify-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-50"
+                          >
+                            Disconnect Setup
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Sub-tab 3: Websites & Webhooks */}
                 {connectionSubTab === 'websites' && (
                   <div className="space-y-6 animate-fadeIn">
                     {!selectedWebsite ? (
