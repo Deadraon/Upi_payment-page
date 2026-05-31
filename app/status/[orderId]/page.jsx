@@ -223,7 +223,7 @@ export default function StatusPage() {
                 </button>
               ) : (
                 <button onClick={() => router.push('/pay')}
-                  className="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white-pure font-bold text-sm flex items-center justify-center gap-2 transition-all">
+                  className="w-full py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-sm flex items-center justify-center gap-2 transition-all">
                   Done · New Payment
                 </button>
               )}
