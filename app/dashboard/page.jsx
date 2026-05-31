@@ -1189,16 +1189,15 @@ echo "Order Created: " . $data['orderId'];
             
             {/* Pay Renew Options */}
             <div className="space-y-4">
-              {/* ₹1.00 3-Day Trial Offer */}
-              <div className="bg-gradient-to-br from-violet-600 to-indigo-700 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden flex flex-col gap-3">
-                <div className="absolute right-0 top-0 w-32 h-32 bg-white/5 rounded-full blur-xl pointer-events-none" />
+              {/* ₹1.00 3-Day Trial Offer (Flat minimal styling) */}
+              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 relative overflow-hidden flex flex-col gap-3 shadow-sm">
                 <div className="flex items-center gap-2">
-                  <span className="bg-white/20 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider">EXCLUSIVE SAAS OFFER</span>
-                  <span className="bg-emerald-500 text-white px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider">Recommended</span>
+                  <span className="bg-blue-50 border border-blue-100 text-blue-700 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider">EXCLUSIVE SAAS OFFER</span>
+                  <span className="bg-emerald-50 border border-emerald-100 text-emerald-700 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider">Recommended</span>
                 </div>
                 <div>
-                  <h4 className="text-sm font-black uppercase tracking-wide">3-Day Free Trial (₹1.00 Setup Fee)</h4>
-                  <p className="text-[11px] font-semibold text-indigo-100 mt-1 leading-relaxed">
+                  <h4 className="text-sm font-black uppercase tracking-wide text-slate-900">3-Day Free Trial (₹1.00 Setup Fee)</h4>
+                  <p className="text-[11px] font-semibold text-slate-500 mt-1 leading-relaxed">
                     Activate your 3-day free trial immediately by paying a one-time, minimal **₹1.00 verification fee**. 
                     There are no recurring mandates or auto-debits — scans and pays flawlessly on all UPI apps!
                   </p>
@@ -1208,7 +1207,7 @@ echo "Order Created: " . $data['orderId'];
                     const trialPayUrl = `/pay?api_key=${CONFIG.platformApiKey}&amount=1&ref=${profile?.id}&note=Trial_Setup_3Day&callback=${encodeURIComponent(callbackUrl)}`;
                     window.open(trialPayUrl, '_blank');
                   }}
-                  className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-450 text-white rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-md shadow-emerald-500/30"
+                  className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-450 text-white rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm shadow-emerald-500/20 active:scale-[0.98]"
                 >
                   <Zap className="w-3.5 h-3.5" /> Start 3-Day Trial (Pay ₹1.00)
                 </button>
