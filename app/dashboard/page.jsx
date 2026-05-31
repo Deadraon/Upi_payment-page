@@ -6091,32 +6091,6 @@ async function checkOrderStatus(orderId) {
                       );
                     })()}
                   </div>
-                )}r>
-                                  </thead>
-                                  <tbody className="divide-y divide-slate-100 text-xs">
-                                    {websiteOrders.slice(0, 5).map(o => (
-                                      <tr key={o.id} className="hover:bg-slate-50/50">
-                                        <td className="px-4 py-3 font-mono font-bold text-slate-400">{o.id}</td>
-                                        <td className="px-4 py-3 text-slate-500">{new Date(o.created_at).toLocaleDateString('en-IN', { day:'2-digit', month:'short' })}</td>
-                                        <td className="px-4 py-3 font-bold text-slate-800">{o.customer_name || 'Anonymous'}</td>
-                                        <td className="px-4 py-3 font-black text-slate-900">₹{parseFloat(o.amount).toFixed(2)}</td>
-                                        <td className="px-4 py-3 text-right">
-                                          <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase ${
-                                            o.status === 'verified' ? 'bg-emerald-100 text-emerald-700' : o.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-400'
-                                          }`}>{o.status}</span>
-                                        </td>
-                                      </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
-                              </div>
-                            )}
-                          </div>
-
-                        </div>
-                      );
-                    })()}
-                  </div>
                 )}
 
               </div>
