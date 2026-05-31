@@ -1149,168 +1149,165 @@ echo "Order Created: " . $data['orderId'];
 
     const months = customMonths ? parseInt(customMonths) || 1 : selectedMonths;
     const total = CONFIG.subscriptionFee * months;
-    const payUrl = `/pay?api_key=${CONFIG.platformApiKey}&amount=${total}&ref=${profile?.id}&note=Subscription_${months}Month`;
+    const callbackUrl = typeof window !== 'undefined' ? `${window.location.origin}/dashboard` : '';
+    const payUrl = `/pay?api_key=${CONFIG.platformApiKey}&amount=${total}&ref=${profile?.id}&note=Subscription_${months}Month&callback=${encodeURIComponent(callbackUrl)}`;
 
     return (
-      <div className="min-h-screen bg-[#080B16] text-[#E2E8F0] flex flex-col items-center justify-center p-4 md:p-8 relative overflow-hidden font-sans antialiased">
-        {/* Ambient Radial Glows */}
-        <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-red-500/[0.02] rounded-full blur-[140px] pointer-events-none" />
-        <div className="absolute bottom-[-10%] left-1/3 w-[500px] h-[500px] bg-indigo-500/[0.02] rounded-full blur-[140px] pointer-events-none" />
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 md:p-8 relative overflow-hidden">
+        {/* Glow Effects */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-red-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-1/4 left-1/4 w-72 h-72 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Premium Dark Glass Container */}
-        <div className="w-full max-w-4xl bg-[#111625]/90 border border-slate-800/80 rounded-[32px] shadow-2xl p-6 md:p-10 flex flex-col gap-8 relative z-10 overflow-hidden">
-          <div className="absolute right-0 top-0 w-64 h-64 bg-gradient-to-bl from-red-500/[0.02] to-transparent rounded-bl-full pointer-events-none" />
+        <div className="w-full max-w-4xl bg-white border border-slate-200 rounded-3xl shadow-xl p-6 md:p-8 flex flex-col gap-6 relative z-10 overflow-hidden">
+          <div className="absolute right-0 top-0 w-64 h-64 bg-gradient-to-bl from-red-500/5 to-transparent rounded-bl-full pointer-events-none" />
           
           {/* Header Row */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800/60 pb-6">
-            <MyMobPayLogo className="w-36 h-auto" textColor="#FFFFFF" />
-            <div className="flex items-center gap-1.5 bg-red-500/10 border border-red-500/20 text-red-400 px-3.5 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-widest">
-              <AlertCircle className="w-3.5 h-3.5 text-red-400 animate-pulse" />
-              <span>Subscription Inactive</span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+            <MyMobPayLogo className="w-40 h-auto" />
+            <div className="flex items-center gap-2 bg-red-50 border border-red-100 text-red-700 px-3.5 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider">
+              <AlertCircle className="w-4 h-4 text-red-500 animate-pulse" />
+              Subscription Expired / Inactive
             </div>
           </div>
 
-          {/* Paywall Alert Banner */}
-          <div className="bg-[#181E31]/40 border border-slate-800/60 rounded-2xl p-5 flex items-start gap-4">
-            <div className="w-10 h-10 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center justify-center text-red-400 shrink-0">
-              <Shield className="w-5 h-5 text-red-450" />
+          {/* Paywall Alert Message */}
+          <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 flex items-start gap-4">
+            <div className="w-10 h-10 bg-red-50 border border-red-100 rounded-xl flex items-center justify-center text-red-500 shrink-0">
+              <Shield className="w-5 h-5 text-red-500" />
             </div>
             <div>
-              <h3 className="text-xs font-extrabold text-white uppercase tracking-widest">Console Access Locked</h3>
-              <p className="text-[11px] font-semibold text-slate-400 mt-1.5 leading-relaxed">
-                Your merchant console is currently locked because your subscription plan is inactive. Unlock immediately by choosing a plan below to resume routing APIs, live payments, and checkouts.
+              <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide">Access Locked</h3>
+              <p className="text-xs font-semibold text-slate-500 mt-1 leading-relaxed">
+                Your merchant console access is locked because your premium subscription tier is expired or inactive. 
+                Please renew your subscription plan below to automatically reactivate api request routing, checkouts, and dashboard analytics.
               </p>
             </div>
           </div>
 
-          {/* Billing Options & Payment History Grid */}
+          {/* Billing & History Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-2">
             
-            {/* Left: Subscription Renewal Plans */}
-            <div className="space-y-5">
-              {/* Option 2: 3-Day Trial Offer Setup */}
-              <div className="bg-gradient-to-br from-indigo-950/80 to-slate-900 border border-indigo-500/20 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden flex flex-col gap-4">
-                <div className="absolute right-0 top-0 w-32 h-32 bg-indigo-500/[0.05] rounded-full blur-xl pointer-events-none" />
+            {/* Pay Renew Options */}
+            <div className="space-y-4">
+              {/* ₹1.00 3-Day Trial Offer */}
+              <div className="bg-gradient-to-br from-violet-600 to-indigo-700 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden flex flex-col gap-3">
+                <div className="absolute right-0 top-0 w-32 h-32 bg-white/5 rounded-full blur-xl pointer-events-none" />
                 <div className="flex items-center gap-2">
-                  <span className="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider">EXCLUSIVE SAAS OFFER</span>
-                  <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider">RECOMMENDED</span>
+                  <span className="bg-white/20 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider">EXCLUSIVE SAAS OFFER</span>
+                  <span className="bg-emerald-500 text-white px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider">Recommended</span>
                 </div>
                 <div>
-                  <h4 className="text-sm font-extrabold uppercase tracking-widest text-white">3-Day Free Trial (₹1.00 Verification)</h4>
-                  <p className="text-[11px] font-semibold text-slate-450 mt-2 leading-relaxed">
-                    Test all console features instantly. Pay a minimal, one-time <strong className="text-indigo-300">₹1.00 setup fee</strong>. There are no recurring auto-debits or Autopay mandates.
+                  <h4 className="text-sm font-black uppercase tracking-wide">3-Day Free Trial (₹1.00 Setup Fee)</h4>
+                  <p className="text-[11px] font-semibold text-indigo-100 mt-1 leading-relaxed">
+                    Activate your 3-day free trial immediately by paying a one-time, minimal **₹1.00 verification fee**. 
+                    There are no recurring mandates or auto-debits — scans and pays flawlessly on all UPI apps!
                   </p>
                 </div>
                 <button
                   onClick={() => {
-                    const trialPayUrl = `/pay?api_key=${CONFIG.platformApiKey}&amount=1&ref=${profile?.id}&note=Trial_Setup_3Day`;
+                    const trialPayUrl = `/pay?api_key=${CONFIG.platformApiKey}&amount=1&ref=${profile?.id}&note=Trial_Setup_3Day&callback=${encodeURIComponent(callbackUrl)}`;
                     window.open(trialPayUrl, '_blank');
                   }}
-                  className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-lg shadow-emerald-500/20 active:scale-[0.98]"
+                  className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-450 text-white rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-md shadow-emerald-500/30"
                 >
-                  <Zap className="w-3.5 h-3.5" /> 
-                  <span>Start 3-Day Trial (Pay ₹1.00)</span>
+                  <Zap className="w-3.5 h-3.5" /> Start 3-Day Trial (Pay ₹1.00)
                 </button>
               </div>
 
-              {/* Standard Plans Selection */}
-              <div className="space-y-4 pt-1">
-                <div className="flex items-center gap-2 pb-1 border-b border-slate-800/40">
-                  <div className="w-6 h-6 bg-blue-500/10 border border-blue-500/20 rounded-lg flex items-center justify-center text-blue-400">
-                    <Zap className="w-3.5 h-3.5" />
-                  </div>
-                  <h4 className="text-[10px] font-extrabold text-slate-350 uppercase tracking-widest">Or Choose One-Time Plan</h4>
+              <div className="flex items-center gap-2 pb-1 pt-2">
+                <div className="w-8 h-8 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center text-blue-600">
+                  <Zap className="w-4.5 h-4.5" />
                 </div>
+                <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">Or Select One-Time Plan</h4>
+              </div>
 
-                <div className="grid grid-cols-4 gap-2">
-                  {[1, 2, 3].map(m => (
-                    <button
-                      key={m}
-                      onClick={() => { setSelectedMonths(m); setCustomMonths(''); }}
-                      className={`py-2.5 px-1 rounded-xl border font-extrabold text-xs transition-all flex flex-col items-center justify-center gap-0.5 active:scale-95 ${
-                        selectedMonths === m && !customMonths
-                          ? 'border-blue-500 bg-blue-500/10 text-blue-400 shadow-sm shadow-blue-500/5'
-                          : 'border-slate-850 bg-slate-900/50 text-slate-450 hover:border-slate-700 hover:text-slate-200'
-                      }`}
-                    >
-                      <span>{m} Mo{m > 1 ? 's' : ''}</span>
-                      <span className="text-[9px] font-semibold opacity-75">₹{CONFIG.subscriptionFee * m}</span>
-                    </button>
-                  ))}
-                  <div className="relative">
-                    <input
-                      type="number"
-                      min="1"
-                      max="24"
-                      placeholder="Custom"
-                      value={customMonths}
-                      onChange={e => { setCustomMonths(e.target.value); setSelectedMonths(0); }}
-                      className={`w-full h-full py-2.5 px-2 rounded-xl border font-extrabold text-xs text-center transition-all focus:outline-none placeholder-slate-600 bg-slate-900/50 ${
-                        customMonths
-                          ? 'border-blue-500 bg-blue-500/10 text-blue-400'
-                          : 'border-slate-850 text-slate-450 focus:border-slate-700'
-                      }`}
-                    />
-                    {customMonths && (
-                      <span className="absolute bottom-0.5 left-0 right-0 text-center text-[7px] font-bold text-slate-500">
-                        ₹{CONFIG.subscriptionFee * parseInt(customMonths || 1)}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Sub Total & Pay Button */}
-                <div className="bg-[#181E31]/20 border border-slate-850 rounded-2xl p-4 flex flex-col gap-3">
-                  <div className="flex justify-between items-center text-xs font-bold text-slate-400">
-                    <span>Total Plan (for {months} Month{months > 1 ? 's' : ''})</span>
-                    <span className="text-white font-extrabold text-sm">₹{total.toLocaleString('en-IN')}</span>
-                  </div>
-                  
+              <div className="grid grid-cols-4 gap-2">
+                {[1, 2, 3].map(m => (
                   <button
-                    onClick={() => window.open(payUrl, '_blank')}
-                    className="w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all shadow-md shadow-blue-500/15 active:scale-[0.98]"
+                    key={m}
+                    onClick={() => { setSelectedMonths(m); setCustomMonths(''); }}
+                    className={`py-2 px-1 rounded-xl border-2 font-black text-xs transition-all flex flex-col items-center justify-center gap-0.5 ${
+                      selectedMonths === m && !customMonths
+                        ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm'
+                        : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-350'
+                    }`}
                   >
-                    <CreditCard className="w-3.5 h-3.5 text-white" />
-                    Pay ₹{total.toLocaleString('en-IN')} via UPI
+                    <span>{m} Mo{m > 1 ? 's' : ''}</span>
+                    <span className="text-[9px] font-bold opacity-75">₹{CONFIG.subscriptionFee * m}</span>
                   </button>
-                </div>
-
-                {/* Status Sync Check */}
-                <button
-                  onClick={handleRefreshStatus}
-                  disabled={statusChecking}
-                  className="w-full py-3 border border-slate-800 bg-slate-900/30 hover:border-slate-700 text-slate-350 hover:text-white rounded-xl font-extrabold text-xs flex items-center justify-center gap-2 transition-all disabled:opacity-50 hover:bg-slate-900/80 active:scale-[0.98]"
-                >
-                  {statusChecking ? (
-                    <Loader2 className="w-3.5 h-3.5 text-blue-400 animate-spin" />
-                  ) : (
-                    <RefreshCw className="w-3.5 h-3.5 text-slate-500 animate-spin" style={{ animationDuration: '4s' }} />
+                ))}
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="1"
+                    max="24"
+                    placeholder="Custom"
+                    value={customMonths}
+                    onChange={e => { setCustomMonths(e.target.value); setSelectedMonths(0); }}
+                    className={`w-full h-full py-2 px-2 rounded-xl border-2 font-black text-xs text-center transition-all focus:outline-none placeholder-slate-400 ${
+                      customMonths
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-slate-200 bg-slate-50 text-slate-600 focus:border-slate-350'
+                    }`}
+                  />
+                  {customMonths && (
+                    <span className="absolute bottom-0.5 left-0 right-0 text-center text-[7px] font-bold text-slate-400">
+                      ₹{CONFIG.subscriptionFee * parseInt(customMonths || 1)}
+                    </span>
                   )}
-                  Check Verification & Unlock
+                </div>
+              </div>
+
+              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex flex-col gap-3">
+                <div className="flex justify-between items-center text-xs font-bold text-slate-500">
+                  <span>Total (for {months} Month{months > 1 ? 's' : ''})</span>
+                  <span className="text-slate-900 font-black">₹{total.toLocaleString('en-IN')}</span>
+                </div>
+                
+                <button
+                  onClick={() => window.open(payUrl, '_blank')}
+                  className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white-pure rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-md shadow-blue-500/20"
+                >
+                  <CreditCard className="w-3.5 h-3.5" />
+                  Pay ₹{total.toLocaleString('en-IN')} via UPI
                 </button>
               </div>
+
+              {/* Status Sync Check */}
+              <button
+                onClick={handleRefreshStatus}
+                disabled={statusChecking}
+                className="w-full py-3 border border-slate-200 hover:border-slate-350 bg-white text-slate-800 rounded-xl font-black text-xs flex items-center justify-center gap-2 transition-all shadow-sm disabled:opacity-50 hover:bg-slate-50"
+              >
+                {statusChecking ? (
+                  <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-4 h-4 text-slate-500" />
+                )}
+                Check Payment & Unlock Status
+              </button>
             </div>
 
-            {/* Right: Payment Logs & History list */}
+            {/* Payment History List */}
             <div className="space-y-4">
-              <div className="flex items-center gap-2 pb-1 border-b border-slate-800/40">
-                <div className="w-6 h-6 bg-indigo-500/10 border border-indigo-500/20 rounded-lg flex items-center justify-center text-indigo-400">
-                  <Clock className="w-3.5 h-3.5" />
+              <div className="flex items-center gap-2 pb-1">
+                <div className="w-8 h-8 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center text-blue-600">
+                  <Clock className="w-4.5 h-4.5" />
                 </div>
-                <h4 className="text-[10px] font-extrabold text-slate-350 uppercase tracking-widest">Subscription History</h4>
+                <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">Past Subscription Payments</h4>
               </div>
 
               {historyLoading ? (
-                <div className="py-10 flex flex-col items-center justify-center gap-2.5 bg-slate-900/30 border border-slate-850 rounded-2xl animate-pulse">
-                  <Loader2 className="w-5 h-5 text-indigo-400 animate-spin" />
-                  <p className="text-[9px] text-slate-500 font-extrabold uppercase tracking-wider">Syncing Payment Logs...</p>
+                <div className="py-8 flex flex-col items-center justify-center gap-2 bg-slate-50 border border-slate-100 rounded-2xl">
+                  <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
+                  <p className="text-[10px] text-slate-400 font-bold">Loading payment logs...</p>
                 </div>
               ) : historyOrders.length === 0 ? (
-                <div className="py-12 text-center text-xs font-semibold text-slate-555 bg-slate-900/20 border border-slate-850 rounded-2xl">
-                  No subscription logs found.
+                <div className="py-12 text-center text-xs font-semibold text-slate-500 bg-slate-50 border border-slate-100 rounded-2xl">
+                  No subscription renewals found.
                 </div>
               ) : (
-                <div className="max-h-[380px] overflow-y-auto space-y-2.5 pr-1.5 scrollbar-thin scrollbar-thumb-slate-800">
+                <div className="max-h-[220px] overflow-y-auto space-y-2 pr-1.5 scrollbar-thin">
                   {historyOrders.map(order => {
                     const dateStr = new Date(order.created_at).toLocaleDateString('en-IN', {
                       day: '2-digit',
@@ -1318,17 +1315,17 @@ echo "Order Created: " . $data['orderId'];
                       year: 'numeric'
                     });
                     return (
-                      <div key={order.id} className="flex items-center justify-between p-3.5 bg-slate-900/40 border border-slate-850 rounded-2xl text-xs hover:border-slate-800 transition-all">
+                      <div key={order.id} className="flex items-center justify-between p-3 bg-slate-50 border border-slate-150 rounded-xl text-xs">
                         <div>
-                          <p className="font-extrabold text-slate-100">₹{parseFloat(order.amount).toLocaleString('en-IN')}</p>
-                          <p className="text-[9px] font-semibold text-slate-500 mt-0.5">{dateStr} · Ref: {order.id.slice(0, 8)}</p>
+                          <p className="font-black text-slate-800">₹{parseFloat(order.amount).toLocaleString('en-IN')}</p>
+                          <p className="text-[9px] font-bold text-slate-400 mt-0.5">{dateStr} · Ref: {order.id.slice(0, 8)}</p>
                         </div>
-                        <span className={`text-[8px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider border ${
+                        <span className={`text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
                           order.status === 'verified'
-                            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                            ? 'bg-emerald-100 text-emerald-700'
                             : order.status === 'pending'
-                              ? 'bg-amber-500/10 border-amber-500/20 text-amber-400'
-                              : 'bg-red-500/10 border-red-500/20 text-red-400'
+                              ? 'bg-amber-100 text-amber-700'
+                              : 'bg-red-100 text-red-700'
                         }`}>
                           {order.status}
                         </span>
@@ -1342,16 +1339,15 @@ echo "Order Created: " . $data['orderId'];
           </div>
 
           {/* Footer Card */}
-          <div className="flex justify-between items-center border-t border-slate-800/60 pt-6 mt-2">
-            <span className="text-[10px] text-slate-500 font-semibold flex items-center gap-1.5">
-              <Shield className="w-3.5 h-3.5 text-slate-400" />
-              256-Bit Bank-grade secure activation portal.
+          <div className="flex justify-between items-center border-t border-slate-100 pt-5 mt-2">
+            <span className="text-[10px] text-slate-400 font-semibold flex items-center gap-1">
+              <Shield className="w-3.5 h-3.5 text-red-400" /> Secure platform access gateway.
             </span>
             <button
               onClick={handleSignOut}
-              className="flex items-center gap-1.5 px-4 py-2 border border-slate-800 hover:border-slate-700 bg-slate-900/30 text-slate-350 hover:text-white text-xs font-extrabold rounded-xl transition-all shadow-sm active:scale-95"
+              className="flex items-center gap-1.5 px-4 py-2 border border-slate-200 hover:border-slate-350 hover:bg-slate-50 text-slate-700 text-xs font-black rounded-xl transition-all shadow-sm"
             >
-              <LogOut className="w-3.5 h-3.5 text-slate-500" />
+              <LogOut className="w-4 h-4 text-slate-500" />
               Sign Out
             </button>
           </div>
