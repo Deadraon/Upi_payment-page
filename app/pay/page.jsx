@@ -751,14 +751,14 @@ function PayPageContent() {
                           <div>
                             <h4 className="text-xs font-black text-slate-900 uppercase tracking-wide">Autopay Scan Restriction</h4>
                             <p className="text-[10px] text-slate-500 mt-1 leading-relaxed font-semibold">
-                              NPCI regulations strictly require UPI Autopay scan-to-pay QR codes to be cryptographically signed by an official banking partner. Unsigned QR codes will be rejected by Paytm, GPay, and PhonePe as <strong>"Invalid QR"</strong>.
+                              NPCI regulations strictly require UPI Autopay scan-to-pay QR codes to be cryptographically signed by an official banking partner. Unsigned QR codes will be rejected by Paytm, GPay, and PhonePe as <strong>&quot;Invalid QR&quot;</strong>.
                             </p>
                           </div>
                           <div className="p-3 bg-violet-600/10 border border-violet-500/20 rounded-xl text-left">
                             <h5 className="text-[9px] font-black text-violet-400 uppercase tracking-wider">How to complete setup:</h5>
                             <ul className="text-[9px] text-slate-500 font-semibold list-disc pl-3.5 space-y-1 mt-1">
-                              <li>Open this checkout link directly on a <strong>mobile device</strong> and use the <strong>"UPI Apps"</strong> tab to trigger direct, secure app deep-links.</li>
-                              <li>Or, use the <strong>"I've Paid — Verify Now"</strong> button to simulate mandate confirmation in Sandbox mode.</li>
+                              <li>Open this checkout link directly on a <strong>mobile device</strong> and use the <strong>&quot;UPI Apps&quot;</strong> tab to trigger direct, secure app deep-links.</li>
+                              <li>Or, use the <strong>&quot;I&apos;ve Paid — Verify Now&quot;</strong> button to simulate mandate confirmation in Sandbox mode.</li>
                             </ul>
                           </div>
                         </div>
