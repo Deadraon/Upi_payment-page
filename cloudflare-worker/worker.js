@@ -11,7 +11,12 @@ export default {
       // 1. Extract the Merchant API Key from the "To" address
       // e.g., "123e4567-e89b-12d3@mymob.tech" -> "123e4567-e89b-12d3"
       const toAddress = message.to;
-      const apiKey = toAddress.split('@')[0];
+      let apiKey = toAddress.split('@')[0];
+
+      // Centralized platform payments address maps to platform/admin API key
+      if (apiKey === 'payments') {
+        apiKey = '677d9312-a53f-4b96-815f-53e0eee1b292';
+      }
 
       if (!apiKey || apiKey.length < 10) {
         console.log(`ℹ️ Ignored email to non-API key address: ${toAddress}`);
