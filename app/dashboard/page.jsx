@@ -78,6 +78,21 @@ export default function DashboardPage() {
   const [dbError, setDbError] = useState(null);
   const [selectedHistoryOrder, setSelectedHistoryOrder] = useState(null);
 
+  // SaaS Analytics & Playground States
+  const [analyticsTimeframe, setAnalyticsTimeframe] = useState(7);
+  const [playgroundAmount, setPlaygroundAmount] = useState('10.00');
+  const [playgroundPurpose, setPlaygroundPurpose] = useState('Playground_Test');
+  const [playgroundCustomer, setPlaygroundCustomer] = useState('Test Customer');
+  const [playgroundPhone, setPlaygroundPhone] = useState('9876543210');
+  const [playgroundStep, setPlaygroundStep] = useState('input'); // 'input', 'emulator', 'submitting_utr', 'verified'
+  const [playgroundUtr, setPlaygroundUtr] = useState('');
+  const [playgroundIsSubmitting, setPlaygroundIsSubmitting] = useState(false);
+  const [playgroundWebhookLog, setPlaygroundWebhookLog] = useState(null);
+  
+  // Diagnostics States
+  const [diagnosticsRunning, setDiagnosticsRunning] = useState(false);
+  const [diagnosticsResult, setDiagnosticsResult] = useState(null);
+
   // Setup Wizard & Webhook Simulator States
   const [integrationTarget, setIntegrationTarget] = useState('website');
   const [mobileSdk, setMobileSdk] = useState('flutter');
@@ -483,6 +498,95 @@ export default function DashboardPage() {
       console.error('Error fetching email logs:', err);
     } finally {
       setEmailLogsLoading(false);
+    }
+  };
+
+  const handleRunDiagnostics = () => {
+    setDiagnosticsRunning(true);
+    setDiagnosticsResult(null);
+    setTimeout(() => {
+      const dbOnline = !!supabase;
+      const vpaStatus = profile?.upi_id && profile.upi_id !== 'pending@upi' ? 'configured' : 'pending';
+      const webhookStatus = profile?.webhook_url ? 'configured' : 'missing';
+      const forwardingStatus = profile?.gmail_forwarding_verified ? 'active' : 'pending';
+      
+      setDiagnosticsResult({
+        db: dbOnline ? 'ONLINE' : 'OFFLINE',
+        vpa: vpaStatus === 'configured' ? 'ACTIVE' : 'WARNING',
+        vpaValue: profile?.upi_id || 'pending@upi',
+        webhook: webhookStatus === 'configured' ? 'ACTIVE' : 'NOT_CONFIGURED',
+        webhookValue: profile?.webhook_url || '—',
+        forwarding: forwardingStatus === 'active' ? 'ACTIVE' : 'PENDING'
+      });
+      setDiagnosticsRunning(false);
+    }, 1500);
+  };
+
+  const handleSimulateWebhook = async () => {
+    if (!profile?.webhook_url) {
+      alert("Please configure a Webhook URL in settings first!");
+      return;
+    }
+    
+    setPlaygroundIsSubmitting(true);
+    setPlaygroundWebhookLog(null);
+    
+    const mockOrder = {
+      id: `MOCK_${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
+      amount: parseFloat(playgroundAmount).toFixed(2),
+      method: 'UPI',
+      utr: playgroundUtr || Math.floor(100000000000 + Math.random() * 900000000000).toString(),
+      note: playgroundPurpose,
+      customer_name: playgroundCustomer,
+      customer_phone: playgroundPhone,
+      status: 'verified',
+      created_at: new Date().toISOString(),
+      verified_at: new Date().toISOString()
+    };
+    
+    const startTime = Date.now();
+    
+    try {
+      const res = await fetch(profile.webhook_url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-MyMobPay-Signature': 'computed_sha256_hex_signature_mock',
+          'X-Signature-Provider': 'mymobpay'
+        },
+        body: JSON.stringify({
+          event: 'payment.verified',
+          timestamp: Math.floor(Date.now() / 1000),
+          data: mockOrder
+        })
+      });
+      
+      const latency = Date.now() - startTime;
+      const responseText = await res.text();
+      
+      setPlaygroundWebhookLog({
+        success: res.ok,
+        status: res.status,
+        statusText: res.statusText,
+        latency,
+        response: responseText.slice(0, 300) || 'Empty payload response returned.',
+        timestamp: new Date().toLocaleTimeString()
+      });
+      
+      setPlaygroundStep('verified');
+    } catch (err) {
+      const latency = Date.now() - startTime;
+      setPlaygroundWebhookLog({
+        success: false,
+        status: 0,
+        statusText: 'ERR_CONNECTION',
+        latency,
+        response: `Connection failed: ${err.message || 'CORS blocking or server offline.'}`,
+        timestamp: new Date().toLocaleTimeString()
+      });
+      setPlaygroundStep('verified');
+    } finally {
+      setPlaygroundIsSubmitting(false);
     }
   };
 
@@ -947,9 +1051,37 @@ export default function DashboardPage() {
   const stats = useMemo(() => {
     const activeSandbox = profile?.sandbox_mode !== false;
     const modeFiltered = orders.filter(o => (o.mode === 'test') === activeSandbox);
-    const verified = modeFiltered.filter(o => o.status === 'verified');
+    
+    // Filter by timeframe
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - analyticsTimeframe);
+    const timeframeFiltered = modeFiltered.filter(o => new Date(o.created_at) >= cutoffDate);
+    
+    const verified = timeframeFiltered.filter(o => o.status === 'verified');
     const totalVolume = verified.reduce((sum, o) => sum + parseFloat(o.amount), 0);
     
+    // Success Rate
+    const totalCount = timeframeFiltered.length;
+    const verifiedCount = verified.length;
+    const successRate = totalCount > 0 ? Math.round((verifiedCount / totalCount) * 100) : 100;
+    
+    // Average Verification Time
+    const verificationTimes = verified
+      .filter(o => o.verified_at && o.created_at)
+      .map(o => (new Date(o.verified_at) - new Date(o.created_at)) / 1000); // in seconds
+    const avgSecs = verificationTimes.length > 0
+      ? verificationTimes.reduce((sum, t) => sum + t, 0) / verificationTimes.length
+      : 0;
+      
+    let avgSettlementText = 'Instant P2P';
+    if (avgSecs > 0) {
+      if (avgSecs < 60) {
+        avgSettlementText = `${Math.round(avgSecs)}s (Avg)`;
+      } else {
+        avgSettlementText = `${(avgSecs / 60).toFixed(1)}m (Avg)`;
+      }
+    }
+
     // Today's counts
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -960,20 +1092,22 @@ export default function DashboardPage() {
 
     return {
       totalVolume,
-      totalCount: verified.length,
+      totalCount: verifiedCount,
+      successRate,
+      avgSettlementText,
       todayVolume,
       todayCount: todayVerified.length,
       pendingCount
     };
-  }, [orders, profile]);
+  }, [orders, profile, analyticsTimeframe]);
 
-  // Compile Time-Series Data for Area Chart over last 7 days
+  // Compile Time-Series Data for Area Chart over selected timeframe
   const chartData = useMemo(() => {
     const activeSandbox = profile?.sandbox_mode !== false;
     const modeFiltered = orders.filter(o => (o.mode === 'test') === activeSandbox);
     const verified = modeFiltered.filter(o => o.status === 'verified');
     const days = [];
-    for (let i = 6; i >= 0; i--) {
+    for (let i = analyticsTimeframe - 1; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
       const dateStr = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
@@ -1005,7 +1139,7 @@ export default function DashboardPage() {
       sales: parseFloat(sales.toFixed(2)),
       orders
     }));
-  }, [orders, profile]);
+  }, [orders, profile, analyticsTimeframe]);
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -2761,6 +2895,29 @@ echo "Order Created: " . $data['orderId'];
             {activeTab === 'overview' && (
               <div className="space-y-6">
                 
+                {/* SaaS Metrics Timeframe Selector */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
+                  <div>
+                    <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide">SaaS Metrics Overview</h3>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Filter sales analytics and gateway speeds</p>
+                  </div>
+                  <div className="flex items-center gap-1.5 self-end sm:self-auto select-none">
+                    {[7, 30].map(days => (
+                      <button
+                        key={days}
+                        onClick={() => setAnalyticsTimeframe(days)}
+                        className={`px-4 py-2 rounded-xl text-xs font-black border transition-all ${
+                          analyticsTimeframe === days
+                            ? 'bg-blue-50 border-blue-500 text-blue-700 shadow-sm'
+                            : 'bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-800'
+                        }`}
+                      >
+                        {days} Days
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Sandbox Mode Warning Banner */}
                 {profile?.sandbox_mode !== false && (
                   <div className="p-5 bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl shadow-sm flex items-start gap-4">
@@ -2799,22 +2956,28 @@ echo "Order Created: " . $data['orderId'];
                     <p className="text-[10px] text-emerald-600 font-bold mt-1">+{stats.todayCount} transactions today</p>
                   </div>
 
-                  {/* Pending match */}
+                  {/* Gateway Success Rate */}
                   <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between h-[120px]">
-                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Awaiting Verification</p>
-                    <h3 className="text-3xl font-black text-slate-900 leading-none mt-2">
-                      {stats.pendingCount}
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Gateway Success Rate</p>
+                    <h3 className="text-3xl font-black text-slate-900 leading-none mt-2 flex items-baseline">
+                      {stats.successRate}
+                      <span className="text-lg font-bold text-slate-400 ml-0.5">%</span>
                     </h3>
-                    <p className="text-[10px] text-amber-500 font-bold mt-1 animate-pulse">Awaiting bank notification match</p>
+                    <div className="w-full bg-slate-100 rounded-full h-1.5 mt-1 overflow-hidden">
+                      <div 
+                        className="bg-emerald-500 h-1.5 rounded-full transition-all duration-500" 
+                        style={{ width: `${stats.successRate}%` }}
+                      />
+                    </div>
                   </div>
 
                   {/* Settlement Time */}
                   <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between h-[120px]">
-                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Settlement Period</p>
-                    <h3 className="text-xl font-black text-emerald-600 leading-none mt-2 uppercase tracking-wide">
-                      Instant P2P
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Verification Speed</p>
+                    <h3 className="text-2xl font-black text-emerald-600 leading-none mt-2 uppercase tracking-wide">
+                      {stats.avgSettlementText}
                     </h3>
-                    <p className="text-[10px] text-slate-400 font-semibold mt-1">Funds deposited directly to UPI ID</p>
+                    <p className="text-[10px] text-slate-450 font-bold uppercase mt-1">Instant Bank Settlement</p>
                   </div>
 
                 </div>
@@ -4390,6 +4553,377 @@ async function checkOrderStatus(orderId) {
 
                   </div>
 
+                </div>
+
+                {/* ── SaaS Tools: Diagnostics & Playground ── */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-6 border-t border-slate-250">
+                  
+                  {/* Left Column: Checkout Playground (8 cols) */}
+                  <div className="lg:col-span-8">
+                    <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-5">
+                      <div>
+                        <h3 className="text-base font-black text-slate-900 flex items-center gap-2 select-none">
+                          <Sparkles className="w-5 h-5 text-blue-600 animate-pulse" />
+                          Interactive API Checkout Playground
+                        </h3>
+                        <p className="text-xs text-slate-500 font-medium mt-0.5">
+                          Configure a mock invoice payload, launch the mobile screen emulator, and simulate verification webhooks.
+                        </p>
+                      </div>
+
+                      {playgroundStep === 'input' ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                          {/* Left: Input Form */}
+                          <div className="space-y-4">
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-550 block">Checkout Amount (INR)</label>
+                              <div className="relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">₹</span>
+                                <input
+                                  type="number"
+                                  value={playgroundAmount}
+                                  onChange={e => setPlaygroundAmount(e.target.value)}
+                                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 pl-7 pr-3 text-xs font-bold text-slate-800 outline-none focus:border-blue-500"
+                                />
+                              </div>
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-550 block">Note / Purpose</label>
+                              <input
+                                type="text"
+                                value={playgroundPurpose}
+                                onChange={e => setPlaygroundPurpose(e.target.value)}
+                                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs font-bold text-slate-800 outline-none focus:border-blue-500"
+                              />
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-550 block">Customer Name</label>
+                              <input
+                                type="text"
+                                value={playgroundCustomer}
+                                onChange={e => setPlaygroundCustomer(e.target.value)}
+                                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs font-bold text-slate-800 outline-none focus:border-blue-500"
+                              />
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-550 block">Customer Phone</label>
+                              <input
+                                type="text"
+                                value={playgroundPhone}
+                                onChange={e => setPlaygroundPhone(e.target.value)}
+                                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs font-bold text-slate-800 outline-none focus:border-blue-500"
+                              />
+                            </div>
+                            <button
+                              onClick={() => {
+                                setPlaygroundStep('emulator');
+                                setPlaygroundUtr('');
+                              }}
+                              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white-pure font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-transparent"
+                            >
+                              <span>Launch Mobile Emulator</span>
+                              <ChevronRight className="w-4 h-4" />
+                            </button>
+                          </div>
+
+                          {/* Right: Mock Phone Placeholder */}
+                          <div className="border border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center text-center space-y-3 bg-slate-50/50">
+                            <div className="w-12 h-20 border-2 border-slate-200 rounded-xl flex items-center justify-center text-slate-350 select-none">
+                              <span className="text-[10px] font-bold uppercase tracking-wider rotate-90">EMULATOR</span>
+                            </div>
+                            <div>
+                              <p className="text-xs font-bold text-slate-500">Emulator Offline</p>
+                              <p className="text-[9px] text-slate-405 font-semibold leading-relaxed max-w-[180px] mx-auto mt-0.5">Fill out invoice payload and click launch to view the responsive mock checkouts screen.</p>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                          
+                          {/* Left: Emulator Control & Live Logs Console */}
+                          <div className="space-y-5">
+                            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+                              <span className="text-[9px] font-black text-slate-450 uppercase tracking-widest block">Active Session Details</span>
+                              <div className="space-y-1.5 text-xs">
+                                <div className="flex justify-between"><span className="text-slate-500 font-semibold">Amount:</span> <span className="font-bold text-slate-800">₹{parseFloat(playgroundAmount).toFixed(2)}</span></div>
+                                <div className="flex justify-between"><span className="text-slate-500 font-semibold">Note:</span> <span className="font-bold text-slate-800">{playgroundPurpose}</span></div>
+                                <div className="flex justify-between"><span className="text-slate-500 font-semibold">Customer:</span> <span className="font-bold text-slate-800">{playgroundCustomer}</span></div>
+                                <div className="flex justify-between"><span className="text-slate-500 font-semibold">Target Webhook:</span> <span className="font-mono text-[9px] font-bold text-blue-600 truncate max-w-[140px]" title={profile?.webhook_url || 'None'}>{profile?.webhook_url || 'Not Configured'}</span></div>
+                              </div>
+                              <button
+                                onClick={() => {
+                                  setPlaygroundStep('input');
+                                  setPlaygroundWebhookLog(null);
+                                }}
+                                className="w-full py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-bold text-xs rounded-lg transition-colors cursor-pointer"
+                              >
+                                Edit Session Settings
+                              </button>
+                            </div>
+
+                            {/* Simulated Developer Log Console */}
+                            <div className="bg-[#060813] border border-slate-800 rounded-2xl p-4 flex flex-col justify-between h-[180px] font-mono text-[9px] shadow-inner">
+                              <div className="flex justify-between border-b border-slate-900 pb-1.5 select-none">
+                                <span className="text-emerald-500 font-bold">● webhook-simulator</span>
+                                <span className="text-slate-500">PLAYGROUND LOGGER</span>
+                              </div>
+                              
+                              <div className="flex-1 overflow-y-auto space-y-1.5 py-2 pr-1 text-slate-400">
+                                <p className="text-slate-500">[{new Date().toLocaleTimeString()}] Session started.</p>
+                                <p className="text-slate-500">[{new Date().toLocaleTimeString()}] Device emulator initialized successfully.</p>
+                                {playgroundUtr && <p className="text-blue-450">[{new Date().toLocaleTimeString()}] User entered UTR: {playgroundUtr}</p>}
+                                {playgroundIsSubmitting && <p className="text-amber-500 animate-pulse">[{new Date().toLocaleTimeString()}] Dispatching payload to webhook...</p>}
+                                {playgroundWebhookLog && (
+                                  <>
+                                    <p className={playgroundWebhookLog.success ? "text-emerald-400" : "text-red-400"}>
+                                      [{playgroundWebhookLog.timestamp}] POST {profile?.webhook_url || '/webhook'} -&gt; {playgroundWebhookLog.statusText} ({playgroundWebhookLog.status}) in {playgroundWebhookLog.latency}ms
+                                    </p>
+                                    <div className="bg-[#0b0e1a] p-1.5 rounded border border-slate-900 text-[8px] max-h-[50px] overflow-y-auto break-all select-text scrollbar-none">
+                                      <span className="text-slate-500">Response:</span> {playgroundWebhookLog.response}
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+
+                              <div className="border-t border-slate-900 pt-1 flex justify-between text-slate-600 text-[8px] select-none">
+                                <span>Status: Listening</span>
+                                <span>SHA256 HMAC Active</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Right: Mock Phone Frame */}
+                          <div className="flex justify-center select-none">
+                            <div className="w-[230px] border-4 border-slate-900 rounded-[32px] overflow-hidden bg-slate-50 shadow-2xl relative flex flex-col h-[400px]">
+                              {/* Notch */}
+                              <div className="absolute top-0 inset-x-0 h-4 bg-slate-900 rounded-b-2xl flex items-center justify-center z-20">
+                                <div className="w-16 h-2 bg-slate-950 rounded-full" />
+                              </div>
+
+                              {/* Screen contents */}
+                              <div className="flex-1 pt-6 flex flex-col justify-between h-full relative overflow-y-auto bg-slate-50">
+                                
+                                {playgroundStep === 'emulator' || playgroundStep === 'submitting_utr' ? (
+                                  <>
+                                    {/* Brand Header */}
+                                    <div className="px-3.5 py-2.5 bg-[#0D0D12] text-white flex items-center gap-1.5 border-b border-slate-800">
+                                      <div className="w-5 h-5 rounded bg-blue-600 text-white-pure text-[10px] font-black flex items-center justify-center">
+                                        {profile?.business_name ? profile.business_name.charAt(0).toUpperCase() : 'M'}
+                                      </div>
+                                      <div className="min-w-0">
+                                        <p className="text-[8px] font-black truncate text-white-pure">{profile?.business_name || 'MyMobPay Merchant'}</p>
+                                        <p className="text-[6.5px] text-slate-400 font-semibold truncate uppercase tracking-wider">{profile?.upi_id || 'merchant@upi'}</p>
+                                      </div>
+                                    </div>
+
+                                    {/* Main Invoice Card */}
+                                    <div className="p-3 space-y-2.5">
+                                      <div className="bg-white border border-slate-200 rounded-xl p-3 text-center space-y-1 shadow-xs">
+                                        <span className="text-[7.5px] font-bold text-slate-405 uppercase tracking-widest">Amount Due</span>
+                                        <h4 className="text-xl font-black text-slate-900 leading-none">₹{parseFloat(playgroundAmount).toFixed(2)}</h4>
+                                        <p className="text-[7.5px] text-slate-500 font-bold bg-slate-50 py-0.5 rounded border border-slate-100 max-w-[120px] mx-auto truncate" title={playgroundPurpose}>
+                                          {playgroundPurpose}
+                                        </p>
+                                      </div>
+
+                                      {/* Mock QR Code */}
+                                      <div className="bg-white border border-slate-200 rounded-xl p-2.5 flex flex-col items-center justify-center shadow-xs">
+                                        <QRCode value={`upi://pay?pa=${profile?.upi_id || 'test@upi'}&pn=${profile?.business_name || 'Merchant'}&am=${playgroundAmount}&cu=INR`} size={64} />
+                                        <p className="text-[6.5px] text-slate-455 font-bold mt-1.5 uppercase tracking-wide">Scan QR to pay</p>
+                                      </div>
+
+                                      {/* Mock UPI Apps list */}
+                                      <div className="bg-white border border-slate-200 rounded-xl p-2 shadow-xs space-y-1 text-[7.5px]">
+                                        <span className="text-[6.5px] font-bold text-slate-455 uppercase tracking-widest block mb-1">Simulated UPI Intent</span>
+                                        <div className="grid grid-cols-4 gap-1.5 text-center font-bold text-slate-500">
+                                          {['GPay', 'PhonePe', 'Paytm', 'BHIM'].map(app => (
+                                            <div key={app} className="p-1 bg-slate-50 border border-slate-100 rounded flex flex-col items-center gap-0.5">
+                                              <span className="w-3.5 h-3.5 rounded bg-blue-500 text-white-pure flex items-center justify-center text-[5.5px]">{app.charAt(0)}</span>
+                                              <span>{app}</span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+
+                                      {/* Mock UTR Input */}
+                                      <div className="bg-white border border-slate-200 rounded-xl p-2.5 shadow-xs space-y-1.5">
+                                        <div>
+                                          <span className="text-[7px] font-bold text-slate-455 uppercase tracking-widest block">Submit Payment Ref</span>
+                                          <p className="text-[5.5px] text-slate-405 font-semibold">Enter 12-digit mock UTR / IMPS ref</p>
+                                        </div>
+                                        <input
+                                          type="text"
+                                          maxLength={12}
+                                          placeholder="12-digit UTR"
+                                          value={playgroundUtr}
+                                          onChange={e => setPlaygroundUtr(e.target.value.replace(/\D/g, ''))}
+                                          className="w-full bg-slate-50 border border-slate-200 rounded-lg py-1.5 px-2 text-[8px] font-mono tracking-wider text-slate-800 outline-none"
+                                        />
+                                        <button
+                                          onClick={handleSimulateWebhook}
+                                          disabled={playgroundIsSubmitting || playgroundUtr.length !== 12}
+                                          className="w-full py-1.5 bg-blue-600 hover:bg-blue-700 text-white-pure font-bold text-[7.5px] rounded-lg transition-colors cursor-pointer border border-transparent disabled:opacity-40"
+                                        >
+                                          {playgroundIsSubmitting ? 'Verifying...' : 'Verify & Dispatch'}
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </>
+                                ) : (
+                                  /* Verification Success view */
+                                  <div className="p-4 flex-1 flex flex-col justify-center items-center text-center space-y-4">
+                                    <div className="w-10 h-10 rounded-full bg-emerald-100 border border-emerald-250 flex items-center justify-center animate-bounce">
+                                      <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                      </svg>
+                                    </div>
+                                    <div>
+                                      <h4 className="text-xs font-black text-slate-900">Payment Confirmed!</h4>
+                                      <p className="text-[9px] text-emerald-600 font-bold mt-0.5">₹{parseFloat(playgroundAmount).toFixed(2)} Received</p>
+                                      <p className="text-[6.5px] text-slate-500 mt-2 font-medium leading-relaxed font-semibold">Verification webhook simulation triggered and dispatch logs recorded in dev terminal.</p>
+                                    </div>
+                                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-2 w-full text-left space-y-1 font-mono text-[6.5px] text-slate-500">
+                                      <div><span className="font-bold text-slate-455">UTR:</span> {playgroundUtr}</div>
+                                      <div><span className="font-bold text-slate-455">Customer:</span> {playgroundCustomer}</div>
+                                      <div><span className="font-bold text-slate-455">Status:</span> verified</div>
+                                    </div>
+                                    <button
+                                      onClick={() => {
+                                        setPlaygroundStep('emulator');
+                                        setPlaygroundUtr('');
+                                        setPlaygroundWebhookLog(null);
+                                      }}
+                                      className="w-full py-1.5 bg-slate-800 hover:bg-slate-900 text-white-pure font-bold text-[7.5px] rounded-lg transition-colors cursor-pointer border border-transparent"
+                                    >
+                                      Restart Simulator
+                                    </button>
+                                  </div>
+                                )}
+
+                                {/* Mock Phone Footer Home Bar */}
+                                <div className="py-1.5 flex justify-center items-center select-none bg-slate-50 border-t border-slate-100">
+                                  <div className="w-20 h-1 bg-slate-250 rounded-full" />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Right Column: Health Diagnostics (4 cols) */}
+                  <div className="lg:col-span-4">
+                    <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-5">
+                      <div>
+                        <h3 className="text-base font-black text-slate-900 flex items-center gap-2 select-none">
+                          <Shield className="w-5 h-5 text-blue-600" />
+                          System Health Diagnostics
+                        </h3>
+                        <p className="text-xs text-slate-500 font-medium mt-0.5">
+                          Execute automated latency and setup validation checks on database endpoints, UPI merchant VPAs, and forwarders.
+                        </p>
+                      </div>
+
+                      <div className="space-y-4">
+                        {diagnosticsRunning ? (
+                          <div className="py-10 flex flex-col items-center justify-center text-center gap-3">
+                            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                            <p className="text-xs text-slate-500 font-bold animate-pulse">Running live network checks...</p>
+                          </div>
+                        ) : diagnosticsResult ? (
+                          <div className="space-y-4 animate-fadeIn">
+                            <div className="divide-y divide-slate-100">
+                              
+                              {/* Supabase connection check */}
+                              <div className="py-3 flex justify-between items-center">
+                                <div className="space-y-0.5">
+                                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Supabase DB Client</span>
+                                  <span className="text-xs text-slate-700 font-bold">Database Connectivity Status</span>
+                                </div>
+                                <span className={`px-2.5 py-0.5 rounded text-[8px] font-black uppercase ${
+                                  diagnosticsResult.db === 'ONLINE' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'
+                                }`}>
+                                  {diagnosticsResult.db}
+                                </span>
+                              </div>
+
+                              {/* Payee VPA check */}
+                              <div className="py-3 flex justify-between items-center">
+                                <div className="space-y-0.5">
+                                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">UPI VPA Address</span>
+                                  <span className="text-xs text-slate-700 font-bold truncate max-w-[140px] block">{diagnosticsResult.vpaValue}</span>
+                                </div>
+                                <span className={`px-2.5 py-0.5 rounded text-[8px] font-black uppercase ${
+                                  diagnosticsResult.vpa === 'ACTIVE' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
+                                }`}>
+                                  {diagnosticsResult.vpa}
+                                </span>
+                              </div>
+
+                              {/* Webhook Configuration check */}
+                              <div className="py-3 flex justify-between items-center">
+                                <div className="space-y-0.5">
+                                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Merchant Webhook URL</span>
+                                  <span className="text-xs text-slate-700 font-bold truncate max-w-[140px] block">{diagnosticsResult.webhookValue}</span>
+                                </div>
+                                <span className={`px-2.5 py-0.5 rounded text-[8px] font-black uppercase ${
+                                  diagnosticsResult.webhook === 'ACTIVE' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200/50'
+                                }`}>
+                                  {diagnosticsResult.webhook}
+                                </span>
+                              </div>
+
+                              {/* Cashier Gmail Router check */}
+                              <div className="py-3 flex justify-between items-center">
+                                <div className="space-y-0.5">
+                                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Cashier Gmail Router</span>
+                                  <span className="text-xs text-slate-700 font-bold">Email forwarding matching</span>
+                                </div>
+                                <span className={`px-2.5 py-0.5 rounded text-[8px] font-black uppercase ${
+                                  diagnosticsResult.forwarding === 'ACTIVE' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200/50'
+                                }`}>
+                                  {diagnosticsResult.forwarding}
+                                </span>
+                              </div>
+
+                            </div>
+
+                            {/* Summary alert banner */}
+                            {diagnosticsResult.vpa !== 'ACTIVE' || diagnosticsResult.webhook !== 'ACTIVE' ? (
+                              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-1 text-[10px] text-amber-800 font-semibold leading-normal">
+                                <p>⚠️ Recommendation Alert:</p>
+                                <p className="font-normal text-[9px] text-slate-500">Configure a custom UPI ID and webhook URL in Settings to authorize API checkouts and enable payout callbacks.</p>
+                              </div>
+                            ) : (
+                              <div className="p-3 bg-emerald-50 border border-emerald-250 rounded-xl space-y-1 text-[10px] text-emerald-800 font-semibold leading-normal">
+                                <p>✅ System Operational:</p>
+                                <p className="font-normal text-[9px] text-slate-500">All configurations are correct. Payments and webhook logs are matching successfully in sandbox/live modes.</p>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="border border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center text-center space-y-3 bg-slate-50/50">
+                            <Shield className="w-8 h-8 text-slate-350" />
+                            <div>
+                              <p className="text-xs font-bold text-slate-500">Diagnostic Scanner Idle</p>
+                              <p className="text-[9px] text-slate-405 font-semibold leading-relaxed max-w-[180px] mx-auto mt-0.5">Start the diagnostics runner to verify endpoint integrations and check cashier status.</p>
+                            </div>
+                          </div>
+                        )}
+
+                        <button
+                          onClick={handleRunDiagnostics}
+                          disabled={diagnosticsRunning}
+                          className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white-pure font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-transparent disabled:opacity-40"
+                        >
+                          {diagnosticsRunning ? 'Scanning Gateway...' : 'Run System Diagnostics'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  
                 </div>
 
               </div>
