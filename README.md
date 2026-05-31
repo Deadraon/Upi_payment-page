@@ -1,9 +1,19 @@
-# Premium Next.js UPI Payment Gateway 🚀
+# MyMobPay — Premium Next.js B2B UPI Payment Gateway & SaaS 🚀
 
-> 🌐 **Live Platform Console**: [mymob.tech](https://mymob.tech)  
-> 📊 **Merchant Dashboard**: [mymob.tech/dashboard](https://mymob.tech/dashboard)
+> 🌐 **Official Website**: [mymob.tech](https://mymob.tech)  
+> 📊 **Merchant & Partner Dashboard**: [mymob.tech/dashboard](https://mymob.tech/dashboard)
+> 📱 **UPI Live Payment Interface**: [mymob.tech/pay](https://mymob.tech/pay)
 
-A highly responsive, standalone, and reusable B2B UPI Payment Gateway designed for modern businesses. Built with **Next.js 14 (App Router)**, **Tailwind CSS**, and **Supabase**, this gateway supports mobile direct deep-linking, desktop QR codes, secure merchant administration, a dynamic **Interactive Setup & Integration Wizard** (Web checkouts & Mobile App SDKs), and **automated bank SMS webhook verification** out-of-the-box!
+---
+
+## 💡 What is MyMobPay?
+
+**MyMobPay** is a premium, high-performance, and frictionless B2B SaaS UPI Payment Gateway built for modern Indian businesses, merchants, and developers. It enables businesses to bypass traditional payment aggregators and avoid high commission fees by facilitating **zero-fee (0% MDR) peer-to-peer (P2P) UPI payments** directly from the customer's bank account into the merchant's bank account.
+
+### How it Works:
+1. **Frictionless Checkout**: The gateway generates highly responsive, high-fidelity dynamic QR codes (desktop) and native one-click UPI deep-link triggers (mobile) for Google Pay, PhonePe, Paytm, BHIM, and other UPI applications.
+2. **Real-time SMS Verification (The Secret Sauce)**: Once the customer completes the payment, the funds are instantly credited to the merchant's bank account. The merchant's Android device (running a secure SMS forwarding app) reads the bank's transaction confirmation SMS and forwards it immediately to the secure **MyMobPay SMS Webhook API**.
+3. **Instant Automatic Reconciliation**: The backend parser reads the incoming SMS payload, parses the amount, matches it with the pending order, verifies the transaction, and instantly updates the status page for the customer in real-time (polling every few seconds or utilizing real-time Supabase channels) — completing the entire loop in under 2 seconds!
 
 ---
 
