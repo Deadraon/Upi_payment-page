@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { CONFIG } from '@/lib/config';
 
 export async function POST(request) {
   try {
@@ -51,7 +52,9 @@ export async function POST(request) {
        }
     }
 
-    if (!isSubActive) {
+    const isAdminMerchant = merchant.id === '677d9312-a53f-4b96-815f-53e0eee1b292' || actualKey === CONFIG.platformApiKey;
+
+    if (!isSubActive && !isAdminMerchant) {
       return NextResponse.json({ error: 'Merchant account is inactive or expired. Please renew subscription.' }, { status: 403 });
     }
 

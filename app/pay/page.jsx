@@ -19,30 +19,46 @@ import {
 ═══════════════════════════════════════════════════════════════ */
 
 /* ── Deep Link builder ─────────────────────────────────────── */
-const getDeepLink = (appId, amount, orderId, merchant) => {
+const getDeepLink = (appId, amount, orderId, merchant, isMandate) => {
   const upiId = merchant?.upi_id || CONFIG.upiId;
   const businessName = merchant?.business_name || CONFIG.businessName;
-  const params = `pa=${upiId}&pn=${encodeURIComponent(businessName)}&am=${amount}&cu=INR&tn=${orderId}`;
+  
+  let params = '';
+  let path = 'pay';
+  
+  if (isMandate) {
+    const trialDate = new Date();
+    trialDate.setDate(trialDate.getDate() + 3);
+    const dd = String(trialDate.getDate()).padStart(2, '0');
+    const mm = String(trialDate.getMonth() + 1).padStart(2, '0');
+    const yyyy = trialDate.getFullYear();
+    const validityStartStr = `${dd}${mm}${yyyy}`;
+    
+    params = `pa=${upiId}&pn=${encodeURIComponent(businessName)}&am=${amount}&cu=INR&tn=${orderId}&validitystart=${validityStartStr}&recur=MONTHLY&amrule=EXACT&share=Y`;
+    path = 'mandate';
+  } else {
+    params = `pa=${upiId}&pn=${encodeURIComponent(businessName)}&am=${amount}&cu=INR&tn=${orderId}`;
+  }
   
   const isAndroid = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
   
   if (isAndroid) {
     const androidMap = {
-      gpay:    `intent://upi/pay?${params}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end;`,
-      phonepe: `intent://upi/pay?${params}#Intent;scheme=upi;package=com.phonepe.app;end;`,
-      paytm:   `intent://upi/pay?${params}#Intent;scheme=upi;package=net.one97.paytm;end;`,
-      bhim:    `intent://upi/pay?${params}#Intent;scheme=upi;package=in.org.npci.upiapp;end;`,
+      gpay:    `intent://${path}?${params}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end;`,
+      phonepe: `intent://${path}?${params}#Intent;scheme=upi;package=com.phonepe.app;end;`,
+      paytm:   `intent://${path}?${params}#Intent;scheme=upi;package=net.one97.paytm;end;`,
+      bhim:    `intent://${path}?${params}#Intent;scheme=upi;package=in.org.npci.upiapp;end;`,
     };
-    return androidMap[appId] || `intent://upi/pay?${params}#Intent;scheme=upi;end;`;
+    return androidMap[appId] || `intent://${path}?${params}#Intent;scheme=upi;end;`;
   } else {
     // iOS and other fallback deep links
     const iosMap = {
-      gpay:    `gpay://upi/pay?${params}`,
-      phonepe: `phonepe://pay?${params}`,
-      paytm:   `paytmmp://upi/pay?${params}`,
-      bhim:    `upi://pay?${params}`,
+      gpay:    `gpay://${path}?${params}`,
+      phonepe: `phonepe://${path}?${params}`,
+      paytm:   `paytmmp://${path}?${params}`,
+      bhim:    `upi://${path}?${params}`,
     };
-    return iosMap[appId] || `upi://pay?${params}`;
+    return iosMap[appId] || `upi://${path}?${params}`;
   }
 };
 
@@ -189,6 +205,7 @@ function PayPageContent() {
   const [orderId, setOrderId]         = useState(null);
   const [orderAmount, setOrderAmount] = useState(null);
   const [orderMode, setOrderMode]     = useState('live');
+  const [orderNote, setOrderNote]     = useState(paramNote);
   const [loading, setLoading]         = useState(false);
   const [error, setError]             = useState('');
   const [timer, setTimer]             = useState(600);
@@ -242,6 +259,7 @@ function PayPageContent() {
           setOrderAmount(data.amount);
           setAmount(String(data.amount));
           setOrderMode(data.mode || 'live');
+          setOrderNote(data.note || '');
           setMerchant(data.merchant);
           setStep('paying');
           autoCreated.current = true;
@@ -359,18 +377,32 @@ function PayPageContent() {
     );
   }
 
+  const paramMandate  = searchParams.get('mandate') === 'true' || paramNote === 'Autopay_Setup_3DayTrial';
+  const isMandate = paramMandate || orderNote === 'Autopay_Setup_3DayTrial' || (orderNote && orderNote.startsWith('Subscription_'));
   const activeBusinessName = paramProject || merchant.business_name;
 
-  const upiQrValue = orderAmount
-    ? `upi://pay?pa=${merchant.upi_id}&pn=${encodeURIComponent(activeBusinessName)}&am=${orderAmount}&cu=INR&tn=${orderId}`
-    : '';
+  let upiQrValue = '';
+  if (orderAmount) {
+    if (isMandate) {
+      const trialDate = new Date();
+      trialDate.setDate(trialDate.getDate() + 3);
+      const dd = String(trialDate.getDate()).padStart(2, '0');
+      const mm = String(trialDate.getMonth() + 1).padStart(2, '0');
+      const yyyy = trialDate.getFullYear();
+      const validityStartStr = `${dd}${mm}${yyyy}`;
+      
+      upiQrValue = `upi://mandate?pa=${merchant.upi_id}&pn=${encodeURIComponent(activeBusinessName)}&am=${orderAmount}&cu=INR&tn=${orderId}&validitystart=${validityStartStr}&recur=MONTHLY&amrule=EXACT&share=Y`;
+    } else {
+      upiQrValue = `upi://pay?pa=${merchant.upi_id}&pn=${encodeURIComponent(activeBusinessName)}&am=${orderAmount}&cu=INR&tn=${orderId}`;
+    }
+  }
 
   const copyUPI = () => { navigator.clipboard.writeText(merchant.upi_id); setCopied(true); setTimeout(() => setCopied(false), 2000); };
   const copyAmt = () => { if (!orderAmount) return; navigator.clipboard.writeText(orderAmount.toFixed(2)); setCopiedAmt(true); setTimeout(() => setCopiedAmt(false), 2000); };
 
   const openApp = (app) => {
     if (!orderId || !orderAmount) return;
-    window.location.href = getDeepLink(app.id, orderAmount, orderId, merchant);
+    window.location.href = getDeepLink(app.id, orderAmount, orderId, merchant, isMandate);
   };
 
   /* ── Transition ── */
@@ -537,6 +569,20 @@ function PayPageContent() {
             </div>
 
             <div className="px-6 py-5">
+              {isMandate && (
+                <div className="mb-5 p-4 bg-violet-600/10 border border-violet-500/25 rounded-2xl text-violet-400 flex items-start gap-3">
+                  <Zap className="w-5 h-5 text-violet-400 flex-shrink-0 mt-0.5 animate-pulse" />
+                  <div>
+                    <strong className="text-violet-300 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider font-mono">UPI Autopay Mandate Setup</strong>
+                    <p className="text-[11px] font-semibold text-violet-450 mt-1 leading-relaxed">
+                      You are authorizing a monthly Autopay mandate of ₹{displayAmt ? parseFloat(displayAmt).toFixed(2) : '499.00'}.
+                      <strong className="text-white"> ₹0.00 will be debited today</strong> (3-Day Free Trial active).
+                      The first automatic debit of ₹{displayAmt ? parseFloat(displayAmt).toFixed(2) : '499.00'} will occur in 3 days on {new Date(Date.now() + 3*24*60*60*1000).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'})}.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {orderMode === 'test' ? (
                 /* ── SANDBOX TEST MODE SIMULATOR UI ── */
                 <div className="space-y-5 animate-fade-up">
@@ -567,7 +613,7 @@ function PayPageContent() {
                       className="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white-pure font-black text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 shadow-lg shadow-emerald-500/20"
                     >
                       {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle className="w-5 h-5" />}
-                      Simulate Successful Payment (Instant Webhook)
+                      {isMandate ? "Simulate Successful Autopay Mandate Authorization" : "Simulate Successful Payment (Instant Webhook)"}
                     </button>
 
                     {/* Simulate Failure Button */}

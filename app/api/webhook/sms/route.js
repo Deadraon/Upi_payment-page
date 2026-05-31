@@ -60,7 +60,8 @@ export async function POST(request) {
               isSubActive = false;
           }
        }
-       if (!isSubActive) {
+       const isAdminMerchant = merchant.id === '677d9312-a53f-4b96-815f-53e0eee1b292' || apiKey === CONFIG.platformApiKey || secret === CONFIG.platformApiKey;
+       if (!isSubActive && !isAdminMerchant) {
          return NextResponse.json({ error: 'Merchant subscription is inactive or expired' }, { status: 403 });
        }
     }

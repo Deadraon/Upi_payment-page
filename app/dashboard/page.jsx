@@ -431,8 +431,7 @@ export default function DashboardPage() {
       
       if (error.code === 'PGRST116') {
          const newKey = generateUUID();
-         const newExpiry = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
-         const newProfile = { id: userId, business_name: 'My Business', upi_id: 'pending@upi', api_key: newKey, subscription_status: 'active', subscription_expires_at: newExpiry };
+         const newProfile = { id: userId, business_name: 'My Business', upi_id: 'pending@upi', api_key: newKey, subscription_status: 'inactive', subscription_expires_at: null };
          const { data: insertedData, error: insertErr } = await supabase.from('merchants').insert(newProfile).select().single();
          if (insertErr) {
             setDbError(`Insert Error: ${insertErr.message} (Code: ${insertErr.code})`);
@@ -1189,11 +1188,36 @@ echo "Order Created: " . $data['orderId'];
             
             {/* Pay Renew Options */}
             <div className="space-y-4">
-              <div className="flex items-center gap-2 pb-1">
+              {/* Autopay 3-Day Trial Offer */}
+              <div className="bg-gradient-to-br from-violet-600 to-indigo-700 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden flex flex-col gap-3">
+                <div className="absolute right-0 top-0 w-32 h-32 bg-white/5 rounded-full blur-xl pointer-events-none" />
+                <div className="flex items-center gap-2">
+                  <span className="bg-white/20 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider">EXCLUSIVE SAAS OFFER</span>
+                  <span className="bg-emerald-500 text-white px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider">Recommended</span>
+                </div>
+                <div>
+                  <h4 className="text-sm font-black uppercase tracking-wide">3-Day Free Trial (Set up Autopay)</h4>
+                  <p className="text-[11px] font-semibold text-indigo-100 mt-1 leading-relaxed">
+                    Authorize a monthly UPI Autopay mandate of ₹499/mo to activate your account. 
+                    <strong className="text-white"> ₹0.00 is debited today!</strong> The billing starts automatically after your 3-day trial expires.
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    const trialPayUrl = `/pay?api_key=${CONFIG.platformApiKey}&amount=499&ref=${profile?.id}&note=Autopay_Setup_3DayTrial&mandate=true`;
+                    window.open(trialPayUrl, '_blank');
+                  }}
+                  className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-450 text-white rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-md shadow-emerald-500/30"
+                >
+                  <Zap className="w-3.5 h-3.5" /> Start 3-Day Trial (Setup Autopay)
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2 pb-1 pt-2">
                 <div className="w-8 h-8 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center text-blue-600">
                   <Zap className="w-4.5 h-4.5" />
                 </div>
-                <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">Select Subscription Term</h4>
+                <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">Or Select One-Time Plan</h4>
               </div>
 
               <div className="grid grid-cols-4 gap-2">
@@ -1333,7 +1357,9 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-  if (profile && profile.subscription_status !== 'active') {
+  const isAdminMerchant = profile?.id === '677d9312-a53f-4b96-815f-53e0eee1b292' || profile?.api_key === CONFIG.platformApiKey;
+
+  if (profile && profile.subscription_status !== 'active' && !isAdminMerchant) {
     return renderPaywallBlocker();
   }
 
