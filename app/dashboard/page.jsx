@@ -219,7 +219,16 @@ export default function DashboardPage() {
       });
     }
     
-    return Object.values(sites);
+    return Object.values(sites).filter(site => {
+      const d = site.domain.toLowerCase();
+      const n = site.name.toLowerCase();
+      return !d.includes('mymob.tech') && 
+             !d.includes('mymobpay') && 
+             !d.includes('localhost') &&
+             !n.includes('mymob') &&
+             !n.includes('mymobpay') &&
+             n !== 'my business';
+    });
   }, [profile?.webhook_url, orders]);
 
   const matchedShortcuts = useMemo(() => {
@@ -5103,17 +5112,6 @@ async function checkOrderStatus(orderId) {
                       <Star className="w-4 h-4 text-blue-600" />
                       Cashier Staff Setup
                     </button>
-                    <button
-                      onClick={() => {
-                        setConnectionSubTab('websites');
-                        setWizardStep(0);
-                        setStepTestResult(null);
-                      }}
-                      className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all duration-300 flex items-center gap-2 whitespace-nowrap ${connectionSubTab === 'websites' ? 'bg-white text-blue-600 shadow-md shadow-blue-500/5 border border-slate-250' : 'text-slate-500 hover:text-slate-800'}`}
-                    >
-                      <LinkIcon className="w-4 h-4 text-blue-600" />
-                      Websites & Webhooks
-                    </button>
                   </div>
                 </div>
 
@@ -5740,9 +5738,8 @@ async function checkOrderStatus(orderId) {
                   </div>
                 )}
 
-                {/* Sub-tab 3: Websites & Webhooks */}
-                {connectionSubTab === 'websites' && (
-                  <div className="space-y-6 animate-fadeIn">
+                {/* Integrated Portfolio Websites Root Section */}
+                <div className="border-t border-slate-150 pt-8 mt-8 space-y-6 animate-fadeIn">
                     {!selectedWebsite ? (
                       // grid list view of all websites
                       <div className="space-y-6">
@@ -6091,7 +6088,7 @@ async function checkOrderStatus(orderId) {
                       );
                     })()}
                   </div>
-                )}
+                </div>
 
               </div>
             )}
