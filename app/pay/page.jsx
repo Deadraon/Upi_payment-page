@@ -24,7 +24,7 @@ const getDeepLink = (appId, amount, orderId, merchant, isMandate) => {
   const businessName = merchant?.business_name || CONFIG.businessName;
   
   let params = '';
-  let path = 'pay';
+  let upiPath = 'pay';
   
   if (isMandate) {
     const trialDate = new Date();
@@ -35,7 +35,7 @@ const getDeepLink = (appId, amount, orderId, merchant, isMandate) => {
     const validityStartStr = `${dd}${mm}${yyyy}`;
     
     params = `pa=${upiId}&pn=${encodeURIComponent(businessName)}&am=${amount}&cu=INR&tn=${orderId}&validitystart=${validityStartStr}&recur=MONTHLY&amrule=EXACT&share=Y`;
-    path = 'mandate';
+    upiPath = 'mandate';
   } else {
     params = `pa=${upiId}&pn=${encodeURIComponent(businessName)}&am=${amount}&cu=INR&tn=${orderId}`;
   }
@@ -44,21 +44,21 @@ const getDeepLink = (appId, amount, orderId, merchant, isMandate) => {
   
   if (isAndroid) {
     const androidMap = {
-      gpay:    `intent://${path}?${params}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end;`,
-      phonepe: `intent://${path}?${params}#Intent;scheme=upi;package=com.phonepe.app;end;`,
-      paytm:   `intent://${path}?${params}#Intent;scheme=upi;package=net.one97.paytm;end;`,
-      bhim:    `intent://${path}?${params}#Intent;scheme=upi;package=in.org.npci.upiapp;end;`,
+      gpay:    `intent://upi/${upiPath}?${params}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end;`,
+      phonepe: `intent://upi/${upiPath}?${params}#Intent;scheme=upi;package=com.phonepe.app;end;`,
+      paytm:   `intent://upi/${upiPath}?${params}#Intent;scheme=upi;package=net.one97.paytm;end;`,
+      bhim:    `intent://upi/${upiPath}?${params}#Intent;scheme=upi;package=in.org.npci.upiapp;end;`,
     };
-    return androidMap[appId] || `intent://${path}?${params}#Intent;scheme=upi;end;`;
+    return androidMap[appId] || `intent://upi/${upiPath}?${params}#Intent;scheme=upi;end;`;
   } else {
     // iOS and other fallback deep links
     const iosMap = {
-      gpay:    `gpay://${path}?${params}`,
-      phonepe: `phonepe://${path}?${params}`,
-      paytm:   `paytmmp://${path}?${params}`,
-      bhim:    `upi://${path}?${params}`,
+      gpay:    `gpay://upi/${upiPath}?${params}`,
+      phonepe: `phonepe://${upiPath}?${params}`,
+      paytm:   `paytmmp://upi/${upiPath}?${params}`,
+      bhim:    `upi://${upiPath}?${params}`,
     };
-    return iosMap[appId] || `upi://${path}?${params}`;
+    return iosMap[appId] || `upi://${upiPath}?${params}`;
   }
 };
 
