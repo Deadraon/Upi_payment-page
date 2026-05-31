@@ -142,7 +142,7 @@ export async function GET(request) {
 
     const { data: order, error } = await supabaseAdmin
       .from('orders')
-      .select('id, amount, status, note, created_at, mode, utr, merchant_id, project')
+      .select('id, amount, status, note, created_at, mode, utr, merchant_id, project, callback_url, external_ref')
       .eq('id', id)
       .single();
 
@@ -165,6 +165,8 @@ export async function GET(request) {
       mode: order.mode,
       utr: order.utr,
       project: order.project,
+      callback_url: order.callback_url,
+      external_ref: order.external_ref,
       merchant: merchant || null
     }, { status: 200 });
 
