@@ -2460,6 +2460,17 @@ echo "Order Created: " . $data['orderId'];
           </button>
 
           <button 
+            onClick={() => setActiveTab('playground')}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold text-sm transition-all border ${
+              activeTab === 'playground' 
+                ? 'bg-blue-50 text-blue-700 border-blue-100 shadow-sm shadow-blue-500/5' 
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-transparent'
+            }`}
+          >
+            <Sparkles className="w-4.5 h-4.5 shrink-0" /> Playground
+          </button>
+
+          <button 
             onClick={() => setActiveTab('api')}
             className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold text-sm transition-all border ${
               activeTab === 'api' 
@@ -2593,6 +2604,7 @@ echo "Order Created: " . $data['orderId'];
                 { type: 'header', label: 'Integrations' },
                 { id: 'connections', label: 'Connections', icon: LinkIcon },
                 { id: 'developer', label: 'Developer API', icon: BookOpen },
+                { id: 'playground', label: 'Playground', icon: Sparkles },
                 { id: 'api', label: 'API Keys', icon: Key },
                 { type: 'header', label: 'Settings' },
                 { id: 'settings', label: 'Settings', icon: Briefcase },
@@ -2813,7 +2825,7 @@ echo "Order Created: " . $data['orderId'];
             {/* Header section with active tab label and sandbox toggle */}
             <div className="mb-6 pt-2 md:pt-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h2 className="text-3xl font-black text-slate-900 capitalize">{activeTab === 'api' ? 'API Credentials' : activeTab === 'developer' ? 'Developer Portal' : activeTab === 'subscription' ? 'Subscription Console' : activeTab === 'connections' ? 'Connections' : activeTab === 'payment-links' ? 'Payment Links' : activeTab}</h2>
+                <h2 className="text-3xl font-black text-slate-900 capitalize">{activeTab === 'playground' ? 'Sandbox Playground' : activeTab === 'api' ? 'API Credentials' : activeTab === 'developer' ? 'Developer Portal' : activeTab === 'subscription' ? 'Subscription Console' : activeTab === 'connections' ? 'Connections' : activeTab === 'payment-links' ? 'Payment Links' : activeTab}</h2>
                 <p className="text-sm text-slate-500 font-medium mt-1">
                   {activeTab === 'overview' && 'Real-time overview of business revenue and platform subscription details.'}
                   {activeTab === 'payment-links' && 'Generate one-click payment URLs or QR codes to collect custom payments from customers.'}
@@ -2821,6 +2833,7 @@ echo "Order Created: " . $data['orderId'];
                   {activeTab === 'transactions' && 'Monitor and filter payment orders. Export history instantly.'}
                   {activeTab === 'connections' && 'Connect automated verification channels such as email forwarding and cashier staff accounts.'}
                   {activeTab === 'developer' && 'Configure custom integrations, fetch orders via REST APIs, or copy-paste client SDK snippets.'}
+                  {activeTab === 'playground' && 'Test payment configurations using our simulated checkout device and trace live webhooks.'}
                   {activeTab === 'settings' && 'Customize your business metadata, direct UPI deposit addresses, and brand colors.'}
                   {activeTab === 'api' && 'Secret credential tokens for creating programmatic checkouts.'}
                 </p>
@@ -4555,8 +4568,13 @@ async function checkOrderStatus(orderId) {
 
                 </div>
 
+              </div>
+            )}
+
+            {activeTab === 'playground' && (
+              <div className="space-y-6 animate-fadeIn">
                 {/* ── SaaS Tools: Diagnostics & Playground ── */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-6 border-t border-slate-250">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                   
                   {/* Left Column: Checkout Playground (8 cols) */}
                   <div className="lg:col-span-8">
@@ -4793,7 +4811,7 @@ async function checkOrderStatus(orderId) {
                                         setPlaygroundUtr('');
                                         setPlaygroundWebhookLog(null);
                                       }}
-                                      className="w-full py-1.5 bg-slate-800 hover:bg-slate-900 text-white-pure font-bold text-[7.5px] rounded-lg transition-colors cursor-pointer border border-transparent"
+                                      className="w-full py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold text-[7.5px] rounded-lg transition-colors cursor-pointer"
                                     >
                                       Restart Simulator
                                     </button>
@@ -4916,7 +4934,7 @@ async function checkOrderStatus(orderId) {
                         <button
                           onClick={handleRunDiagnostics}
                           disabled={diagnosticsRunning}
-                          className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white-pure font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-transparent disabled:opacity-40"
+                          className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white-pure font-bold text-xs rounded-xl shadow-sm shadow-blue-500/10 transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-transparent disabled:opacity-40"
                         >
                           {diagnosticsRunning ? 'Scanning Gateway...' : 'Run System Diagnostics'}
                         </button>
