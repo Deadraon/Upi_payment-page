@@ -36,10 +36,48 @@ export default {
       );
 
       // 3. Decode and Clean the raw email body
-      let cleanBody = decodeQuotedPrintable(rawMime);
+      let decoded = decodeQuotedPrintable(rawMime);
+
+      // CRITICAL: Strip MIME routing headers (Received:, DKIM-Signature:, From:, To:, etc.)
+      // The actual message body starts after the first blank line (\r\n\r\n or \n\n)
+      const headerBodySplit = decoded.indexOf('\r\n\r\n');
+      const headerBodySplitLF = decoded.indexOf('\n\n');
+      
+      let messageBody = decoded;
+      if (headerBodySplit !== -1) {
+        messageBody = decoded.substring(headerBodySplit + 4); // skip past \r\n\r\n
+      } else if (headerBodySplitLF !== -1) {
+        messageBody = decoded.substring(headerBodySplitLF + 2); // skip past \n\n
+      }
+
+      // For multipart MIME (Content-Type: multipart/...), extract text parts between boundaries
+      const boundaryMatch = decoded.match(/boundary="?([^"\r\n;]+)"?/i);
+      if (boundaryMatch) {
+        const boundary = '--' + boundaryMatch[1];
+        const parts = messageBody.split(boundary);
+        // Find the first text/plain part
+        const textPart = parts.find(p =>
+          p.toLowerCase().includes('content-type: text/plain') ||
+          p.toLowerCase().includes('content-type: text/html')
+        );
+        if (textPart) {
+          // Strip the part header
+          const partHeaderEnd = textPart.indexOf('\r\n\r\n');
+          const partHeaderEndLF = textPart.indexOf('\n\n');
+          if (partHeaderEnd !== -1) {
+            messageBody = textPart.substring(partHeaderEnd + 4);
+          } else if (partHeaderEndLF !== -1) {
+            messageBody = textPart.substring(partHeaderEndLF + 2);
+          } else {
+            messageBody = textPart;
+          }
+        }
+      }
+
+      let cleanBody = messageBody;
       cleanBody = cleanBody.replace(/<[^>]*>/g, ' '); // Strip HTML tags
       cleanBody = cleanBody.replace(/&nbsp;/gi, ' ').replace(/\u00A0/g, ' '); // Replace non-breaking spaces
-      cleanBody = cleanBody.replace(/\s+/g, ' '); // Normalize multiple spaces/newlines into a single space
+      cleanBody = cleanBody.replace(/\s+/g, ' ').trim(); // Normalize whitespace
 
       // 4. Forward to the Next.js Backend
       // Configure NEXTJS_API_URL in your Cloudflare Worker Settings (e.g., https://mymob.tech/api/webhook/email)
