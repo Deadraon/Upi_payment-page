@@ -13,10 +13,10 @@ import {
 } from 'lucide-react';
 
 /* ═══════════════════════════════════════════════════════════════
-   Theme tokens — Minimalist Premium (Light Mode / Crisp Contrast)
-   bg:      #F8FAFC  card: #ffffff  surface: #F8FAFC
-   border:  #E2E8F0  text: #0F172A  muted:   #64748B
-   ═══════════════════════════════════════════════════════════════ */
+   Theme tokens — GitHub Dark (slate, readable, not too dark)
+   bg:      #f8fafc  card: #ffffff  surface: #f1f5f9
+   border:  #e2e8f0  text: #0f172a  muted:   #64748b
+═══════════════════════════════════════════════════════════════ */
 
 /* ── Deep Link builder ─────────────────────────────────────── */
 const getDeepLink = (appId, amount, orderId, merchant, isMandate) => {
@@ -63,15 +63,18 @@ const getDeepLink = (appId, amount, orderId, merchant, isMandate) => {
 };
 
 /* ── App Logos — official brand images from /public/logos/ ── */
-const GPayLogo    = () => <Image src="/logos/gpay.svg"    alt="Google Pay"  width={24} height={24} className="w-6 h-6 object-contain" />;
-const PhonePeLogo = () => <Image src="/logos/phonepe.svg" alt="PhonePe"     width={24} height={24} className="w-6 h-6 object-contain" />;
-const PaytmLogo   = () => <Image src="/logos/paytm.svg"   alt="Paytm"       width={24} height={24} className="w-6 h-6 object-contain" />;
-const BhimLogo    = () => <Image src="/logos/bhim.svg"    alt="BHIM UPI"    width={24} height={24} className="w-6 h-6 object-contain" />;
-const MyMobPayLogo = ({ className = 'w-36 h-auto', textColor = '#0F172A' }) => (
-  <svg viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.01]`}>
-    <text x="2" y="42" letterSpacing="-0.5">
-      <tspan fontFamily="'Outfit', -apple-system, sans-serif" fontWeight="800" fontSize="34" fill={textColor}>MyMob</tspan>
-      <tspan fontFamily="'Outfit', -apple-system, sans-serif" fontWeight="900" fontSize="34" fill="#2563EB" dx="2">Pay</tspan>
+const GPayLogo    = () => <Image src="/logos/gpay.svg"    alt="Google Pay"  width={32} height={32} className="w-8 h-8 object-contain bg-white-pure p-1.5 rounded-xl" />;
+const PhonePeLogo = () => <Image src="/logos/phonepe.svg" alt="PhonePe"     width={32} height={32} className="w-8 h-8 object-contain bg-white-pure p-1.5 rounded-xl" />;
+const PaytmLogo   = () => <Image src="/logos/paytm.svg"   alt="Paytm"       width={32} height={32} className="w-8 h-8 object-contain bg-white-pure p-1.5 rounded-xl" />;
+const BhimLogo    = () => <Image src="/logos/bhim.svg"    alt="BHIM UPI"    width={32} height={32} className="w-8 h-8 object-contain bg-white-pure p-1.5 rounded-xl" />;
+const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = 'var(--text-primary)' }) => (
+  <svg viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
+    {/* Single unified wordmark with unique mixed fonts */}
+    <text x="2" y="42" letterSpacing="0">
+      {/* MyMob */}
+      <tspan fontFamily="'Outfit', sans-serif" fontWeight="800" fontSize="36" fill={textColor}>MyMob</tspan>
+      {/* Pay */}
+      <tspan fontFamily="'Orbitron', sans-serif" fontWeight="900" fontStyle="italic" fontSize="36" fill="#3B82F6" dx="3">Pay</tspan>
     </text>
   </svg>
 );
@@ -85,61 +88,67 @@ const UPI_APPS = [
 
 /* ── Animated check ────────────────────────────────────────── */
 const AnimatedCheck = () => (
-  <svg viewBox="0 0 52 52" className="w-12 h-12 text-emerald-500" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="26" cy="26" r="25" fill="none" stroke="currentColor" strokeWidth="2.5" opacity="0.15" />
-    <circle cx="26" cy="26" r="25" fill="none" stroke="currentColor" strokeWidth="2.5"
+  <svg viewBox="0 0 52 52" className="w-14 h-14" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="26" cy="26" r="25" fill="none" stroke="#10B981" strokeWidth="2" opacity="0.3" />
+    <circle cx="26" cy="26" r="25" fill="none" stroke="#10B981" strokeWidth="2.5"
       strokeDasharray="157" strokeDashoffset="157"
       style={{ animation: 'dash 0.6s cubic-bezier(0.65,0,0.45,1) forwards' }} strokeLinecap="round" />
-    <path d="M14 27 L22 35 L38 18" fill="none" stroke="currentColor" strokeWidth="3"
+    <path d="M14 27 L22 35 L38 18" fill="none" stroke="#10B981" strokeWidth="3"
       strokeDasharray="33" strokeDashoffset="33"
       style={{ animation: 'dash 0.4s 0.5s cubic-bezier(0.65,0,0.45,1) forwards' }}
       strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
-/* ── Left Order Panel (Sleek minimalist summary panel) ──────────────────────────────────────── */
+/* ── Left Order Panel ──────────────────────────────────────── */
 const OrderPanel = ({ project, amount, orderId, timer, merchant }) => {
   const fmt = (s) => `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
   const activeBusinessName = merchant?.business_name || CONFIG.businessName;
 
   return (
-    <div className="flex flex-col justify-between h-full px-8 py-10 bg-slate-50/50 border-r border-slate-100">
+    <div className="flex flex-col justify-between h-full px-8 py-8 bg-slate-50/50">
       <div>
-        {/* Brand Header */}
-        <div className="flex flex-col items-start gap-1 mb-8">
-          <MyMobPayLogo className="w-40 h-auto object-contain" />
+        {/* Logo */}
+        <div className="flex flex-col items-start gap-1 mb-10">
+          <MyMobPayLogo className="w-48 h-auto object-contain" />
           {project && project !== activeBusinessName && (
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">via {project}</p>
+            <p className="text-[11px] text-slate-500 font-medium ml-1">via {project}</p>
           )}
         </div>
 
-        {/* Amount Section */}
-        <div className="mb-10">
-          <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-2">Total Due</p>
-          <div className="flex items-baseline">
-            <span className="text-3xl font-black text-slate-800 mr-1 select-none">₹</span>
+        {/* Amount */}
+        <div className="mb-8">
+          <p className="text-[11px] text-slate-500 uppercase tracking-widest font-semibold mb-2">Total Due</p>
+          <div className="flex items-start">
+            <span className="text-2xl font-black text-slate-400 mt-1 mr-1">₹</span>
             <span className="text-5xl font-black text-slate-900 tabular-nums leading-none tracking-tight">
               {amount ? parseFloat(amount).toLocaleString('en-IN', { minimumFractionDigits: 2 }) : '0.00'}
             </span>
           </div>
         </div>
 
-        {/* Info Grid */}
-        <div className="space-y-4 pt-2">
-          <div className="flex justify-between items-center text-xs border-b border-slate-100 pb-3">
-            <span className="text-slate-400 font-medium">Merchant</span>
-            <span className="font-bold text-slate-850">{activeBusinessName}</span>
+        {/* Order details */}
+        <div className="space-y-0 rounded-2xl overflow-hidden border border-slate-200 divide-y divide-slate-100 bg-white shadow-sm">
+          <div className="flex justify-between items-center px-4 py-3">
+            <span className="text-xs text-slate-500 font-medium">Paying to</span>
+            <span className="text-xs font-bold text-slate-900">{activeBusinessName}</span>
           </div>
           {orderId && (
-            <div className="flex justify-between items-center text-xs border-b border-slate-100 pb-3">
-              <span className="text-slate-400 font-medium">Order ID</span>
-              <span className="font-mono font-bold text-slate-700 text-[11px]">{orderId}</span>
+            <div className="flex justify-between items-center px-4 py-3">
+              <span className="text-xs text-slate-500 font-medium">Order ID</span>
+              <span className="text-xs font-mono font-medium text-slate-700">{orderId}</span>
             </div>
           )}
           {timer !== undefined && (
-            <div className="flex justify-between items-center text-xs pb-1">
-              <span className="text-slate-400 font-medium">Session Expires</span>
-              <span className="font-mono font-bold text-slate-800 px-2 py-0.5 rounded-md bg-slate-100">
+            <div className="flex justify-between items-center px-4 py-3">
+              <span className="text-xs text-slate-500 font-medium">Expires in</span>
+              <span 
+                className="text-xs font-mono font-bold px-2 py-0.5 rounded-md"
+                style={{
+                  color: merchant?.theme_color || '#3B82F6',
+                  backgroundColor: `${merchant?.theme_color || '#3B82F6'}10`
+                }}
+              >
                 {fmt(timer)}
               </span>
             </div>
@@ -147,15 +156,19 @@ const OrderPanel = ({ project, amount, orderId, timer, merchant }) => {
         </div>
       </div>
 
-      {/* Trust & Badging (Extremely minimalist) */}
-      <div className="mt-12 space-y-3 pt-6 border-t border-slate-100">
-        <div className="flex items-center gap-2 text-[11px] text-slate-400 font-semibold uppercase tracking-wider">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
-          <span>256-Bit SSL Secured</span>
+      {/* Trust */}
+      <div className="mt-8 space-y-3 pt-6 border-t border-slate-200">
+        <div className="flex items-center gap-2.5 text-xs text-slate-500 font-medium">
+          <ShieldCheck className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+          <span>256-bit SSL encrypted</span>
         </div>
-        <div className="flex items-center gap-2 text-[11px] text-slate-400 font-semibold uppercase tracking-wider">
-          <Zap className="w-3.5 h-3.5 text-blue-500 flex-shrink-0 animate-pulse" />
-          <span>Automated Bank Routing</span>
+        <div className="flex items-center gap-2.5 text-xs text-slate-500 font-medium">
+          <Zap className="w-4 h-4 flex-shrink-0" style={{ color: merchant?.theme_color || '#3B82F6' }} />
+          <span>Auto-verified via bank email</span>
+        </div>
+        <div className="flex items-center gap-2.5 text-xs text-slate-500 font-medium">
+          <Lock className="w-4 h-4 text-slate-400 flex-shrink-0" />
+          <span>Secured by MyMobPay</span>
         </div>
       </div>
     </div>
@@ -164,7 +177,7 @@ const OrderPanel = ({ project, amount, orderId, timer, merchant }) => {
 
 /* ═══════════════════════════════════════════════════════════════
    Main Pay Page
-   ═══════════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════════════ */
 function PayPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -343,10 +356,10 @@ function PayPageContent() {
 
   if (initLoading) {
     return (
-      <div className="min-h-screen bg-slate-50/50 flex items-center justify-center font-sans antialiased">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-7 h-7 text-slate-800 animate-spin" />
-          <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Loading Gateway</p>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+          <p className="text-sm text-slate-500">Loading payment gateway...</p>
         </div>
       </div>
     );
@@ -354,14 +367,11 @@ function PayPageContent() {
 
   if (initError) {
     return (
-      <div className="min-h-screen bg-slate-50/50 flex items-center justify-center px-4 font-sans antialiased">
-        <div className="bg-white p-8 rounded-3xl max-w-sm w-full border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.02)] text-center">
-          <AlertCircle className="w-10 h-10 text-red-500 mx-auto mb-4" />
-          <h2 className="text-base font-extrabold text-slate-900 mb-1.5">Checkout Unavailable</h2>
-          <p className="text-slate-450 text-[12px] font-semibold leading-relaxed mb-4">{initError}</p>
-          <button onClick={() => window.location.reload()} className="w-full py-2.5 rounded-xl border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50 transition-all">
-            Try Again
-          </button>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
+        <div className="bg-white p-8 rounded-2xl max-w-md w-full border border-red-500/20 text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-slate-900 mb-2">Checkout Unavailable</h2>
+          <p className="text-slate-500 text-sm">{initError}</p>
         </div>
       </div>
     );
@@ -397,168 +407,177 @@ function PayPageContent() {
 
   /* ── Transition ── */
   if (confirmed) return (
-    <div className="min-h-screen bg-slate-50/50 flex items-center justify-center font-sans antialiased">
-      <div className="flex flex-col items-center gap-3">
-        <AnimatedCheck />
-        <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Verifying payment status</p>
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="flex flex-col items-center gap-4"><AnimatedCheck />
+        <p className="text-sm font-semibold text-slate-500">Redirecting to verification...</p>
       </div>
     </div>
   );
 
-  /* FORM SCREEN (Enter custom amount if not in URL) */
+
+  /* FORM (no amount in URL) */
   if (step === 'form') return (
-    <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center px-4 py-8 font-sans antialiased">
-      <div className="w-full max-w-md animate-scale-up">
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] overflow-hidden">
-          {/* Header */}
-          <div className="px-8 pt-8 pb-4 text-center">
-            <div className="flex justify-center mb-6">
-              <MyMobPayLogo className="w-36 h-auto object-contain" />
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-8">
+      <div className="w-full max-w-3xl animate-scale-up">
+        <div className="flex flex-col md:flex-row rounded-2xl overflow-hidden border border-slate-200 shadow-2xl shadow-black/60">
+
+          {/* LEFT branding panel */}
+          <div className="order-2 md:order-1 w-full md:w-[42%] bg-slate-50 border-t md:border-t-0 md:border-r border-slate-100 px-7 py-8 flex flex-col justify-between">
+            <div>
+              <div className="flex flex-col items-start gap-1 mb-8">
+                <MyMobPayLogo className="w-64 h-auto object-contain" />
+              </div>
+              <div className="mb-8">
+                <h1 className="text-2xl font-black text-slate-900 leading-snug mb-2">
+                  Fast &amp; Secure<br />
+                  <span style={{ color: merchant?.theme_color || '#3B82F6' }}>UPI Payments</span>
+                </h1>
+                <p className="text-[13px] text-slate-500 leading-relaxed">
+                  Pay via GPay, PhonePe, Paytm or scan a QR code — auto-verified in seconds.
+                </p>
+              </div>
+              <div className="space-y-3">
+                {[
+                  { icon: <ShieldCheck className="w-4 h-4 text-emerald-400" />, title: '256-bit SSL encryption', sub: 'Bank-grade security' },
+                  { icon: <Zap className="w-4 h-4" style={{ color: merchant?.theme_color || '#3B82F6' }} />, title: 'Auto-verified instantly', sub: 'No manual confirmation' },
+                  { icon: <Lock className="w-4 h-4 text-slate-500" />, title: 'All UPI apps supported', sub: 'GPay, PhonePe, Paytm & more' },
+                ].map((feat, i) => (
+                  <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-white border border-slate-100">
+                    <div className="mt-0.5 flex-shrink-0">{feat.icon}</div>
+                    <div>
+                      <p className="text-[12px] font-semibold text-slate-700">{feat.title}</p>
+                      <p className="text-[10px] text-[#484F58] mt-0.5">{feat.sub}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-            <p className="text-[10px] text-slate-400 uppercase tracking-widest font-extrabold mb-1">
-              {paramProject ? `Pay via ${paramProject}` : 'Merchant Checkout'}
-            </p>
-            <h2 className="text-lg font-black text-slate-900">Enter Payment Amount</h2>
+            <div className="mt-8 pt-5 border-t border-slate-100">
+              <p className="text-[10px] text-[#484F58] mb-3">Works with all UPI apps</p>
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl overflow-hidden border border-slate-200 flex-shrink-0"><GPayLogo /></div>
+                <div className="w-8 h-8 rounded-xl overflow-hidden border border-slate-200 flex-shrink-0"><PhonePeLogo /></div>
+                <div className="w-8 h-8 rounded-xl overflow-hidden border border-slate-200 flex-shrink-0"><PaytmLogo /></div>
+                <div className="w-8 h-8 rounded-xl overflow-hidden border border-slate-200 flex-shrink-0"><BhimLogo /></div>
+                <span className="text-[10px] text-slate-500">&amp; more</span>
+              </div>
+            </div>
           </div>
 
-          {/* Form */}
-          <div className="px-8 pb-8 pt-2">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="text-center">
-                <div className="relative inline-block w-full max-w-[240px]">
-                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-2xl font-bold text-slate-300 select-none">₹</span>
-                  <input 
-                    type="number" 
-                    step="0.01" 
-                    min="1" 
-                    autoFocus 
-                    placeholder="0.00" 
-                    value={amount}
+          {/* RIGHT form panel */}
+          <div className="order-1 md:order-2 flex-1 bg-white px-7 py-8">
+            <div className="mb-6">
+              <p className="text-[10px] text-[#484F58] uppercase tracking-widest font-bold mb-1">
+                {paramProject !== CONFIG.businessName ? ('Paying via ' + paramProject) : 'New Payment'}
+              </p>
+              <h2 className="text-xl font-black text-slate-900">Enter Details</h2>
+            </div>
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label className="text-[11px] text-slate-500 uppercase tracking-wider font-bold block mb-2">Amount</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-black text-[#484F58] select-none">₹</span>
+                  <input type="number" step="0.01" min="1" autoFocus placeholder="0.00" value={amount}
                     onChange={e => { setAmount(e.target.value); setError(''); }}
-                    className="w-full text-center text-4xl font-extrabold text-slate-900 bg-transparent border-0 border-b-2 border-slate-100 focus:border-slate-900 focus:ring-0 rounded-none py-2 placeholder-slate-200 tracking-tight transition-all tabular-nums" 
-                  />
+                    className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl pl-9 pr-4 py-4 text-slate-900 text-2xl font-black placeholder-[#e2e8f0] focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all tabular-nums" />
                 </div>
-
-                {/* Amount quick select chips */}
-                <div className="flex justify-center gap-1.5 mt-5">
+                <div className="grid grid-cols-4 gap-2 mt-2.5">
                   {[100, 500, 1000, 2000].map(a => (
-                    <button 
-                      key={a} 
-                      type="button" 
-                      onClick={() => setAmount(String(a))}
-                      className="px-3.5 py-1.5 text-xs font-bold rounded-full border transition-all text-slate-650"
+                    <button key={a} type="button" onClick={() => setAmount(String(a))}
+                      className="py-2 text-[12px] font-bold rounded-xl border transition-all"
                       style={amount === String(a) ? {
-                        backgroundColor: '#0F172A',
-                        borderColor: '#0F172A',
-                        color: '#FFFFFF'
+                        backgroundColor: `${merchant?.theme_color || '#3B82F6'}15`,
+                        borderColor: merchant?.theme_color || '#3B82F6',
+                        color: merchant?.theme_color || '#3B82F6'
                       } : {
-                        backgroundColor: '#FFFFFF',
-                        borderColor: '#E2E8F0',
+                        backgroundColor: 'var(--bg-input)',
+                        borderColor: 'var(--border-subtle)',
+                        color: 'var(--text-secondary)'
                       }}
                     >
-                      ₹{a >= 1000 ? ((a/1000) + 'k') : a}
+                      ₹{a >= 1000 ? ((a/1000) + 'K') : a}
                     </button>
                   ))}
                 </div>
               </div>
               
               {error && (
-                <div className="flex items-center gap-2 p-3.5 rounded-2xl bg-red-50 border border-red-100 text-[11px] text-red-500 font-semibold leading-relaxed">
-                  <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-500" />{error}
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-red-900/25 border border-red-500/25 text-xs text-red-400">
+                  <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />{error}
                 </div>
               )}
-
-              {/* Stripe-like Primary Button */}
-              <button 
-                type="submit" 
-                disabled={loading}
-                className="w-full py-4 rounded-2xl bg-slate-950 hover:bg-slate-900 text-white font-extrabold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 shadow-lg shadow-slate-950/5"
+              <button type="submit" disabled={loading}
+                className="w-full py-4 rounded-xl text-white-pure font-black text-base flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 shadow-xl"
+                style={{
+                  backgroundColor: merchant?.theme_color || '#3B82F6',
+                  boxShadow: `0 8px 25px ${(merchant?.theme_color || '#3B82F6')}30`
+                }}
               >
-                {loading ? (
-                  <Loader2 className="w-4 h-4 animate-spin text-white" />
-                ) : (
-                  <>
-                    <span>Continue to Payment</span>
-                    <ArrowRight className="w-4 h-4 text-white" />
-                  </>
-                )}
+                {loading ? <><Loader2 className="w-5 h-5 animate-spin" /><span>Creating order...</span></> : <><IndianRupee className="w-5 h-5" /><span>Continue to Pay</span><ArrowRight className="w-5 h-5" /></>}
               </button>
+              <p className="text-center text-[10px] text-[#484F58]">Secured by 256-bit TLS · Powered by MyMobPay</p>
             </form>
           </div>
         </div>
-        <p className="text-center text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-6">
-          Secured by MyMobPay · 256-Bit TLS
-        </p>
+        <p className="text-center text-[10px] text-[#e2e8f0] mt-4">© 2026 MyMobPay · All transactions are encrypted</p>
       </div>
     </div>
   );
-
   /* ════════════════════════════════════════════════════════════
-     PAYMENT SCREEN — Razorpay/Stripe Ultra-Minimal Redesign
+     PAYMENT SCREEN — Razorpay two-panel
   ════════════════════════════════════════════════════════════ */
   const displayAmt = orderAmount ?? parseFloat(paramAmount);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center px-4 py-8 font-sans antialiased">
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center px-4 py-8">
       <div className="w-full max-w-3xl animate-scale-up">
-        <div className="flex flex-col md:flex-row rounded-3xl bg-white overflow-hidden border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)]">
+        <div className="flex flex-col md:flex-row rounded-3xl bg-white overflow-hidden border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.25)]">
 
-          {/* ── LEFT PANEL (Desktop order summary) ── */}
-          <div className="w-full md:w-[40%]">
-            {/* Mobile Compact Header */}
-            <div className="md:hidden flex items-center justify-between px-6 py-5 border-b border-slate-100 bg-slate-50/50">
-              <MyMobPayLogo className="w-32 h-auto object-contain" />
+          {/* ── LEFT PANEL (order summary) ── */}
+          <div className="w-full md:w-[40%] bg-slate-50/50 border-b md:border-b-0 md:border-r border-slate-100">
+            {/* Mobile compact */}
+            <div className="md:hidden flex items-center justify-between px-5 py-4 border-b border-slate-100">
+              <div className="flex items-center">
+                <MyMobPayLogo className="w-36 h-auto object-contain" />
+              </div>
               <div className="text-right">
-                <p className="text-[9px] text-slate-400 uppercase tracking-widest font-extrabold">Total Due</p>
-                <p className="text-lg font-black text-slate-900">
+                <p className="text-[9px] text-slate-500 uppercase tracking-wider">Total</p>
+                <p className="text-base font-black text-slate-900">
                   ₹{displayAmt ? parseFloat(displayAmt).toLocaleString('en-IN', { minimumFractionDigits: 2 }) : '—'}
                 </p>
               </div>
             </div>
-            {/* Desktop Full Panel */}
+            {/* Desktop full */}
             <div className="hidden md:block h-full">
               <OrderPanel project={paramProject} amount={displayAmt} orderId={orderId} timer={timer} merchant={merchant} />
             </div>
           </div>
 
-          {/* ── RIGHT PANEL (Checkout payment area) ── */}
+          {/* ── RIGHT PANEL (payment methods) ── */}
           <div className="flex-1 bg-white">
-            <div className="flex items-center justify-between px-8 py-5 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <Lock className="w-3.5 h-3.5 text-slate-400" />
-                <span className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400">Pay Securely via UPI</span>
+            <div className="flex items-center gap-3 px-8 pt-6 pb-4 border-b border-slate-100">
+              <div 
+                className="px-3 py-1 rounded-md border"
+                style={{
+                  backgroundColor: `${merchant?.theme_color || '#3B82F6'}10`,
+                  borderColor: `${merchant?.theme_color || '#3B82F6'}30`
+                }}
+              >
+                <span className="text-xs font-bold uppercase tracking-wider" style={{ color: merchant?.theme_color || '#3B82F6' }}>UPI</span>
               </div>
-              {orderMode === 'test' && (
-                <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider bg-amber-50 text-amber-500 rounded-md border border-amber-100">
-                  Test Sandbox
-                </span>
-              )}
+              <span className="text-xs text-slate-400 font-medium">Other methods coming soon</span>
             </div>
 
-            <div className="px-8 py-6">
-              {/* Option 2: Special Trial Banner */}
-              {orderNote === 'Trial_Setup_3Day' && (
-                <div className="mb-6 p-4 bg-indigo-50/50 border border-indigo-100 rounded-2xl flex items-start gap-3">
-                  <Zap className="w-4.5 h-4.5 text-indigo-600 flex-shrink-0 mt-0.5 animate-pulse" />
+            <div className="px-6 py-5">
+              {isMandate && (
+                <div className="mb-5 p-4 bg-violet-600/10 border border-violet-500/25 rounded-2xl text-violet-400 flex items-start gap-3">
+                  <Zap className="w-5 h-5 text-violet-400 flex-shrink-0 mt-0.5 animate-pulse" />
                   <div>
-                    <strong className="text-xs font-extrabold text-indigo-950 uppercase tracking-wider">3-Day Premium Activation</strong>
-                    <p className="text-[11px] font-semibold text-indigo-750 mt-1 leading-relaxed">
-                      You are paying a one-time ₹1.00 verification fee. This activates your 3-day full merchant access instantly with no recurring mandates or future auto-debits.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Legacy Mandate Banner (Styled minimally) */}
-              {isMandate && orderNote !== 'Trial_Setup_3Day' && (
-                <div className="mb-6 p-4 bg-violet-50/50 border border-violet-100 rounded-2xl flex items-start gap-3">
-                  <Zap className="w-4.5 h-4.5 text-violet-600 flex-shrink-0 mt-0.5 animate-pulse" />
-                  <div>
-                    <strong className="text-xs font-extrabold text-violet-950 uppercase tracking-wider font-mono">Autopay Mandate Setup</strong>
-                    <p className="text-[11px] font-semibold text-violet-750 mt-1 leading-relaxed">
-                      Authorizing monthly Autopay of ₹{displayAmt ? parseFloat(displayAmt).toFixed(2) : '499.00'}.
-                      <strong className="text-violet-950 font-bold"> ₹0.00 will be debited today</strong> (3-Day Free Trial).
-                      First debit of ₹{displayAmt ? parseFloat(displayAmt).toFixed(2) : '499.00'} begins in 3 days on {new Date(Date.now() + 3*24*60*60*1000).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'})}.
+                    <strong className="text-violet-300 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider font-mono">UPI Autopay Mandate Setup</strong>
+                    <p className="text-[11px] font-semibold text-violet-450 mt-1 leading-relaxed">
+                      You are authorizing a monthly Autopay mandate of ₹{displayAmt ? parseFloat(displayAmt).toFixed(2) : '499.00'}.
+                      <strong className="text-white"> ₹0.00 will be debited today</strong> (3-Day Free Trial active).
+                      The first automatic debit of ₹{displayAmt ? parseFloat(displayAmt).toFixed(2) : '499.00'} will occur in 3 days on {new Date(Date.now() + 3*24*60*60*1000).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'})}.
                     </p>
                   </div>
                 </div>
@@ -566,33 +585,35 @@ function PayPageContent() {
 
               {orderMode === 'test' ? (
                 /* ── SANDBOX TEST MODE SIMULATOR UI ── */
-                <div className="space-y-6 animate-fade-up">
-                  <div className="p-4 bg-amber-50/50 border border-amber-100 text-amber-800 rounded-2xl flex items-start gap-3">
-                    <AlertCircle className="w-4.5 h-4.5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div className="space-y-5 animate-fade-up">
+                  <div className="p-4 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-2xl flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0 animate-pulse mt-0.5" />
                     <div>
-                      <strong className="text-xs font-extrabold text-amber-950 uppercase tracking-wider">Test Simulator Active</strong>
-                      <p className="text-[11px] font-semibold text-amber-700 mt-1 leading-relaxed">
-                        This is a sandbox environment. No actual money will be charged. Click below to simulate payment operations.
+                      <strong className="text-amber-300 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider">Sandbox Test Mode Active</strong>
+                      <p className="text-[11px] font-semibold text-amber-400 mt-1 leading-relaxed">
+                        No real money will be debited or transferred. You are using the checkout simulator to test system database updates and automated webhooks.
                       </p>
                     </div>
                   </div>
 
                   {error && (
-                    <div className="flex items-center gap-2 p-3.5 rounded-2xl bg-red-50 border border-red-100 text-[11px] text-red-500 font-semibold leading-relaxed">
-                      <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-500" />{error}
+                    <div className="flex items-center gap-2 p-3 rounded-xl bg-red-900/25 border border-red-500/25 text-xs text-red-400">
+                      <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />{error}
                     </div>
                   )}
 
-                  <div className="space-y-2.5 pt-2">
+                  <div className="space-y-3 pt-2">
+                    <p className="text-[10px] text-slate-500 uppercase tracking-widest font-extrabold text-center">Simulate Customer Payments Actions</p>
+                    
                     {/* Simulate Success Button */}
                     <button
                       type="button"
                       onClick={() => handleSimulatePayment('success')}
                       disabled={loading}
-                      className="w-full py-4 rounded-2xl bg-slate-950 hover:bg-slate-900 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 shadow-md shadow-slate-950/5"
+                      className="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white-pure font-black text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 shadow-lg shadow-emerald-500/20"
                     >
-                      {loading ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : <CheckCircle className="w-4 h-4 text-emerald-400" />}
-                      <span>{isMandate ? "Simulate Mandate Authorization Success" : "Simulate Payment Success (Webhook)"}</span>
+                      {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle className="w-5 h-5" />}
+                      {isMandate ? "Simulate Successful Autopay Mandate Authorization" : "Simulate Successful Payment (Instant Webhook)"}
                     </button>
 
                     {/* Simulate Failure Button */}
@@ -600,34 +621,33 @@ function PayPageContent() {
                       type="button"
                       onClick={() => handleSimulatePayment('failed')}
                       disabled={loading}
-                      className="w-full py-3.5 rounded-2xl border border-slate-200 hover:border-slate-300 text-slate-600 font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 hover:bg-slate-50"
+                      className="w-full py-4 rounded-2xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
                     >
-                      {loading ? <Loader2 className="w-4 h-4 animate-spin text-slate-500" /> : <AlertCircle className="w-4 h-4 text-red-500" />}
-                      <span>Simulate Payment Failure</span>
+                      {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <AlertCircle className="w-5 h-5" />}
+                      Simulate Failed / Expired Transaction
                     </button>
                   </div>
 
-                  <div className="pt-4 border-t border-slate-100 text-center">
-                    <p className="text-[10px] font-mono text-slate-400 font-semibold uppercase tracking-wider">
-                      Order ID: {orderId}
-                    </p>
+                  <div className="pt-2 border-t border-slate-100 text-center">
+                    <p className="text-[9px] font-mono text-slate-400">Order ID: {orderId} • Simulated via MyMobPay Sandbox API</p>
                   </div>
                 </div>
               ) : (
                 /* ── ORIGINAL UPI LIVE FLOW ── */
                 <>
-                  {/* Tab Selector */}
-                  <div className="flex p-1 bg-slate-50 rounded-2xl mb-6 border border-slate-100">
+                  {/* Apps / QR toggle */}
+                  <div className="flex p-1 bg-slate-50 rounded-xl mb-5 border border-slate-100">
                     {[
                       { id: 'apps', icon: <Smartphone className="w-3.5 h-3.5" />, label: 'UPI Apps' },
                       { id: 'qr',   icon: <QrCode className="w-3.5 h-3.5" />,   label: 'Scan QR'  },
                     ].map(tab => (
                       <button key={tab.id} onClick={() => { setPayView(tab.id); setSelectedApp(null); }}
-                        className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-extrabold transition-all ${
+                        className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[11px] font-bold transition-all ${
                           payView === tab.id
-                            ? 'bg-slate-950 text-white shadow-sm'
-                            : 'text-slate-450 hover:text-slate-700'
+                            ? 'text-white shadow-md'
+                            : 'text-slate-500 hover:text-slate-700'
                         }`}
+                        style={payView === tab.id ? { backgroundColor: merchant?.theme_color || '#3B82F6' } : {}}
                       >
                         {tab.icon} {tab.label}
                       </button>
@@ -636,7 +656,9 @@ function PayPageContent() {
 
                   {/* ── APPS VIEW ── */}
                   {payView === 'apps' && (
-                    <div className="space-y-4 animate-fade-up">
+                    <div className="space-y-3 animate-fade-up">
+                      <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Select your UPI app</p>
+
                       {/* App grid */}
                       <div className="grid grid-cols-2 gap-2.5">
                         {UPI_APPS.map(app => {
@@ -646,23 +668,26 @@ function PayPageContent() {
                               key={app.id}
                               type="button"
                               onClick={() => setSelectedApp(isSelected ? null : app)}
-                              className={`flex items-center gap-3 p-3.5 rounded-2xl border text-left transition-all active:scale-[0.98] ${
+                              className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all active:scale-95 ${
                                 isSelected
-                                  ? 'bg-slate-950 border-slate-950 shadow-sm text-white'
-                                  : 'bg-white border-slate-200 hover:border-slate-350 hover:bg-slate-50/50 text-slate-900'
+                                  ? 'bg-blue-50 border-blue-500 shadow-sm shadow-blue-500/10'
+                                  : 'bg-white border-slate-200 hover:border-blue-500/50 hover:bg-slate-50/50'
                               }`}
                             >
-                              <div className={`flex-shrink-0 bg-white p-1 rounded-lg ${isSelected ? 'shadow-sm' : 'border border-slate-100'}`}>
-                                {app.logo}
-                              </div>
-                              <div className="overflow-hidden">
-                                <p className="text-[11px] font-extrabold leading-tight truncate">
+                              <div className="flex-shrink-0">{app.logo}</div>
+                              <div>
+                                <p className={`text-[12px] font-bold leading-tight transition-colors ${isSelected ? 'text-slate-900' : 'text-slate-500'}`}>
                                   {app.label}
                                 </p>
-                                <p className={`text-[9px] font-semibold mt-0.5 ${isSelected ? 'text-blue-300' : 'text-slate-400'}`}>
-                                  {isSelected ? 'Selected' : 'Pay now'}
+                                <p className={`text-[9px] mt-0.5 ${isSelected ? 'text-blue-500' : 'text-slate-400'}`}>
+                                  {isSelected ? '✓ Selected' : 'Tap to select'}
                                 </p>
                               </div>
+                              {isSelected && (
+                                <div className="ml-auto w-4 h-4 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+                                  <CheckCircle className="w-3 h-3 text-white" />
+                                </div>
+                              )}
                             </button>
                           );
                         })}
@@ -674,45 +699,41 @@ function PayPageContent() {
                           type="button"
                           onClick={() => openApp(selectedApp)}
                           disabled={!orderId}
-                          className="w-full py-3.5 rounded-2xl font-extrabold text-xs flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 text-white"
+                          className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 text-white-pure"
                           style={{ background: selectedApp.accent }}
                         >
-                          <ExternalLink className="w-3.5 h-3.5" />
-                          Pay with {selectedApp.label}
+                          <ExternalLink className="w-4 h-4" />
+                          Open {selectedApp.label}
                         </button>
                       )}
 
-                      {/* OR Divider */}
+                      {/* OR divider */}
                       <div className="flex items-center gap-3">
                         <div className="flex-1 h-px bg-slate-100" />
-                        <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider">Or Pay Manually</span>
+                        <span className="text-[10px] text-[#484F58] font-medium">OR</span>
                         <div className="flex-1 h-px bg-slate-100" />
                       </div>
 
-                      {/* Manual details copy panel */}
-                      <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50/50 border border-slate-100">
-                        <div className="overflow-hidden mr-2">
-                          <p className="text-[9px] text-slate-400 uppercase tracking-widest font-extrabold mb-0.5">UPI Address</p>
-                          <p className="text-xs font-mono font-bold text-slate-800 truncate">{merchant?.upi_id || CONFIG.upiId}</p>
+                      {/* Copy row */}
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
+                        <div>
+                          <p className="text-[9px] text-slate-500 uppercase tracking-wider mb-0.5">Pay to UPI ID</p>
+                          <p className="text-[11px] font-mono font-bold text-slate-700">{merchant?.upi_id || CONFIG.upiId}</p>
                         </div>
-                        <div className="flex gap-1.5 flex-shrink-0">
+                        <div className="flex gap-1.5">
                           <button onClick={copyUPI}
-                            className={`flex items-center gap-1 px-3 py-2 rounded-xl text-[10px] font-bold border transition-all ${
-                              copied 
-                                ? 'bg-emerald-50 border-emerald-100 text-emerald-600' 
-                                : 'bg-white border-slate-200 text-slate-600 hover:border-slate-350 hover:bg-slate-50'
+                            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-semibold border transition-all ${
+                              copied ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600' : 'bg-white border-slate-200 text-slate-500 hover:border-slate-400 hover:text-slate-700'
                             }`}>
                             {copied ? <CheckCircle className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                            <span>{copied ? 'Copied' : 'Copy ID'}</span>
+                            {copied ? 'Copied' : 'Copy ID'}
                           </button>
                           <button onClick={copyAmt}
-                            className={`flex items-center gap-1 px-3 py-2 rounded-xl text-[10px] font-bold border transition-all ${
-                              copiedAmt 
-                                ? 'bg-emerald-50 border-emerald-100 text-emerald-600' 
-                                : 'bg-white border-slate-200 text-slate-600 hover:border-slate-350 hover:bg-slate-50'
+                            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-semibold border transition-all ${
+                              copiedAmt ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600' : 'bg-white border-slate-200 text-slate-500 hover:border-slate-400 hover:text-slate-700'
                             }`}>
                             {copiedAmt ? <CheckCircle className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                            <span>{copiedAmt ? 'Copied' : 'Copy ₹'}</span>
+                            {copiedAmt ? 'Copied' : 'Copy ₹'}
                           </button>
                         </div>
                       </div>
@@ -722,54 +743,55 @@ function PayPageContent() {
                   {/* ── QR VIEW ── */}
                   {payView === 'qr' && (
                     <div className="flex flex-col items-center space-y-4 animate-fade-up">
-                      {isMandate && orderNote !== 'Trial_Setup_3Day' ? (
-                        <div className="text-center space-y-3 max-w-[280px] py-2">
-                          <div className="mx-auto w-10 h-10 bg-amber-50 border border-amber-100 text-amber-600 rounded-full flex items-center justify-center animate-pulse">
-                            <AlertCircle className="w-5 h-5" />
+                      {isMandate ? (
+                        <div className="text-center space-y-3.5 max-w-[280px]">
+                          <div className="mx-auto w-12 h-12 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-full flex items-center justify-center animate-pulse">
+                            <AlertCircle className="w-6 h-6" />
                           </div>
                           <div>
-                            <h4 className="text-[11px] font-extrabold text-slate-800 uppercase tracking-widest">Mandate Scans Limited</h4>
-                            <p className="text-[10px] text-slate-450 mt-1 leading-relaxed font-semibold">
-                              UPI Autopay mandate scan-to-pay QRs require cryptographic network signatures. Scans may be rejected as <strong>&quot;Invalid QR&quot;</strong> in user apps.
+                            <h4 className="text-xs font-black text-slate-900 uppercase tracking-wide">Autopay Scan Restriction</h4>
+                            <p className="text-[10px] text-slate-500 mt-1 leading-relaxed font-semibold">
+                              NPCI regulations strictly require UPI Autopay scan-to-pay QR codes to be cryptographically signed by an official banking partner. Unsigned QR codes will be rejected by Paytm, GPay, and PhonePe as <strong>&quot;Invalid QR&quot;</strong>.
                             </p>
                           </div>
-                          <div className="p-3 bg-violet-50/50 border border-violet-100 rounded-xl text-left">
-                            <h5 className="text-[9px] font-extrabold text-violet-850 uppercase tracking-wider">Workaround options:</h5>
-                            <ul className="text-[9px] text-slate-500 font-semibold list-disc pl-3.5 space-y-1 mt-1 leading-relaxed">
-                              <li>Open checkout link on your **mobile phone** &amp; use the **UPI Apps** tab for direct routing.</li>
-                              <li>Use the simulator below to confirm payment and unlock your dashboard.</li>
+                          <div className="p-3 bg-violet-600/10 border border-violet-500/20 rounded-xl text-left">
+                            <h5 className="text-[9px] font-black text-violet-400 uppercase tracking-wider">How to complete setup:</h5>
+                            <ul className="text-[9px] text-slate-500 font-semibold list-disc pl-3.5 space-y-1 mt-1">
+                              <li>Open this checkout link directly on a <strong>mobile device</strong> and use the <strong>&quot;UPI Apps&quot;</strong> tab to trigger direct, secure app deep-links.</li>
+                              <li>Or, use the <strong>&quot;I&apos;ve Paid — Verify Now&quot;</strong> button to simulate mandate confirmation in Sandbox mode.</li>
                             </ul>
                           </div>
                         </div>
                       ) : upiQrValue ? (
                         <>
-                          <div className="bg-white rounded-2xl p-4 border border-slate-150 shadow-[0_10px_30px_rgba(0,0,0,0.015)]">
-                            <QRCode value={upiQrValue} size={160} level="H" fgColor="#0F172A" bgColor="#FFFFFF" />
-                          </div>
-                          <div className="text-center">
-                            <p className="text-[10px] text-slate-450 font-semibold uppercase tracking-widest">
-                              Scan QR with GPay, PhonePe, or Paytm
-                            </p>
+                          <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Scan with any UPI app</p>
+                          <div className="bg-white-pure rounded-2xl p-5 shadow-xl">
+                            <QRCode value={upiQrValue} size={185} level="H" fgColor="#0f172a" bgColor="#FFFFFF" />
+                            <div className="mt-3 pt-3 border-t border-gray-100 text-center">
+                              <p className="text-[9px] text-gray-500 font-medium uppercase tracking-wider">
+                                Open UPI app → Scan → Pay ₹{displayAmt ? parseFloat(displayAmt).toFixed(2) : ''}
+                              </p>
+                            </div>
                           </div>
                         </>
                       ) : (
-                        <div className="h-[180px] flex items-center justify-center">
-                          <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+                        <div className="h-[220px] flex items-center justify-center">
+                          <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
                         </div>
                       )}
                     </div>
                   )}
 
-                  {/* ── VERIFY BUTTON & AUTO-ROUTING ── */}
-                  <div className="mt-6 pt-5 border-t border-slate-100 space-y-3">
+                  {/* ── CONFIRM BUTTON ── */}
+                  <div className="mt-5 pt-4 border-t border-slate-100 space-y-2">
                     <button onClick={handleConfirmPaid} disabled={!orderId}
-                      className="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-40 shadow-lg shadow-emerald-600/10">
-                      <CheckCircle className="w-4 h-4 text-white" />
-                      <span>I&apos;ve Completed the Payment</span>
+                      className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white-pure font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-40 shadow-lg shadow-emerald-600/20">
+                      <CheckCircle className="w-4 h-4" />
+                      I&apos;ve Paid — Verify Now
                     </button>
-                    <p className="text-center text-[10px] text-slate-450 font-semibold uppercase tracking-wider flex items-center justify-center gap-2">
-                      <Loader2 className="w-3 h-3 animate-spin text-blue-500" style={{ animationDuration: '2.5s' }} />
-                      <span>Detecting payment automatically</span>
+                    <p className="text-center text-[9px] text-[#484F58] flex items-center justify-center gap-1.5">
+                      <Loader2 className="w-2.5 h-2.5 animate-spin" style={{ animationDuration: '3s', color: merchant?.theme_color || '#3B82F6' }} />
+                      Checking status automatically in real-time
                     </p>
                   </div>
                 </>
@@ -778,9 +800,7 @@ function PayPageContent() {
           </div>
         </div>
 
-        <p className="text-center text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-6">
-          © 2026 MyMobPay · 256-Bit TLS Bank Encrypted Checkouts
-        </p>
+        <p className="text-center text-[10px] text-[#e2e8f0] mt-4">© 2026 MyMobPay · 256-bit TLS</p>
       </div>
     </div>
   );
@@ -788,7 +808,7 @@ function PayPageContent() {
 
 export default function PayPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /></div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50"><Loader2 className="w-8 h-8 animate-spin" style={{ color: '#3B82F6' }} /></div>}>
       <PayPageContent />
     </Suspense>
   );
