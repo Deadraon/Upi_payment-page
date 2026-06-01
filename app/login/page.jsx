@@ -249,7 +249,7 @@ export default function LoginPage() {
           )}
 
           {message && (
-            <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-450 p-3 rounded-xl text-xs font-semibold mb-6">
+            <div className="bg-emerald-50 border border-emerald-200/60 text-emerald-700 p-3 rounded-xl text-xs font-semibold mb-6">
               {message}
             </div>
           )}

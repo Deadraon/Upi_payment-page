@@ -1684,7 +1684,7 @@ export default function AdminPage() {
               </div>
             )}
             {settingsSuccess && (
-              <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-450 text-xs flex items-center gap-3">
+              <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200/60 text-emerald-700 text-xs flex items-center gap-3 font-semibold">
                 <CheckCircle className="w-5 h-5 flex-shrink-0" />
                 <span className="font-bold">{settingsSuccess}</span>
               </div>

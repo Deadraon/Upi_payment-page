@@ -185,7 +185,7 @@ export default function StatusPage() {
   if (order.status === 'verified') return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       <Header badge={
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-450 border border-emerald-500/20">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />Verified
         </span>
       } />
@@ -374,7 +374,7 @@ export default function StatusPage() {
                     </div>
                   )}
                   {utrSuccess && (
-                    <div className="flex items-center gap-1.5 p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[10px] text-emerald-450">
+                    <div className="flex items-center gap-1.5 p-2.5 rounded-lg bg-emerald-50 border border-emerald-200/60 text-[10px] text-emerald-700 font-semibold">
                       <CheckCircle className="w-3 h-3 flex-shrink-0" /> {utrSuccess}
                     </div>
                   )}

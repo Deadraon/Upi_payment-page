@@ -570,13 +570,13 @@ function PayPageContent() {
 
             <div className="px-6 py-5">
               {isMandate && (
-                <div className="mb-5 p-4 bg-violet-600/10 border border-violet-500/25 rounded-2xl text-violet-400 flex items-start gap-3">
+                <div className="mb-5 p-4 bg-violet-50 border border-violet-200/60 rounded-2xl text-violet-800 flex items-start gap-3">
                   <Zap className="w-5 h-5 text-violet-400 flex-shrink-0 mt-0.5 animate-pulse" />
                   <div>
-                    <strong className="text-violet-300 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider font-mono">UPI Autopay Mandate Setup</strong>
-                    <p className="text-[11px] font-semibold text-violet-450 mt-1 leading-relaxed">
+                    <strong className="text-violet-900 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider font-mono">UPI Autopay Mandate Setup</strong>
+                    <p className="text-[11px] font-semibold text-violet-700 mt-1 leading-relaxed">
                       You are authorizing a monthly Autopay mandate of ₹{displayAmt ? parseFloat(displayAmt).toFixed(2) : '499.00'}.
-                      <strong className="text-white"> ₹0.00 will be debited today</strong> (3-Day Free Trial active).
+                      <strong className="text-violet-900 font-extrabold bg-violet-100 px-1 py-0.5 rounded"> ₹0.00 will be debited today</strong> (3-Day Free Trial active).
                       The first automatic debit of ₹{displayAmt ? parseFloat(displayAmt).toFixed(2) : '499.00'} will occur in 3 days on {new Date(Date.now() + 3*24*60*60*1000).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'})}.
                     </p>
                   </div>
@@ -586,11 +586,11 @@ function PayPageContent() {
               {orderMode === 'test' ? (
                 /* ── SANDBOX TEST MODE SIMULATOR UI ── */
                 <div className="space-y-5 animate-fade-up">
-                  <div className="p-4 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-2xl flex items-start gap-3">
+                  <div className="p-4 bg-amber-50 border border-amber-200/60 text-amber-800 rounded-2xl flex items-start gap-3">
                     <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0 animate-pulse mt-0.5" />
                     <div>
-                      <strong className="text-amber-300 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider">Sandbox Test Mode Active</strong>
-                      <p className="text-[11px] font-semibold text-amber-400 mt-1 leading-relaxed">
+                      <strong className="text-amber-900 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider">Sandbox Test Mode Active</strong>
+                      <p className="text-[11px] font-semibold text-amber-700 mt-1 leading-relaxed">
                         No real money will be debited or transferred. You are using the checkout simulator to test system database updates and automated webhooks.
                       </p>
                     </div>
@@ -621,7 +621,7 @@ function PayPageContent() {
                       type="button"
                       onClick={() => handleSimulatePayment('failed')}
                       disabled={loading}
-                      className="w-full py-4 rounded-2xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
+                      className="w-full py-4 rounded-2xl bg-red-50 hover:bg-red-100/80 border border-red-200/60 text-red-700 font-extrabold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
                     >
                       {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <AlertCircle className="w-5 h-5" />}
                       Simulate Failed / Expired Transaction
@@ -754,9 +754,9 @@ function PayPageContent() {
                               NPCI regulations strictly require UPI Autopay scan-to-pay QR codes to be cryptographically signed by an official banking partner. Unsigned QR codes will be rejected by Paytm, GPay, and PhonePe as <strong>&quot;Invalid QR&quot;</strong>.
                             </p>
                           </div>
-                          <div className="p-3 bg-violet-600/10 border border-violet-500/20 rounded-xl text-left">
-                            <h5 className="text-[9px] font-black text-violet-400 uppercase tracking-wider">How to complete setup:</h5>
-                            <ul className="text-[9px] text-slate-500 font-semibold list-disc pl-3.5 space-y-1 mt-1">
+                          <div className="p-3 bg-violet-50 border border-violet-200/60 rounded-xl text-left">
+                            <h5 className="text-[9px] font-black text-violet-850 uppercase tracking-wider">How to complete setup:</h5>
+                            <ul className="text-[9px] text-slate-600 font-semibold list-disc pl-3.5 space-y-1 mt-1">
                               <li>Open this checkout link directly on a <strong>mobile device</strong> and use the <strong>&quot;UPI Apps&quot;</strong> tab to trigger direct, secure app deep-links.</li>
                               <li>Or, use the <strong>&quot;I&apos;ve Paid — Verify Now&quot;</strong> button to simulate mandate confirmation in Sandbox mode.</li>
                             </ul>

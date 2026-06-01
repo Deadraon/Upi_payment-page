@@ -2840,7 +2840,7 @@ echo "Order Created: " . $data['orderId'];
 
                   }}
 
-                  className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-450 text-white rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm shadow-emerald-500/20 active:scale-[0.98]"
+                  className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm shadow-emerald-500/20 active:scale-[0.98]"
 
                 >
 
@@ -9176,7 +9176,7 @@ async function checkOrderStatus(orderId) {
 
                                   <span className="text-white-pure/50">[{log.timestamp}]</span>
 
-                                  <span className="text-blue-450 font-bold">POST</span>
+                                  <span className="text-blue-500 font-bold">POST</span>
 
                                   <span className="text-white-pure font-bold truncate max-w-[150px]" title={log.url}>{log.url}</span>
 
@@ -9498,7 +9498,7 @@ async function checkOrderStatus(orderId) {
 
                                 <p className="text-slate-500">[{new Date().toLocaleTimeString()}] Device emulator initialized successfully.</p>
 
-                                {playgroundUtr && <p className="text-blue-450">[{new Date().toLocaleTimeString()}] User entered UTR: {playgroundUtr}</p>}
+                                {playgroundUtr && <p className="text-blue-500">[{new Date().toLocaleTimeString()}] User entered UTR: {playgroundUtr}</p>}
 
                                 {playgroundIsSubmitting && <p className="text-amber-500 animate-pulse">[{new Date().toLocaleTimeString()}] Dispatching payload to webhook...</p>}
 
