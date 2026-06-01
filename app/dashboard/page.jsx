@@ -5143,7 +5143,7 @@ async function checkOrderStatus(orderId) {
                             </button>
                           </div>
                         ) : (
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 gap-4">
                             {detectedWebsites.map(site => {
                               // Filter transactions matching this website
                               const websiteOrders = orders.filter(o => 
@@ -5322,14 +5322,14 @@ async function checkOrderStatus(orderId) {
 
                                   {/* Email Forwarding alert check */}
                                   <div className={`flex items-start gap-3 p-3 rounded-2xl border ${
-                                    emailRoutingActive ? 'bg-slate-50 border-slate-150' : 'bg-amber-50/55 border-amber-200'
+                                    emailRoutingActive ? 'bg-slate-50 border-slate-150' : 'bg-amber-50 border-amber-300'
                                   }`}>
-                                    <span className={emailRoutingActive ? "text-emerald-500 font-bold text-sm shrink-0" : "text-amber-500 font-bold text-sm shrink-0"}>
+                                    <span className={emailRoutingActive ? "text-emerald-500 font-bold text-sm shrink-0" : "text-amber-600 font-bold text-sm shrink-0"}>
                                       {emailRoutingActive ? '✓' : '⚠️'}
                                     </span>
                                     <div>
-                                      <p className="text-xs font-bold text-slate-805">Email Routing Alerts</p>
-                                      <p className="text-[10px] text-slate-500 font-semibold mt-0.5">
+                                      <p className="text-xs font-bold text-slate-900">Email Routing Alerts</p>
+                                      <p className={`text-[10px] font-semibold mt-0.5 ${emailRoutingActive ? 'text-slate-500' : 'text-amber-900'}`}>
                                         {emailRoutingActive 
                                           ? 'Gmail credit forwarding rules active and parsing bank notifications.' 
                                           : 'Gmail setup incomplete! Auto-verify is offline. Incoming credit notifications will not trigger automated payouts.'}
