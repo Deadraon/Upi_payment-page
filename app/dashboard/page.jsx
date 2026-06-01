@@ -5239,7 +5239,7 @@ async function checkOrderStatus(orderId) {
                       );
 
                       return (
-                        <div className="space-y-6 text-slate-800 animate-fadeIn">
+                        <div className="space-y-6 text-slate-100 animate-fadeIn">
                           
                           {/* Back to websites index button */}
                           <button 
@@ -5294,17 +5294,17 @@ async function checkOrderStatus(orderId) {
                                   
                                   {/* Webhook Endpoint */}
                                   <div className={`flex items-start gap-3 p-3 rounded-2xl border ${
-                                    webhookConfigured ? 'bg-slate-50 border-slate-150' : 'bg-red-50/50 border-red-200'
+                                    webhookConfigured ? 'bg-slate-800/40 border-slate-700' : 'bg-red-900/20 border-red-700/50'
                                   }`}>
-                                    <span className={webhookConfigured ? "text-emerald-500 font-black text-sm shrink-0" : "text-red-500 font-black text-sm shrink-0"}>
+                                    <span className={webhookConfigured ? "text-emerald-400 font-black text-sm shrink-0" : "text-red-400 font-black text-sm shrink-0"}>
                                       {webhookConfigured ? '✓' : '⚠️'}
                                     </span>
                                     <div>
-                                      <p className="text-xs font-bold text-slate-805">Webhook Endpoint Routing</p>
+                                      <p className="text-xs font-bold text-white">Webhook Endpoint Routing</p>
                                       {webhookConfigured ? (
-                                        <p className="text-[10px] text-slate-500 font-semibold mt-0.5 truncate max-w-[280px]" title={profile.webhook_url}>{profile.webhook_url}</p>
+                                        <p className="text-[10px] text-slate-400 font-semibold mt-0.5 truncate max-w-[280px]" title={profile.webhook_url}>{profile.webhook_url}</p>
                                       ) : (
-                                        <p className="text-[10px] text-red-655 font-black mt-0.5">
+                                        <p className="text-[10px] text-red-400 font-black mt-0.5">
                                           Missing Settings Webhook URL! Outbound payments verification alerts are not forwarded to this domain.
                                         </p>
                                       )}
@@ -5312,24 +5312,22 @@ async function checkOrderStatus(orderId) {
                                   </div>
 
                                   {/* Outbound HMAC Signature */}
-                                  <div className="flex items-start gap-3 p-3 bg-slate-50 border border-slate-150 rounded-2xl">
-                                    <span className="text-emerald-500 font-bold text-sm shrink-0">✓</span>
+                                  <div className="flex items-start gap-3 p-3 rounded-2xl" style={{background:'rgba(30,41,59,0.6)',border:'1px solid rgba(71,85,105,0.6)'}}>
+                                    <span className="font-bold text-sm shrink-0" style={{color:'#34d399'}}>✓</span>
                                     <div>
-                                      <p className="text-xs font-bold text-slate-805">SHA256 HMAC Security</p>
-                                      <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Callback signature validated with your raw private API Key.</p>
+                                      <p className="text-xs font-bold" style={{color:'#f8fafc'}}>SHA256 HMAC Security</p>
+                                      <p className="text-[10px] font-semibold mt-0.5" style={{color:'#94a3b8'}}>Callback signature validated with your raw private API Key.</p>
                                     </div>
                                   </div>
 
                                   {/* Email Forwarding alert check */}
-                                  <div className={`flex items-start gap-3 p-3 rounded-2xl border ${
-                                    emailRoutingActive ? 'bg-slate-50 border-slate-150' : 'bg-amber-50 border-amber-300'
-                                  }`}>
-                                    <span className={emailRoutingActive ? "text-emerald-500 font-bold text-sm shrink-0" : "text-amber-600 font-bold text-sm shrink-0"}>
+                                  <div className="flex items-start gap-3 p-3 rounded-2xl" style={emailRoutingActive ? {background:'rgba(30,41,59,0.6)',border:'1px solid rgba(71,85,105,0.6)'} : {background:'rgba(120,53,15,0.3)',border:'1px solid rgba(217,119,6,0.5)'}}>
+                                    <span className="font-bold text-sm shrink-0" style={{color: emailRoutingActive ? '#34d399' : '#fbbf24'}}>
                                       {emailRoutingActive ? '✓' : '⚠️'}
                                     </span>
                                     <div>
-                                      <p className="text-xs font-bold" style={{ color: emailRoutingActive ? '#f8fafc' : '#92400e' }}>Email Routing Alerts</p>
-                                      <p className="text-[10px] font-semibold mt-0.5" style={{ color: emailRoutingActive ? '#94a3b8' : '#78350f' }}>
+                                      <p className="text-xs font-bold" style={{color:'#f8fafc'}}>Email Routing Alerts</p>
+                                      <p className="text-[10px] font-semibold mt-0.5" style={{color: emailRoutingActive ? '#94a3b8' : '#fcd34d'}}>
                                         {emailRoutingActive 
                                           ? 'Gmail credit forwarding rules active and parsing bank notifications.' 
                                           : 'Gmail setup incomplete! Auto-verify is offline. Incoming credit notifications will not trigger automated payouts.'}
