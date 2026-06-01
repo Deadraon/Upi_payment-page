@@ -33,7 +33,7 @@ module.exports = {
           800: 'var(--text-primary)',
           850: 'var(--text-primary)',
           900: 'var(--text-primary)',
-          950: '#ffffff',
+          950: '#020617',
         },
         blue: {
           50: 'rgba(51, 149, 255, 0.08)',
