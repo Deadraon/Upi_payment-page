@@ -560,6 +560,22 @@ export default function DashboardPage() {
 
 
 
+  const [currentPassword, setCurrentPassword] = useState('');
+
+
+
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+
+
+
+  const [showNewPassword, setShowNewPassword] = useState(false);
+
+
+
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+
+
   const [newPassword, setNewPassword] = useState('');
 
 
@@ -1036,7 +1052,7 @@ export default function DashboardPage() {
 
 
 
-      setEditBusinessCategory(profile.business_category || 'Retail');
+      setEditBusinessCategory(profile.business_category || '');
 
 
 
@@ -2928,11 +2944,71 @@ export default function DashboardPage() {
 
 
 
+    if (!editOwnerName.trim()) {
+
+
+
+      setProfileErrorMsg('Owner Name is required.');
+
+
+
+      setProfileSaving(false);
+
+
+
+      return;
+
+
+
+    }
+
+
+
+    if (!editPhoneNumber.trim()) {
+
+
+
+      setProfileErrorMsg('Primary Phone Number is required.');
+
+
+
+      setProfileSaving(false);
+
+
+
+      return;
+
+
+
+    }
+
+
+
     if (!editBusinessName.trim()) {
 
 
 
       setProfileErrorMsg('Business name is required.');
+
+
+
+      setProfileSaving(false);
+
+
+
+      return;
+
+
+
+    }
+
+
+
+    if (!editBusinessCategory) {
+
+
+
+      setProfileErrorMsg('Business Category selection is required.');
 
 
 
@@ -3220,6 +3296,22 @@ export default function DashboardPage() {
 
 
 
+    if (!currentPassword) {
+
+
+
+      setPasswordResetError('Current password is required.');
+
+
+
+      return;
+
+
+
+    }
+
+
+
     if (!newPassword) {
 
 
@@ -3236,11 +3328,27 @@ export default function DashboardPage() {
 
 
 
-    if (newPassword.length < 6) {
+    if (newPassword.length < 8) {
 
 
 
-      setPasswordResetError('Password must be at least 6 characters.');
+      setPasswordResetError('Password must be at least 8 characters.');
+
+
+
+      return;
+
+
+
+    }
+
+
+
+    if (!/[A-Z]/.test(newPassword) || !/[0-9]/.test(newPassword) || !/[^A-Za-z0-9]/.test(newPassword)) {
+
+
+
+      setPasswordResetError('Password must contain at least one uppercase letter, one number, and one special character.');
 
 
 
@@ -3268,15 +3376,55 @@ export default function DashboardPage() {
 
 
 
-
-
-
-
     setPasswordResetLoading(true);
 
 
 
     try {
+
+
+
+      // 1. Verify current password by attempting sign in
+
+
+
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+
+
+
+        email: user.email,
+
+
+
+        password: currentPassword
+
+
+
+      });
+
+
+
+      
+
+
+
+      if (signInError) {
+
+
+
+        throw new Error('Incorrect current password. Please try again.');
+
+
+
+      }
+
+
+
+
+
+
+
+      // 2. Proceed with updating the password
 
 
 
@@ -3316,6 +3464,10 @@ export default function DashboardPage() {
 
 
 
+      setCurrentPassword('');
+
+
+
       setTimeout(() => setPasswordResetSuccess(null), 4000);
 
 
@@ -3344,7 +3496,7 @@ export default function DashboardPage() {
 
 
 
-  };
+  };;
 
 
 
@@ -24215,249 +24367,60 @@ async function checkOrderStatus(orderId) {
 
 
             <div className="w-full md:w-64 bg-slate-50 border-r border-slate-200/80 p-6 flex flex-col shrink-0 gap-6">
-
-
-
               <div>
-
-
-
                 <h3 className="text-base font-black text-slate-900">Merchant Settings</h3>
-
-
-
                 <p className="text-[10px] text-slate-500 font-bold mt-0.5 uppercase tracking-wide">Control Dashboard & Profile</p>
-
-
-
               </div>
-
-
-
-
-
-
 
               <div className="flex flex-row md:flex-col overflow-x-auto md:overflow-x-visible gap-1 pb-2 md:pb-0 scrollbar-none">
-
-
-
                 <button
-
-
-
                   onClick={() => setProfileModalTab('profile')}
-
-
-
                   className={`flex-1 md:flex-initial flex items-center justify-center md:justify-start gap-3 px-4 py-3 rounded-xl font-bold text-xs transition-all border whitespace-nowrap ${
-
-
-
                     profileModalTab === 'profile' 
-
-
-
-                      ? 'bg-white text-blue-750 border-slate-250 shadow-xs' 
-
-
-
+                      ? 'bg-[#EEF2FF] text-blue-750 border-slate-250 shadow-xs border-l-[3.5px] border-l-[#3b5bdb] font-black' 
                       : 'text-slate-500 hover:bg-white/50 hover:text-slate-900 border-transparent'
-
-
-
                   }`}
-
-
-
                 >
-
-
-
                   <User className="w-4 h-4 text-blue-500 shrink-0" />
-
-
-
                   <span>Owner Profile</span>
-
-
-
                 </button>
 
-
-
-
-
-
-
                 <button
-
-
-
                   onClick={() => setProfileModalTab('business')}
-
-
-
                   className={`flex-1 md:flex-initial flex items-center justify-center md:justify-start gap-3 px-4 py-3 rounded-xl font-bold text-xs transition-all border whitespace-nowrap ${
-
-
-
                     profileModalTab === 'business' 
-
-
-
-                      ? 'bg-white text-blue-750 border-slate-250 shadow-xs' 
-
-
-
+                      ? 'bg-[#FEF3C7] text-amber-900 border-amber-250 shadow-xs border-l-[3.5px] border-l-[#d97706] font-black' 
                       : 'text-slate-500 hover:bg-white/50 hover:text-slate-900 border-transparent'
-
-
-
                   }`}
-
-
-
                 >
-
-
-
                   <Briefcase className="w-4 h-4 text-amber-500 shrink-0" />
-
-
-
                   <span>Business Details</span>
-
-
-
                 </button>
 
-
-
-
-
-
-
                 <button
-
-
-
                   onClick={() => setProfileModalTab('payment')}
-
-
-
                   className={`flex-1 md:flex-initial flex items-center justify-center md:justify-start gap-3 px-4 py-3 rounded-xl font-bold text-xs transition-all border whitespace-nowrap ${
-
-
-
                     profileModalTab === 'payment' 
-
-
-
-                      ? 'bg-white text-blue-750 border-slate-250 shadow-xs' 
-
-
-
+                      ? 'bg-[#ECFDF5] text-emerald-950 border-emerald-250 shadow-xs border-l-[3.5px] border-l-[#059669] font-black' 
                       : 'text-slate-500 hover:bg-white/50 hover:text-slate-900 border-transparent'
-
-
-
                   }`}
-
-
-
                 >
-
-
-
                   <CreditCard className="w-4 h-4 text-emerald-500 shrink-0" />
-
-
-
                   <span>Payment & Gateway</span>
-
-
-
                 </button>
-
-
-
-
-
-
 
                 <button
-
-
-
                   onClick={() => setProfileModalTab('security')}
-
-
-
                   className={`flex-1 md:flex-initial flex items-center justify-center md:justify-start gap-3 px-4 py-3 rounded-xl font-bold text-xs transition-all border whitespace-nowrap ${
-
-
-
                     profileModalTab === 'security' 
-
-
-
-                      ? 'bg-white text-blue-750 border-slate-250 shadow-xs' 
-
-
-
+                      ? 'bg-[#EEF2FF] text-indigo-950 border-indigo-250 shadow-xs border-l-[3.5px] border-l-[#4f46e5] font-black' 
                       : 'text-slate-500 hover:bg-white/50 hover:text-slate-900 border-transparent'
-
-
-
                   }`}
-
-
-
                 >
-
-
-
                   <Shield className="w-4 h-4 text-indigo-500 shrink-0" />
-
-
-
                   <span>Account Security</span>
-
-
-
                 </button>
-
-
-
               </div>
-
-
-
-
-
-
-
-              {/* Secure Shield Info */}
-
-
-
-              <div className="mt-auto hidden md:flex items-center gap-2 pt-4 border-t border-slate-200 text-slate-400">
-
-
-
-                <Shield className="w-4 h-4 text-emerald-500 shrink-0" />
-
-
-
-                <span className="text-[9px] font-bold tracking-widest uppercase">End-to-End Secure</span>
-
-
-
-              </div>
-
-
-
             </div>
 
 
@@ -24483,181 +24446,59 @@ async function checkOrderStatus(orderId) {
 
 
               {profileModalTab === 'profile' && (
-
-
-
                 <div className="space-y-5 animate-fadeIn">
-
-
-
                   <div>
-
-
-
                     <h4 className="text-base font-black text-slate-900">Owner Profile Details</h4>
-
-
-
                     <p className="text-[11px] text-slate-500 font-medium">Update your account identity and primary notification phone number.</p>
-
-
-
                   </div>
-
-
-
-
-
-
 
                   <div className="space-y-4 font-semibold text-xs text-slate-700">
-
-
-
                     <div>
-
-
-
-                      <label className="block mb-1.5">Owner / Contact Name</label>
-
-
-
+                      <label className="block mb-1.5">Owner / Contact Name <span className="text-rose-500 font-black">*</span></label>
                       <input
-
-
-
                         type="text"
-
-
-
                         value={editOwnerName}
-
-
-
                         onChange={(e) => setEditOwnerName(e.target.value)}
-
-
-
-                        className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-3 px-4 rounded-xl text-sm font-semibold text-slate-900 placeholder-slate-400"
-
-
-
+                        className={`w-full border focus:bg-white focus:outline-none transition-all py-3 px-4 rounded-xl text-sm font-semibold text-slate-900 placeholder-slate-400 ${!editOwnerName.trim() ? 'border-rose-350 bg-rose-50/20 focus:border-rose-500' : 'bg-slate-50 border-slate-200 focus:border-blue-500'}`}
                         placeholder="e.g. Kunal Chauhan"
-
-
-
                       />
-
-
-
+                      {!editOwnerName.trim() && (
+                        <p className="text-[10px] text-rose-600 font-bold mt-1 animate-fadeIn flex items-center gap-1 select-none">
+                          ⚠️ Owner / Contact Name is a required field.
+                        </p>
+                      )}
                     </div>
 
-
-
-
-
-
-
                     <div>
-
-
-
-                      <label className="block mb-1.5">Primary Phone Number</label>
-
-
-
+                      <label className="block mb-1.5">Primary Phone Number <span className="text-rose-500 font-black">*</span></label>
                       <input
-
-
-
                         type="tel"
-
-
-
                         value={editPhoneNumber}
-
-
-
                         onChange={(e) => setEditPhoneNumber(e.target.value)}
-
-
-
-                        className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-3 px-4 rounded-xl text-sm font-semibold text-slate-900 placeholder-slate-400 font-mono"
-
-
-
+                        className={`w-full border focus:bg-white focus:outline-none transition-all py-3 px-4 rounded-xl text-sm font-semibold text-slate-900 placeholder-slate-400 font-mono ${!editPhoneNumber.trim() ? 'border-rose-350 bg-rose-50/20 focus:border-rose-500' : 'bg-slate-50 border-slate-200 focus:border-blue-500'}`}
                         placeholder="e.g. +91 98765 43210"
-
-
-
                       />
-
-
-
+                      {!editPhoneNumber.trim() && (
+                        <p className="text-[10px] text-rose-600 font-bold mt-1 animate-fadeIn flex items-center gap-1 select-none">
+                          ⚠️ Primary Phone Number is a required field.
+                        </p>
+                      )}
                     </div>
-
-
-
-
-
-
 
                     <div>
-
-
-
-                      <label className="block mb-1.5 flex items-center gap-1.5 text-slate-500">
-
-
-
-                        <Mail className="w-3.5 h-3.5" /> Login Account Email <span className="text-[9px] bg-slate-250 text-slate-600 px-2 py-0.5 rounded font-black uppercase tracking-wider">Locked</span>
-
-
-
+                      <label className="block mb-1.5 flex items-center gap-1.5 text-slate-600">
+                        <Mail className="w-3.5 h-3.5" /> Login Account Email <span className="text-[9px] bg-amber-100 text-amber-800 border border-amber-250 px-2 py-0.5 rounded-lg font-black uppercase tracking-wider flex items-center gap-1">🔒 LOCKED</span>
                       </label>
-
-
-
                       <input
-
-
-
                         type="email"
-
-
-
                         value={user?.email || ''}
-
-
-
                         disabled
-
-
-
-                        className="w-full bg-slate-100/60 border border-slate-200 text-slate-500 rounded-xl py-3 px-4 text-sm font-semibold cursor-not-allowed select-none"
-
-
-
+                        className="w-full bg-slate-100/60 border border-slate-200 text-slate-500 rounded-xl py-3 px-4 text-sm font-semibold cursor-not-allowed select-none font-mono"
                       />
-
-
-
-                      <p className="text-[10px] text-slate-400 mt-1.5 font-medium leading-relaxed">Account emails cannot be updated directly for security purposes. Please contact administration support to initiate a transfer.</p>
-
-
-
+                      <p className="text-[12.5px] text-[#6b7280] mt-2 font-bold leading-normal">Account emails cannot be updated directly for security purposes. Please contact administration support to initiate a transfer.</p>
                     </div>
-
-
-
                   </div>
-
-
-
                 </div>
-
-
-
               )}
 
 
@@ -24671,257 +24512,77 @@ async function checkOrderStatus(orderId) {
 
 
               {profileModalTab === 'business' && (
-
-
-
                 <div className="space-y-5 animate-fadeIn">
-
-
-
                   <div>
-
-
-
                     <h4 className="text-base font-black text-slate-900">Business Registry Information</h4>
-
-
-
                     <p className="text-[11px] text-slate-500 font-medium">Manage your registered company details, merchant category classification, and tax credentials.</p>
-
-
-
                   </div>
-
-
-
-
-
-
 
                   <div className="space-y-4 font-semibold text-xs text-slate-700">
-
-
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-
-
-                      <div>
-
-
-
-                        <label className="block mb-1.5">Registered Business Name</label>
-
-
-
-                        <input
-
-
-
-                          type="text"
-
-
-
-                          value={editBusinessName}
-
-
-
-                          onChange={(e) => setEditBusinessName(e.target.value)}
-
-
-
-                          className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-3 px-4 rounded-xl text-sm font-semibold text-slate-900 placeholder-slate-400"
-
-
-
-                          placeholder="e.g. Vyapar Gateway Corp"
-
-
-
-                        />
-
-
-
-                      </div>
-
-
-
-
-
-
-
-                      <div>
-
-
-
-                        <label className="block mb-1.5">Business Category</label>
-
-
-
-                        <select
-
-
-
-                          value={editBusinessCategory}
-
-
-
-                          onChange={(e) => setEditBusinessCategory(e.target.value)}
-
-
-
-                          className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-3 px-4 rounded-xl text-sm font-semibold text-slate-900 cursor-pointer"
-
-
-
-                        >
-
-
-
-                          <option value="Retail">Retail Store / Kirana</option>
-
-
-
-                          <option value="Services">Professional Services</option>
-
-
-
-                          <option value="E-commerce">E-Commerce & SaaS</option>
-
-
-
-                          <option value="Food & Beverage">Food & Beverage / Restaurant</option>
-
-
-
-                          <option value="Healthcare">Healthcare & Pharmacy</option>
-
-
-
-                          <option value="Education">Education & Tutoring</option>
-
-
-
-                          <option value="Logistics">Logistics & Transport</option>
-
-
-
-                          <option value="Others">Others</option>
-
-
-
-                        </select>
-
-
-
-                      </div>
-
-
-
-                    </div>
-
-
-
-
-
-
-
                     <div>
-
-
-
-                      <label className="block mb-1.5">GSTIN / Tax ID <span className="text-[9px] bg-slate-200 text-slate-500 px-2 py-0.5 rounded font-black uppercase tracking-wider">Optional</span></label>
-
-
-
+                      <label className="block mb-1.5">Registered Business Name <span className="text-rose-500 font-black">*</span></label>
                       <input
-
-
-
                         type="text"
-
-
-
-                        value={editGstin}
-
-
-
-                        onChange={(e) => setEditGstin(e.target.value.toUpperCase())}
-
-
-
-                        className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-3 px-4 rounded-xl text-sm font-semibold text-slate-900 placeholder-slate-400 font-mono"
-
-
-
-                        placeholder="e.g. 22AAAAA0000A1Z5"
-
-
-
-                        maxLength={15}
-
-
-
+                        value={editBusinessName}
+                        onChange={(e) => setEditBusinessName(e.target.value)}
+                        className={`w-full border focus:bg-white focus:outline-none transition-all py-3 px-4 rounded-xl text-sm font-semibold text-slate-900 placeholder-slate-400 ${!editBusinessName.trim() ? 'border-rose-350 bg-rose-50/20 focus:border-rose-500' : 'bg-slate-50 border-slate-200 focus:border-blue-500'}`}
+                        placeholder="e.g. Vyapar Gateway Corp"
                       />
-
-
-
+                      {!editBusinessName.trim() && (
+                        <p className="text-[10px] text-rose-600 font-bold mt-1 animate-fadeIn flex items-center gap-1 select-none">
+                          ⚠️ Registered Business Name is a required field.
+                        </p>
+                      )}
                     </div>
-
-
-
-
-
-
 
                     <div>
-
-
-
-                      <label className="block mb-1.5">Business Address</label>
-
-
-
-                      <textarea
-
-
-
-                        value={editBusinessAddress}
-
-
-
-                        onChange={(e) => setEditBusinessAddress(e.target.value)}
-
-
-
-                        className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-3 px-4 rounded-xl text-sm font-semibold text-slate-900 placeholder-slate-400 leading-normal"
-
-
-
-                        placeholder="Complete business storefront or corporate address details..."
-
-
-
-                        rows={3}
-
-
-
-                      />
-
-
-
+                      <label className="block mb-1.5">Business Category <span className="text-rose-500 font-black">*</span></label>
+                      <select
+                        value={editBusinessCategory}
+                        onChange={(e) => setEditBusinessCategory(e.target.value)}
+                        className={`w-full border focus:bg-white focus:outline-none transition-all py-3 px-4 rounded-xl text-sm font-semibold text-slate-900 cursor-pointer ${!editBusinessCategory ? 'border-rose-350 bg-rose-50/20 focus:border-rose-500' : 'bg-slate-50 border-slate-200 focus:border-blue-500'}`}
+                      >
+                        <option value="" disabled>Select category...</option>
+                        <option value="Retail">Retail Store / Kirana</option>
+                        <option value="Services">Professional Services</option>
+                        <option value="E-commerce">E-Commerce & SaaS</option>
+                        <option value="Food & Beverage">Food & Beverage / Restaurant</option>
+                        <option value="Healthcare">Healthcare & Pharmacy</option>
+                        <option value="Education">Education & Tutoring</option>
+                        <option value="Logistics">Logistics & Transport</option>
+                        <option value="Others">Others</option>
+                      </select>
+                      {!editBusinessCategory && (
+                        <p className="text-[10px] text-rose-600 font-bold mt-1 animate-fadeIn flex items-center gap-1 select-none">
+                          ⚠️ Business Category selection is required.
+                        </p>
+                      )}
                     </div>
 
+                    <div>
+                      <label className="block mb-1.5">GSTIN / Tax ID <span className="text-[9px] bg-slate-200 text-slate-500 px-2 py-0.5 rounded font-black uppercase tracking-wider">Optional</span></label>
+                      <input
+                        type="text"
+                        value={editGstin}
+                        onChange={(e) => setEditGstin(e.target.value.toUpperCase())}
+                        className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-3 px-4 rounded-xl text-sm font-semibold text-slate-900 placeholder-slate-400 font-mono"
+                        placeholder="e.g. 22AAAAA0000A1Z5"
+                        maxLength={15}
+                      />
+                    </div>
 
-
+                    <div>
+                      <label className="block mb-1.5">Business Address</label>
+                      <textarea
+                        value={editBusinessAddress}
+                        onChange={(e) => setEditBusinessAddress(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-3 px-4 rounded-xl text-sm font-semibold text-slate-900 placeholder-slate-400 leading-normal resize-none min-h-[90px]"
+                        placeholder="Complete business storefront or corporate address details..."
+                        rows={3}
+                      />
+                    </div>
                   </div>
-
-
-
                 </div>
-
-
-
               )}
 
 
@@ -24935,237 +24596,79 @@ async function checkOrderStatus(orderId) {
 
 
               {profileModalTab === 'payment' && (
-
-
-
                 <div className="space-y-5 animate-fadeIn">
-
-
-
                   <div>
-
-
-
                     <h4 className="text-base font-black text-slate-900">Deposit UPI & Outbound Webhook</h4>
-
-
-
                     <p className="text-[11px] text-slate-500 font-medium">Configure where customer funds are settled and webhook callbacks are dispatched.</p>
-
-
-
                   </div>
-
-
-
-
-
-
 
                   <div className="space-y-4 font-semibold text-xs text-slate-700">
-
-
-
                     <div>
-
-
-
-                      <label className="block mb-1.5">UPI ID (VPA) for Direct Settlements</label>
-
-
-
+                      <label className="block mb-1.5">UPI ID (VPA) for Direct Settlements <span className="text-rose-500 font-black">*</span></label>
                       <input
-
-
-
                         type="text"
-
-
-
                         value={editUpiId}
-
-
-
                         onChange={(e) => setEditUpiId(e.target.value)}
-
-
-
-                        className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-3 px-4 rounded-xl text-sm font-semibold text-slate-900 placeholder-slate-400 font-mono"
-
-
-
+                        className={`w-full border focus:bg-white focus:outline-none transition-all py-3 px-4 rounded-xl text-sm font-semibold text-slate-900 placeholder-slate-400 font-mono ${(!editUpiId.trim() || editUpiId.trim() === 'pending@upi') ? 'border-rose-350 bg-rose-50/20 focus:border-rose-500' : 'bg-slate-50 border-slate-200 focus:border-blue-500'}`}
                         placeholder="e.g. yourshop@paytm"
-
-
-
                       />
-
-
-
-                      <p className="text-[10px] text-slate-400 mt-1.5 font-medium leading-relaxed">Transactions are directly deposited into this VPA in real-time. Double check to avoid settlement redirection issues.</p>
-
-
-
+                      {(!editUpiId.trim() || editUpiId.trim() === 'pending@upi') && (
+                        <p className="text-[10px] text-rose-600 font-bold mt-1 animate-fadeIn flex items-center gap-1 select-none">
+                          ⚠️ A valid settlement UPI ID (VPA) is required.
+                        </p>
+                      )}
+                      
+                      <div className="p-3.5 bg-amber-50/70 border border-amber-250/80 rounded-xl text-[11px] text-amber-900 font-semibold mt-2.5 leading-relaxed flex items-start gap-2.5 select-none">
+                        <span className="text-amber-500 text-sm mt-0.5">⚠️</span>
+                        <span>
+                          <strong>Important VPA Settlement Routing:</strong> Transactions are directly deposited into this bank VPA account in real-time. Double check to avoid settlement redirection issues.
+                        </span>
+                      </div>
                     </div>
 
-
-
-
-
-
-
                     <div>
-
-
-
                       <label className="block mb-1.5">Custom Webhook Integration URL <span className="text-[9px] bg-slate-200 text-slate-500 px-2 py-0.5 rounded font-black uppercase tracking-wider">Optional</span></label>
-
-
-
-                      <div className="flex items-center">
-
-
-
-                        <input
-
-
-
-                          type="url"
-
-
-
-                          value={editWebhookUrl}
-
-
-
-                          onChange={(e) => setEditWebhookUrl(e.target.value)}
-
-
-
-                          className="w-full bg-slate-50 border border-slate-200 rounded-l-xl py-3 px-4 border-r-0 focus:border-blue-500 focus:bg-white focus:outline-none transition-all text-sm font-semibold text-slate-900 placeholder-slate-400 font-mono"
-
-
-
-                          placeholder="https://your-server.com"
-
-
-
-                        />
-
-
-
-                        <div className="bg-slate-100 border border-slate-200 border-l-0 rounded-r-xl py-3 px-4 text-xs font-mono font-bold text-slate-500">
-
-
-
-                          /api/webhook
-
-
-
-                        </div>
-
-
-
-                      </div>
-
-
-
+                      <input
+                        type="url"
+                        value={editWebhookUrl}
+                        onChange={(e) => setEditWebhookUrl(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-3 px-4 rounded-xl text-sm font-semibold text-slate-900 placeholder-slate-400 font-mono"
+                        placeholder="https://your-server.com/api/webhook"
+                      />
                       <p className="text-[10px] text-slate-400 mt-1.5 font-medium leading-relaxed">We fire signed HMAC payload POST calls to this destination receiver when checkouts are successfully matched.</p>
-
-
-
                     </div>
-
-
-
-
-
-
 
                     <div>
-
-
-
                       <label className="block mb-1.5">Custom Brand Theme Color</label>
-
-
-
-                      <div className="flex items-center gap-3">
-
-
-
-                        <input 
-
-
-
-                          type="color" 
-
-
-
-                          value={editThemeColor} 
-
-
-
-                          onChange={(e) => setEditThemeColor(e.target.value)}
-
-
-
-                          className="w-12 h-12 bg-white border border-slate-200 rounded-xl cursor-pointer p-1 shrink-0"
-
-
-
-                        />
-
-
-
-                        <input 
-
-
-
-                          type="text" 
-
-
-
-                          value={editThemeColor} 
-
-
-
-                          onChange={(e) => setEditThemeColor(e.target.value)}
-
-
-
-                          className="flex-1 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-3 px-4 rounded-xl text-sm font-semibold text-slate-900 font-mono"
-
-
-
-                          placeholder="#3B82F6"
-
-
-
-                        />
-
-
-
+                      <div 
+                        className="flex items-center gap-3 p-2 bg-slate-50 border border-slate-200 rounded-xl transition-all hover:bg-slate-100 group relative w-full"
+                        title="Click custom swatch color box to change brand theme color"
+                      >
+                        <div className="relative w-10 h-10 rounded-lg overflow-hidden border border-slate-300 cursor-pointer flex-shrink-0">
+                          <input 
+                            type="color" 
+                            value={editThemeColor} 
+                            onChange={(e) => setEditThemeColor(e.target.value)}
+                            className="absolute inset-0 w-[200%] h-[200%] -translate-x-1/4 -translate-y-1/4 cursor-pointer border-0 p-0"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <input 
+                            type="text" 
+                            value={editThemeColor} 
+                            onChange={(e) => setEditThemeColor(e.target.value)}
+                            className="w-full bg-transparent border-0 focus:outline-none font-mono text-sm font-bold text-slate-900"
+                            placeholder="#3B82F6"
+                          />
+                          <span className="block text-[9px] text-slate-400 font-bold uppercase select-none group-hover:text-slate-650 transition-colors">
+                            Click swatch to pick color • Hex Code
+                          </span>
+                        </div>
                       </div>
-
-
-
                       <p className="text-[10px] text-slate-400 mt-1.5 font-medium">This brand accent color is active across your scanning checkout UI.</p>
-
-
-
                     </div>
-
-
-
                   </div>
-
-
-
                 </div>
-
-
-
               )}
 
 
@@ -25179,165 +24682,150 @@ async function checkOrderStatus(orderId) {
 
 
               {profileModalTab === 'security' && (
-
-
-
                 <div className="space-y-5 animate-fadeIn">
-
-
-
                   <div>
-
-
-
                     <h4 className="text-base font-black text-slate-900">Account Security</h4>
-
-
-
                     <p className="text-[11px] text-slate-500 font-medium">Modify your secret login credentials or change your account password instantly.</p>
-
-
-
                   </div>
-
-
-
-
-
-
 
                   {/* Info Notice Box */}
-
-
-
-                  <div className="p-4 bg-blue-50/50 border border-blue-200/50 rounded-2xl flex gap-3 text-blue-750">
-
-
-
-                    <Shield className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
-
-
-
+                  <div className="p-4 bg-blue-50/50 border border-blue-200/50 rounded-2xl flex gap-3 text-blue-750 select-none">
+                    <svg className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
                     <div>
-
-
-
-                      <p className="text-xs font-bold leading-normal">Direct Password Change</p>
-
-
-
-                      <p className="text-[10px] text-blue-600/90 font-medium leading-normal mt-0.5">You can safely reset your login credentials in real time. Passwords must be at least 6 characters in length to ensure system compliance.</p>
-
-
-
+                      <p className="text-xs font-bold leading-normal text-blue-800">Direct Password Change Requirements</p>
+                      <p className="text-[10px] text-blue-600/90 font-bold leading-normal mt-0.5">
+                        You can safely reset your login credentials in real-time. To maintain Fintech-grade security compliance, your new password must be at least **8 characters** in length and contain at least **one uppercase letter, one number, and one special character** (e.g. @, #, $, etc.).
+                      </p>
                     </div>
-
-
-
                   </div>
-
-
-
-
-
-
 
                   <div className="space-y-4 font-semibold text-xs text-slate-700">
-
-
-
                     <div>
-
-
-
-                      <label className="block mb-1.5">New Password</label>
-
-
-
-                      <input
-
-
-
-                        type="password"
-
-
-
-                        value={newPassword}
-
-
-
-                        onChange={(e) => setNewPassword(e.target.value)}
-
-
-
-                        className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-3 px-4 rounded-xl text-sm font-semibold text-slate-900 font-mono"
-
-
-
-                        placeholder="••••••••"
-
-
-
-                      />
-
-
-
+                      <label className="block mb-1.5">Current Password <span className="text-rose-500 font-black">*</span></label>
+                      <div className="relative">
+                        <input
+                          type={showCurrentPassword ? "text" : "password"}
+                          value={currentPassword}
+                          onChange={(e) => setCurrentPassword(e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-3 pl-4 pr-12 rounded-xl text-sm font-semibold text-slate-900 font-mono"
+                          placeholder="••••••••"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                          className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                        >
+                          {showCurrentPassword ? (
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                            </svg>
+                          ) : (
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                          )}
+                        </button>
+                      </div>
                     </div>
 
-
-
-
-
-
-
                     <div>
-
-
-
-                      <label className="block mb-1.5">Confirm New Password</label>
-
-
-
-                      <input
-
-
-
-                        type="password"
-
-
-
-                        value={confirmPassword}
-
-
-
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-
-
-
-                        className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-3 px-4 rounded-xl text-sm font-semibold text-slate-900 font-mono"
-
-
-
-                        placeholder="••••••••"
-
-
-
-                      />
-
-
-
+                      <label className="block mb-1.5">New Password <span className="text-rose-500 font-black">*</span></label>
+                      <div className="relative">
+                        <input
+                          type={showNewPassword ? "text" : "password"}
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-3 pl-4 pr-12 rounded-xl text-sm font-semibold text-slate-900 font-mono"
+                          placeholder="••••••••"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                        >
+                          {showNewPassword ? (
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                            </svg>
+                          ) : (
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                          )}
+                        </button>
+                      </div>
+                      
+                      {/* Password Strength Indicator Bar */}
+                      {newPassword && (() => {
+                        const strength = (() => {
+                          let score = 0;
+                          if (newPassword.length >= 8) score++;
+                          if (/[A-Z]/.test(newPassword)) score++;
+                          if (/[0-9]/.test(newPassword)) score++;
+                          if (/[^A-Za-z0-9]/.test(newPassword)) score++;
+                          
+                          if (score <= 1) return { percent: '25%', label: 'Weak (Requires 8+ chars, upper, number, symbol)', color: 'bg-rose-500' };
+                          if (score === 2) return { percent: '50%', label: 'Medium (Add symbol/number for security)', color: 'bg-amber-500' };
+                          if (score === 3) return { percent: '75%', label: 'Strong / Safe', color: 'bg-blue-500' };
+                          return { percent: '100%', label: 'Fintech-grade Secure / Perfect!', color: 'bg-emerald-500' };
+                        })();
+                        return (
+                          <div className="mt-2.5 space-y-1.5 animate-fadeIn select-none">
+                            <div className="flex items-center justify-between text-[10px] font-bold">
+                              <span className="text-slate-400 uppercase">Password Strength:</span>
+                              <span className={strength.color.replace('bg-', 'text-')}>{strength.label}</span>
+                            </div>
+                            <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
+                              <div 
+                                className={`h-full ${strength.color} transition-all duration-500`}
+                                style={{ width: strength.percent }}
+                              />
+                            </div>
+                          </div>
+                        ); 
+                      })()}
                     </div>
 
-
-
+                    <div>
+                      <label className="block mb-1.5">Confirm New Password <span className="text-rose-500 font-black">*</span></label>
+                      <div className="relative">
+                        <input
+                          type={showConfirmPassword ? "text" : "password"}
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white focus:outline-none transition-all py-3 pl-4 pr-12 rounded-xl text-sm font-semibold text-slate-900 font-mono"
+                          placeholder="••••••••"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                        >
+                          {showConfirmPassword ? (
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                            </svg>
+                          ) : (
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                          )}
+                        </button>
+                      </div>
+                      
+                      {confirmPassword && newPassword !== confirmPassword && (
+                        <p className="text-[10px] text-rose-600 font-bold mt-1.5 animate-fadeIn flex items-center gap-1 select-none">
+                          ⚠️ New passwords do not match.
+                        </p>
+                      )}
+                    </div>
                   </div>
-
-
-
                 </div>
-
-
-
               )}
 
 
