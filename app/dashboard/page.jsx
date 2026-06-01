@@ -10560,7 +10560,7 @@ async function checkOrderStatus(orderId) {
 
                                   {/* Clerk Authentication Exemption */}
 
-                                  <div className="flex items-start gap-3 p-3 rounded-2xl" style={{background:'rgba(30,41,59,0.6)',border:'1px solid rgba(71,85,105,0.6)'}}">
+                                  <div className="flex items-start gap-3 p-3 rounded-2xl" style={{background:'rgba(30,41,59,0.6)',border:'1px solid rgba(71,85,105,0.6)'}}>
 
                                     <span className="text-emerald-500 font-bold text-sm shrink-0">✓</span>
 
