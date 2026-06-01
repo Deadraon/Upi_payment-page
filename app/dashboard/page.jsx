@@ -8038,7 +8038,7 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-                      placeholder="0.00"
+                      placeholder="Enter amount..."
 
 
 
@@ -8050,7 +8050,7 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-                      className="w-full bg-transparent border-0 focus:outline-none py-1 pl-8 pr-2 text-3xl font-black text-slate-900 placeholder:text-slate-200 tabular-nums"
+                      className="w-full bg-transparent border-0 focus:outline-none py-1 pl-8 pr-2 text-3xl font-black text-slate-900 placeholder:text-slate-350 placeholder:text-xl placeholder:font-semibold tabular-nums"
 
 
 
@@ -8094,15 +8094,8 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-                    className="flex items-center gap-1.5 text-[10px] font-black text-slate-500 hover:text-slate-900 transition-colors uppercase tracking-wider select-none cursor-pointer"
-
-
-
-                  >
-
-
-
-                    <span>{showOptionalDetails ? 'Hide Optional Details' : 'Add Note, Customer Info & Advanced Parameters (Optional)'}</span>
+                    className="flex items-center gap-1.5 text-[10px] font-black text-slate-500 hover:text-slate-900 transition-colors tracking-wider select-none cursor-pointer">
+                    <span>{showOptionalDetails ? 'Hide optional details' : 'Add note, customer info & advanced parameters (optional)'}</span>
 
 
 
@@ -8422,7 +8415,7 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-                  className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white-pure rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all shadow-md shadow-blue-500/25 mt-3 cursor-pointer"
+                  className="w-fit mx-auto px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white-pure rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all shadow-md shadow-blue-500/25 mt-3 cursor-pointer"
 
 
 
@@ -8486,7 +8479,11 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50 border border-slate-200 px-3 py-1 rounded-full inline-block">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50 border border-slate-200 px-3 py-1 rounded-full inline-flex items-center gap-1.5 justify-center">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
 
 
 
@@ -12404,11 +12401,7 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-                        onClick={() => setStatusFilter(f.id)}
-
-
-
-                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all whitespace-nowrap ${statusFilter === f.id ? 'bg-blue-50 border-blue-500 text-blue-700 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-800'}`}
+                        onClick={() => setStatusFilter(f.id)}                         className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all whitespace-nowrap ${statusFilter === f.id ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-800'}`}
 
 
 
@@ -12444,6 +12437,20 @@ echo "Order Created: " . $data['orderId'];
 
 
 
+                {/* Badge Legend */}
+                <div className="px-6 py-3 bg-slate-50/50 border-b border-slate-100 flex flex-wrap gap-4 items-center text-[10px] text-slate-550 font-semibold select-none">
+                  <span className="text-[9px] uppercase tracking-wider text-slate-400 font-black">Note Tags Legend:</span>
+                  <span className="flex items-center gap-1 px-1.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded text-[9px] font-bold cursor-help" title="Transaction initiated from an integrated website check or redirect.">
+                    🌐 Website Origin
+                  </span>
+                  <span className="flex items-center gap-1 px-1.5 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded text-[9px] font-bold cursor-help" title="Transaction initiated using a generated one-click payment link.">
+                    🔗 Payment Link
+                  </span>
+                  <span className="flex items-center gap-1 px-1.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded text-[9px] font-bold cursor-help" title="Transaction initiated via REST API endpoints integration.">
+                    ⚡ API Integration
+                  </span>
+                </div>
+
                 {/* Live transaction log table */}
 
 
@@ -12452,7 +12459,7 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-                  <table className="min-w-full divide-y divide-slate-100">
+                  <table className="min-w-[1000px] w-full divide-y divide-slate-100">
 
 
 
@@ -12624,7 +12631,7 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-                              className={`transition-colors ${order.status === 'verified' ? 'cursor-pointer hover:bg-slate-50' : 'hover:bg-slate-50/50'}`}
+                              className={`transition-colors border-b border-slate-100 ${order.status === 'verified' ? 'cursor-pointer hover:bg-[#f8f9ff]' : 'hover:bg-[#f8f9ff]'}`}
 
 
 
@@ -12640,7 +12647,7 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-                              <td className="px-6 py-4 whitespace-nowrap text-xs font-mono font-bold text-slate-400">
+                              <td className="px-6 py-4 whitespace-nowrap text-xs font-mono font-bold text-blue-600">
 
 
 
@@ -12648,7 +12655,7 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-                                  className="cursor-pointer hover:text-blue-600 flex items-center gap-1.5"
+                                  className="cursor-pointer hover:text-blue-800 hover:underline flex items-center gap-1.5"
 
 
 
@@ -12952,7 +12959,7 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-                                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-black tracking-wide bg-blue-50 text-blue-700 border border-blue-200">
+                                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-black tracking-wide bg-blue-50 text-blue-700 border border-blue-200 cursor-help" title={`Originating website domain: ${domain}`}>
 
 
 
@@ -12972,7 +12979,7 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-                                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-black tracking-wide uppercase border ${methodColor}`}>
+                                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-black tracking-wide uppercase border ${methodColor} cursor-help`} title={isLink ? "Initiated via a generated payment link" : isApi ? "Initiated via merchant REST API" : "Initiated via UPI checkout payload"}>
 
 
 
@@ -13028,7 +13035,7 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-                                  <span className="text-slate-400 italic">None</span>
+                                  <span className="text-slate-400 font-semibold">—</span>
 
 
 
@@ -13072,11 +13079,11 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-                                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[9px] font-bold bg-slate-50 text-slate-500 border border-slate-200">
+                                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80">
 
 
 
-                                    <Clock className="w-3 h-3 text-slate-400" /> Escrow holding
+                                    <Clock className="w-3 h-3 text-amber-500 animate-pulse" /> Escrow holding
 
 
 
@@ -13108,7 +13115,7 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-100 text-emerald-850 border border-emerald-250">
 
 
 
@@ -13128,7 +13135,7 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-100 animate-pulse">
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-100 text-amber-850 border border-amber-250 animate-pulse">
 
 
 
@@ -13148,7 +13155,7 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-red-50 text-red-700 border border-red-100">
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-250">
 
 
 
@@ -13168,7 +13175,7 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-slate-100 text-slate-400 border border-slate-200">
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-slate-100 text-slate-650 border border-slate-250">
 
 
 
@@ -18544,7 +18551,7 @@ async function checkOrderStatus(orderId) {
 
 
 
-                              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-550 block">Checkout Amount (INR)</label>
+                              <label className="text-[10px] font-bold tracking-wider text-slate-550 block">Checkout amount (INR)</label>
 
 
 
@@ -18592,7 +18599,7 @@ async function checkOrderStatus(orderId) {
 
 
 
-                              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-550 block">Note / Purpose</label>
+                              <label className="text-[10px] font-bold tracking-wider text-slate-550 block">Note / purpose</label>
 
 
 
@@ -18628,7 +18635,7 @@ async function checkOrderStatus(orderId) {
 
 
 
-                              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-550 block">Customer Name</label>
+                              <label className="text-[10px] font-bold tracking-wider text-slate-550 block">Customer name</label>
 
 
 
@@ -18664,7 +18671,7 @@ async function checkOrderStatus(orderId) {
 
 
 
-                              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-550 block">Customer Phone</label>
+                              <label className="text-[10px] font-bold tracking-wider text-slate-550 block">Customer phone</label>
 
 
 
@@ -18744,42 +18751,35 @@ async function checkOrderStatus(orderId) {
 
 
 
-                          {/* Right: Mock Phone Placeholder */}
-
-
-
-                          <div className="border border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center text-center space-y-3 bg-slate-50/50">
-
-
-
-                            <div className="w-12 h-20 border-2 border-slate-200 rounded-xl flex items-center justify-center text-slate-350 select-none">
-
-
-
-                              <span className="text-[10px] font-bold uppercase tracking-wider rotate-90">EMULATOR</span>
-
-
-
-                            </div>
-
-
-
-                            <div>
-
-
-
-                              <p className="text-xs font-bold text-slate-500">Emulator Offline</p>
-
-
-
-                              <p className="text-[9px] text-slate-405 font-semibold leading-relaxed max-w-[180px] mx-auto mt-0.5">Fill out invoice payload and click launch to view the responsive mock checkouts screen.</p>
-
-
-
-                            </div>
-
-
-
+                          {/* Right: Mock Phone Placeholder */}                          <div className="border border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center text-center space-y-4 bg-slate-50/50 min-h-[320px]">
+                            {/* Detailed Phone Silhouette Empty State Illustration */}
+                            <div className="w-[140px] h-[220px] border-2 border-slate-300 rounded-[24px] bg-slate-100/40 relative flex flex-col justify-between p-2 shadow-inner select-none opacity-60 hover:opacity-85 transition-opacity">
+                              {/* Notch */}
+                              <div className="absolute top-1 left-1/2 -translate-x-1/2 w-10 h-1 bg-slate-300 rounded-full" />
+                              {/* Simulated Phone Screen Contents */}
+                              <div className="flex-1 border border-slate-200/50 rounded-[18px] bg-slate-50 flex flex-col justify-between p-2 mt-2">
+                                <div className="flex justify-between items-center pb-1 border-b border-slate-100">
+                                  <div className="w-3.5 h-1 bg-slate-300 rounded-full" />
+                                  <div className="w-1.5 h-1.5 bg-slate-300 rounded-full" />
+                                </div>
+                                <div className="flex-1 flex flex-col items-center justify-center space-y-2 py-4">
+                                  <span className="text-xs font-black text-slate-400">₹ 0.00</span>
+                                  <div className="space-y-1 w-full px-2">
+                                    <div className="h-1 bg-slate-200 rounded-full w-full" />
+                                    <div className="h-1 bg-slate-200 rounded-full w-5/6 mx-auto" />
+                                  </div>
+                                </div>
+                                <div className="grid grid-cols-3 gap-1">
+                                  <div className="h-2.5 bg-slate-250 rounded" />
+                                  <div className="h-2.5 bg-slate-250 rounded" />
+                                  <div className="h-2.5 bg-slate-250 rounded" />
+                                </div>
+                              </div>
+                            </div>
+                            <div>
+                              <p className="text-xs font-bold text-slate-500">Emulator Offline</p>
+                              <p className="text-[9px] text-slate-405 font-semibold leading-relaxed max-w-[180px] mx-auto mt-0.5">Fill out invoice payload and click launch to view the responsive mock checkouts screen.</p>
+                            </div>
                           </div>
 
 
@@ -19904,7 +19904,7 @@ async function checkOrderStatus(orderId) {
 
 
 
-                          className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white-pure font-bold text-xs rounded-xl shadow-sm shadow-blue-500/10 transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-transparent disabled:opacity-40"
+                          className="w-full py-2.5 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl border border-slate-250 shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-40"
 
 
 
@@ -20432,31 +20432,18 @@ async function checkOrderStatus(orderId) {
 
 
 
-                                      <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${
-
-
-
-                                        isOperational 
-
-
-
-                                          ? 'bg-emerald-100 text-emerald-700 border border-emerald-250 flex items-center gap-0.5' 
-
-
-
-                                          : 'bg-amber-100 text-amber-700 border border-amber-250 flex items-center gap-0.5'
-
-
-
-                                      }`}>
-
-
-
-                                        {isOperational ? '✓ Active' : '⚠️ Setup Required'}
-
-
-
-                                      </span>
+                                      <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${
+                                        isOperational 
+                                          ? 'bg-emerald-100 text-emerald-700 border border-emerald-250 flex items-center gap-0.5' 
+                                          : 'bg-amber-100 text-amber-700 border border-amber-250 flex items-center gap-0.5'
+                                      }`}>
+                                        {isOperational ? '✓ Active' : '⚠️ Setup Required'}
+                                      </span>
+                                      {!isOperational && (
+                                        <span className="text-[9px] font-black text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-0.5 select-none transition-colors">
+                                          Fix Now →
+                                        </span>
+                                      )}
 
 
 
@@ -20520,42 +20507,19 @@ async function checkOrderStatus(orderId) {
 
 
 
-                                  <div className="flex justify-between items-center pt-2 border-t border-slate-100/80 text-[10px] font-bold text-slate-550">
-
-
-
-                                    <div className="flex gap-2">
-
-
-
-                                      <span className={webhookConfigured ? "text-emerald-600" : "text-amber-600"}>
-
-
-
-                                        {webhookConfigured ? '✓ Webhook active' : '⚠️ No webhook'}
-
-
-
-                                      </span>
-
-
-
-                                      <span className="text-slate-300">•</span>
-
-
-
-                                      <span className={emailRoutingActive ? "text-emerald-600" : "text-amber-600"}>
-
-
-
-                                        {emailRoutingActive ? '✓ Email active' : '⚠️ Email incomplete'}
-
-
-
-                                      </span>
-
-
-
+                                  <div className="flex justify-between items-center pt-2 border-t border-slate-100/80 text-[10px] font-bold text-slate-550">                                    <div className="flex flex-col gap-1 select-none">
+                                      <div className="flex items-center gap-1.5 text-[9px] font-bold">
+                                        <span className={`w-1.5 h-1.5 rounded-full ${webhookConfigured ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+                                        <span className={webhookConfigured ? "text-emerald-600" : "text-amber-600"}>
+                                          {webhookConfigured ? '✓ Webhook Endpoint Configured' : '⚠️ Webhook Endpoint Incomplete'}
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center gap-1.5 text-[9px] font-bold">
+                                        <span className={`w-1.5 h-1.5 rounded-full ${emailRoutingActive ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+                                        <span className={emailRoutingActive ? "text-emerald-600" : "text-amber-600"}>
+                                          {emailRoutingActive ? '✓ Email Forwarding Verification Active' : '⚠️ Email Forwarding Setup Incomplete'}
+                                        </span>
+                                      </div>
                                     </div>
 
 
@@ -20872,23 +20836,13 @@ async function checkOrderStatus(orderId) {
 
 
 
-                                  {/* Webhook Endpoint */}
-
-
-
-                                  <div className={`flex items-start gap-3 p-3 rounded-2xl border ${
-
-
-
-                                    webhookConfigured ? 'bg-slate-800/40 border-slate-700' : 'bg-red-900/20 border-red-700/50'
-
-
-
+                                  {/* Webhook Endpoint */}                                  <div className={`flex items-start gap-3 p-3 rounded-2xl border ${
+                                    webhookConfigured ? 'bg-emerald-50/40 border-emerald-200' : 'bg-red-50 border-red-200'
                                   }`}>
 
 
 
-                                    <span className={webhookConfigured ? "text-emerald-400 font-black text-sm shrink-0" : "text-red-400 font-black text-sm shrink-0"}>
+                                    <span className={webhookConfigured ? "text-emerald-600 font-black text-sm shrink-0" : "text-red-650 font-black text-sm shrink-0"}>
 
 
 
@@ -20904,7 +20858,7 @@ async function checkOrderStatus(orderId) {
 
 
 
-                                      <p className="text-xs font-bold text-white">Webhook Endpoint Routing</p>
+                                      <p className="text-xs font-bold text-slate-800 font-black">Webhook Endpoint Configured</p>
 
 
 
@@ -20912,7 +20866,7 @@ async function checkOrderStatus(orderId) {
 
 
 
-                                        <p className="text-[10px] text-slate-400 font-semibold mt-0.5 truncate max-w-[280px]" title={profile.webhook_url}>{profile.webhook_url}</p>
+                                        <p className="text-[10px] text-slate-600 font-semibold mt-0.5 truncate max-w-[280px]" title={profile.webhook_url}>{profile.webhook_url}</p>
 
 
 
@@ -20920,7 +20874,7 @@ async function checkOrderStatus(orderId) {
 
 
 
-                                        <p className="text-[10px] text-red-400 font-black mt-0.5">
+                                        <p className="text-[10px] text-red-750 font-black mt-0.5">
 
 
 
@@ -20948,34 +20902,12 @@ async function checkOrderStatus(orderId) {
 
 
 
-                                  {/* Outbound HMAC Signature */}
-
-
-
-                                  <div className="flex items-start gap-3 p-3 rounded-2xl" style={{background:'rgba(30,41,59,0.6)',border:'1px solid rgba(71,85,105,0.6)'}}>
-
-
-
-                                    <span className="font-bold text-sm shrink-0" style={{color:'#34d399'}}>✓</span>
-
-
-
-                                    <div>
-
-
-
-                                      <p className="text-xs font-bold" style={{color:'#f8fafc'}}>SHA256 HMAC Security</p>
-
-
-
-                                      <p className="text-[10px] font-semibold mt-0.5" style={{color:'#94a3b8'}}>Callback signature validated with your raw private API Key.</p>
-
-
-
-                                    </div>
-
-
-
+                                  {/* Outbound HMAC Signature */}                                  <div className="flex items-start gap-3 p-3 rounded-2xl border" style={{background:'rgba(244,245,247,0.5)',borderColor:'rgba(226,232,240,1)'}}>
+                                    <span className="font-bold text-sm shrink-0" style={{color:'#059669'}}>✓</span>
+                                    <div>
+                                      <p className="text-xs font-bold text-slate-800">SHA256 HMAC Security</p>
+                                      <p className="text-[10px] font-semibold mt-0.5 text-slate-600">Callback signature validated with your raw private API Key.</p>
+                                    </div>
                                   </div>
 
 
@@ -20988,11 +20920,11 @@ async function checkOrderStatus(orderId) {
 
 
 
-                                  <div className="flex items-start gap-3 p-3 rounded-2xl" style={emailRoutingActive ? {background:'rgba(30,41,59,0.6)',border:'1px solid rgba(71,85,105,0.6)'} : {background:'rgba(120,53,15,0.3)',border:'1px solid rgba(217,119,6,0.5)'}}>
+                                  <div className="flex items-start gap-3 p-3 rounded-2xl border transition-all" style={emailRoutingActive ? {background:'rgba(30,41,59,0.03)',borderColor:'rgba(71,85,105,0.15)'} : {background:'#fdf0e6',borderColor:'#f5d0b2'}}>
 
 
 
-                                    <span className="font-bold text-sm shrink-0" style={{color: emailRoutingActive ? '#34d399' : '#fbbf24'}}>
+                                    <span className="font-bold text-sm shrink-0" style={{color: emailRoutingActive ? '#059669' : '#d97706'}}>
 
 
 
@@ -21008,11 +20940,11 @@ async function checkOrderStatus(orderId) {
 
 
 
-                                      <p className="text-xs font-bold" style={{color:'#f8fafc'}}>Email Routing Alerts</p>
+                                      <p className="text-xs font-bold" style={{color: emailRoutingActive ? '#0f172a' : '#7a4a00'}}>Email Routing Alerts</p>
 
 
 
-                                      <p className="text-[10px] font-semibold mt-0.5" style={{color: emailRoutingActive ? '#94a3b8' : '#fcd34d'}}>
+                                      <p className="text-[10px] font-semibold mt-0.5" style={{color: emailRoutingActive ? '#475569' : '#7a4a00'}}>
 
 
 
@@ -21044,34 +20976,12 @@ async function checkOrderStatus(orderId) {
 
 
 
-                                  {/* Clerk Authentication Exemption */}
-
-
-
-                                  <div className="flex items-start gap-3 p-3 rounded-2xl" style={{background:'rgba(30,41,59,0.6)',border:'1px solid rgba(71,85,105,0.6)'}}>
-
-
-
-                                    <span className="text-emerald-500 font-bold text-sm shrink-0">✓</span>
-
-
-
-                                    <div>
-
-
-
-                                      <p className="text-xs font-bold text-white">Auth & Checkout Middleware Exception</p>
-
-
-
-                                      <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Next.js Clerk rules bypassed for webhooks and payment parameter bindings successfully.</p>
-
-
-
-                                    </div>
-
-
-
+                                  {/* Clerk Authentication Exemption */}                                  <div className="flex items-start gap-3 p-3 rounded-2xl border" style={{background:'rgba(244,245,247,0.5)',borderColor:'rgba(226,232,240,1)'}}>
+                                    <span className="text-emerald-650 font-bold text-sm shrink-0">✓</span>
+                                    <div>
+                                      <p className="text-xs font-bold text-slate-800">Auth & Checkout Middleware Exception</p>
+                                      <p className="text-[10px] text-slate-600 font-semibold mt-0.5">Next.js Clerk rules bypassed for webhooks and payment parameter bindings successfully.</p>
+                                    </div>
                                   </div>
 
 
@@ -21184,34 +21094,12 @@ async function checkOrderStatus(orderId) {
 
 
 
-                                        {failures.length > 0 && (
-
-
-
-                                          <div className="p-3 bg-red-50/70 border border-red-150 rounded-xl text-[10.5px] text-red-750 font-semibold flex items-start gap-2 leading-relaxed">
-
-
-
-                                            <span className="mt-0.5">⚠️</span>
-
-
-
-                                            <div>
-
-
-
-                                              <p className="font-bold">Checkout Expirations Detected</p>
-
-
-
-                                              <p className="text-[9.5px] mt-0.5 text-red-655 font-black">Detected {failures.length} pending checkout order expirations. Ensure that your mobile SMS router or Gmail forwarding permissions are authorized, and verify your Clerk auth middleware filters allow anonymous callbacks.</p>
-
-
-
-                                            </div>
-
-
-
+                                        {failures.length > 0 && (                                          <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-[10.5px] text-red-900 font-semibold flex items-start gap-2 leading-relaxed">
+                                            <span className="mt-0.5 text-red-750">⚠️</span>
+                                            <div>
+                                              <p className="font-bold text-red-900">Checkout Expirations Detected</p>
+                                              <p className="text-[9.5px] mt-0.5 text-red-800 font-bold">Detected {failures.length} pending checkout order expirations. Ensure that your mobile SMS router or Gmail forwarding permissions are authorized, and verify your Clerk auth middleware filters allow anonymous callbacks.</p>
+                                            </div>
                                           </div>
 
 
@@ -21608,7 +21496,7 @@ async function checkOrderStatus(orderId) {
 
 
 
-                      className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all duration-300 flex items-center gap-2 whitespace-nowrap ${connectionSubTab === 'email' ? 'bg-white text-blue-600 shadow-md shadow-blue-500/5 border border-slate-250' : 'text-slate-500 hover:text-slate-800'}`}
+                      className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all duration-300 flex items-center gap-2 whitespace-nowrap ${connectionSubTab === 'email' ? 'bg-blue-600 text-white shadow-md shadow-blue-500/10 border border-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
 
 
 
@@ -21616,7 +21504,7 @@ async function checkOrderStatus(orderId) {
 
 
 
-                      <Mail className="w-4 h-4 text-blue-600" />
+                      <Mail className={`w-4 h-4 ${connectionSubTab === 'email' ? 'text-white' : 'text-slate-400'}`} />
 
 
 
@@ -21652,7 +21540,7 @@ async function checkOrderStatus(orderId) {
 
 
 
-                      className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all duration-300 flex items-center gap-2 whitespace-nowrap ${connectionSubTab === 'staff' ? 'bg-white text-blue-600 shadow-md shadow-blue-500/5 border border-slate-250' : 'text-slate-500 hover:text-slate-800'}`}
+                      className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all duration-300 flex items-center gap-2 whitespace-nowrap ${connectionSubTab === 'staff' ? 'bg-white text-slate-800 border border-slate-300 shadow-xs' : 'text-slate-500 hover:text-slate-850'}`}
 
 
 
@@ -21660,7 +21548,7 @@ async function checkOrderStatus(orderId) {
 
 
 
-                      <Star className="w-4 h-4 text-blue-600" />
+                      <Star className={`w-4 h-4 ${connectionSubTab === 'staff' ? 'text-amber-500' : 'text-slate-400'}`} />
 
 
 
