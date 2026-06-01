@@ -5173,7 +5173,7 @@ async function checkOrderStatus(orderId) {
                                           <LinkIcon className="w-5 h-5" />
                                         </div>
                                         <div>
-                                          <h4 className="text-sm font-black text-slate-805 group-hover:text-blue-600 transition-colors">
+                                          <h4 className="text-sm font-black text-white group-hover:text-blue-600 transition-colors">
                                             {site.name}
                                           </h4>
                                           <p className="text-[10px] text-slate-400 font-bold tracking-wide mt-0.5 truncate max-w-[180px]">
@@ -5336,10 +5336,10 @@ async function checkOrderStatus(orderId) {
                                   </div>
 
                                   {/* Clerk Authentication Exemption */}
-                                  <div className="flex items-start gap-3 p-3 bg-slate-50 border border-slate-150 rounded-2xl">
+                                  <div className="flex items-start gap-3 p-3 rounded-2xl" style={{background:'rgba(30,41,59,0.6)',border:'1px solid rgba(71,85,105,0.6)'}}">
                                     <span className="text-emerald-500 font-bold text-sm shrink-0">✓</span>
                                     <div>
-                                      <p className="text-xs font-bold text-slate-805">Auth & Checkout Middleware Exception</p>
+                                      <p className="text-xs font-bold text-white">Auth & Checkout Middleware Exception</p>
                                       <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Next.js Clerk rules bypassed for webhooks and payment parameter bindings successfully.</p>
                                     </div>
                                   </div>
