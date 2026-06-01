@@ -3224,7 +3224,7 @@ echo "Order Created: " . $data['orderId'];
 
         {/* ── HIGH CONTRAST HERO STATUS CARD ── */}
 
-        <div className="relative rounded-3xl bg-[#090D1A] text-slate-950 border border-[#1E293B] overflow-hidden p-8 shadow-xl">
+        <div className="relative rounded-3xl bg-[#090D1A] text-white-pure border border-[#1E293B] overflow-hidden p-8 shadow-xl">
 
           {/* decorative blobs */}
 
@@ -3256,7 +3256,7 @@ echo "Order Created: " . $data['orderId'];
 
                 
 
-                <span className="text-slate-950/60 text-[10px] font-bold uppercase tracking-wider font-mono bg-white/5 px-2.5 py-0.5 rounded-md">
+                <span className="text-white-pure/60 text-[10px] font-bold uppercase tracking-wider font-mono bg-white/5 px-2.5 py-0.5 rounded-md">
 
                   UID: {profile?.id ? profile.id.substring(0, 8) + '...' : 'N/A'}
 
@@ -3288,7 +3288,7 @@ echo "Order Created: " . $data['orderId'];
 
                 
 
-                <p className="text-slate-955/70 text-xs mt-2 font-medium leading-relaxed max-w-md">
+                <p className="text-white-pure/70 text-xs mt-2 font-medium leading-relaxed max-w-md">
 
                   {isActive 
 
@@ -3332,7 +3332,7 @@ echo "Order Created: " . $data['orderId'];
 
                 disabled={statusChecking}
 
-                className="w-full py-2.5 bg-[#121829] hover:bg-[#1A233A] border border-[#1E293B] text-slate-950/80 hover:text-white-pure rounded-xl transition-all text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                className="w-full py-2.5 bg-[#121829] hover:bg-[#1A233A] border border-[#1E293B] text-slate-300 hover:text-white-pure rounded-xl transition-all text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
 
               >
 
