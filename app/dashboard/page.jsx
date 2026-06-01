@@ -5284,7 +5284,7 @@ async function checkOrderStatus(orderId) {
                             </div>
 
                             {/* checklist matrix */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
+                            <div className="grid grid-cols-1 gap-6 pt-6">
                               
                               {/* Configuration Checklist */}
                               <div className="space-y-4">
@@ -5328,8 +5328,8 @@ async function checkOrderStatus(orderId) {
                                       {emailRoutingActive ? '✓' : '⚠️'}
                                     </span>
                                     <div>
-                                      <p className="text-xs font-bold text-slate-900">Email Routing Alerts</p>
-                                      <p className={`text-[10px] font-semibold mt-0.5 ${emailRoutingActive ? 'text-slate-500' : 'text-amber-900'}`}>
+                                      <p className="text-xs font-bold" style={{ color: emailRoutingActive ? '#f8fafc' : '#92400e' }}>Email Routing Alerts</p>
+                                      <p className="text-[10px] font-semibold mt-0.5" style={{ color: emailRoutingActive ? '#94a3b8' : '#78350f' }}>
                                         {emailRoutingActive 
                                           ? 'Gmail credit forwarding rules active and parsing bank notifications.' 
                                           : 'Gmail setup incomplete! Auto-verify is offline. Incoming credit notifications will not trigger automated payouts.'}
