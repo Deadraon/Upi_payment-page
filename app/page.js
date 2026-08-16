@@ -10,6 +10,7 @@ import {
   ArrowUpRight, ShieldCheck, Zap, Layers, RefreshCw, 
   Key, Landmark, Code, Play, Star, Plus, Minus, Info, Lock
 } from 'lucide-react';
+import InteractiveBackground from '@/components/InteractiveBackground';
 
 const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = 'var(--text-primary)' }) => (
   <svg viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
@@ -27,8 +28,8 @@ export default function HomePage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeProductTab, setActiveProductTab] = useState('accept');
   const [monthlyVolume, setMonthlyVolume] = useState(500000); // 5 Lakhs default
-  const [activeCodeTab, setActiveCodeTab] = useState('curl');
-  const [copiedCode, setCopiedCode] = useState(false);
+  const [activeWorkflowStep, setActiveWorkflowStep] = useState(0);
+  const [copiedLink, setCopiedLink] = useState(false);
   const [showPaymentsMenu, setShowPaymentsMenu] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -49,7 +50,7 @@ export default function HomePage() {
   const [demoNote, setDemoNote] = useState('Payment_Note');
 
   // Dynamic Typewriter visual states
-  const words = useMemo(() => ['founders', 'indie hackers', 'SaaS startups', 'creators', 'developers'], []);
+  const words = useMemo(() => ['founders', 'indie hackers', 'SaaS startups', 'creators', 'businesses'], []);
   const [typedText, setTypedText] = useState('founders');
   const [wordIndex, setWordIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -101,59 +102,20 @@ export default function HomePage() {
     };
   }, [monthlyVolume, subscriptionFee]);
 
-  const copyCodeSnippet = (text) => {
+  const copyPaymentLink = (text) => {
     navigator.clipboard.writeText(text);
-    setCopiedCode(true);
-    setTimeout(() => setCopiedCode(false), 2000);
-  };
-
-  const codeSnippets = {
-    curl: `curl -X POST https://mymobpay.com/api/orders \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "api_key": "test_your_private_api_key",
-    "amount": ${parseFloat(demoAmount) || 500.00},
-    "customer_name": "CUSTOMER_NAME",
-    "customer_phone": "CUSTOMER_PHONE",
-    "note": "${demoNote || 'PAYMENT_NOTE'}",
-    "callback_url": "https://your-website.com/api/callback"
-  }'`,
-    javascript: `// Create payment order programmatically
-const response = await fetch('https://mymobpay.com/api/orders', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    api_key: "test_your_private_api_key",
-    amount: ${parseFloat(demoAmount) || 500.00},
-    customer_name: "CUSTOMER_NAME",
-    customer_phone: "CUSTOMER_PHONE",
-    note: "${demoNote || 'PAYMENT_NOTE'}",
-    callback_url: "https://your-website.com/api/callback"
-  })
-});
-
-const data = await response.json();
-console.log("Checkout URL:", \`https://mymobpay.com/pay?api_key=test_your_private_api_key&amount=\${data.orderAmount}&ref=\${data.orderId}\`);`,
-    python: `import requests
-
-payload = {
-    "api_key": "test_your_private_api_key",
-    "amount": ${parseFloat(demoAmount) || 500.00},
-    "customer_name": "CUSTOMER_NAME",
-    "customer_phone": "CUSTOMER_PHONE",
-    "note": "${demoNote || 'PAYMENT_NOTE'}",
-    "callback_url": "https://your-website.com/api/callback"
-}
-
-res = requests.post("https://mymobpay.com/api/orders", json=payload)
-data = res.json()
-print("Checkout Link generated:", data.get("orderId"))`
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 overflow-x-hidden selection:bg-blue-500/10 selection:text-blue-600">
+    <div className="min-h-screen bg-slate-50 text-slate-900 overflow-x-hidden selection:bg-blue-500/10 selection:text-blue-600 relative">
+      <InteractiveBackground />
       
-      <header className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)]' : 'bg-white/60 backdrop-blur-sm border-b border-transparent shadow-none'}`}>
+      {/* ────────────────────────────────────────────────────────
+         ORIGINAL FULL-WIDTH STATIC HEADER WITH MULTI-LAYERED SHADOWS
+         ──────────────────────────────────────────────────────── */}
+      <header className="relative z-50 w-full bg-white/90 backdrop-blur-md border-b border-slate-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.02),0_6px_20px_rgba(0,0,0,0.04)] transition-all">
         <div className="w-full px-6 md:px-10 h-20 flex items-center justify-between relative">
           
           {/* Logo */}
@@ -163,17 +125,21 @@ print("Checkout Link generated:", data.get("orderId"))`
 
           {/* Navigation Links (Desktop) */}
           <nav className="hidden lg:flex items-center gap-8">
-            <Link 
-              href="#products-section"
+            <div 
               onMouseEnter={() => setShowPaymentsMenu(true)}
               onMouseLeave={() => setShowPaymentsMenu(false)}
-              className="text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors flex items-center gap-1 py-4"
+              className="relative py-4"
             >
-              Payments
-              <svg className={`w-3.5 h-3.5 transition-transform duration-300 ${showPaymentsMenu ? 'rotate-180 text-blue-650' : 'text-slate-450'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-              </svg>
-            </Link>
+              <Link 
+                href="#products-section"
+                className="text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors flex items-center gap-1"
+              >
+                Payments
+                <svg className={`w-3.5 h-3.5 transition-transform duration-300 ${showPaymentsMenu ? 'rotate-180 text-blue-650' : 'text-slate-450'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </Link>
+            </div>
             <Link 
               href="#pricing-section"
               className="text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors"
@@ -181,10 +147,10 @@ print("Checkout Link generated:", data.get("orderId"))`
               Pricing
             </Link>
             <Link 
-              href="#developer-section"
+              href="#products-section"
               className="text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors"
             >
-              Developer API
+              How It Works
             </Link>
             <Link href="/terms" className="text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors">
               Terms
@@ -194,19 +160,18 @@ print("Checkout Link generated:", data.get("orderId"))`
             </Link>
           </nav>
 
-          {/* Mega Menu Dropdown (Mimicking Razorpay Style Visual Cards with deep shadows) */}
+          {/* Mega Menu Dropdown */}
           {showPaymentsMenu && (
             <div 
               onMouseEnter={() => setShowPaymentsMenu(true)}
               onMouseLeave={() => setShowPaymentsMenu(false)}
-              className="absolute top-[72px] left-6 right-6 bg-white border border-slate-200 rounded-[28px] shadow-[0_30px_70px_rgba(0,0,0,0.12)] p-9 grid grid-cols-1 md:grid-cols-12 gap-8 z-50 animate-scale-up"
+              className="absolute top-[72px] left-6 right-6 bg-white border border-slate-200 rounded-[28px] shadow-[0_8px_16px_rgba(0,0,0,0.04),0_20px_40px_rgba(0,0,0,0.08),0_40px_80px_rgba(0,0,0,0.12)] p-9 grid grid-cols-1 md:grid-cols-12 gap-8 z-50 animate-scale-up"
             >
               {/* Column 1: Online Payments (5 cols) */}
               <div className="md:col-span-5 space-y-5">
                 <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2.5 select-none">ACCEPT PAYMENTS ONLINE</h4>
                 
                 <div className="space-y-1">
-                  
                   <div 
                     onClick={() => {
                       setShowPaymentsMenu(false);
@@ -214,7 +179,7 @@ print("Checkout Link generated:", data.get("orderId"))`
                     }}
                     className="flex items-start gap-4 p-2.5 hover:bg-blue-50/50 rounded-2xl transition-all duration-300 group cursor-pointer"
                   >
-                    <div className="w-10 h-10 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white group-hover:border-blue-200 transition-colors">
+                    <div className="w-10 h-10 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white group-hover:border-blue-200 transition-colors shadow-sm">
                       <Landmark className="w-5 h-5 text-blue-650" />
                     </div>
                     <div>
@@ -227,7 +192,7 @@ print("Checkout Link generated:", data.get("orderId"))`
                   </div>
 
                   <div className="flex items-start gap-4 p-2.5 hover:bg-blue-50/50 rounded-2xl transition-all duration-300 group cursor-pointer">
-                    <div className="w-10 h-10 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white group-hover:border-blue-200 transition-colors">
+                    <div className="w-10 h-10 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white group-hover:border-blue-200 transition-colors shadow-sm">
                       <span className="font-extrabold text-base text-blue-650">🔗</span>
                     </div>
                     <div>
@@ -239,7 +204,7 @@ print("Checkout Link generated:", data.get("orderId"))`
                   </div>
 
                   <div className="flex items-start gap-4 p-2.5 hover:bg-blue-50/50 rounded-2xl transition-all duration-300 group cursor-pointer">
-                    <div className="w-10 h-10 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white group-hover:border-blue-200 transition-colors">
+                    <div className="w-10 h-10 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white group-hover:border-blue-200 transition-colors shadow-sm">
                       <span className="font-extrabold text-base text-blue-650">📄</span>
                     </div>
                     <div>
@@ -251,7 +216,7 @@ print("Checkout Link generated:", data.get("orderId"))`
                   </div>
 
                   <div className="flex items-start gap-4 p-2.5 hover:bg-blue-50/50 rounded-2xl transition-all duration-300 group cursor-pointer">
-                    <div className="w-10 h-10 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white group-hover:border-blue-200 transition-colors">
+                    <div className="w-10 h-10 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white group-hover:border-blue-200 transition-colors shadow-sm">
                       <span className="font-extrabold text-base text-blue-650">📱</span>
                     </div>
                     <div>
@@ -261,59 +226,56 @@ print("Checkout Link generated:", data.get("orderId"))`
                       <p className="text-[12px] text-slate-500 font-medium leading-relaxed mt-0.5">Clean visual scan widgets built with react-qr.</p>
                     </div>
                   </div>
-
                 </div>
               </div>
 
-              {/* Column 2: Developer integrations (4 cols) */}
+              {/* Column 2: Easy Integration options (4 cols) */}
               <div className="md:col-span-4 space-y-5">
-                <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2.5 select-none">DEVELOPER INTEGRATIONS</h4>
+                <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2.5 select-none">EASY INTEGRATION OPTIONS</h4>
                 
                 <div className="space-y-1">
-                  
                   <div 
                     onClick={() => {
                       setShowPaymentsMenu(false);
-                      document.getElementById('developer-section')?.scrollIntoView({ behavior: 'smooth' });
+                      document.getElementById('products-section')?.scrollIntoView({ behavior: 'smooth' });
                     }}
                     className="flex items-start gap-4 p-2.5 hover:bg-blue-50/50 rounded-2xl transition-all duration-300 group cursor-pointer"
                   >
-                    <div className="w-10 h-10 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white group-hover:border-blue-200 transition-colors">
-                      <Code className="w-5 h-5 text-blue-655" />
+                    <div className="w-10 h-10 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white group-hover:border-blue-200 transition-colors shadow-sm">
+                      <Zap className="w-5 h-5 text-blue-600" />
                     </div>
                     <div>
                       <h5 className="text-[14.5px] font-extrabold text-slate-900 flex items-center gap-1.5 group-hover:text-blue-700 transition-colors">
-                        REST API Orders
+                        Instant Payment Links
                       </h5>
-                      <p className="text-[12px] text-slate-500 font-medium leading-relaxed mt-0.5">Create checkouts and query database orders.</p>
+                      <p className="text-[12px] text-slate-500 font-medium leading-relaxed mt-0.5">Generate ready-to-share dynamic invoice URLs.</p>
                     </div>
                   </div>
 
                   <div className="flex items-start gap-4 p-2.5 hover:bg-blue-50/50 rounded-2xl transition-all duration-300 group cursor-pointer">
-                    <div className="w-10 h-10 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white group-hover:border-blue-200 transition-colors">
+                    <div className="w-10 h-10 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white group-hover:border-blue-200 transition-colors shadow-sm">
                       <span className="font-extrabold text-base text-blue-650">⚡</span>
                     </div>
                     <div>
                       <h5 className="text-[14.5px] font-extrabold text-slate-900 flex items-center gap-2 group-hover:text-blue-700 transition-colors">
-                        Mobile SDKs
+                        UPI QR & App Scan
                         <span className="bg-blue-50 text-blue-700 text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider">NEW</span>
                       </h5>
-                      <p className="text-[12px] text-slate-500 font-medium leading-relaxed mt-0.5">Flutter & React Native native intent schemas.</p>
+                      <p className="text-[12px] text-slate-500 font-medium leading-relaxed mt-0.5">Native scanning for GPay, PhonePe, and Paytm.</p>
                     </div>
                   </div>
 
                   <div className="flex items-start gap-4 p-2.5 hover:bg-blue-50/50 rounded-2xl transition-all duration-300 group cursor-pointer">
-                    <div className="w-10 h-10 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white group-hover:border-blue-200 transition-colors">
+                    <div className="w-10 h-10 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white group-hover:border-blue-200 transition-colors shadow-sm">
                       <span className="font-extrabold text-base text-blue-655">🔔</span>
                     </div>
                     <div>
                       <h5 className="text-[14.5px] font-extrabold text-slate-900 flex items-center gap-1.5 group-hover:text-blue-700 transition-colors">
-                        Signed Webhooks
+                        Automated Bank Match
                       </h5>
-                      <p className="text-[12px] text-slate-500 font-medium leading-relaxed mt-0.5">Secure, cryptographically verified HMAC handshakes.</p>
+                      <p className="text-[12px] text-slate-500 font-medium leading-relaxed mt-0.5">Instant bank deposit notifications and auto-match.</p>
                     </div>
                   </div>
-
                 </div>
               </div>
 
@@ -322,13 +284,13 @@ print("Checkout Link generated:", data.get("orderId"))`
                 <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2.5 select-none">PLATFORM STATS</h4>
                 
                 <div className="space-y-4 select-none">
-                  <div className="p-5 bg-slate-50 border border-slate-200 rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.01)] space-y-1.5">
+                  <div className="p-5 bg-slate-50 border border-slate-200 rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02),0_8px_20px_rgba(0,0,0,0.03)] space-y-1.5">
                     <span className="text-[9.5px] font-black text-blue-600 uppercase tracking-wider block">P2P SETTLEMENTS</span>
                     <p className="text-lg font-black text-slate-900 leading-none">0 SECONDS</p>
                     <p className="text-[11.5px] text-slate-500 font-medium leading-relaxed">Direct-to-bank. No escrows or lockup margins.</p>
                   </div>
 
-                  <div className="p-5 bg-emerald-50/40 border border-emerald-250/50 rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.01)] space-y-1.5">
+                  <div className="p-5 bg-emerald-50/40 border border-emerald-250/50 rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02),0_8px_20px_rgba(0,0,0,0.03)] space-y-1.5">
                     <span className="text-[9.5px] font-black text-emerald-650 uppercase tracking-wider block">REVENUE CUTS</span>
                     <p className="text-lg font-black text-emerald-650 leading-none">0% FLAT RATE</p>
                     <p className="text-[11.5px] text-slate-500 font-medium leading-relaxed">Retain 100% of earnings on your volumes.</p>
@@ -351,13 +313,13 @@ print("Checkout Link generated:", data.get("orderId"))`
           <div className="hidden sm:flex items-center gap-4">
             <Link 
               href="/login" 
-              className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-700 hover:text-slate-900 hover:bg-slate-100/60 border border-slate-200 transition-all"
+              className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-700 hover:text-slate-900 hover:bg-slate-100/60 border border-slate-200 transition-all shadow-[0_2px_6px_rgba(0,0,0,0.02)]"
             >
               Login
             </Link>
             <Link 
               href="/login"
-              className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold flex items-center gap-1.5 transition-all shadow-md shadow-blue-500/10 hover:shadow-blue-500/20 active:scale-98"
+              className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold flex items-center gap-1.5 transition-all shadow-[0_4px_14px_rgba(37,99,235,0.25),0_8px_24px_rgba(37,99,235,0.15)] active:scale-98"
             >
               Sign Up Now <ArrowRight className="w-4 h-4" />
             </Link>
@@ -366,7 +328,7 @@ print("Checkout Link generated:", data.get("orderId"))`
           {/* Mobile hamburger button */}
           <button 
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="lg:hidden p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-colors"
+            className="lg:hidden p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-colors shadow-sm"
             title="Toggle Menu"
           >
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -377,31 +339,31 @@ print("Checkout Link generated:", data.get("orderId"))`
 
       {/* Mobile Drawer Navigation */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-x-0 bottom-0 top-20 z-40 bg-white/95 backdrop-blur-md flex flex-col pt-8 px-6 pb-8 animate-fadeIn border-t border-slate-100">
+        <div className="lg:hidden fixed inset-x-0 bottom-0 top-20 z-40 bg-white/98 backdrop-blur-md flex flex-col pt-8 px-6 pb-8 animate-fadeIn border-t border-slate-100 shadow-[0_12px_32px_rgba(0,0,0,0.08),0_24px_64px_rgba(0,0,0,0.12)]">
           <div className="flex flex-col space-y-4">
             <button onClick={() => {
               setActiveProductTab('accept');
               setIsMobileMenuOpen(false);
               document.getElementById('products-section')?.scrollIntoView({ behavior: 'smooth' });
-            }} className="flex items-center justify-between px-4 py-3 rounded-2xl bg-slate-50 font-bold text-slate-800 text-sm">
+            }} className="flex items-center justify-between px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 font-bold text-slate-800 text-sm shadow-[0_2px_6px_rgba(0,0,0,0.02)]">
               <span>Accept Payments</span> <ChevronRight className="w-4 h-4 text-slate-400" />
             </button>
             <button onClick={() => {
               setIsMobileMenuOpen(false);
               document.getElementById('pricing-section')?.scrollIntoView({ behavior: 'smooth' });
-            }} className="flex items-center justify-between px-4 py-3 rounded-2xl bg-slate-50 font-bold text-slate-800 text-sm">
+            }} className="flex items-center justify-between px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 font-bold text-slate-800 text-sm shadow-[0_2px_6px_rgba(0,0,0,0.02)]">
               <span>Subscription Pricing</span> <ChevronRight className="w-4 h-4 text-slate-400" />
             </button>
             <button onClick={() => {
               setIsMobileMenuOpen(false);
-              document.getElementById('developer-section')?.scrollIntoView({ behavior: 'smooth' });
-            }} className="flex items-center justify-between px-4 py-3 rounded-2xl bg-slate-50 font-bold text-slate-800 text-sm">
-              <span>Developer API</span> <ChevronRight className="w-4 h-4 text-slate-400" />
+              document.getElementById('products-section')?.scrollIntoView({ behavior: 'smooth' });
+            }} className="flex items-center justify-between px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 font-bold text-slate-800 text-sm shadow-[0_2px_6px_rgba(0,0,0,0.02)]">
+              <span>Platform Features</span> <ChevronRight className="w-4 h-4 text-slate-400" />
             </button>
-            <Link href="/terms" className="flex items-center justify-between px-4 py-3 rounded-2xl bg-slate-50 font-bold text-slate-800 text-sm">
+            <Link href="/terms" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center justify-between px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 font-bold text-slate-800 text-sm shadow-[0_2px_6px_rgba(0,0,0,0.02)]">
               <span>Terms of Service</span> <ChevronRight className="w-4 h-4 text-slate-400" />
             </Link>
-            <Link href="/privacy" className="flex items-center justify-between px-4 py-3 rounded-2xl bg-slate-50 font-bold text-slate-800 text-sm">
+            <Link href="/privacy" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center justify-between px-4 py-3 rounded-2xl bg-slate-50 border border-slate-100 font-bold text-slate-800 text-sm shadow-[0_2px_6px_rgba(0,0,0,0.02)]">
               <span>Privacy Policy</span> <ChevronRight className="w-4 h-4 text-slate-400" />
             </Link>
           </div>
@@ -412,14 +374,14 @@ print("Checkout Link generated:", data.get("orderId"))`
             <Link 
               href="/login" 
               onClick={() => setIsMobileMenuOpen(false)}
-              className="w-full py-3.5 border border-slate-200 text-center font-bold text-slate-700 hover:text-slate-900 rounded-2xl transition-all text-sm"
+              className="w-full py-3.5 border border-slate-200 text-center font-bold text-slate-700 hover:text-slate-900 rounded-2xl transition-all text-sm shadow-[0_2px_6px_rgba(0,0,0,0.02)]"
             >
               Sign In to Console
             </Link>
             <Link 
-              href="/login"
+              href="/login" 
               onClick={() => setIsMobileMenuOpen(false)}
-              className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white text-center font-bold rounded-2xl transition-all text-sm shadow-md shadow-blue-500/10"
+              className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white text-center font-bold rounded-2xl transition-all text-sm shadow-[0_4px_14px_rgba(37,99,235,0.25)]"
             >
               Create Account
             </Link>
@@ -430,7 +392,7 @@ print("Checkout Link generated:", data.get("orderId"))`
       {/* ────────────────────────────────────────────────────────
          HERO SECTION WITH PREMIUM CUSTOM GRAPHICS
          ──────────────────────────────────────────────────────── */}
-      <section className="relative pt-12 pb-24 md:pt-20 md:pb-32 overflow-hidden bg-white">
+      <section className="relative pt-12 pb-24 md:pt-20 md:pb-32 overflow-hidden bg-transparent">
         
         {/* Glow Effects (Slow Mesh Rotations) */}
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-200/25 rounded-full filter blur-[120px] pointer-events-none -z-10 animate-mesh-rotate" />
@@ -457,26 +419,6 @@ print("Checkout Link generated:", data.get("orderId"))`
 
         {/* Decorative Grid Line Background */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#1D2D44_1px,transparent_1px),linear-gradient(to_bottom,#1D2D44_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-35 -z-20" />
-
-        {/* Animated Wave Background at the Bottom of Hero */}
-        <div className="absolute bottom-0 left-0 right-0 w-full overflow-hidden leading-none pointer-events-none select-none z-0" style={{ height: '140px' }}>
-          <div className="relative w-[200%] h-full flex">
-            {/* Wave Layer 1 (Slowest - Blue) */}
-            <svg viewBox="0 0 2400 120" preserveAspectRatio="none" className="absolute bottom-0 w-full h-[120px] opacity-15 animate-wave-slow-1 text-blue-500 fill-current">
-              <path d="M0,60 C300,10 600,110 900,30 C1050,-10 1200,60 1200,60 C1500,10 1800,110 2100,30 C2250,-10 2400,60 2400,60 L2400,120 L0,120 Z" />
-            </svg>
-
-            {/* Wave Layer 2 (Medium - Violet) */}
-            <svg viewBox="0 0 2400 120" preserveAspectRatio="none" className="absolute bottom-0 w-full h-[100px] opacity-20 animate-wave-slow-2 text-indigo-500 fill-current">
-              <path d="M0,80 C300,110 600,40 900,90 C1050,110 1200,80 1200,80 C1500,110 1800,40 2100,90 C2250,110 2400,80 2400,80 L2400,120 L0,120 Z" />
-            </svg>
-
-            {/* Wave Layer 3 (Fastest - Sky Blue) */}
-            <svg viewBox="0 0 2400 120" preserveAspectRatio="none" className="absolute bottom-0 w-full h-[80px] opacity-25 animate-wave-slow-3 text-sky-400 fill-current">
-              <path d="M0,95 C300,70 600,115 900,80 C1050,60 1200,95 1200,95 C1500,70 1800,115 2100,80 C2250,60 2400,95 2400,95 L2400,120 L0,120 Z" />
-            </svg>
-          </div>
-        </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           
@@ -951,96 +893,7 @@ print("Checkout Link generated:", data.get("orderId"))`
         </div>
       </section>
 
-      {/* ────────────────────────────────────────────────────────
-         DEVELOPER PORTAL & API CODE PREVIEW SECTION
-         ──────────────────────────────────────────────────────── */}
-      <section id="developer-section" className="py-24 bg-[#0B192C] text-[#F8FAFC] relative overflow-hidden">
-        
-        {/* Neon blue ambient light spots */}
-        <div className="absolute top-1/4 right-0 w-[400px] h-[400px] bg-blue-500/10 rounded-full filter blur-[100px] pointer-events-none" />
-        <div className="absolute bottom-1/4 -left-12 w-[350px] h-[350px] bg-indigo-500/10 rounded-full filter blur-[90px] pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          
-          {/* Left Developer Details */}
-          <div className="lg:col-span-5 space-y-6">
-            <span className="text-[9px] font-extrabold uppercase text-blue-400 tracking-widest bg-blue-900/40 border border-blue-800 px-3 py-1 rounded-full">
-              Developer Portal
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-black text-white-pure tracking-tight leading-tight">
-              Create payments programmatically in under 30 seconds
-            </h2>
-            <p className="text-sm text-[#94A3B8] font-medium leading-relaxed">
-              Integrate checkout links seamlessly into your billing flow. Receive secure, signed outbound webhooks carrying SHA-256 signatures immediately upon client bank deposit match.
-            </p>
-
-            {/* Interactive demo payload fields */}
-            <div className="p-4 bg-[#0F1E36] border border-[#1D2D44] rounded-2xl space-y-3">
-              <p className="text-[10px] font-bold text-[#64748B] uppercase tracking-widest">Customize Live Code Payload</p>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-wider mb-1">Invoice Amount</label>
-                  <input 
-                    type="number"
-                    value={demoAmount}
-                    onChange={e => setDemoAmount(e.target.value)}
-                    className="w-full bg-[#07111F] border border-[#1D2D44] rounded-xl py-1.5 px-3 text-[10px] text-[#F8FAFC] focus:outline-none focus:border-blue-500"
-                    placeholder="500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[8px] font-bold text-[#94A3B8] uppercase tracking-wider mb-1">Transaction Note</label>
-                  <input 
-                    type="text"
-                    value={demoNote}
-                    onChange={e => setDemoNote(e.target.value)}
-                    className="w-full bg-[#07111F] border border-[#1D2D44] rounded-xl py-1.5 px-3 text-[10px] text-[#F8FAFC] focus:outline-none focus:border-blue-500"
-                    placeholder="Invoice_101"
-                  />
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-          {/* Right REST Code Preview block */}
-          <div className="lg:col-span-7 bg-[#0F1E36] border border-[#1D2D44] rounded-3xl overflow-hidden shadow-2xl">
-            
-            {/* Snippet Tabs */}
-            <div className="bg-[#07111F] px-6 py-4 border-b border-[#1D2D44] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-1">
-                {[
-                  { id: 'curl', label: 'cURL HTTP' },
-                  { id: 'javascript', label: 'Node.js JS' },
-                  { id: 'python', label: 'Python Req' }
-                ].map(snippetTab => (
-                  <button
-                    key={snippetTab.id}
-                    onClick={() => setActiveCodeTab(snippetTab.id)}
-                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${activeCodeTab === snippetTab.id ? 'bg-[#0F1E36] text-blue-400' : 'text-[#94A3B8] hover:text-white-pure'}`}
-                  >
-                    {snippetTab.label}
-                  </button>
-                ))}
-              </div>
-
-              <button
-                onClick={() => copyCodeSnippet(codeSnippets[activeCodeTab])}
-                className="flex items-center justify-center gap-1.5 text-[9px] font-bold bg-[#07111F] hover:bg-[#0F1E36] text-[#F8FAFC] px-3 py-1.5 border border-[#1D2D44] rounded-lg transition-all"
-              >
-                {copiedCode ? 'Copied Snippet!' : 'Copy Code'}
-              </button>
-            </div>
-
-            {/* Code Content */}
-            <pre className="p-6 text-[10px] sm:text-xs font-mono text-[#F8FAFC]/90 overflow-x-auto leading-relaxed bg-[#07111F] min-h-[220px]">
-              {codeSnippets[activeCodeTab]}
-            </pre>
-
-          </div>
-
-        </div>
-      </section>
 
       {/* ────────────────────────────────────────────────────────
          CORE TECHNICAL FEATURE GRID
@@ -1261,7 +1114,7 @@ print("Checkout Link generated:", data.get("orderId"))`
                   onClick={() => setActiveProductTab('sandbox')}
                   className="hover:text-white transition-colors"
                 >
-                  Developer Sandbox
+                  Test Sandbox
                 </Link>
               </li>
             </ul>
@@ -1275,7 +1128,7 @@ print("Checkout Link generated:", data.get("orderId"))`
                   href="#developer-section"
                   className="hover:text-white transition-colors"
                 >
-                  API Docs
+                  How It Works
                 </Link>
               </li>
               <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
