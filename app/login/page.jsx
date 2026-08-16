@@ -74,11 +74,11 @@ export default function LoginPage() {
     setMessage('');
 
     try {
-      // Initiate signup or send OTP for email
-      const { data, error: authError } = await supabase.auth.signUp({
+      // 1. Try signInWithOtp which reliably sends a 6-digit OTP email
+      const { data, error: otpError } = await supabase.auth.signInWithOtp({
         email: email.trim(),
-        password: password || 'MyMobPaySecurePass123!',
         options: {
+          shouldCreateUser: true,
           data: {
             phone: phone.trim(),
             business_name: businessName.trim(),
@@ -87,22 +87,25 @@ export default function LoginPage() {
         },
       });
 
-      if (authError) {
-        // If user already registered
-        if (authError.message?.toLowerCase().includes('already registered')) {
-          throw new Error('This email is already registered. Please sign in.');
-        }
-        // Try resend if signup was previously initialized
-        const { error: resendErr } = await supabase.auth.resend({
-          type: 'signup',
+      if (otpError) {
+        // 2. Fallback to signUp if signInWithOtp is restricted
+        const { error: signUpError } = await supabase.auth.signUp({
           email: email.trim(),
+          password: password || 'MyMobPaySecurePass123!',
+          options: {
+            data: {
+              phone: phone.trim(),
+              business_name: businessName.trim(),
+              upi_id: upiId.trim(),
+            },
+          },
         });
-        if (resendErr) throw authError;
+        if (signUpError) throw signUpError;
       }
 
       setOtpSent(true);
       setResendCooldown(60);
-      setMessage(`OTP sent! Check your inbox at ${email.trim()}`);
+      setMessage(`OTP sent! Please check your inbox (and spam folder) at ${email.trim()}`);
     } catch (err) {
       setError(err.message || 'Failed to send OTP code.');
     } finally {
@@ -125,23 +128,24 @@ export default function LoginPage() {
     try {
       let authUser = null;
       
-      const { data, error: verifyError } = await supabase.auth.verifyOtp({
+      // Try email OTP verification first
+      const { data: emailData, error: emailError } = await supabase.auth.verifyOtp({
         email: email.trim(),
         token: cleanOtp,
-        type: 'signup',
+        type: 'email',
       });
 
-      if (verifyError) {
-        // Fallback to email verification type
-        const { data: emailData, error: emailError } = await supabase.auth.verifyOtp({
+      if (emailError) {
+        // Fallback to signup OTP verification
+        const { data: signupData, error: signupError } = await supabase.auth.verifyOtp({
           email: email.trim(),
           token: cleanOtp,
-          type: 'email',
+          type: 'signup',
         });
-        if (emailError) throw verifyError;
-        authUser = emailData?.user;
+        if (signupError) throw emailError;
+        authUser = signupData?.user;
       } else {
-        authUser = data?.user;
+        authUser = emailData?.user;
       }
 
       setIsEmailVerified(true);
