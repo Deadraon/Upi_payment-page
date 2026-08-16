@@ -103,18 +103,8 @@ export default function LoginPage() {
          ──────────────────────────────────────────────────────── */}
       <div className="hidden lg:flex lg:col-span-7 bg-[#0B0F19] relative flex-col justify-between p-12 overflow-hidden border-r border-slate-800/80">
         
-        {/* Glow ambient background lights */}
-        <div className="absolute top-0 right-0 w-[450px] h-[450px] bg-blue-500/10 rounded-full filter blur-[100px] pointer-events-none animate-pulse-glow" />
-        <div className="absolute bottom-0 left-0 w-[350px] h-[350px] bg-indigo-500/10 rounded-full filter blur-[90px] pointer-events-none animate-pulse-glow" style={{ animationDelay: '2s' }} />
-
         {/* Deep Tech Grid Line Overlay */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:3.5rem_3.5rem] opacity-35 pointer-events-none" />
-
-        {/* Subtle Horizontal & Vertical Laser Scan in Left Panel */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-400/20 to-transparent animate-laser-scan-horizontal" />
-          <div className="absolute h-full w-[1px] bg-gradient-to-b from-transparent via-blue-400/20 to-transparent animate-laser-scan-vertical" />
-        </div>
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:3.5rem_3.5rem] opacity-25 pointer-events-none" />
 
         {/* Logo Wordmark header */}
         <Link href="/" className="inline-block relative z-10">
@@ -187,21 +177,34 @@ export default function LoginPage() {
                     </div>
                   </div>
 
-                  {/* QR Vector preview */}
-                  <div className="bg-white-pure border border-slate-200 rounded-xl p-2.5 shadow-sm flex flex-col items-center justify-center space-y-2 relative overflow-hidden">
+                  {/* QR Vector preview with Animated Scanning Laser */}
+                  <div className="bg-white-pure border border-slate-200 rounded-xl p-2.5 shadow-sm flex flex-col items-center justify-center space-y-2 relative overflow-hidden group">
+                    
+                    {/* Laser Scanner Beam */}
+                    <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-[#3395FF] to-transparent top-0 animate-laser" />
+
                     <svg viewBox="0 0 100 100" className="w-20 h-20 text-slate-800" fill="currentColor">
+                      {/* Corner marks */}
+                      <path d="M0,0 h24 v6 h-18 v18 h-6 z M76,0 h24 v24 h-6 v-18 h-18 z M0,76 h6 v18 h18 v6 h-24 z M76,100 h24 v-24 h-6 v18 h-18 z" fill="#00529B" opacity="0.15" />
+                      
                       <rect x="10" y="10" width="20" height="20" fill="#0F172A" rx="2" />
                       <rect x="14" y="14" width="12" height="12" fill="#FFFFFF" rx="1.5" />
                       <rect x="17" y="17" width="6" height="6" fill="#3B82F6" />
+                      
                       <rect x="70" y="10" width="20" height="20" fill="#0F172A" rx="2" />
                       <rect x="74" y="14" width="12" height="12" fill="#FFFFFF" rx="1.5" />
                       <rect x="77" y="17" width="6" height="6" fill="#3B82F6" />
+                      
                       <rect x="10" y="70" width="20" height="20" fill="#0F172A" rx="2" />
                       <rect x="14" y="74" width="12" height="12" fill="#FFFFFF" rx="1.5" />
                       <rect x="17" y="77" width="6" height="6" fill="#3B82F6" />
-                      <path d="M40,10 h6 v6 h-6 z M50,15 h8 v4 h-8 z M45,25 h10 v4 h-10 z M35,35 h8 v8 h-8 z M55,35 h12 v4 h-12 z M35,50 h12 v4 h-12 z M50,50 h6 v6 h-6 z M10,40 h8 v8 h-8 z M70,40 h8 v6 h-8 z M70,55 h12 v4 h-12 z M10,55 h6 v6 h-6 z M80,70 h10 v8 h-10 z M80,85 h8 v8 h-8 z" fill="#0F172A" />
+                      
+                      <path d="M40,10 h6 v6 h-6 z M50,15 h8 v4 h-8 z M45,25 h10 v4 h-10 z M35,35 h8 v8 h-8 z M55,35 h12 v4 h-12 z M35,50 h12 v4 h-12 z M50,50 h6 v6 h-6 z M10,40 h8 v8 h-8 z M25,45 h10 v4 h-10 z M70,40 h8 v6 h-8 z M82,45 h8 v4 h-8 z M70,55 h12 v4 h-12 z M10,55 h6 v6 h-6 z M80,70 h10 v8 h-10 z M80,85 h8 v8 h-8 z" fill="#0F172A" />
+                      
                       <rect x="40" y="40" width="20" height="20" fill="#3B82F6" rx="3" />
+                      <text x="50" y="54" fontFamily="'Orbitron', sans-serif" fontWeight="950" fontSize="13" fill="#FFFFFF" textAnchor="middle">M</text>
                     </svg>
+                    
                     <span className="text-[6px] text-slate-400 font-extrabold uppercase tracking-wider flex items-center gap-0.5">
                       <ShieldCheck className="w-2.5 h-2.5 text-emerald-500" /> Auto-Verify Active
                     </span>
