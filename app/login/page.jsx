@@ -20,6 +20,7 @@ const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = 'var(--text-prima
 
 export default function LoginPage() {
   const router = useRouter();
+  const [mode, setMode] = useState('signin'); // 'signin' or 'signup'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -27,6 +28,16 @@ export default function LoginPage() {
   const [message, setMessage] = useState('');
 
   const handleAuth = async (action) => {
+    if (!email.trim() || !password.trim()) {
+      setError('Please enter your email and password.');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters.');
+      return;
+    }
+
     setLoading(true);
     setError('');
     setMessage('');
@@ -34,8 +45,8 @@ export default function LoginPage() {
     try {
       if (action === 'signup') {
         const { data, error: authError } = await supabase.auth.signUp({
-          email,
-          password,
+          email: email.trim(),
+          password: password,
         });
 
         if (authError) throw authError;
@@ -59,13 +70,18 @@ export default function LoginPage() {
           }
         }
 
-        setMessage('Account created! Logging you in...');
-        setTimeout(() => router.push('/dashboard'), 1500);
+        if (data?.session) {
+          setMessage('Account created! Logging you in...');
+          setTimeout(() => router.push('/dashboard'), 1200);
+        } else {
+          setMessage('Account created! Please check your email to verify or sign in.');
+          setMode('signin');
+        }
 
       } else if (action === 'signin') {
         const { error: authError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
+          email: email.trim(),
+          password: password,
         });
 
         if (authError) throw authError;
@@ -244,12 +260,16 @@ export default function LoginPage() {
           </Link>
         </div>
 
-        {/* Authentication Card (Original Design with Increased Size and Clear Elevation Visibility) */}
+        {/* Authentication Card */}
         <div className="w-full max-w-[460px] bg-white border border-slate-200/90 rounded-3xl p-8 sm:p-10 shadow-[0_10px_35px_rgba(0,0,0,0.06),0_1px_4px_rgba(0,0,0,0.04)] animate-scale-up relative z-10">
           
           <div className="text-center mb-8">
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Welcome back</h1>
-            <p className="text-xs text-slate-500 font-semibold mt-1.5">Sign in or build your merchant account console</p>
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+              {mode === 'signin' ? 'Welcome back' : 'Create an account'}
+            </h1>
+            <p className="text-xs text-slate-500 font-semibold mt-1.5">
+              {mode === 'signin' ? 'Sign in to access your merchant console' : 'Start collecting instant UPI payments in minutes'}
+            </p>
           </div>
 
           {error && (
@@ -266,7 +286,7 @@ export default function LoginPage() {
             </div>
           )}
 
-          <div className="space-y-5">
+          <form onSubmit={(e) => { e.preventDefault(); handleAuth(mode); }} className="space-y-5">
             
             {/* Email field */}
             <div>
@@ -275,6 +295,7 @@ export default function LoginPage() {
                 <Mail className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
                 <input
                   type="email"
+                  required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
@@ -290,6 +311,7 @@ export default function LoginPage() {
                 <Lock className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
                 <input
                   type="password"
+                  required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
@@ -300,23 +322,27 @@ export default function LoginPage() {
 
             <div className="pt-2 flex flex-col gap-3">
               
-              {/* Sign In CTA */}
+              {/* Primary Action CTA (Sign In / Create Account) */}
               <button
-                onClick={() => handleAuth('signin')}
-                disabled={loading || !email || !password}
+                type="submit"
+                disabled={loading}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold py-3.5 px-4 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-1.5 shadow-md shadow-blue-500/15 hover:shadow-blue-500/25 active:scale-98 text-xs cursor-pointer"
               >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : 'Sign In'}
+                {loading ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : (mode === 'signin' ? 'Sign In' : 'Create Account')}
                 {!loading && <ArrowRight className="w-4 h-4 text-white" />}
               </button>
               
-              {/* Create Account trigger */}
+              {/* Mode Toggle Button */}
               <button
-                onClick={() => handleAuth('signup')}
-                disabled={loading || !email || !password}
-                className="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-500 font-bold py-3.5 px-4 rounded-xl transition-all disabled:opacity-50 text-xs cursor-pointer"
+                type="button"
+                onClick={() => {
+                  setError('');
+                  setMessage('');
+                  setMode(mode === 'signin' ? 'signup' : 'signin');
+                }}
+                className="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 font-bold py-3.5 px-4 rounded-xl transition-all text-xs cursor-pointer"
               >
-                Create Account
+                {mode === 'signin' ? 'New here? Create an account' : 'Already have an account? Sign In'}
               </button>
 
               <div className="relative my-3 flex items-center">
@@ -327,6 +353,7 @@ export default function LoginPage() {
 
               {/* Google OAuth Login */}
               <button
+                type="button"
                 onClick={handleGoogleLogin}
                 disabled={loading}
                 className="w-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-bold py-3.5 px-4 rounded-xl transition-all disabled:opacity-55 flex items-center justify-center gap-2.5 shadow-sm text-xs cursor-pointer"
@@ -343,7 +370,7 @@ export default function LoginPage() {
               </button>
             </div>
 
-          </div>
+          </form>
 
         </div>
 
