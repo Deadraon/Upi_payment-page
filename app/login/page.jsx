@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Loader2, Lock, Mail, ArrowRight, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
+import InteractiveBackground from '@/components/InteractiveBackground';
 
 const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = 'var(--text-primary)' }) => (
   <svg viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
@@ -96,12 +97,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-slate-50 font-sans text-slate-900 overflow-hidden">
+    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-slate-50 font-sans text-slate-900 overflow-hidden relative">
+      <InteractiveBackground />
       
       {/* ────────────────────────────────────────────────────────
          LEFT PANE: DYNAMIC PRODUCT HERO SHOWCASE (Desktop only)
          ──────────────────────────────────────────────────────── */}
-      <div className="hidden lg:flex lg:col-span-7 bg-[#0B0F19] relative flex-col justify-between p-12 overflow-hidden border-r border-slate-800/80">
+      <div className="hidden lg:flex lg:col-span-7 bg-[#0B0F19] relative z-10 flex-col justify-between p-12 overflow-hidden border-r border-slate-800/80">
         
         {/* Deep Tech Grid Line Overlay */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:3.5rem_3.5rem] opacity-25 pointer-events-none" />
@@ -233,36 +235,8 @@ export default function LoginPage() {
       {/* ────────────────────────────────────────────────────────
          RIGHT PANE: BRAND MATCHED AUTHENTICATION CONSOLE
          ──────────────────────────────────────────────────────── */}
-      <div className="col-span-1 lg:col-span-5 bg-slate-50 flex flex-col justify-center items-center px-6 py-12 lg:p-16 relative overflow-hidden">
+      <div className="col-span-1 lg:col-span-5 bg-slate-50/50 flex flex-col justify-center items-center px-6 py-12 lg:p-16 relative z-10">
         
-        {/* 1. Linear & Horizontal Tech Grid */}
-        <div 
-          className="absolute inset-0 opacity-[0.55] pointer-events-none"
-          style={{
-            backgroundImage: `
-              linear-gradient(to right, #cbd5e1 1px, transparent 1px),
-              linear-gradient(to bottom, #cbd5e1 1px, transparent 1px)
-            `,
-            backgroundSize: '48px 48px',
-          }}
-        />
-
-        {/* 2. Animated Horizontal & Vertical Laser Scan Beams */}
-        <div className="absolute inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-blue-500/40 to-transparent animate-laser-scan-horizontal pointer-events-none" />
-        <div className="absolute inset-y-0 w-[2px] bg-gradient-to-b from-transparent via-sky-500/35 to-transparent animate-laser-scan-vertical pointer-events-none" />
-
-        {/* 3. Floating Geometric Curved Tech Outlines */}
-        <div 
-          className="absolute -top-16 -right-16 w-[280px] h-[280px] rounded-[50px] border border-blue-500/20 bg-gradient-to-br from-blue-500/[0.04] to-transparent rotate-12 animate-tech-float-1 pointer-events-none" 
-        />
-        <div 
-          className="absolute -bottom-20 -left-16 w-[260px] h-[260px] rounded-[45px] border border-sky-500/20 bg-gradient-to-tr from-sky-500/[0.04] to-transparent -rotate-12 animate-tech-float-2 pointer-events-none" 
-        />
-
-        {/* 4. Ambient Soft Glowing Mesh Orbs */}
-        <div className="absolute top-1/4 right-1/4 w-[280px] h-[280px] bg-blue-500/[0.08] rounded-full filter blur-[70px] pointer-events-none animate-pulse-slow" />
-        <div className="absolute bottom-1/4 left-1/3 w-[240px] h-[240px] bg-sky-400/[0.07] rounded-full filter blur-[60px] pointer-events-none animate-pulse-slow" style={{ animationDelay: '-3s' }} />
-
         {/* Mobile Header Brand visibility logo */}
         <div className="lg:hidden mb-8 relative z-10">
           <Link href="/">
