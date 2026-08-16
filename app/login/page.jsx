@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { 
   Loader2, Lock, Mail, ArrowRight, ShieldCheck, 
   CheckCircle2, Building2, QrCode, Phone, KeyRound, 
-  RotateCcw, ArrowLeft 
+  RotateCcw, Check
 } from 'lucide-react';
 import Link from 'next/link';
 import InteractiveBackground from '@/components/InteractiveBackground';
@@ -25,15 +25,21 @@ const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = 'var(--text-prima
 export default function LoginPage() {
   const router = useRouter();
   const [mode, setMode] = useState('signin'); // 'signin' or 'signup'
-  const [isOtpStep, setIsOtpStep] = useState(false);
-  const [otp, setOtp] = useState('');
-  const [resendCooldown, setResendCooldown] = useState(0);
-
+  
+  // Registration Inputs
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [businessName, setBusinessName] = useState('');
   const [upiId, setUpiId] = useState('');
   const [phone, setPhone] = useState('');
+
+  // Inline OTP states
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpVerifying, setOtpVerifying] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -46,6 +52,108 @@ export default function LoginPage() {
     return () => clearInterval(timer);
   }, [resendCooldown]);
 
+  // Reset OTP state if email changes
+  const handleEmailChange = (newEmail) => {
+    setEmail(newEmail);
+    if (isEmailVerified) {
+      setIsEmailVerified(false);
+      setOtpSent(false);
+      setOtp('');
+    }
+  };
+
+  // Inline "Send OTP" button handler
+  const handleSendEmailOtp = async () => {
+    if (!email.trim() || !email.includes('@')) {
+      setError('Please enter a valid email address first.');
+      return;
+    }
+
+    setOtpSending(true);
+    setError('');
+    setMessage('');
+
+    try {
+      // Initiate signup or send OTP for email
+      const { data, error: authError } = await supabase.auth.signUp({
+        email: email.trim(),
+        password: password || 'MyMobPaySecurePass123!',
+        options: {
+          data: {
+            phone: phone.trim(),
+            business_name: businessName.trim(),
+            upi_id: upiId.trim(),
+          },
+        },
+      });
+
+      if (authError) {
+        // If user already registered
+        if (authError.message?.toLowerCase().includes('already registered')) {
+          throw new Error('This email is already registered. Please sign in.');
+        }
+        // Try resend if signup was previously initialized
+        const { error: resendErr } = await supabase.auth.resend({
+          type: 'signup',
+          email: email.trim(),
+        });
+        if (resendErr) throw authError;
+      }
+
+      setOtpSent(true);
+      setResendCooldown(60);
+      setMessage(`OTP sent! Check your inbox at ${email.trim()}`);
+    } catch (err) {
+      setError(err.message || 'Failed to send OTP code.');
+    } finally {
+      setOtpSending(false);
+    }
+  };
+
+  // Inline "Verify OTP" button handler
+  const handleVerifyInlineOtp = async () => {
+    const cleanOtp = otp.trim();
+    if (cleanOtp.length !== 6) {
+      setError('Please enter the full 6-digit OTP code.');
+      return;
+    }
+
+    setOtpVerifying(true);
+    setError('');
+    setMessage('');
+
+    try {
+      let authUser = null;
+      
+      const { data, error: verifyError } = await supabase.auth.verifyOtp({
+        email: email.trim(),
+        token: cleanOtp,
+        type: 'signup',
+      });
+
+      if (verifyError) {
+        // Fallback to email verification type
+        const { data: emailData, error: emailError } = await supabase.auth.verifyOtp({
+          email: email.trim(),
+          token: cleanOtp,
+          type: 'email',
+        });
+        if (emailError) throw verifyError;
+        authUser = emailData?.user;
+      } else {
+        authUser = data?.user;
+      }
+
+      setIsEmailVerified(true);
+      setMessage('Email verified successfully! ✓');
+    } catch (err) {
+      setError(err.message || 'Invalid or expired OTP code.');
+    } finally {
+      setOtpVerifying(false);
+    }
+  };
+
+  // Main Form Submit Handler
   const handleAuth = async (action) => {
     if (!email.trim() || !password.trim()) {
       setError('Please enter your email and password.');
@@ -66,6 +174,10 @@ export default function LoginPage() {
         setError('Please enter a valid 10-digit mobile phone number.');
         return;
       }
+      if (!isEmailVerified) {
+        setError('Please click Send OTP and verify your email first.');
+        return;
+      }
     }
 
     if (password.length < 6) {
@@ -79,43 +191,23 @@ export default function LoginPage() {
 
     try {
       if (action === 'signup') {
-        const { data, error: authError } = await supabase.auth.signUp({
-          email: email.trim(),
-          password: password,
-          options: {
-            data: {
-              phone: phone.trim(),
-              business_name: businessName.trim(),
-              upi_id: upiId.trim(),
-            },
-          },
-        });
+        // If password was updated after verification, update user password
+        await supabase.auth.updateUser({ password: password });
 
-        if (authError) throw authError;
-
-        if (data?.user?.identities?.length === 0) {
-          throw new Error('This email is already registered. Please sign in instead.');
-        }
-
-        // If session is immediately returned (no email confirmation needed in Supabase)
-        if (data?.session && data?.user) {
+        const activeUser = (await supabase.auth.getUser()).data?.user;
+        if (activeUser) {
           await supabase
             .from('merchants')
             .upsert({
-              id: data.user.id,
+              id: activeUser.id,
               business_name: businessName.trim() || 'My Business',
               upi_id: upiId.trim() || 'pending@upi',
               phone_number: phone.trim() || undefined,
             });
-          
-          setMessage('Account created! Logging you in...');
-          setTimeout(() => router.push('/dashboard'), 1200);
-        } else {
-          // Switch to Email OTP verification screen
-          setIsOtpStep(true);
-          setResendCooldown(60);
-          setMessage(`A 6-digit verification code has been sent to ${email.trim()}`);
         }
+
+        setMessage('Account created! Launching your merchant console...');
+        setTimeout(() => router.push('/dashboard'), 1200);
 
       } else if (action === 'signin') {
         const { error: authError } = await supabase.auth.signInWithPassword({
@@ -130,79 +222,6 @@ export default function LoginPage() {
       setError(err.message || 'An error occurred during authentication.');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async (e) => {
-    e.preventDefault();
-    const cleanOtp = otp.trim();
-    if (cleanOtp.length !== 6) {
-      setError('Please enter the 6-digit OTP code.');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-    setMessage('');
-
-    try {
-      let authUser = null;
-      
-      const { data, error: verifyError } = await supabase.auth.verifyOtp({
-        email: email.trim(),
-        token: cleanOtp,
-        type: 'signup',
-      });
-
-      if (verifyError) {
-        // Fallback check for email verification type
-        const { data: emailData, error: emailError } = await supabase.auth.verifyOtp({
-          email: email.trim(),
-          token: cleanOtp,
-          type: 'email',
-        });
-        if (emailError) throw verifyError;
-        authUser = emailData?.user;
-      } else {
-        authUser = data?.user;
-      }
-
-      // Upsert merchant record
-      const activeUser = authUser || (await supabase.auth.getUser()).data?.user;
-      if (activeUser) {
-        await supabase
-          .from('merchants')
-          .upsert({
-            id: activeUser.id,
-            business_name: businessName.trim() || 'My Business',
-            upi_id: upiId.trim() || 'pending@upi',
-            phone_number: phone.trim() || undefined,
-          });
-      }
-
-      setMessage('Email verified! Launching your merchant console...');
-      setTimeout(() => router.push('/dashboard'), 1200);
-    } catch (err) {
-      setError(err.message || 'Invalid or expired verification code.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleResendOtp = async () => {
-    if (resendCooldown > 0) return;
-    setError('');
-    setMessage('');
-    try {
-      const { error: resendError } = await supabase.auth.resend({
-        type: 'signup',
-        email: email.trim(),
-      });
-      if (resendError) throw resendError;
-      setResendCooldown(60);
-      setMessage(`Verification code resent to ${email.trim()}`);
-    } catch (err) {
-      setError(err.message || 'Failed to resend verification code.');
     }
   };
 
@@ -378,14 +397,10 @@ export default function LoginPage() {
           {/* Header Title */}
           <div className="text-center mb-8">
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-              {isOtpStep 
-                ? 'Verify Your Email' 
-                : (mode === 'signin' ? 'Welcome back' : 'Create an account')}
+              {mode === 'signin' ? 'Welcome back' : 'Create an account'}
             </h1>
             <p className="text-xs text-slate-500 font-semibold mt-1.5 leading-relaxed">
-              {isOtpStep 
-                ? `Enter the 6-digit verification code sent to ${email}`
-                : (mode === 'signin' ? 'Sign in to access your merchant console' : 'Start collecting instant UPI payments in minutes')}
+              {mode === 'signin' ? 'Sign in to access your merchant console' : 'Start collecting instant UPI payments in minutes'}
             </p>
           </div>
 
@@ -403,213 +418,214 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* ══════════════════════════════════════════════════════
-              STEP 2: OTP VERIFICATION VIEW
-             ══════════════════════════════════════════════════════ */}
-          {isOtpStep ? (
-            <form onSubmit={handleVerifyOtp} className="space-y-5">
+          <form onSubmit={(e) => { e.preventDefault(); handleAuth(mode); }} className="space-y-4">
+            
+            {/* Business / Brand Name (Signup only) */}
+            {mode === 'signup' && (
               <div>
-                <label className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-2 text-center">
-                  6-Digit Verification Code
-                </label>
+                <label className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-2">Business / Brand Name</label>
                 <div className="relative">
-                  <KeyRound className="absolute left-4 top-3.5 w-4.5 h-4.5 text-slate-400" />
+                  <Building2 className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
                   <input
                     type="text"
-                    inputMode="numeric"
-                    maxLength={6}
                     required
-                    autoFocus
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                    className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-center font-mono text-lg font-black tracking-[0.35em] text-slate-800 placeholder-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
-                    placeholder="123456"
+                    value={businessName}
+                    onChange={(e) => setBusinessName(e.target.value)}
+                    className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
+                    placeholder="e.g. Acme Tech Studio"
                   />
                 </div>
               </div>
+            )}
 
-              <div className="space-y-3 pt-2">
-                <button
-                  type="submit"
-                  disabled={loading || otp.length !== 6}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold py-3.5 px-4 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-1.5 shadow-md shadow-blue-500/15 hover:shadow-blue-500/25 active:scale-98 text-xs cursor-pointer"
-                >
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : 'Verify OTP & Launch Console'}
-                  {!loading && <ArrowRight className="w-4 h-4 text-white" />}
-                </button>
-
-                <div className="flex items-center justify-between text-xs pt-2">
-                  <button
-                    type="button"
-                    onClick={handleResendOtp}
-                    disabled={resendCooldown > 0}
-                    className="text-blue-600 hover:text-blue-700 font-bold disabled:text-slate-400 transition-colors flex items-center gap-1"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    {resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : 'Resend OTP Code'}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => { setIsOtpStep(false); setError(''); setMessage(''); }}
-                    className="text-slate-500 hover:text-slate-800 font-semibold transition-colors flex items-center gap-1"
-                  >
-                    <ArrowLeft className="w-3.5 h-3.5" /> Edit Info
-                  </button>
+            {/* Receiving UPI ID (Signup only) */}
+            {mode === 'signup' && (
+              <div>
+                <label className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-2">Receiving UPI ID (VPA)</label>
+                <div className="relative">
+                  <QrCode className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
+                  <input
+                    type="text"
+                    required
+                    value={upiId}
+                    onChange={(e) => setUpiId(e.target.value)}
+                    className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
+                    placeholder="e.g. merchant@okhdfcbank"
+                  />
                 </div>
               </div>
-            </form>
-          ) : (
-            /* ══════════════════════════════════════════════════════
-                STEP 1: CREDENTIALS & ONBOARDING FORM
-               ══════════════════════════════════════════════════════ */
-            <form onSubmit={(e) => { e.preventDefault(); handleAuth(mode); }} className="space-y-4">
-              
-              {/* Business / Brand Name (Signup only) */}
-              {mode === 'signup' && (
-                <div>
-                  <label className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-2">Business / Brand Name</label>
-                  <div className="relative">
-                    <Building2 className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
-                    <input
-                      type="text"
-                      required
-                      value={businessName}
-                      onChange={(e) => setBusinessName(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
-                      placeholder="e.g. Acme Tech Studio"
-                    />
-                  </div>
-                </div>
-              )}
+            )}
 
-              {/* Receiving UPI ID (Signup only) */}
-              {mode === 'signup' && (
-                <div>
-                  <label className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-2">Receiving UPI ID (VPA)</label>
-                  <div className="relative">
-                    <QrCode className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
-                    <input
-                      type="text"
-                      required
-                      value={upiId}
-                      onChange={(e) => setUpiId(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
-                      placeholder="e.g. merchant@okhdfcbank"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Phone Number (Signup only) */}
-              {mode === 'signup' && (
-                <div>
-                  <label className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-2">Phone Number</label>
-                  <div className="relative">
-                    <Phone className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
-                    <input
-                      type="tel"
-                      required
-                      maxLength={10}
-                      inputMode="numeric"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                      className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
-                      placeholder="10-digit mobile number"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Email field */}
+            {/* Phone Number (Signup only) */}
+            {mode === 'signup' && (
               <div>
-                <label className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-2">
+                <label className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-2">Phone Number</label>
+                <div className="relative">
+                  <Phone className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
+                  <input
+                    type="tel"
+                    required
+                    maxLength={10}
+                    inputMode="numeric"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                    className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
+                    placeholder="10-digit mobile number"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Email field with Inline Send OTP Button */}
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <label className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">
                   {mode === 'signup' ? 'Work Email Address' : 'Email Address'}
                 </label>
-                <div className="relative">
-                  <Mail className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
-                    placeholder="email@example.com"
-                  />
-                </div>
+                {mode === 'signup' && isEmailVerified && (
+                  <span className="text-emerald-600 text-[10px] font-extrabold flex items-center gap-1">
+                    <Check className="w-3 h-3 text-emerald-600 stroke-[3]" /> Verified
+                  </span>
+                )}
+              </div>
+              
+              <div className="relative flex items-center">
+                <Mail className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => handleEmailChange(e.target.value)}
+                  className={`w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 ${mode === 'signup' ? 'pr-24' : 'pr-4'} text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm`}
+                  placeholder="email@example.com"
+                />
+
+                {/* Send OTP button next to / inside Email column */}
+                {mode === 'signup' && !isEmailVerified && (
+                  <button
+                    type="button"
+                    onClick={handleSendEmailOtp}
+                    disabled={otpSending || resendCooldown > 0 || !email.includes('@')}
+                    className="absolute right-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-extrabold text-[10px] rounded-lg transition-all shadow-xs cursor-pointer flex items-center gap-1 select-none"
+                  >
+                    {otpSending ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : resendCooldown > 0 ? (
+                      `${resendCooldown}s`
+                    ) : otpSent ? (
+                      'Resend'
+                    ) : (
+                      'Send OTP'
+                    )}
+                  </button>
+                )}
               </div>
 
-              {/* Password field */}
-              <div>
-                <label className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-2">
-                  {mode === 'signup' ? 'Create Password (min 6 chars)' : 'Password'}
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
-                  <input
-                    type="password"
-                    required
-                    minLength={6}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
-                    placeholder="••••••••"
-                  />
+              {/* Inline OTP input box appearing directly under Email section */}
+              {mode === 'signup' && otpSent && !isEmailVerified && (
+                <div className="mt-2.5 p-3.5 bg-blue-50/60 border border-blue-200/80 rounded-2xl space-y-2 animate-scale-up">
+                  <div className="flex justify-between items-center text-[10px] font-bold text-slate-700">
+                    <span className="flex items-center gap-1.5">
+                      <KeyRound className="w-3.5 h-3.5 text-blue-600" /> Enter 6-digit Email OTP
+                    </span>
+                    {resendCooldown > 0 && (
+                      <span className="text-blue-600 font-mono text-[9px] font-extrabold">Resend in {resendCooldown}s</span>
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      maxLength={6}
+                      inputMode="numeric"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                      placeholder="123456"
+                      className="flex-1 bg-white border border-slate-300 rounded-xl py-2 px-3 text-xs font-mono font-black tracking-widest text-slate-800 placeholder-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 shadow-xs"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleVerifyInlineOtp}
+                      disabled={otpVerifying || otp.length !== 6}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold text-xs rounded-xl transition-all shadow-xs flex items-center gap-1 cursor-pointer shrink-0"
+                    >
+                      {otpVerifying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Verify'}
+                    </button>
+                  </div>
                 </div>
+              )}
+            </div>
+
+            {/* Password field */}
+            <div>
+              <label className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-2">
+                {mode === 'signup' ? 'Create Password (min 6 chars)' : 'Password'}
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
+                <input
+                  type="password"
+                  required
+                  minLength={6}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
+                  placeholder="••••••••"
+                />
+              </div>
+            </div>
+
+            <div className="pt-2 flex flex-col gap-3">
+              
+              {/* Primary Action CTA (Sign In / Create Account) */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold py-3.5 px-4 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-1.5 shadow-md shadow-blue-500/15 hover:shadow-blue-500/25 active:scale-98 text-xs cursor-pointer"
+              >
+                {loading ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : (mode === 'signin' ? 'Sign In' : 'Create Account')}
+                {!loading && <ArrowRight className="w-4 h-4 text-white" />}
+              </button>
+              
+              {/* Mode Toggle Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setError('');
+                  setMessage('');
+                  setMode(mode === 'signin' ? 'signup' : 'signin');
+                }}
+                className="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 font-bold py-3.5 px-4 rounded-xl transition-all text-xs cursor-pointer"
+              >
+                {mode === 'signin' ? 'New here? Create an account' : 'Already have an account? Sign In'}
+              </button>
+
+              <div className="relative my-3 flex items-center">
+                <div className="flex-grow border-t border-slate-200"></div>
+                <span className="flex-shrink mx-4 text-slate-400 text-[8px] font-extrabold uppercase tracking-widest">or continue with</span>
+                <div className="flex-grow border-t border-slate-200"></div>
               </div>
 
-              <div className="pt-2 flex flex-col gap-3">
-                
-                {/* Primary Action CTA (Sign In / Create Account) */}
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold py-3.5 px-4 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-1.5 shadow-md shadow-blue-500/15 hover:shadow-blue-500/25 active:scale-98 text-xs cursor-pointer"
-                >
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : (mode === 'signin' ? 'Sign In' : 'Create Account & Send OTP')}
-                  {!loading && <ArrowRight className="w-4 h-4 text-white" />}
-                </button>
-                
-                {/* Mode Toggle Button */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setError('');
-                    setMessage('');
-                    setMode(mode === 'signin' ? 'signup' : 'signin');
-                  }}
-                  className="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 font-bold py-3.5 px-4 rounded-xl transition-all text-xs cursor-pointer"
-                >
-                  {mode === 'signin' ? 'New here? Create an account' : 'Already have an account? Sign In'}
-                </button>
+              {/* Google OAuth Login */}
+              <button
+                type="button"
+                onClick={handleGoogleLogin}
+                disabled={loading}
+                className="w-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-bold py-3.5 px-4 rounded-xl transition-all disabled:opacity-55 flex items-center justify-center gap-2.5 shadow-sm text-xs cursor-pointer"
+              >
+                <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+                  <g transform="matrix(1, 0, 0, 1, 0, 0)">
+                    <path d="M21.35,11.1H12v2.7h5.38c-0.24,1.28 -0.96,2.37 -2.05,3.1v2.57h3.32c1.94,-1.78 3.05,-4.4 3.05,-7.47c0,-0.3 -0.03,-0.6 -0.08,-0.9Z" fill="#4285F4" />
+                    <path d="M12,20.7c2.35,0 4.32,-0.78 5.76,-2.13l-3.32,-2.57c-0.92,0.62 -2.1,0.98 -3.44,0.98c-2.28,0 -4.21,-1.54 -4.9,-3.61H2.68v2.66c1.47,2.92 4.5,4.67 7.92,4.67Z" fill="#34A853" />
+                    <path d="M7.1,13.38c-0.18,-0.52 -0.28,-1.09 -0.28,-1.68c0,-0.59 0.1,-1.16 0.28,-1.68V7.36H2.68C2.06,8.6 1.7,10.01 1.7,11.7c0,1.69 0.36,3.1 0.98,4.34l3.74,-2.91c-0.18,-0.52 -0.18,-0.75 -0.32,-1.75Z" fill="#FBBC05" />
+                    <path d="M12,5.68c1.28,0 2.43,0.44 3.34,1.3l2.5,-2.5C16.31,3.07 14.34,2.7 12,2.7c-3.42,0 -6.45,1.75 -7.92,4.67l4.4,3.38C9.17,7.22 10.1,5.68 12,5.68Z" fill="#EA4335" />
+                  </g>
+                </svg>
+                <span>Sign in with Google</span>
+              </button>
+            </div>
 
-                <div className="relative my-3 flex items-center">
-                  <div className="flex-grow border-t border-slate-200"></div>
-                  <span className="flex-shrink mx-4 text-slate-400 text-[8px] font-extrabold uppercase tracking-widest">or continue with</span>
-                  <div className="flex-grow border-t border-slate-200"></div>
-                </div>
-
-                {/* Google OAuth Login */}
-                <button
-                  type="button"
-                  onClick={handleGoogleLogin}
-                  disabled={loading}
-                  className="w-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-bold py-3.5 px-4 rounded-xl transition-all disabled:opacity-55 flex items-center justify-center gap-2.5 shadow-sm text-xs cursor-pointer"
-                >
-                  <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
-                    <g transform="matrix(1, 0, 0, 1, 0, 0)">
-                      <path d="M21.35,11.1H12v2.7h5.38c-0.24,1.28 -0.96,2.37 -2.05,3.1v2.57h3.32c1.94,-1.78 3.05,-4.4 3.05,-7.47c0,-0.3 -0.03,-0.6 -0.08,-0.9Z" fill="#4285F4" />
-                      <path d="M12,20.7c2.35,0 4.32,-0.78 5.76,-2.13l-3.32,-2.57c-0.92,0.62 -2.1,0.98 -3.44,0.98c-2.28,0 -4.21,-1.54 -4.9,-3.61H2.68v2.66c1.47,2.92 4.5,4.67 7.92,4.67Z" fill="#34A853" />
-                      <path d="M7.1,13.38c-0.18,-0.52 -0.28,-1.09 -0.28,-1.68c0,-0.59 0.1,-1.16 0.28,-1.68V7.36H2.68C2.06,8.6 1.7,10.01 1.7,11.7c0,1.69 0.36,3.1 0.98,4.34l3.74,-2.91c-0.18,-0.52 -0.18,-0.75 -0.32,-1.75Z" fill="#FBBC05" />
-                      <path d="M12,5.68c1.28,0 2.43,0.44 3.34,1.3l2.5,-2.5C16.31,3.07 14.34,2.7 12,2.7c-3.42,0 -6.45,1.75 -7.92,4.67l4.4,3.38C9.17,7.22 10.1,5.68 12,5.68Z" fill="#EA4335" />
-                    </g>
-                  </svg>
-                  <span>Sign in with Google</span>
-                </button>
-              </div>
-
-            </form>
-          )}
+          </form>
 
         </div>
 
