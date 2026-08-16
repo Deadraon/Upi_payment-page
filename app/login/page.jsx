@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Loader2, Lock, Mail, ArrowRight, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
-import InteractiveBackground from '@/components/InteractiveBackground';
 
 const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = 'var(--text-primary)' }) => (
   <svg viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
@@ -97,20 +96,25 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-slate-50 relative font-sans text-slate-900 overflow-hidden">
-      <InteractiveBackground />
+    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-slate-50 font-sans text-slate-900 overflow-hidden">
       
       {/* ────────────────────────────────────────────────────────
          LEFT PANE: DYNAMIC PRODUCT HERO SHOWCASE (Desktop only)
          ──────────────────────────────────────────────────────── */}
-      <div className="hidden lg:flex lg:col-span-7 bg-[#0B0F19]/92 backdrop-blur-xl relative flex-col justify-between p-12 overflow-hidden border-r border-[#1D2D44]/70 z-10">
+      <div className="hidden lg:flex lg:col-span-7 bg-[#0B0F19] relative flex-col justify-between p-12 overflow-hidden border-r border-slate-800/80">
         
         {/* Glow ambient background lights */}
-        <div className="absolute top-0 right-0 w-[450px] h-[450px] bg-blue-500/10 rounded-full filter blur-[100px] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[350px] h-[350px] bg-indigo-500/10 rounded-full filter blur-[90px] pointer-events-none" />
+        <div className="absolute top-0 right-0 w-[450px] h-[450px] bg-blue-500/10 rounded-full filter blur-[100px] pointer-events-none animate-pulse-glow" />
+        <div className="absolute bottom-0 left-0 w-[350px] h-[350px] bg-indigo-500/10 rounded-full filter blur-[90px] pointer-events-none animate-pulse-glow" style={{ animationDelay: '2s' }} />
 
-        {/* Decorative Grid Line Overlay */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#111827_1px,transparent_1px),linear-gradient(to_bottom,#111827_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-45 -z-10" />
+        {/* Deep Tech Grid Line Overlay */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:3.5rem_3.5rem] opacity-35 pointer-events-none" />
+
+        {/* Subtle Horizontal & Vertical Laser Scan in Left Panel */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-400/20 to-transparent animate-laser-scan-horizontal" />
+          <div className="absolute h-full w-[1px] bg-gradient-to-b from-transparent via-blue-400/20 to-transparent animate-laser-scan-vertical" />
+        </div>
 
         {/* Logo Wordmark header */}
         <Link href="/" className="inline-block relative z-10">
@@ -125,25 +129,25 @@ export default function LoginPage() {
               🟢 Direct P2P Settlements
             </div>
             
-            <h2 className="text-4xl font-black text-white-pure leading-tight tracking-tight">
+            <h2 className="text-4xl font-black text-white leading-tight tracking-tight">
               Built for founders defying all odds
             </h2>
             
-            <p className="text-sm text-slate-500 leading-relaxed font-medium">
+            <p className="text-sm text-slate-400 leading-relaxed font-medium">
               Join thousands of businesses managing billing programmatically with flat-rate subscriptions and 0% gateway cuts.
             </p>
 
-            <div className="pt-2 space-y-3 font-semibold text-xs text-slate-500">
-              <p className="flex items-center gap-2">
-                <CheckCircle2 className="w-4.5 h-4.5 text-emerald-500" />
+            <div className="pt-2 space-y-3 font-semibold text-xs text-slate-300">
+              <p className="flex items-center gap-2.5">
+                <CheckCircle2 className="w-4.5 h-4.5 text-emerald-400 shrink-0" />
                 <span>Zero transaction cuts on monthly volumes</span>
               </p>
-              <p className="flex items-center gap-2">
-                <CheckCircle2 className="w-4.5 h-4.5 text-emerald-500" />
+              <p className="flex items-center gap-2.5">
+                <CheckCircle2 className="w-4.5 h-4.5 text-emerald-400 shrink-0" />
                 <span>HMAC-SHA256 signed developer webhooks</span>
               </p>
-              <p className="flex items-center gap-2">
-                <CheckCircle2 className="w-4.5 h-4.5 text-emerald-500" />
+              <p className="flex items-center gap-2.5">
+                <CheckCircle2 className="w-4.5 h-4.5 text-emerald-400 shrink-0" />
                 <span>Risk-free sandbox simulation active</span>
               </p>
             </div>
@@ -151,7 +155,7 @@ export default function LoginPage() {
 
           {/* Interactive Bezel Frame containing payment mockup */}
           <div className="col-span-5 flex justify-end">
-            <div className="relative w-full max-w-[240px] bg-slate-900 border-4 border-slate-800 rounded-[30px] shadow-2xl overflow-hidden aspect-[9/18.5] flex flex-col scale-105">
+            <div className="relative w-full max-w-[240px] bg-slate-900 border-4 border-slate-800 rounded-[30px] shadow-2xl overflow-hidden aspect-[9/18.5] flex flex-col scale-105 transition-transform duration-500 hover:scale-[1.07]">
               
               {/* Speaker camera notch */}
               <div className="absolute top-0 inset-x-0 h-4 flex justify-center z-30">
@@ -226,17 +230,20 @@ export default function LoginPage() {
       {/* ────────────────────────────────────────────────────────
          RIGHT PANE: BRAND MATCHED AUTHENTICATION CONSOLE
          ──────────────────────────────────────────────────────── */}
-      <div className="col-span-1 lg:col-span-5 bg-transparent flex flex-col justify-center items-center px-6 py-12 lg:p-16 relative z-10">
+      <div className="col-span-1 lg:col-span-5 bg-slate-50 flex flex-col justify-center items-center px-6 py-12 lg:p-16 relative">
         
+        {/* Subtle grid on right pane */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:3rem_3rem] opacity-30 pointer-events-none" />
+
         {/* Mobile Header Brand visibility logo */}
-        <div className="lg:hidden mb-8">
+        <div className="lg:hidden mb-8 relative z-10">
           <Link href="/">
             <MyMobPayLogo className="w-40 h-auto" />
           </Link>
         </div>
 
         {/* Authentication Card matching Main Website Theme */}
-        <div className="w-full max-w-md bg-white/92 backdrop-blur-xl border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-[0_4px_20px_rgba(0,0,0,0.03),0_16px_48px_rgba(0,0,0,0.06)] animate-scale-up">
+        <div className="w-full max-w-md bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] animate-scale-up relative z-10">
           
           <div className="text-center mb-8">
             <h1 className="text-2xl font-black text-slate-900 tracking-tight">Welcome back</h1>
