@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Loader2, Lock, Mail, ArrowRight, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { Loader2, Lock, Mail, ArrowRight, ShieldCheck, CheckCircle2, Building2, QrCode } from 'lucide-react';
 import Link from 'next/link';
 import InteractiveBackground from '@/components/InteractiveBackground';
 
@@ -23,6 +23,8 @@ export default function LoginPage() {
   const [mode, setMode] = useState('signin'); // 'signin' or 'signup'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [businessName, setBusinessName] = useState('');
+  const [upiId, setUpiId] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
@@ -31,6 +33,17 @@ export default function LoginPage() {
     if (!email.trim() || !password.trim()) {
       setError('Please enter your email and password.');
       return;
+    }
+
+    if (action === 'signup') {
+      if (!businessName.trim()) {
+        setError('Please enter your Business or Brand name.');
+        return;
+      }
+      if (!upiId.trim() || !upiId.includes('@')) {
+        setError('Please enter a valid UPI ID (e.g. name@okhdfcbank or merchant@upi).');
+        return;
+      }
     }
 
     if (password.length < 6) {
@@ -55,14 +68,14 @@ export default function LoginPage() {
           throw new Error('This email is already registered. Please sign in instead.');
         }
 
-        // Create default merchant profile
+        // Create customized merchant profile with provided business name and UPI ID
         if (data?.user) {
           const { error: profileError } = await supabase
             .from('merchants')
             .insert({
               id: data.user.id,
-              business_name: 'Business',
-              upi_id: 'pending@upi',
+              business_name: businessName.trim() || 'My Business',
+              upi_id: upiId.trim() || 'pending@upi',
             });
           
           if (profileError && profileError.code !== '23505') {
@@ -286,11 +299,49 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={(e) => { e.preventDefault(); handleAuth(mode); }} className="space-y-5">
+          <form onSubmit={(e) => { e.preventDefault(); handleAuth(mode); }} className="space-y-4">
             
+            {/* Business / Brand Name (Signup only) */}
+            {mode === 'signup' && (
+              <div>
+                <label className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-2">Business / Brand Name</label>
+                <div className="relative">
+                  <Building2 className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
+                  <input
+                    type="text"
+                    required
+                    value={businessName}
+                    onChange={(e) => setBusinessName(e.target.value)}
+                    className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
+                    placeholder="e.g. Acme Tech Studio"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Receiving UPI ID (Signup only) */}
+            {mode === 'signup' && (
+              <div>
+                <label className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-2">Receiving UPI ID (VPA)</label>
+                <div className="relative">
+                  <QrCode className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
+                  <input
+                    type="text"
+                    required
+                    value={upiId}
+                    onChange={(e) => setUpiId(e.target.value)}
+                    className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
+                    placeholder="e.g. merchant@okhdfcbank"
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Email field */}
             <div>
-              <label className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-2">Email Address</label>
+              <label className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-2">
+                {mode === 'signup' ? 'Work Email Address' : 'Email Address'}
+              </label>
               <div className="relative">
                 <Mail className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
                 <input
@@ -306,12 +357,15 @@ export default function LoginPage() {
 
             {/* Password field */}
             <div>
-              <label className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-2">Password</label>
+              <label className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-2">
+                {mode === 'signup' ? 'Create Password (min 6 chars)' : 'Password'}
+              </label>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
                 <input
                   type="password"
                   required
+                  minLength={6}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
