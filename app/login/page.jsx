@@ -233,10 +233,35 @@ export default function LoginPage() {
       {/* ────────────────────────────────────────────────────────
          RIGHT PANE: BRAND MATCHED AUTHENTICATION CONSOLE
          ──────────────────────────────────────────────────────── */}
-      <div className="col-span-1 lg:col-span-5 bg-slate-50 flex flex-col justify-center items-center px-6 py-12 lg:p-16 relative">
+      <div className="col-span-1 lg:col-span-5 bg-slate-50 flex flex-col justify-center items-center px-6 py-12 lg:p-16 relative overflow-hidden">
         
-        {/* Subtle grid on right pane */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:3rem_3rem] opacity-30 pointer-events-none" />
+        {/* 1. Linear & Horizontal Tech Grid */}
+        <div 
+          className="absolute inset-0 opacity-[0.55] pointer-events-none"
+          style={{
+            backgroundImage: `
+              linear-gradient(to right, #cbd5e1 1px, transparent 1px),
+              linear-gradient(to bottom, #cbd5e1 1px, transparent 1px)
+            `,
+            backgroundSize: '48px 48px',
+          }}
+        />
+
+        {/* 2. Animated Horizontal & Vertical Laser Scan Beams */}
+        <div className="absolute inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-blue-500/40 to-transparent animate-laser-scan-horizontal pointer-events-none" />
+        <div className="absolute inset-y-0 w-[2px] bg-gradient-to-b from-transparent via-sky-500/35 to-transparent animate-laser-scan-vertical pointer-events-none" />
+
+        {/* 3. Floating Geometric Curved Tech Outlines */}
+        <div 
+          className="absolute -top-16 -right-16 w-[280px] h-[280px] rounded-[50px] border border-blue-500/20 bg-gradient-to-br from-blue-500/[0.04] to-transparent rotate-12 animate-tech-float-1 pointer-events-none" 
+        />
+        <div 
+          className="absolute -bottom-20 -left-16 w-[260px] h-[260px] rounded-[45px] border border-sky-500/20 bg-gradient-to-tr from-sky-500/[0.04] to-transparent -rotate-12 animate-tech-float-2 pointer-events-none" 
+        />
+
+        {/* 4. Ambient Soft Glowing Mesh Orbs */}
+        <div className="absolute top-1/4 right-1/4 w-[280px] h-[280px] bg-blue-500/[0.08] rounded-full filter blur-[70px] pointer-events-none animate-pulse-slow" />
+        <div className="absolute bottom-1/4 left-1/3 w-[240px] h-[240px] bg-sky-400/[0.07] rounded-full filter blur-[60px] pointer-events-none animate-pulse-slow" style={{ animationDelay: '-3s' }} />
 
         {/* Mobile Header Brand visibility logo */}
         <div className="lg:hidden mb-8 relative z-10">
