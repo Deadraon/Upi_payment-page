@@ -123,22 +123,22 @@ export default function LoginPage() {
               Built for founders defying all odds
             </h2>
             
-            <p className="text-sm text-slate-400 leading-relaxed font-medium">
+            <p className="text-sm text-slate-200 leading-relaxed font-medium">
               Join thousands of businesses managing billing programmatically with flat-rate subscriptions and 0% gateway cuts.
             </p>
 
-            <div className="pt-2 space-y-3 font-semibold text-xs text-slate-300">
+            <div className="pt-2 space-y-3.5 font-semibold text-xs text-white/95">
               <p className="flex items-center gap-2.5">
                 <CheckCircle2 className="w-4.5 h-4.5 text-emerald-400 shrink-0" />
-                <span>Zero transaction cuts on monthly volumes</span>
+                <span className="text-slate-100">Zero transaction cuts on monthly volumes</span>
               </p>
               <p className="flex items-center gap-2.5">
                 <CheckCircle2 className="w-4.5 h-4.5 text-emerald-400 shrink-0" />
-                <span>HMAC-SHA256 signed developer webhooks</span>
+                <span className="text-slate-100">HMAC-SHA256 signed developer webhooks</span>
               </p>
               <p className="flex items-center gap-2.5">
                 <CheckCircle2 className="w-4.5 h-4.5 text-emerald-400 shrink-0" />
-                <span>Risk-free sandbox simulation active</span>
+                <span className="text-slate-100">Risk-free sandbox simulation active</span>
               </p>
             </div>
           </div>
@@ -224,7 +224,7 @@ export default function LoginPage() {
         </div>
 
         {/* Footer info in left panel */}
-        <p className="text-[10px] text-slate-500 font-bold relative z-10">
+        <p className="text-[10px] text-slate-300 font-semibold relative z-10">
           © 2026 MyMobPay · Secure B2B Gateway Infrastructures
         </p>
 
