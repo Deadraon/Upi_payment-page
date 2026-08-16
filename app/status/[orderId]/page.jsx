@@ -100,20 +100,37 @@ export default function StatusPage() {
     return () => clearInterval(interval);
   }, [orderId]);
 
+  const executeRedirect = (targetCallback) => {
+    const cb = targetCallback || localStorage.getItem(`callback_${orderId}`) || order?.callback_url;
+    if (!cb) return;
+    const externalRef = localStorage.getItem(`ref_${orderId}`) || order?.external_ref;
+    try {
+      let resolvedUrl = cb.trim();
+      if (!/^https?:\/\//i.test(resolvedUrl) && !resolvedUrl.startsWith('/')) {
+        resolvedUrl = `https://${resolvedUrl}`;
+      }
+      const url = new URL(resolvedUrl, typeof window !== 'undefined' ? window.location.origin : 'https://mymob.tech');
+      url.searchParams.set('status', 'success');
+      url.searchParams.set('gateway_id', orderId);
+      url.searchParams.set('orderId', orderId);
+      if (order?.utr) url.searchParams.set('utr', order.utr);
+      if (externalRef) url.searchParams.set('ref', externalRef);
+      window.location.replace(url.toString());
+    } catch (e) {
+      console.error('Redirect URL parsing failed:', e);
+      window.location.replace(cb);
+    }
+  };
+
   useEffect(() => {
     if (!order || order.status !== 'verified' || redirecting) return;
     const callback = localStorage.getItem(`callback_${orderId}`) || order.callback_url;
-    const externalRef = localStorage.getItem(`ref_${orderId}`) || order.external_ref;
     if (callback) {
       setRedirecting(true);
-      setTimeout(() => {
-        const url = new URL(callback);
-        url.searchParams.set('status', 'success');
-        url.searchParams.set('gateway_id', orderId);
-        if (order.utr) url.searchParams.set('utr', order.utr);
-        if (externalRef) url.searchParams.set('ref', externalRef);
-        window.location.href = url.toString();
-      }, 2500);
+      const timer = setTimeout(() => {
+        executeRedirect(callback);
+      }, 1800);
+      return () => clearTimeout(timer);
     }
   }, [order, orderId, redirecting]);
 
@@ -216,24 +233,26 @@ export default function StatusPage() {
               {order.customer_name && <Row label="Customer" value={order.customer_name} />}
             </div>
             <div className="px-5 pb-6 space-y-2.5">
-              {redirecting && callback ? (
-                <div className="w-full py-3 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 font-semibold text-sm flex items-center justify-center gap-2">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Redirecting back to {order.project || 'your app'}...
-                </div>
-              ) : callback ? (
-                <button onClick={() => {
-                  const url = new URL(callback);
-                  url.searchParams.set('status', 'success');
-                  url.searchParams.set('gateway_id', orderId);
-                  if (order.utr) url.searchParams.set('utr', order.utr);
-                  window.location.href = url.toString();
-                }} className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white-pure font-bold text-sm flex items-center justify-center gap-2 transition-all">
-                  <ExternalLink className="w-4 h-4" /> Return to {order.project || 'App'}
+              {callback ? (
+                <button 
+                  onClick={() => executeRedirect(callback)} 
+                  className="w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-98 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+                >
+                  {redirecting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin text-white" />
+                      <span>Redirecting to {order.project || 'your app'}...</span>
+                    </>
+                  ) : (
+                    <>
+                      <ExternalLink className="w-4 h-4" /> 
+                      <span>Return to {order.project || 'App'}</span>
+                    </>
+                  )}
                 </button>
               ) : (
                 <button onClick={() => router.push('/pay')}
-                  className="w-full py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-sm flex items-center justify-center gap-2 transition-all">
+                  className="w-full py-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-sm flex items-center justify-center gap-2 transition-all">
                   Done · New Payment
                 </button>
               )}
@@ -280,11 +299,20 @@ export default function StatusPage() {
               </p>
               {callback ? (
                 <button onClick={() => {
-                  const url = new URL(callback);
-                  url.searchParams.set('status', 'failed');
-                  url.searchParams.set('gateway_id', orderId);
-                  window.location.href = url.toString();
-                }} className="w-full py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-sm flex items-center justify-center gap-2 transition-all">
+                  try {
+                    let resolvedUrl = callback.trim();
+                    if (!/^https?:\/\//i.test(resolvedUrl) && !resolvedUrl.startsWith('/')) {
+                      resolvedUrl = `https://${resolvedUrl}`;
+                    }
+                    const url = new URL(resolvedUrl, typeof window !== 'undefined' ? window.location.origin : 'https://mymob.tech');
+                    url.searchParams.set('status', 'failed');
+                    url.searchParams.set('gateway_id', orderId);
+                    url.searchParams.set('orderId', orderId);
+                    window.location.replace(url.toString());
+                  } catch (e) {
+                    window.location.replace(callback);
+                  }
+                }} className="w-full py-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-sm flex items-center justify-center gap-2 transition-all">
                   <ExternalLink className="w-4 h-4" /> Return to {order.project || 'App'}
                 </button>
               ) : (

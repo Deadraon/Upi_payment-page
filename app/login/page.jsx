@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Loader2, Lock, Mail, ArrowRight, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
+import InteractiveBackground from '@/components/InteractiveBackground';
 
 const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = 'var(--text-primary)' }) => (
   <svg viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
@@ -96,12 +97,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-white font-sans text-slate-900 overflow-hidden">
+    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-slate-50 relative font-sans text-slate-900 overflow-hidden">
+      <InteractiveBackground />
       
       {/* ────────────────────────────────────────────────────────
          LEFT PANE: DYNAMIC PRODUCT HERO SHOWCASE (Desktop only)
          ──────────────────────────────────────────────────────── */}
-      <div className="hidden lg:flex lg:col-span-7 bg-[#0B0F19] relative flex-col justify-between p-12 overflow-hidden border-r border-slate-900">
+      <div className="hidden lg:flex lg:col-span-7 bg-[#0B0F19]/92 backdrop-blur-xl relative flex-col justify-between p-12 overflow-hidden border-r border-[#1D2D44]/70 z-10">
         
         {/* Glow ambient background lights */}
         <div className="absolute top-0 right-0 w-[450px] h-[450px] bg-blue-500/10 rounded-full filter blur-[100px] pointer-events-none" />
@@ -224,7 +226,7 @@ export default function LoginPage() {
       {/* ────────────────────────────────────────────────────────
          RIGHT PANE: BRAND MATCHED AUTHENTICATION CONSOLE
          ──────────────────────────────────────────────────────── */}
-      <div className="col-span-1 lg:col-span-5 bg-slate-50 flex flex-col justify-center items-center px-6 py-12 lg:p-16 relative">
+      <div className="col-span-1 lg:col-span-5 bg-transparent flex flex-col justify-center items-center px-6 py-12 lg:p-16 relative z-10">
         
         {/* Mobile Header Brand visibility logo */}
         <div className="lg:hidden mb-8">
@@ -234,7 +236,7 @@ export default function LoginPage() {
         </div>
 
         {/* Authentication Card matching Main Website Theme */}
-        <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.03)] animate-scale-up">
+        <div className="w-full max-w-md bg-white/92 backdrop-blur-xl border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-[0_4px_20px_rgba(0,0,0,0.03),0_16px_48px_rgba(0,0,0,0.06)] animate-scale-up">
           
           <div className="text-center mb-8">
             <h1 className="text-2xl font-black text-slate-900 tracking-tight">Welcome back</h1>
