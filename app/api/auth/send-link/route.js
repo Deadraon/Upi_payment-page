@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { supabase, supabaseAdmin } from '@/lib/supabase';
 
 export async function POST(req) {
   try {
@@ -11,58 +11,68 @@ export async function POST(req) {
 
     const cleanEmail = email.trim().toLowerCase();
     const cleanPhone = (phone || '').toString().trim();
+    const redirectUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.mymob.tech'}/dashboard`;
 
-    // Check if user exists in auth.users
-    let existingUser = null;
-    try {
-      const { data: userListData } = await supabaseAdmin.auth.admin.listUsers();
-      existingUser = userListData?.users?.find(u => u.email?.toLowerCase() === cleanEmail);
-    } catch (e) {
-      console.warn('[SEND-LINK API] listUsers check bypassed:', e.message);
-    }
+    let actionLink = null;
+    let linkSentSuccess = false;
 
-    const linkType = existingUser ? 'magiclink' : 'signup';
+    // 1. Try admin.generateLink if service key is available
+    if (process.env.SUPABASE_SERVICE_KEY) {
+      try {
+        let result = await supabaseAdmin.auth.admin.generateLink({
+          type: 'magiclink',
+          email: cleanEmail,
+          options: {
+            redirectTo: redirectUrl,
+            data: {
+              business_name: businessName?.trim() || undefined,
+              upi_id: upiId?.trim() || undefined,
+              phone: cleanPhone || undefined,
+            }
+          }
+        });
 
-    const { data, error } = await supabaseAdmin.auth.admin.generateLink({
-      type: linkType,
-      email: cleanEmail,
-      options: {
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.mymob.tech'}/dashboard`,
-        data: {
-          business_name: businessName ? businessName.trim() : undefined,
-          upi_id: upiId ? upiId.trim() : undefined,
-          phone: cleanPhone || undefined,
+        if (result?.data?.properties?.action_link) {
+          actionLink = result.data.properties.action_link;
+          linkSentSuccess = true;
         }
+      } catch (adminErr) {
+        console.warn('[SEND-LINK API] admin.generateLink bypass:', adminErr.message);
       }
-    });
-
-    if (error) {
-      console.error('[SEND-LINK API] generateLink error:', error);
-      return NextResponse.json({ 
-        error: `Failed to send link: ${error.message || JSON.stringify(error)}`,
-        code: error.code 
-      }, { status: 400 });
     }
 
-    // If user exists, only update fields that the user explicitly provided (no default names)
-    if (existingUser && (businessName?.trim() || upiId?.trim() || cleanPhone)) {
-      const updates = { id: existingUser.id };
-      if (businessName?.trim()) updates.business_name = businessName.trim();
-      if (upiId?.trim()) updates.upi_id = upiId.trim();
-      if (cleanPhone) updates.phone_number = cleanPhone;
+    // 2. Fallback to standard Supabase signInWithOtp (dispatches magic link email directly)
+    if (!linkSentSuccess) {
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email: cleanEmail,
+        options: {
+          emailRedirectTo: redirectUrl,
+          shouldCreateUser: true,
+          data: {
+            business_name: businessName?.trim() || undefined,
+            upi_id: upiId?.trim() || undefined,
+            phone: cleanPhone || undefined,
+          }
+        }
+      });
 
-      await supabaseAdmin.from('merchants').upsert(updates, { onConflict: 'id' });
+      if (otpError) {
+        return NextResponse.json({
+          error: `Could not send verification email: ${otpError.message}`,
+          code: otpError.status || 400
+        }, { status: 400 });
+      }
     }
 
     return NextResponse.json({
       success: true,
       message: `Verification link sent to ${cleanEmail}! Please check your email inbox to log in.`,
-      actionLink: data?.properties?.action_link,
+      actionLink,
     });
 
   } catch (err) {
     console.error('[SEND-LINK API] Unexpected error:', err);
-    const detailedError = err?.message || err?.cause?.message || 'Server error while generating verification link.';
+    const detailedError = err?.message || err?.cause?.message || 'Server error while sending verification link.';
     return NextResponse.json({ 
       error: `Send Link Error: ${detailedError}`,
       cause: err?.cause?.toString() || undefined,
