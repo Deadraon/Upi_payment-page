@@ -73,24 +73,26 @@ export default function LoginPage() {
     setMessage('');
 
     try {
-      const { error: sendErr } = await supabase.auth.signInWithOtp({
-        email: email.trim(),
-        options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
-          shouldCreateUser: true,
-          data: {
-            business_name: businessName.trim() || undefined,
-            upi_id: upiId.trim() || undefined,
-            phone: phone.trim() || undefined,
-          }
-        },
+      const res = await fetch('/api/auth/send-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.trim(),
+          businessName: businessName.trim(),
+          upiId: upiId.trim(),
+          phone: phone.trim(),
+        }),
       });
 
-      if (sendErr) throw sendErr;
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        throw new Error(data.error || 'Failed to send verification link.');
+      }
 
       setLinkSent(true);
       setResendCooldown(60);
-      setMessage(`Verification link sent! Please check your email at ${email.trim()}`);
+      setMessage(data.message || `Verification link sent! Please check your email at ${email.trim()}`);
     } catch (err) {
       setError(err.message || 'Failed to send verification link. Please check your email.');
     } finally {
