@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { 
   Loader2, Lock, Mail, ArrowRight, ShieldCheck, 
   CheckCircle2, Building2, QrCode, Phone, KeyRound, 
-  RotateCcw, Check
+  Check, UserPlus, LogIn, Sparkles, AlertCircle
 } from 'lucide-react';
 import Link from 'next/link';
 import InteractiveBackground from '@/components/InteractiveBackground';
@@ -24,7 +24,7 @@ const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = 'var(--text-prima
 
 export default function LoginPage() {
   const router = useRouter();
-  const [mode, setMode] = useState('signin'); // 'signin' or 'signup'
+  const [mode, setMode] = useState('signup'); // Default to 'signup' or 'signin'
   
   // Registration Inputs
   const [email, setEmail] = useState('');
@@ -62,7 +62,7 @@ export default function LoginPage() {
     }
   };
 
-  // Inline "Send OTP" button handler
+  // Send OTP handler
   const handleSendEmailOtp = async () => {
     if (!email.trim() || !email.includes('@')) {
       setError('Please enter a valid email address first.');
@@ -74,54 +74,32 @@ export default function LoginPage() {
     setMessage('');
 
     try {
-      // 1. Trigger Supabase Signup with email confirmation
-      const { data, error: authError } = await supabase.auth.signUp({
-        email: email.trim(),
-        password: password || 'MyMobPaySecurePass123!',
-        options: {
-          data: {
-            phone: phone.trim(),
-            business_name: businessName.trim(),
-            upi_id: upiId.trim(),
-          },
-        },
+      const res = await fetch('/api/auth/otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'send', email: email.trim() }),
       });
 
-      if (authError) {
-        if (authError.message?.toLowerCase().includes('already registered')) {
-          throw new Error('This email is already registered. Please click Sign In below.');
-        }
-        // Try resend
-        const { error: resendErr } = await supabase.auth.resend({
-          type: 'signup',
-          email: email.trim(),
-        });
-        if (resendErr) throw authError;
-      } else if (data?.user?.identities?.length === 0) {
-        // User already exists in auth.users
-        const { error: resendErr } = await supabase.auth.resend({
-          type: 'signup',
-          email: email.trim(),
-        });
-        if (resendErr) {
-          throw new Error('This email is already registered. Please click Sign In below.');
-        }
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        throw new Error(data.error || 'Failed to send OTP code.');
       }
 
       setOtpSent(true);
-      setResendCooldown(60);
-      setMessage(`OTP sent! Please check your inbox (and spam folder) at ${email.trim()}`);
+      setResendCooldown(45);
+      setMessage(data.message || `OTP sent! Please check your inbox at ${email.trim()}`);
     } catch (err) {
-      setError(err.message || 'Failed to send OTP code.');
+      setError(err.message || 'Failed to send OTP code. Please try again.');
     } finally {
       setOtpSending(false);
     }
   };
 
-  // Inline "Verify OTP" button handler
+  // Verify OTP handler
   const handleVerifyInlineOtp = async () => {
     const cleanOtp = otp.trim();
-    if (cleanOtp.length !== 6) {
+    if (cleanOtp.length < 4) {
       setError('Please enter the full 6-digit OTP code.');
       return;
     }
@@ -131,26 +109,16 @@ export default function LoginPage() {
     setMessage('');
 
     try {
-      let authUser = null;
-      
-      // Try signup OTP verification first
-      const { data: signupData, error: signupError } = await supabase.auth.verifyOtp({
-        email: email.trim(),
-        token: cleanOtp,
-        type: 'signup',
+      const res = await fetch('/api/auth/otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'verify', email: email.trim(), otp: cleanOtp }),
       });
 
-      if (signupError) {
-        // Fallback to email OTP verification
-        const { data: emailData, error: emailError } = await supabase.auth.verifyOtp({
-          email: email.trim(),
-          token: cleanOtp,
-          type: 'email',
-        });
-        if (emailError) throw signupError;
-        authUser = emailData?.user;
-      } else {
-        authUser = signupData?.user;
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        throw new Error(data.error || 'Invalid or expired OTP code.');
       }
 
       setIsEmailVerified(true);
@@ -175,16 +143,12 @@ export default function LoginPage() {
         return;
       }
       if (!upiId.trim() || !upiId.includes('@')) {
-        setError('Please enter a valid UPI ID (e.g. name@okhdfcbank or merchant@upi).');
+        setError('Please enter a valid Receiving UPI ID (e.g. name@okhdfcbank or merchant@upi).');
         return;
       }
       const cleanPhone = phone.trim().replace(/\D/g, '');
       if (cleanPhone.length !== 10) {
         setError('Please enter a valid 10-digit mobile phone number.');
-        return;
-      }
-      if (!isEmailVerified) {
-        setError('Please click Send OTP and verify your email first.');
         return;
       }
     }
@@ -200,23 +164,37 @@ export default function LoginPage() {
 
     try {
       if (action === 'signup') {
-        // If password was updated after verification, update user password
-        await supabase.auth.updateUser({ password: password });
+        // Use our robust server-side registration endpoint
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: email.trim(),
+            password: password,
+            businessName: businessName.trim(),
+            upiId: upiId.trim(),
+            phone: phone.trim(),
+          }),
+        });
 
-        const activeUser = (await supabase.auth.getUser()).data?.user;
-        if (activeUser) {
-          await supabase
-            .from('merchants')
-            .upsert({
-              id: activeUser.id,
-              business_name: businessName.trim() || 'My Business',
-              upi_id: upiId.trim() || 'pending@upi',
-              phone_number: phone.trim() || undefined,
-            });
+        const data = await res.json();
+
+        if (!res.ok || data.error) {
+          throw new Error(data.error || 'Failed to create account.');
+        }
+
+        // Seamlessly sign in client session
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password: password,
+        });
+
+        if (signInError) {
+          console.warn('Auto sign-in notice:', signInError);
         }
 
         setMessage('Account created! Launching your merchant console...');
-        setTimeout(() => router.push('/dashboard'), 1200);
+        setTimeout(() => router.push('/dashboard'), 800);
 
       } else if (action === 'signin') {
         const { error: authError } = await supabase.auth.signInWithPassword({
@@ -224,8 +202,15 @@ export default function LoginPage() {
           password: password,
         });
 
-        if (authError) throw authError;
-        router.push('/dashboard');
+        if (authError) {
+          if (authError.message?.toLowerCase().includes('invalid login credentials')) {
+            throw new Error('Invalid email or password. If you are new, click "Create Account".');
+          }
+          throw authError;
+        }
+
+        setMessage('Welcome back! Launching your merchant dashboard...');
+        setTimeout(() => router.push('/dashboard'), 600);
       }
     } catch (err) {
       setError(err.message || 'An error occurred during authentication.');
@@ -253,7 +238,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-slate-50 font-sans text-slate-900 overflow-hidden relative">
+    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-slate-100 font-sans text-slate-900 overflow-hidden relative">
       <InteractiveBackground />
       
       {/* ────────────────────────────────────────────────────────
@@ -266,37 +251,37 @@ export default function LoginPage() {
 
         {/* Logo Wordmark header */}
         <Link href="/" className="inline-block relative z-10">
-          <MyMobPayLogo className="w-40 h-auto" textColor="#FFFFFF" />
+          <MyMobPayLogo className="w-44 h-auto" textColor="#FFFFFF" />
         </Link>
 
         {/* Core Value Copy and Vector Terminal Simulator alignment */}
         <div className="grid grid-cols-12 gap-8 items-center relative z-10 my-auto">
           
           <div className="col-span-7 space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-900/40 border border-blue-800 rounded-full text-[10px] font-extrabold text-blue-400 uppercase tracking-wider">
-              🟢 Direct P2P Settlements
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-blue-900/60 border border-blue-700/80 rounded-full text-xs font-extrabold text-blue-300 uppercase tracking-wider shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Direct P2P Settlements
             </div>
             
-            <h2 className="text-4xl font-black text-white leading-tight tracking-tight">
+            <h2 className="text-4xl font-black text-white leading-tight tracking-tight drop-shadow-sm">
               Built for founders defying all odds
             </h2>
             
-            <p className="text-sm text-slate-200 leading-relaxed font-medium">
+            <p className="text-sm text-slate-300 leading-relaxed font-medium">
               Join thousands of businesses managing billing programmatically with flat-rate subscriptions and 0% gateway cuts.
             </p>
 
-            <div className="pt-2 space-y-3.5 font-semibold text-xs text-white/95">
+            <div className="pt-2 space-y-3.5 font-semibold text-xs text-white">
               <p className="flex items-center gap-2.5">
-                <CheckCircle2 className="w-4.5 h-4.5 text-emerald-400 shrink-0" />
-                <span className="text-slate-100">Zero transaction cuts on monthly volumes</span>
+                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                <span className="text-slate-100 text-sm font-medium">Zero transaction cuts on monthly volumes</span>
               </p>
               <p className="flex items-center gap-2.5">
-                <CheckCircle2 className="w-4.5 h-4.5 text-emerald-400 shrink-0" />
-                <span className="text-slate-100">HMAC-SHA256 signed developer webhooks</span>
+                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                <span className="text-slate-100 text-sm font-medium">HMAC-SHA256 signed developer webhooks</span>
               </p>
               <p className="flex items-center gap-2.5">
-                <CheckCircle2 className="w-4.5 h-4.5 text-emerald-400 shrink-0" />
-                <span className="text-slate-100">Risk-free sandbox simulation active</span>
+                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                <span className="text-slate-100 text-sm font-medium">Risk-free sandbox simulation active</span>
               </p>
             </div>
           </div>
@@ -336,7 +321,7 @@ export default function LoginPage() {
                   </div>
 
                   {/* QR Vector preview with Animated Scanning Laser */}
-                  <div className="bg-white-pure border border-slate-200 rounded-xl p-2.5 shadow-sm flex flex-col items-center justify-center space-y-2 relative overflow-hidden group">
+                  <div className="bg-white border border-slate-200 rounded-xl p-2.5 shadow-sm flex flex-col items-center justify-center space-y-2 relative overflow-hidden group">
                     
                     {/* Laser Scanner Beam */}
                     <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-[#3395FF] to-transparent top-0 animate-laser" />
@@ -363,14 +348,14 @@ export default function LoginPage() {
                       <text x="50" y="54" fontFamily="'Orbitron', sans-serif" fontWeight="950" fontSize="13" fill="#FFFFFF" textAnchor="middle">M</text>
                     </svg>
                     
-                    <span className="text-[6px] text-slate-400 font-extrabold uppercase tracking-wider flex items-center gap-0.5">
+                    <span className="text-[6px] text-slate-500 font-extrabold uppercase tracking-wider flex items-center gap-0.5">
                       <ShieldCheck className="w-2.5 h-2.5 text-emerald-500" /> Auto-Verify Active
                     </span>
                   </div>
 
                 </div>
 
-                <div className="space-y-2 pt-2.5 border-t border-slate-200 text-center text-[6px] font-bold text-slate-400 uppercase tracking-wide">
+                <div className="space-y-2 pt-2.5 border-t border-slate-700/50 text-center text-[6px] font-bold text-slate-400 uppercase tracking-wide">
                   Secure checkout by MyMobPay
                 </div>
 
@@ -382,7 +367,7 @@ export default function LoginPage() {
         </div>
 
         {/* Footer info in left panel */}
-        <p className="text-[10px] text-slate-300 font-semibold relative z-10">
+        <p className="text-xs text-slate-400 font-semibold relative z-10">
           © 2026 MyMobPay · Secure B2B Gateway Infrastructures
         </p>
 
@@ -391,38 +376,77 @@ export default function LoginPage() {
       {/* ────────────────────────────────────────────────────────
          RIGHT PANE: BRAND MATCHED AUTHENTICATION CONSOLE
          ──────────────────────────────────────────────────────── */}
-      <div className="col-span-1 lg:col-span-5 bg-slate-50/50 flex flex-col justify-center items-center px-6 py-12 lg:p-16 relative z-10">
+      <div className="col-span-1 lg:col-span-5 bg-gradient-to-b from-slate-100 to-slate-200/80 flex flex-col justify-center items-center px-4 sm:px-8 py-10 lg:p-12 relative z-10 overflow-y-auto">
         
         {/* Mobile Header Brand visibility logo */}
-        <div className="lg:hidden mb-8 relative z-10">
+        <div className="lg:hidden mb-6 relative z-10">
           <Link href="/">
             <MyMobPayLogo className="w-40 h-auto" />
           </Link>
         </div>
 
         {/* Authentication Card */}
-        <div className="w-full max-w-[460px] bg-white border border-slate-200/90 rounded-3xl p-8 sm:p-10 shadow-[0_10px_35px_rgba(0,0,0,0.06),0_1px_4px_rgba(0,0,0,0.04)] animate-scale-up relative z-10">
+        <div className="w-full max-w-[480px] bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-9 shadow-[0_12px_40px_rgba(0,0,0,0.08),0_2px_6px_rgba(0,0,0,0.04)] animate-scale-up relative z-10">
           
+          {/* HIGH VISIBILITY DUAL-TAB SELECTOR AT TOP */}
+          <div className="bg-slate-100 p-1.5 rounded-2xl border border-slate-200 flex gap-1.5 mb-6">
+            <button
+              type="button"
+              onClick={() => {
+                setError('');
+                setMessage('');
+                setMode('signin');
+              }}
+              className={`flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-extrabold transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer ${
+                mode === 'signin'
+                  ? 'bg-white text-blue-600 shadow-md border border-slate-200/80'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+              }`}
+            >
+              <LogIn className={`w-4 h-4 ${mode === 'signin' ? 'text-blue-600' : 'text-slate-500'}`} />
+              <span>Sign In</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setError('');
+                setMessage('');
+                setMode('signup');
+              }}
+              className={`flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-extrabold transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer ${
+                mode === 'signup'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+              }`}
+            >
+              <Sparkles className={`w-4 h-4 ${mode === 'signup' ? 'text-white' : 'text-blue-500'}`} />
+              <span>Create Account</span>
+            </button>
+          </div>
+
           {/* Header Title */}
-          <div className="text-center mb-8">
+          <div className="text-left mb-6">
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-              {mode === 'signin' ? 'Welcome back' : 'Create an account'}
+              {mode === 'signin' ? 'Welcome back' : 'Create Merchant Account'}
             </h1>
-            <p className="text-xs text-slate-500 font-semibold mt-1.5 leading-relaxed">
-              {mode === 'signin' ? 'Sign in to access your merchant console' : 'Start collecting instant UPI payments in minutes'}
+            <p className="text-xs sm:text-sm text-slate-600 font-semibold mt-1">
+              {mode === 'signin' 
+                ? 'Sign in to access your dashboard, payments & API keys' 
+                : 'Start accepting instant 0% fee UPI payments in minutes'}
             </p>
           </div>
 
           {error && (
-            <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-3.5 rounded-xl text-xs font-semibold mb-6 flex items-start gap-2.5">
-              <div className="mt-0.5"><Lock className="w-4 h-4 text-red-500 shrink-0" /></div>
+            <div className="bg-red-50 border border-red-200 text-red-700 p-3.5 rounded-xl text-xs font-bold mb-5 flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
               <div className="flex-1 leading-normal">{error}</div>
             </div>
           )}
 
           {message && (
-            <div className="bg-emerald-50 border border-emerald-200/60 text-emerald-700 p-3.5 rounded-xl text-xs font-semibold mb-6 flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+            <div className="bg-emerald-50 border border-emerald-300 text-emerald-800 p-3.5 rounded-xl text-xs font-bold mb-5 flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
               <span>{message}</span>
             </div>
           )}
@@ -432,15 +456,17 @@ export default function LoginPage() {
             {/* Business / Brand Name (Signup only) */}
             {mode === 'signup' && (
               <div>
-                <label className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-2">Business / Brand Name</label>
+                <label className="block text-xs font-extrabold text-slate-800 uppercase tracking-wider mb-1.5">
+                  Business / Brand Name <span className="text-blue-600">*</span>
+                </label>
                 <div className="relative">
-                  <Building2 className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
+                  <Building2 className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-500" />
                   <input
                     type="text"
                     required
                     value={businessName}
                     onChange={(e) => setBusinessName(e.target.value)}
-                    className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
+                    className="w-full bg-slate-50/50 border border-slate-300 rounded-xl py-3 pl-11 pr-4 text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-500/15 transition-all shadow-xs"
                     placeholder="e.g. Acme Tech Studio"
                   />
                 </div>
@@ -450,16 +476,18 @@ export default function LoginPage() {
             {/* Receiving UPI ID (Signup only) */}
             {mode === 'signup' && (
               <div>
-                <label className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-2">Receiving UPI ID (VPA)</label>
+                <label className="block text-xs font-extrabold text-slate-800 uppercase tracking-wider mb-1.5">
+                  Receiving UPI ID (VPA) <span className="text-blue-600">*</span>
+                </label>
                 <div className="relative">
-                  <QrCode className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
+                  <QrCode className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-500" />
                   <input
                     type="text"
                     required
                     value={upiId}
                     onChange={(e) => setUpiId(e.target.value)}
-                    className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
-                    placeholder="e.g. merchant@okhdfcbank"
+                    className="w-full bg-slate-50/50 border border-slate-300 rounded-xl py-3 pl-11 pr-4 text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-500/15 transition-all shadow-xs"
+                    placeholder="e.g. yourname@okhdfcbank or merchant@upi"
                   />
                 </div>
               </div>
@@ -468,9 +496,11 @@ export default function LoginPage() {
             {/* Phone Number (Signup only) */}
             {mode === 'signup' && (
               <div>
-                <label className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-2">Phone Number</label>
+                <label className="block text-xs font-extrabold text-slate-800 uppercase tracking-wider mb-1.5">
+                  Mobile Phone Number <span className="text-blue-600">*</span>
+                </label>
                 <div className="relative">
-                  <Phone className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
+                  <Phone className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-500" />
                   <input
                     type="tel"
                     required
@@ -478,7 +508,7 @@ export default function LoginPage() {
                     inputMode="numeric"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                    className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
+                    className="w-full bg-slate-50/50 border border-slate-300 rounded-xl py-3 pl-11 pr-4 text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-500/15 transition-all shadow-xs"
                     placeholder="10-digit mobile number"
                   />
                 </div>
@@ -487,26 +517,26 @@ export default function LoginPage() {
 
             {/* Email field with Inline Send OTP Button */}
             <div>
-              <div className="flex justify-between items-center mb-2">
-                <label className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">
-                  {mode === 'signup' ? 'Work Email Address' : 'Email Address'}
+              <div className="flex justify-between items-center mb-1.5">
+                <label className="block text-xs font-extrabold text-slate-800 uppercase tracking-wider">
+                  {mode === 'signup' ? 'Work Email Address' : 'Email Address'} <span className="text-blue-600">*</span>
                 </label>
                 {mode === 'signup' && isEmailVerified && (
-                  <span className="text-emerald-600 text-[10px] font-extrabold flex items-center gap-1">
-                    <Check className="w-3 h-3 text-emerald-600 stroke-[3]" /> Verified
+                  <span className="text-emerald-700 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-full text-xs font-extrabold flex items-center gap-1">
+                    <Check className="w-3.5 h-3.5 text-emerald-700 stroke-[3]" /> Verified
                   </span>
                 )}
               </div>
               
               <div className="relative flex items-center">
-                <Mail className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
+                <Mail className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-500" />
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => handleEmailChange(e.target.value)}
-                  className={`w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 ${mode === 'signup' ? 'pr-24' : 'pr-4'} text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm`}
-                  placeholder="email@example.com"
+                  className={`w-full bg-slate-50/50 border border-slate-300 rounded-xl py-3 pl-11 ${mode === 'signup' ? 'pr-28' : 'pr-4'} text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-500/15 transition-all shadow-xs`}
+                  placeholder="name@company.com"
                 />
 
                 {/* Send OTP button next to / inside Email column */}
@@ -515,14 +545,17 @@ export default function LoginPage() {
                     type="button"
                     onClick={handleSendEmailOtp}
                     disabled={otpSending || resendCooldown > 0 || !email.includes('@')}
-                    className="absolute right-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-extrabold text-[10px] rounded-lg transition-all shadow-xs cursor-pointer flex items-center gap-1 select-none"
+                    className="absolute right-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-500 text-white font-extrabold text-xs rounded-lg transition-all shadow-xs cursor-pointer flex items-center gap-1 select-none"
                   >
                     {otpSending ? (
-                      <Loader2 className="w-3 h-3 animate-spin" />
+                      <>
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        <span>Sending...</span>
+                      </>
                     ) : resendCooldown > 0 ? (
-                      `${resendCooldown}s`
+                      `Resend (${resendCooldown}s)`
                     ) : otpSent ? (
-                      'Resend'
+                      'Resend Code'
                     ) : (
                       'Send OTP'
                     )}
@@ -532,13 +565,13 @@ export default function LoginPage() {
 
               {/* Inline OTP input box appearing directly under Email section */}
               {mode === 'signup' && otpSent && !isEmailVerified && (
-                <div className="mt-2.5 p-3.5 bg-blue-50/60 border border-blue-200/80 rounded-2xl space-y-2 animate-scale-up">
-                  <div className="flex justify-between items-center text-[10px] font-bold text-slate-700">
+                <div className="mt-3 p-4 bg-blue-50/90 border border-blue-200 rounded-2xl space-y-2.5 animate-scale-up shadow-xs">
+                  <div className="flex justify-between items-center text-xs font-extrabold text-slate-800">
                     <span className="flex items-center gap-1.5">
-                      <KeyRound className="w-3.5 h-3.5 text-blue-600" /> Enter 6-digit Email OTP
+                      <KeyRound className="w-4 h-4 text-blue-600" /> Enter 6-digit Email OTP
                     </span>
                     {resendCooldown > 0 && (
-                      <span className="text-blue-600 font-mono text-[9px] font-extrabold">Resend in {resendCooldown}s</span>
+                      <span className="text-blue-700 font-mono text-xs font-extrabold">Resend in {resendCooldown}s</span>
                     )}
                   </div>
                   
@@ -550,68 +583,85 @@ export default function LoginPage() {
                       value={otp}
                       onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
                       placeholder="123456"
-                      className="flex-1 bg-white border border-slate-300 rounded-xl py-2 px-3 text-xs font-mono font-black tracking-widest text-slate-800 placeholder-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 shadow-xs"
+                      className="flex-1 bg-white border border-slate-300 rounded-xl py-2.5 px-3.5 text-sm font-mono font-black tracking-widest text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 shadow-xs"
                     />
                     <button
                       type="button"
                       onClick={handleVerifyInlineOtp}
-                      disabled={otpVerifying || otp.length !== 6}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold text-xs rounded-xl transition-all shadow-xs flex items-center gap-1 cursor-pointer shrink-0"
+                      disabled={otpVerifying || otp.length < 4}
+                      className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:text-slate-500 text-white font-extrabold text-xs rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer shrink-0"
                     >
-                      {otpVerifying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Verify'}
+                      {otpVerifying ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Verify Code'}
                     </button>
                   </div>
+                  <p className="text-[11px] text-slate-600 font-medium">
+                    Enter the code sent to your email. You can also proceed directly by clicking Create Account below.
+                  </p>
                 </div>
               )}
             </div>
 
             {/* Password field */}
             <div>
-              <label className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-2">
-                {mode === 'signup' ? 'Create Password (min 6 chars)' : 'Password'}
+              <label className="block text-xs font-extrabold text-slate-800 uppercase tracking-wider mb-1.5">
+                {mode === 'signup' ? 'Create Password (min 6 chars)' : 'Password'} <span className="text-blue-600">*</span>
               </label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
+                <Lock className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-500" />
                 <input
                   type="password"
                   required
                   minLength={6}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
+                  className="w-full bg-slate-50/50 border border-slate-300 rounded-xl py-3 pl-11 pr-4 text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-500/15 transition-all shadow-xs"
                   placeholder="••••••••"
                 />
               </div>
             </div>
 
-            <div className="pt-2 flex flex-col gap-3">
+            <div className="pt-3 flex flex-col gap-3">
               
               {/* Primary Action CTA (Sign In / Create Account) */}
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold py-3.5 px-4 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-1.5 shadow-md shadow-blue-500/15 hover:shadow-blue-500/25 active:scale-98 text-xs cursor-pointer"
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black py-4 px-6 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 active:scale-[0.99] text-sm cursor-pointer"
               >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : (mode === 'signin' ? 'Sign In' : 'Create Account')}
-                {!loading && <ArrowRight className="w-4 h-4 text-white" />}
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-white" />
+                    <span>Processing...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>{mode === 'signin' ? 'Sign In to Console' : 'Create Account'}</span>
+                    <ArrowRight className="w-4 h-4 text-white" />
+                  </>
+                )}
               </button>
               
-              {/* Mode Toggle Button */}
-              <button
-                type="button"
-                onClick={() => {
-                  setError('');
-                  setMessage('');
-                  setMode(mode === 'signin' ? 'signup' : 'signin');
-                }}
-                className="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 font-bold py-3.5 px-4 rounded-xl transition-all text-xs cursor-pointer"
-              >
-                {mode === 'signin' ? 'New here? Create an account' : 'Already have an account? Sign In'}
-              </button>
+              {/* Bottom Quick Switch Mode Text */}
+              <div className="text-center pt-1">
+                <p className="text-xs text-slate-600 font-bold">
+                  {mode === 'signin' ? "Don't have a merchant account? " : "Already have an account? "}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setError('');
+                      setMessage('');
+                      setMode(mode === 'signin' ? 'signup' : 'signin');
+                    }}
+                    className="text-blue-600 hover:text-blue-800 hover:underline font-extrabold cursor-pointer ml-1"
+                  >
+                    {mode === 'signin' ? 'Create one here' : 'Sign in here'}
+                  </button>
+                </p>
+              </div>
 
-              <div className="relative my-3 flex items-center">
+              <div className="relative my-2 flex items-center">
                 <div className="flex-grow border-t border-slate-200"></div>
-                <span className="flex-shrink mx-4 text-slate-400 text-[8px] font-extrabold uppercase tracking-widest">or continue with</span>
+                <span className="flex-shrink mx-4 text-slate-500 text-[10px] font-extrabold uppercase tracking-widest">or continue with</span>
                 <div className="flex-grow border-t border-slate-200"></div>
               </div>
 
@@ -620,7 +670,7 @@ export default function LoginPage() {
                 type="button"
                 onClick={handleGoogleLogin}
                 disabled={loading}
-                className="w-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-bold py-3.5 px-4 rounded-xl transition-all disabled:opacity-55 flex items-center justify-center gap-2.5 shadow-sm text-xs cursor-pointer"
+                className="w-full bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 font-extrabold py-3.5 px-4 rounded-xl transition-all disabled:opacity-55 flex items-center justify-center gap-3 shadow-xs text-xs sm:text-sm cursor-pointer"
               >
                 <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
                   <g transform="matrix(1, 0, 0, 1, 0, 0)">
@@ -638,7 +688,7 @@ export default function LoginPage() {
 
         </div>
 
-        <p className="lg:hidden mt-8 text-[10px] text-slate-400 font-semibold text-center">
+        <p className="lg:hidden mt-6 text-xs text-slate-500 font-semibold text-center">
           © 2026 MyMobPay · B2B Payments Gateway
         </p>
 
