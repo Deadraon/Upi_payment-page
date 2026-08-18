@@ -31,28 +31,27 @@ export async function POST(req) {
         attempts: 0,
       });
 
-      console.log(`[AUTH OTP] Generated OTP for ${cleanEmail}: ${code}`);
+      console.log(`[AUTH OTP] Dispatching OTP for ${cleanEmail}...`);
 
-      // Try triggering Supabase OTP in background (non-blocking)
-      try {
-        const otpPromise = supabase.auth.signInWithOtp({
-          email: cleanEmail,
-          options: { shouldCreateUser: false },
-        });
-        
-        // Timeout after 3 seconds so we don't hang if Supabase upstream email server is slow/timing out
-        const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve({ timeout: true }), 3000));
-        await Promise.race([otpPromise, timeoutPromise]);
-      } catch (err) {
-        console.warn('[AUTH OTP] Supabase direct OTP attempt notice:', err.message);
+      // Trigger Supabase OTP email dispatch via configured SMTP
+      const { data, error } = await supabase.auth.signInWithOtp({
+        email: cleanEmail,
+        options: {
+          shouldCreateUser: true,
+        },
+      });
+
+      if (error) {
+        console.error('[AUTH OTP] Supabase signInWithOtp error:', error);
+        return NextResponse.json({
+          error: error.message || 'Failed to send OTP email.',
+        }, { status: 400 });
       }
 
       return NextResponse.json({
         success: true,
-        message: `Verification code sent to ${cleanEmail}. Please check your inbox or spam folder.`,
+        message: `6-digit verification code sent to ${cleanEmail}. Please check your inbox or spam folder.`,
         otpSent: true,
-        // In development/test or for resilient fallback
-        debugCode: process.env.NODE_ENV !== 'production' ? code : undefined,
       });
     }
 
@@ -65,26 +64,9 @@ export async function POST(req) {
       }
 
       const cleanOtp = otp.trim();
-      const stored = otpStore.get(cleanEmail);
+      let isVerified = false;
 
-      // Check in-memory store
-      if (stored) {
-        if (Date.now() > stored.expiresAt) {
-          otpStore.delete(cleanEmail);
-          return NextResponse.json({ error: 'OTP has expired. Please request a new code.' }, { status: 400 });
-        }
-
-        if (stored.code === cleanOtp) {
-          otpStore.delete(cleanEmail);
-          return NextResponse.json({
-            success: true,
-            verified: true,
-            message: 'Email successfully verified! ✓',
-          });
-        }
-      }
-
-      // Fallback: Verify against Supabase Auth OTP directly
+      // 1. Verify against Supabase Auth OTP
       try {
         const { data, error } = await supabase.auth.verifyOtp({
           email: cleanEmail,
@@ -92,27 +74,41 @@ export async function POST(req) {
           type: 'email',
         });
 
-        if (!error && data?.user) {
-          return NextResponse.json({
-            success: true,
-            verified: true,
-            message: 'Email successfully verified! ✓',
-          });
+        if (!error && (data?.user || data?.session)) {
+          isVerified = true;
         }
       } catch (err) {
-        console.warn('[AUTH OTP] Supabase verify fallback notice:', err.message);
+        console.warn('[AUTH OTP] Supabase verify notice:', err.message);
+      }
+
+      // 2. Verify against in-memory fallback store
+      const stored = otpStore.get(cleanEmail);
+      if (!isVerified && stored) {
+        if (Date.now() <= stored.expiresAt && stored.code === cleanOtp) {
+          isVerified = true;
+          otpStore.delete(cleanEmail);
+        }
+      }
+
+      if (isVerified) {
+        if (stored) otpStore.delete(cleanEmail);
+        return NextResponse.json({
+          success: true,
+          verified: true,
+          message: 'Email successfully verified! ✓',
+        });
       }
 
       if (stored) {
         stored.attempts = (stored.attempts || 0) + 1;
         if (stored.attempts > 5) {
           otpStore.delete(cleanEmail);
-          return NextResponse.json({ error: 'Too many incorrect attempts. Please request a new code.' }, { status: 400 });
+          return NextResponse.json({ error: 'Too many incorrect attempts. Please request a new OTP code.' }, { status: 400 });
         }
       }
 
       return NextResponse.json({
-        error: 'Invalid or incorrect verification code. Please check and re-enter.'
+        error: 'Invalid or expired OTP code. Please check your email and re-enter.'
       }, { status: 400 });
     }
 
