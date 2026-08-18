@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { 
   Loader2, Lock, Mail, ArrowRight, ShieldCheck, 
-  CheckCircle2, Building2, QrCode, Phone, Check, Send
+  CheckCircle2, Building2, QrCode, Phone
 } from 'lucide-react';
 import Link from 'next/link';
 import InteractiveBackground from '@/components/InteractiveBackground';
@@ -25,87 +25,16 @@ export default function LoginPage() {
   const router = useRouter();
   const [mode, setMode] = useState('signin'); // 'signin' or 'signup'
   
-  // Registration Inputs
+  // Form Inputs
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [businessName, setBusinessName] = useState('');
   const [upiId, setUpiId] = useState('');
   const [phone, setPhone] = useState('');
 
-  // Email link verification states
-  const [linkSent, setLinkSent] = useState(false);
-  const [linkSending, setLinkSending] = useState(false);
-  const [resendCooldown, setResendCooldown] = useState(0);
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
-
-  // Helper to validate email format (user@domain.com)
-  const isValidEmail = (val) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
-  };
-
-  // Resend cooldown timer
-  useEffect(() => {
-    if (resendCooldown <= 0) return;
-    const timer = setInterval(() => setResendCooldown(c => c - 1), 1000);
-    return () => clearInterval(timer);
-  }, [resendCooldown]);
-
-  // Reset link state if email changes
-  const handleEmailChange = (newEmail) => {
-    setEmail(newEmail);
-    if (linkSent) {
-      setLinkSent(false);
-    }
-  };
-
-  // Send verification link handler (triggered only when email format is valid)
-  const handleSendEmailLink = async () => {
-    if (!isValidEmail(email)) {
-      setError('Please enter a valid email address (e.g. name@domain.com).');
-      return;
-    }
-
-    setLinkSending(true);
-    setError('');
-    setMessage('');
-
-    try {
-      const res = await fetch('/api/auth/send-link', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: email.trim(),
-          businessName: businessName.trim(),
-          upiId: upiId.trim(),
-          phone: phone.trim(),
-        }),
-      });
-
-      let data = {};
-      try {
-        data = await res.json();
-      } catch (jsonErr) {
-        throw new Error(`Server returned status ${res.status} (${res.statusText || 'No status text'})`);
-      }
-
-      if (!res.ok || data.error) {
-        throw new Error(data.error || `Failed to send link (HTTP ${res.status})`);
-      }
-
-      setLinkSent(true);
-      setResendCooldown(60);
-      setMessage(data.message || `Verification link sent! Please check your email at ${email.trim()}`);
-    } catch (err) {
-      console.error('Send link error:', err);
-      const exactMessage = err?.message || err?.toString() || 'Failed to send verification link.';
-      setError(exactMessage);
-    } finally {
-      setLinkSending(false);
-    }
-  };
 
   // Main Form Submit Handler
   const handleAuth = async (action) => {
@@ -157,7 +86,7 @@ export default function LoginPage() {
         try {
           data = await res.json();
         } catch (jsonErr) {
-          throw new Error(`Server returned status ${res.status} (${res.statusText || 'No status text'})`);
+          throw new Error(`Server returned status ${res.status} (${res.statusText || 'No response data'})`);
         }
 
         if (!res.ok || data.error) {
@@ -171,10 +100,10 @@ export default function LoginPage() {
         });
 
         if (signInError) {
-          setMessage('Account created! Please sign in with your credentials.');
+          setMessage('Account created! Please sign in with your password.');
           setMode('signin');
         } else {
-          setMessage('Account created! Launching your merchant console...');
+          setMessage('Account created successfully! Launching your merchant dashboard...');
           setTimeout(() => router.push('/dashboard'), 800);
         }
 
@@ -377,211 +306,180 @@ export default function LoginPage() {
             
             {/* Header Title */}
             <div className="text-center mb-7">
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-              {mode === 'signin' ? 'Welcome back' : 'Create an account'}
-            </h1>
-            <p className="text-xs text-slate-600 font-semibold mt-1.5 leading-relaxed">
-              {mode === 'signin' ? 'Sign in to access your merchant console' : 'Start collecting instant UPI payments in minutes'}
-            </p>
-          </div>
-
-          {error && (
-            <div className="bg-red-500/10 border border-red-500/20 text-red-600 p-3.5 rounded-xl text-xs font-semibold mb-5 flex items-start gap-2.5">
-              <div className="mt-0.5"><Lock className="w-4 h-4 text-red-500 shrink-0" /></div>
-              <div className="flex-1 leading-normal">{error}</div>
+              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                {mode === 'signin' ? 'Welcome back' : 'Create an account'}
+              </h1>
+              <p className="text-xs text-slate-600 font-semibold mt-1.5 leading-relaxed">
+                {mode === 'signin' ? 'Sign in to access your merchant console' : 'Start collecting instant UPI payments in minutes'}
+              </p>
             </div>
-          )}
 
-          {message && (
-            <div className="bg-emerald-50 border border-emerald-200/60 text-emerald-700 p-3.5 rounded-xl text-xs font-semibold mb-5 flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-              <span>{message}</span>
-            </div>
-          )}
-
-          <form onSubmit={(e) => { e.preventDefault(); handleAuth(mode); }} className="space-y-4">
-            
-            {/* Business / Brand Name (Signup only) */}
-            {mode === 'signup' && (
-              <div>
-                <label className="block text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1.5">Business / Brand Name</label>
-                <div className="relative">
-                  <Building2 className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
-                  <input
-                    type="text"
-                    required
-                    value={businessName}
-                    onChange={(e) => setBusinessName(e.target.value)}
-                    className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
-                    placeholder="e.g. Acme Tech Studio"
-                  />
-                </div>
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/20 text-red-600 p-3.5 rounded-xl text-xs font-semibold mb-5 flex items-start gap-2.5">
+                <div className="mt-0.5"><Lock className="w-4 h-4 text-red-500 shrink-0" /></div>
+                <div className="flex-1 leading-normal">{error}</div>
               </div>
             )}
 
-            {/* Receiving UPI ID (Signup only) */}
-            {mode === 'signup' && (
-              <div>
-                <label className="block text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1.5">Receiving UPI ID (VPA)</label>
-                <div className="relative">
-                  <QrCode className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
-                  <input
-                    type="text"
-                    required
-                    value={upiId}
-                    onChange={(e) => setUpiId(e.target.value)}
-                    className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
-                    placeholder="e.g. merchant@okhdfcbank"
-                  />
-                </div>
+            {message && (
+              <div className="bg-emerald-50 border border-emerald-200/60 text-emerald-700 p-3.5 rounded-xl text-xs font-semibold mb-5 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                <span>{message}</span>
               </div>
             )}
 
-            {/* Phone Number (Signup only) */}
-            {mode === 'signup' && (
-              <div>
-                <label className="block text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1.5">Phone Number</label>
-                <div className="relative">
-                  <Phone className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
-                  <input
-                    type="tel"
-                    required
-                    maxLength={10}
-                    inputMode="numeric"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                    className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
-                    placeholder="10-digit mobile number"
-                  />
+            <form onSubmit={(e) => { e.preventDefault(); handleAuth(mode); }} className="space-y-4">
+              
+              {/* Business / Brand Name (Signup only) */}
+              {mode === 'signup' && (
+                <div>
+                  <label className="block text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1.5">Business / Brand Name</label>
+                  <div className="relative">
+                    <Building2 className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
+                    <input
+                      type="text"
+                      required
+                      value={businessName}
+                      onChange={(e) => setBusinessName(e.target.value)}
+                      className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
+                      placeholder="e.g. Acme Tech Studio"
+                    />
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Email field with Smart "Send Link" Button appearing only when email format is valid */}
-            <div>
-              <div className="flex justify-between items-center mb-1.5">
-                <label className="block text-[10px] font-black text-slate-900 uppercase tracking-widest">
+              {/* Receiving UPI ID (Signup only) */}
+              {mode === 'signup' && (
+                <div>
+                  <label className="block text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1.5">Receiving UPI ID (VPA)</label>
+                  <div className="relative">
+                    <QrCode className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
+                    <input
+                      type="text"
+                      required
+                      value={upiId}
+                      onChange={(e) => setUpiId(e.target.value)}
+                      className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
+                      placeholder="e.g. merchant@okhdfcbank"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Phone Number (Signup only) */}
+              {mode === 'signup' && (
+                <div>
+                  <label className="block text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1.5">Phone Number</label>
+                  <div className="relative">
+                    <Phone className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
+                    <input
+                      type="tel"
+                      required
+                      maxLength={10}
+                      inputMode="numeric"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                      className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
+                      placeholder="10-digit mobile number"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Work Email Address */}
+              <div>
+                <label className="block text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1.5">
                   {mode === 'signup' ? 'Work Email Address' : 'Email Address'}
                 </label>
-                {mode === 'signup' && linkSent && (
-                  <span className="text-blue-600 text-[10px] font-extrabold flex items-center gap-1">
-                    <Check className="w-3 h-3 text-blue-600 stroke-[3]" /> Link Sent
-                  </span>
-                )}
-              </div>
-              
-              <div className="relative flex items-center">
-                <Mail className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => handleEmailChange(e.target.value)}
-                  className={`w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 ${mode === 'signup' && isValidEmail(email) ? 'pr-28' : 'pr-4'} text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm`}
-                  placeholder="email@example.com"
-                />
-
-                {/* "Send Link" button only appears when user types valid email format */}
-                {mode === 'signup' && isValidEmail(email) && (
-                  <button
-                    type="button"
-                    onClick={handleSendEmailLink}
-                    disabled={linkSending || resendCooldown > 0}
-                    className="absolute right-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-extrabold text-[10px] rounded-lg transition-all shadow-xs cursor-pointer flex items-center gap-1 select-none animate-fade-in"
-                  >
-                    {linkSending ? (
-                      <Loader2 className="w-3 h-3 animate-spin" />
-                    ) : resendCooldown > 0 ? (
-                      `${resendCooldown}s`
-                    ) : linkSent ? (
-                      'Resend Link'
-                    ) : (
-                      <>
-                        <Send className="w-3 h-3" />
-                        <span>Send Link</span>
-                      </>
-                    )}
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Password field */}
-            <div>
-              <label className="block text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1.5">
-                {mode === 'signup' ? 'Create Password (min 6 chars)' : 'Password'}
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
-                <input
-                  type="password"
-                  required
-                  minLength={6}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
-                  placeholder="••••••••"
-                />
-              </div>
-            </div>
-
-            <div className="pt-2 flex flex-col gap-3">
-              
-              {/* Primary Action CTA (Sign In / Create Account) */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold py-3.5 px-4 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-1.5 shadow-md shadow-blue-500/15 hover:shadow-blue-500/25 active:scale-98 text-xs cursor-pointer"
-              >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : (mode === 'signin' ? 'Sign In' : 'Create Account')}
-                {!loading && <ArrowRight className="w-4 h-4 text-white" />}
-              </button>
-              
-              {/* Mode Toggle Button */}
-              <button
-                type="button"
-                onClick={() => {
-                  setError('');
-                  setMessage('');
-                  setMode(mode === 'signin' ? 'signup' : 'signin');
-                }}
-                className="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold py-3.5 px-4 rounded-xl transition-all text-xs cursor-pointer"
-              >
-                {mode === 'signin' ? 'New here? Create an account' : 'Already have an account? Sign In'}
-              </button>
-
-              <div className="relative my-2 flex items-center">
-                <div className="flex-grow border-t border-slate-200"></div>
-                <span className="flex-shrink mx-4 text-slate-600 text-[8px] font-black uppercase tracking-widest">or continue with</span>
-                <div className="flex-grow border-t border-slate-200"></div>
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
+                    placeholder="email@example.com"
+                  />
+                </div>
               </div>
 
-              {/* Google OAuth Login */}
-              <button
-                type="button"
-                onClick={handleGoogleLogin}
-                disabled={loading}
-                className="w-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-bold py-3.5 px-4 rounded-xl transition-all disabled:opacity-55 flex items-center justify-center gap-2.5 shadow-sm text-xs cursor-pointer"
-              >
-                <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
-                  <g transform="matrix(1, 0, 0, 1, 0, 0)">
-                    <path d="M21.35,11.1H12v2.7h5.38c-0.24,1.28 -0.96,2.37 -2.05,3.1v2.57h3.32c1.94,-1.78 3.05,-4.4 3.05,-7.47c0,-0.3 -0.03,-0.6 -0.08,-0.9Z" fill="#4285F4" />
-                    <path d="M12,20.7c2.35,0 4.32,-0.78 5.76,-2.13l-3.32,-2.57c-0.92,0.62 -2.1,0.98 -3.44,0.98c-2.28,0 -4.21,-1.54 -4.9,-3.61H2.68v2.66c1.47,2.92 4.5,4.67 7.92,4.67Z" fill="#34A853" />
-                    <path d="M7.1,13.38c-0.18,-0.52 -0.28,-1.09 -0.28,-1.68c0,-0.59 0.1,-1.16 0.28,-1.68V7.36H2.68C2.06,8.6 1.7,10.01 1.7,11.7c0,1.69 0.36,3.1 0.98,4.34l3.74,-2.91c-0.18,-0.52 -0.18,-0.75 -0.32,-1.75Z" fill="#FBBC05" />
-                    <path d="M12,5.68c1.28,0 2.43,0.44 3.34,1.3l2.5,-2.5C16.31,3.07 14.34,2.7 12,2.7c-3.42,0 -6.45,1.75 -7.92,4.67l4.4,3.38C9.17,7.22 10.1,5.68 12,5.68Z" fill="#EA4335" />
-                  </g>
-                </svg>
-                <span>Sign in with Google</span>
-              </button>
-            </div>
+              {/* Password */}
+              <div>
+                <label className="block text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1.5">
+                  {mode === 'signup' ? 'Create Password (min 6 chars)' : 'Password'}
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
+                  <input
+                    type="password"
+                    required
+                    minLength={6}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
+                    placeholder="••••••••"
+                  />
+                </div>
+              </div>
 
-          </form>
+              <div className="pt-2 flex flex-col gap-3">
+                
+                {/* Primary Action CTA (Sign In / Create Account) */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold py-3.5 px-4 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-1.5 shadow-md shadow-blue-500/15 hover:shadow-blue-500/25 active:scale-98 text-xs cursor-pointer"
+                >
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : (mode === 'signin' ? 'Sign In' : 'Create Account')}
+                  {!loading && <ArrowRight className="w-4 h-4 text-white" />}
+                </button>
+                
+                {/* Mode Toggle Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setError('');
+                    setMessage('');
+                    setMode(mode === 'signin' ? 'signup' : 'signin');
+                  }}
+                  className="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold py-3.5 px-4 rounded-xl transition-all text-xs cursor-pointer"
+                >
+                  {mode === 'signin' ? 'New here? Create an account' : 'Already have an account? Sign In'}
+                </button>
 
-        </div>
+                <div className="relative my-2 flex items-center">
+                  <div className="flex-grow border-t border-slate-200"></div>
+                  <span className="flex-shrink mx-4 text-slate-600 text-[8px] font-black uppercase tracking-widest">or continue with</span>
+                  <div className="flex-grow border-t border-slate-200"></div>
+                </div>
 
-        <p className="lg:hidden mt-6 text-[10px] text-slate-400 font-semibold text-center mb-4">
-          © 2026 MyMobPay · B2B Payments Gateway
-        </p>
+                {/* Google OAuth Login */}
+                <button
+                  type="button"
+                  onClick={handleGoogleLogin}
+                  disabled={loading}
+                  className="w-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-bold py-3.5 px-4 rounded-xl transition-all disabled:opacity-55 flex items-center justify-center gap-2.5 shadow-sm text-xs cursor-pointer"
+                >
+                  <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+                    <g transform="matrix(1, 0, 0, 1, 0, 0)">
+                      <path d="M21.35,11.1H12v2.7h5.38c-0.24,1.28 -0.96,2.37 -2.05,3.1v2.57h3.32c1.94,-1.78 3.05,-4.4 3.05,-7.47c0,-0.3 -0.03,-0.6 -0.08,-0.9Z" fill="#4285F4" />
+                      <path d="M12,20.7c2.35,0 4.32,-0.78 5.76,-2.13l-3.32,-2.57c-0.92,0.62 -2.1,0.98 -3.44,0.98c-2.28,0 -4.21,-1.54 -4.9,-3.61H2.68v2.66c1.47,2.92 4.5,4.67 7.92,4.67Z" fill="#34A853" />
+                      <path d="M7.1,13.38c-0.18,-0.52 -0.28,-1.09 -0.28,-1.68c0,-0.59 0.1,-1.16 0.28,-1.68V7.36H2.68C2.06,8.6 1.7,10.01 1.7,11.7c0,1.69 0.36,3.1 0.98,4.34l3.74,-2.91c-0.18,-0.52 -0.18,-0.75 -0.32,-1.75Z" fill="#FBBC05" />
+                      <path d="M12,5.68c1.28,0 2.43,0.44 3.34,1.3l2.5,-2.5C16.31,3.07 14.34,2.7 12,2.7c-3.42,0 -6.45,1.75 -7.92,4.67l4.4,3.38C9.17,7.22 10.1,5.68 12,5.68Z" fill="#EA4335" />
+                    </g>
+                  </svg>
+                  <span>Sign in with Google</span>
+                </button>
+              </div>
+
+            </form>
+
+          </div>
+
+          <p className="lg:hidden mt-6 text-[10px] text-slate-400 font-semibold text-center mb-4">
+            © 2026 MyMobPay · B2B Payments Gateway
+          </p>
 
         </div>
 
