@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { 
   Loader2, Lock, Mail, ArrowRight, ShieldCheck, 
-  CheckCircle2, Building2, QrCode, Phone
+  CheckCircle2, Building2, QrCode, Phone, Check, Send
 } from 'lucide-react';
 import Link from 'next/link';
 import InteractiveBackground from '@/components/InteractiveBackground';
@@ -25,16 +25,87 @@ export default function LoginPage() {
   const router = useRouter();
   const [mode, setMode] = useState('signin'); // 'signin' or 'signup'
   
-  // Form Inputs
+  // Registration Inputs
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [businessName, setBusinessName] = useState('');
   const [upiId, setUpiId] = useState('');
   const [phone, setPhone] = useState('');
 
+  // Email link verification states
+  const [linkSent, setLinkSent] = useState(false);
+  const [linkSending, setLinkSending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+
+  // Helper to validate email format (user@domain.com)
+  const isValidEmail = (val) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
+  };
+
+  // Resend cooldown timer
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setInterval(() => setResendCooldown(c => c - 1), 1000);
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
+
+  // Reset link state if email changes
+  const handleEmailChange = (newEmail) => {
+    setEmail(newEmail);
+    if (linkSent) {
+      setLinkSent(false);
+    }
+  };
+
+  // Send verification link handler (triggered when email format is valid)
+  const handleSendEmailLink = async () => {
+    if (!isValidEmail(email)) {
+      setError('Please enter a valid email address (e.g. name@domain.com).');
+      return;
+    }
+
+    setLinkSending(true);
+    setError('');
+    setMessage('');
+
+    try {
+      const res = await fetch('/api/auth/send-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.trim(),
+          businessName: businessName.trim(),
+          upiId: upiId.trim(),
+          phone: phone.trim(),
+        }),
+      });
+
+      let data = {};
+      try {
+        data = await res.json();
+      } catch (jsonErr) {
+        throw new Error(`Server returned status ${res.status} (${res.statusText || 'No response data'})`);
+      }
+
+      if (!res.ok || data.error) {
+        throw new Error(data.error || `Failed to send link (HTTP ${res.status})`);
+      }
+
+      setLinkSent(true);
+      setResendCooldown(60);
+      setMessage(data.message || `Verification link sent! Please check your email at ${email.trim()}`);
+    } catch (err) {
+      console.error('Send link error:', err);
+      const exactMessage = err?.message || err?.toString() || 'Failed to send verification link.';
+      setError(exactMessage);
+    } finally {
+      setLinkSending(false);
+    }
+  };
 
   // Main Form Submit Handler
   const handleAuth = async (action) => {
@@ -386,21 +457,52 @@ export default function LoginPage() {
                 </div>
               )}
 
-              {/* Work Email Address */}
+              {/* Work Email Address with Send Link button when valid */}
               <div>
-                <label className="block text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1.5">
-                  {mode === 'signup' ? 'Work Email Address' : 'Email Address'}
-                </label>
-                <div className="relative">
+                <div className="flex justify-between items-center mb-1.5">
+                  <label className="block text-[10px] font-black text-slate-900 uppercase tracking-widest">
+                    {mode === 'signup' ? 'Work Email Address' : 'Email Address'}
+                  </label>
+                  {mode === 'signup' && linkSent && (
+                    <span className="text-blue-600 text-[10px] font-extrabold flex items-center gap-1">
+                      <Check className="w-3 h-3 text-blue-600 stroke-[3]" /> Link Sent
+                    </span>
+                  )}
+                </div>
+                
+                <div className="relative flex items-center">
                   <Mail className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
                   <input
                     type="email"
                     required
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
+                    onChange={(e) => handleEmailChange(e.target.value)}
+                    className={`w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 ${mode === 'signup' && isValidEmail(email) ? 'pr-28' : 'pr-4'} text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm`}
                     placeholder="email@example.com"
                   />
+
+                  {/* "Send Link" button only appears when user types valid email format */}
+                  {mode === 'signup' && isValidEmail(email) && (
+                    <button
+                      type="button"
+                      onClick={handleSendEmailLink}
+                      disabled={linkSending || resendCooldown > 0}
+                      className="absolute right-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-extrabold text-[10px] rounded-lg transition-all shadow-xs cursor-pointer flex items-center gap-1 select-none animate-fade-in"
+                    >
+                      {linkSending ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : resendCooldown > 0 ? (
+                        `${resendCooldown}s`
+                      ) : linkSent ? (
+                        'Resend Link'
+                      ) : (
+                        <>
+                          <Send className="w-3 h-3" />
+                          <span>Send Link</span>
+                        </>
+                      )}
+                    </button>
+                  )}
                 </div>
               </div>
 
