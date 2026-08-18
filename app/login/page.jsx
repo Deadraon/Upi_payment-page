@@ -84,17 +84,24 @@ export default function LoginPage() {
         }),
       });
 
-      const data = await res.json();
+      let data = {};
+      try {
+        data = await res.json();
+      } catch (jsonErr) {
+        throw new Error(`Server returned status ${res.status} (${res.statusText || 'No status text'})`);
+      }
 
       if (!res.ok || data.error) {
-        throw new Error(data.error || 'Failed to send verification link.');
+        throw new Error(data.error || `Failed to send link (HTTP ${res.status})`);
       }
 
       setLinkSent(true);
       setResendCooldown(60);
       setMessage(data.message || `Verification link sent! Please check your email at ${email.trim()}`);
     } catch (err) {
-      setError(err.message || 'Failed to send verification link. Please check your email.');
+      console.error('Send link error:', err);
+      const exactMessage = err?.message || err?.toString() || 'Failed to send verification link.';
+      setError(exactMessage);
     } finally {
       setLinkSending(false);
     }
@@ -146,10 +153,15 @@ export default function LoginPage() {
           }),
         });
 
-        const data = await res.json();
+        let data = {};
+        try {
+          data = await res.json();
+        } catch (jsonErr) {
+          throw new Error(`Server returned status ${res.status} (${res.statusText || 'No status text'})`);
+        }
 
         if (!res.ok || data.error) {
-          throw new Error(data.error || 'Failed to create account.');
+          throw new Error(data.error || `Registration failed (HTTP ${res.status})`);
         }
 
         // Automatically sign in client session
@@ -176,14 +188,16 @@ export default function LoginPage() {
           if (authError.message?.toLowerCase().includes('invalid login credentials')) {
             throw new Error('Invalid email or password. If you are new, click "Create an account" below.');
           }
-          throw authError;
+          throw new Error(authError.message || 'Invalid login credentials.');
         }
 
         setMessage('Welcome back! Launching your merchant dashboard...');
         setTimeout(() => router.push('/dashboard'), 600);
       }
     } catch (err) {
-      setError(err.message || 'An error occurred during authentication.');
+      console.error('Auth handler error:', err);
+      const exactMessage = err?.message || err?.toString() || 'An error occurred during authentication.';
+      setError(exactMessage);
     } finally {
       setLoading(false);
     }

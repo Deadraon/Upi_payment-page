@@ -24,55 +24,39 @@ export async function POST(req) {
     const cleanEmail = email.trim().toLowerCase();
     const cleanPhone = (phone || '').toString().trim();
 
-    // Check if user already exists in auth.users
-    const { data: userListData, error: listError } = await supabaseAdmin.auth.admin.listUsers();
-    
-    let existingUser = null;
-    if (!listError && userListData?.users) {
-      existingUser = userListData.users.find(u => u.email?.toLowerCase() === cleanEmail);
-    }
+    // 1. Attempt to create the user directly in Supabase Auth
+    const { data: createData, error: createError } = await supabaseAdmin.auth.admin.createUser({
+      email: cleanEmail,
+      password: password,
+      email_confirm: true,
+      user_metadata: {
+        business_name: businessName.trim(),
+        upi_id: upiId.trim(),
+        phone: cleanPhone,
+      },
+    });
 
-    let userId = null;
+    let userId = createData?.user?.id;
 
-    if (existingUser) {
-      // User exists in auth.users -> update their password and confirm their email
-      userId = existingUser.id;
-      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
-        password: password,
-        email_confirm: true,
-        user_metadata: {
-          business_name: businessName.trim(),
-          upi_id: upiId.trim(),
-          phone: cleanPhone,
-        },
-      });
-
-      if (updateError) {
-        console.error('[REGISTER API] User update error:', updateError);
-      }
-    } else {
-      // Create new confirmed user in Supabase Auth
-      const { data: createData, error: createError } = await supabaseAdmin.auth.admin.createUser({
-        email: cleanEmail,
-        password: password,
-        email_confirm: true,
-        user_metadata: {
-          business_name: businessName.trim(),
-          upi_id: upiId.trim(),
-          phone: cleanPhone,
-        },
-      });
-
-      if (createError) {
-        console.error('[REGISTER API] User create error:', createError);
-        return NextResponse.json({ error: createError.message || 'Failed to create user account' }, { status: 400 });
+    if (createError) {
+      // Check if user already exists
+      const errMsg = createError.message?.toLowerCase() || '';
+      if (errMsg.includes('already') || createError.code === 'email_exists' || createError.status === 422) {
+        return NextResponse.json({
+          error: 'This email is already registered. Please click "Already have an account? Sign In" below.',
+          code: 'email_exists',
+        }, { status: 400 });
       }
 
-      userId = createData.user?.id;
+      console.error('[REGISTER API] User creation error:', createError);
+      return NextResponse.json({
+        error: createError.message || `Auth API error: ${JSON.stringify(createError)}`,
+        code: createError.code,
+      }, { status: 400 });
     }
 
+    // 2. Insert/Upsert merchant profile in public.merchants
     if (userId) {
-      // Upsert merchant record in public.merchants
       const { error: merchantError } = await supabaseAdmin
         .from('merchants')
         .upsert({
@@ -86,7 +70,7 @@ export async function POST(req) {
         }, { onConflict: 'id' });
 
       if (merchantError) {
-        console.error('[REGISTER API] Merchant row upsert error:', merchantError);
+        console.error('[REGISTER API] Merchant profile upsert warning:', merchantError);
       }
     }
 
@@ -97,7 +81,11 @@ export async function POST(req) {
     });
 
   } catch (err) {
-    console.error('[REGISTER API] Unexpected error:', err);
-    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
+    console.error('[REGISTER API] Unexpected exception:', err);
+    const detailedError = err?.message || err?.cause?.message || 'An unexpected error occurred during registration.';
+    return NextResponse.json({
+      error: `Registration Error: ${detailedError}`,
+      cause: err?.cause?.toString() || undefined,
+    }, { status: 500 });
   }
 }

@@ -13,10 +13,15 @@ export async function POST(req) {
     const cleanPhone = (phone || '').toString().trim();
 
     // Check if user exists in auth.users
-    const { data: userListData } = await supabaseAdmin.auth.admin.listUsers();
-    const existingUser = userListData?.users?.find(u => u.email?.toLowerCase() === cleanEmail);
+    let existingUser = null;
+    try {
+      const { data: userListData } = await supabaseAdmin.auth.admin.listUsers();
+      existingUser = userListData?.users?.find(u => u.email?.toLowerCase() === cleanEmail);
+    } catch (e) {
+      console.warn('[SEND-LINK API] listUsers check bypassed:', e.message);
+    }
 
-    let linkType = existingUser ? 'magiclink' : 'signup';
+    const linkType = existingUser ? 'magiclink' : 'signup';
 
     const { data, error } = await supabaseAdmin.auth.admin.generateLink({
       type: linkType,
@@ -33,7 +38,10 @@ export async function POST(req) {
 
     if (error) {
       console.error('[SEND-LINK API] generateLink error:', error);
-      return NextResponse.json({ error: error.message || 'Failed to generate verification link.' }, { status: 400 });
+      return NextResponse.json({ 
+        error: `Failed to send link: ${error.message || JSON.stringify(error)}`,
+        code: error.code 
+      }, { status: 400 });
     }
 
     // If user exists, ensure merchant profile exists
@@ -56,6 +64,10 @@ export async function POST(req) {
 
   } catch (err) {
     console.error('[SEND-LINK API] Unexpected error:', err);
-    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
+    const detailedError = err?.message || err?.cause?.message || 'Server error while generating verification link.';
+    return NextResponse.json({ 
+      error: `Send Link Error: ${detailedError}`,
+      cause: err?.cause?.toString() || undefined,
+    }, { status: 500 });
   }
 }
