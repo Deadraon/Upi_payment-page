@@ -5,8 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { 
   Loader2, Lock, Mail, ArrowRight, ShieldCheck, 
-  CheckCircle2, Building2, QrCode, Phone, KeyRound, 
-  Check
+  CheckCircle2, Building2, QrCode, Phone, Check, Send
 } from 'lucide-react';
 import Link from 'next/link';
 import InteractiveBackground from '@/components/InteractiveBackground';
@@ -33,17 +32,19 @@ export default function LoginPage() {
   const [upiId, setUpiId] = useState('');
   const [phone, setPhone] = useState('');
 
-  // Inline OTP states
-  const [otp, setOtp] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
-  const [isEmailVerified, setIsEmailVerified] = useState(false);
-  const [otpSending, setOtpSending] = useState(false);
-  const [otpVerifying, setOtpVerifying] = useState(false);
+  // Email link verification states
+  const [linkSent, setLinkSent] = useState(false);
+  const [linkSending, setLinkSending] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+
+  // Helper to validate email format (user@domain.com)
+  const isValidEmail = (val) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
+  };
 
   // Resend cooldown timer
   useEffect(() => {
@@ -52,81 +53,48 @@ export default function LoginPage() {
     return () => clearInterval(timer);
   }, [resendCooldown]);
 
-  // Reset OTP state if email changes
+  // Reset link state if email changes
   const handleEmailChange = (newEmail) => {
     setEmail(newEmail);
-    if (isEmailVerified) {
-      setIsEmailVerified(false);
-      setOtpSent(false);
-      setOtp('');
+    if (linkSent) {
+      setLinkSent(false);
     }
   };
 
-  // Inline "Send OTP" button handler
-  const handleSendEmailOtp = async () => {
-    if (!email.trim() || !email.includes('@')) {
-      setError('Please enter a valid email address first.');
+  // Send verification link handler (triggered only when email format is valid)
+  const handleSendEmailLink = async () => {
+    if (!isValidEmail(email)) {
+      setError('Please enter a valid email address (e.g. name@domain.com).');
       return;
     }
 
-    setOtpSending(true);
+    setLinkSending(true);
     setError('');
     setMessage('');
 
     try {
-      const res = await fetch('/api/auth/otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'send', email: email.trim() }),
+      const { error: sendErr } = await supabase.auth.signInWithOtp({
+        email: email.trim(),
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+          shouldCreateUser: true,
+          data: {
+            business_name: businessName.trim() || undefined,
+            upi_id: upiId.trim() || undefined,
+            phone: phone.trim() || undefined,
+          }
+        },
       });
 
-      const data = await res.json();
+      if (sendErr) throw sendErr;
 
-      if (!res.ok || data.error) {
-        throw new Error(data.error || 'Failed to send OTP code.');
-      }
-
-      setOtpSent(true);
-      setResendCooldown(45);
-      setMessage(data.message || `OTP sent! Please check your inbox at ${email.trim()}`);
+      setLinkSent(true);
+      setResendCooldown(60);
+      setMessage(`Verification link sent! Please check your email at ${email.trim()}`);
     } catch (err) {
-      setError(err.message || 'Failed to send OTP code. Please try again.');
+      setError(err.message || 'Failed to send verification link. Please check your email.');
     } finally {
-      setOtpSending(false);
-    }
-  };
-
-  // Inline "Verify OTP" button handler
-  const handleVerifyInlineOtp = async () => {
-    const cleanOtp = otp.trim();
-    if (cleanOtp.length < 4) {
-      setError('Please enter the full 6-digit OTP code.');
-      return;
-    }
-
-    setOtpVerifying(true);
-    setError('');
-    setMessage('');
-
-    try {
-      const res = await fetch('/api/auth/otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'verify', email: email.trim(), otp: cleanOtp }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok || data.error) {
-        throw new Error(data.error || 'Invalid or expired OTP code.');
-      }
-
-      setIsEmailVerified(true);
-      setMessage('Email verified successfully! ✓');
-    } catch (err) {
-      setError(err.message || 'Invalid or expired OTP code.');
-    } finally {
-      setOtpVerifying(false);
+      setLinkSending(false);
     }
   };
 
@@ -182,14 +150,19 @@ export default function LoginPage() {
           throw new Error(data.error || 'Failed to create account.');
         }
 
-        // Sign in client session
-        await supabase.auth.signInWithPassword({
+        // Automatically sign in client session
+        const { error: signInError } = await supabase.auth.signInWithPassword({
           email: email.trim(),
           password: password,
         });
 
-        setMessage('Account created! Launching your merchant console...');
-        setTimeout(() => router.push('/dashboard'), 800);
+        if (signInError) {
+          setMessage('Account created! Please sign in with your credentials.');
+          setMode('signin');
+        } else {
+          setMessage('Account created! Launching your merchant console...');
+          setTimeout(() => router.push('/dashboard'), 800);
+        }
 
       } else if (action === 'signin') {
         const { error: authError } = await supabase.auth.signInWithPassword({
@@ -323,7 +296,7 @@ export default function LoginPage() {
 
                     <svg viewBox="0 0 100 100" className="w-18 h-18 text-slate-800" fill="currentColor">
                       {/* Corner marks */}
-                      <path d="M0,0 h24 v6 h-18 v18 h-6 z M76,0 h24 v24 h-6 v-18 h-18 z M0,76 h6 v18 h18 v6 h-24 z M76,100 h24 v-24 h-6 v18 h-18 z" fill="#00529B" opacity="0.15" />
+                      <path d="M0,0 h24 v6 h-18 v18 h-6 z M76,0 h24 v24 h-6 v-18 h-18 z M0,76 h6 v18 h18 v6 h-24 z M76,100 h24 v-24 h-6 v-18 h-18 z" fill="#00529B" opacity="0.15" />
                       
                       <rect x="10" y="10" width="20" height="20" fill="#0F172A" rx="2" />
                       <rect x="14" y="14" width="12" height="12" fill="#FFFFFF" rx="1.5" />
@@ -370,21 +343,22 @@ export default function LoginPage() {
 
       {/* ────────────────────────────────────────────────────────
          RIGHT PANE: BRAND MATCHED AUTHENTICATION CONSOLE
+         (Fixed top spacing with smooth scrollability)
          ──────────────────────────────────────────────────────── */}
-      <div className="col-span-1 lg:col-span-5 bg-slate-50/50 flex flex-col justify-start lg:justify-center items-center px-6 py-8 lg:p-12 relative z-10 h-auto lg:h-screen lg:overflow-y-auto">
+      <div className="col-span-1 lg:col-span-5 bg-slate-50/60 flex flex-col justify-start lg:justify-center items-center px-6 py-12 lg:py-16 relative z-10 h-auto lg:h-screen lg:overflow-y-auto">
         
         {/* Mobile Header Brand visibility logo */}
-        <div className="lg:hidden mb-6 relative z-10 mt-2">
+        <div className="lg:hidden mb-6 relative z-10">
           <Link href="/">
             <MyMobPayLogo className="w-40 h-auto" />
           </Link>
         </div>
 
-        {/* Authentication Card */}
-        <div className="w-full max-w-[460px] bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-[0_10px_35px_rgba(0,0,0,0.06),0_1px_4px_rgba(0,0,0,0.04)] animate-scale-up relative z-10 my-auto">
+        {/* Authentication Card (Framed with sufficient top and bottom margin) */}
+        <div className="w-full max-w-[460px] bg-white border border-slate-200/90 rounded-3xl p-8 sm:p-10 shadow-[0_10px_35px_rgba(0,0,0,0.06),0_1px_4px_rgba(0,0,0,0.04)] animate-scale-up relative z-10 my-auto">
           
           {/* Header Title */}
-          <div className="text-center mb-6">
+          <div className="text-center mb-7">
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
               {mode === 'signin' ? 'Welcome back' : 'Create an account'}
             </h1>
@@ -407,7 +381,7 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={(e) => { e.preventDefault(); handleAuth(mode); }} className="space-y-3.5">
+          <form onSubmit={(e) => { e.preventDefault(); handleAuth(mode); }} className="space-y-4">
             
             {/* Business / Brand Name (Signup only) */}
             {mode === 'signup' && (
@@ -465,15 +439,15 @@ export default function LoginPage() {
               </div>
             )}
 
-            {/* Email field with Inline Send OTP Button */}
+            {/* Email field with Smart "Send Link" Button appearing only when email format is valid */}
             <div>
               <div className="flex justify-between items-center mb-1.5">
                 <label className="block text-[10px] font-black text-slate-900 uppercase tracking-widest">
                   {mode === 'signup' ? 'Work Email Address' : 'Email Address'}
                 </label>
-                {mode === 'signup' && isEmailVerified && (
-                  <span className="text-emerald-600 text-[10px] font-extrabold flex items-center gap-1">
-                    <Check className="w-3 h-3 text-emerald-600 stroke-[3]" /> Verified
+                {mode === 'signup' && linkSent && (
+                  <span className="text-blue-600 text-[10px] font-extrabold flex items-center gap-1">
+                    <Check className="w-3 h-3 text-blue-600 stroke-[3]" /> Link Sent
                   </span>
                 )}
               </div>
@@ -485,64 +459,33 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => handleEmailChange(e.target.value)}
-                  className={`w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 ${mode === 'signup' ? 'pr-24' : 'pr-4'} text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm`}
+                  className={`w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 ${mode === 'signup' && isValidEmail(email) ? 'pr-28' : 'pr-4'} text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm`}
                   placeholder="email@example.com"
                 />
 
-                {/* Send OTP button next to / inside Email column */}
-                {mode === 'signup' && !isEmailVerified && (
+                {/* "Send Link" button only appears when user types valid email format */}
+                {mode === 'signup' && isValidEmail(email) && (
                   <button
                     type="button"
-                    onClick={handleSendEmailOtp}
-                    disabled={otpSending || resendCooldown > 0 || !email.includes('@')}
-                    className="absolute right-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-extrabold text-[10px] rounded-lg transition-all shadow-xs cursor-pointer flex items-center gap-1 select-none"
+                    onClick={handleSendEmailLink}
+                    disabled={linkSending || resendCooldown > 0}
+                    className="absolute right-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-extrabold text-[10px] rounded-lg transition-all shadow-xs cursor-pointer flex items-center gap-1 select-none animate-fade-in"
                   >
-                    {otpSending ? (
+                    {linkSending ? (
                       <Loader2 className="w-3 h-3 animate-spin" />
                     ) : resendCooldown > 0 ? (
                       `${resendCooldown}s`
-                    ) : otpSent ? (
-                      'Resend'
+                    ) : linkSent ? (
+                      'Resend Link'
                     ) : (
-                      'Send OTP'
+                      <>
+                        <Send className="w-3 h-3" />
+                        <span>Send Link</span>
+                      </>
                     )}
                   </button>
                 )}
               </div>
-
-              {/* Inline OTP input box appearing directly under Email section */}
-              {mode === 'signup' && otpSent && !isEmailVerified && (
-                <div className="mt-2.5 p-3.5 bg-blue-50/60 border border-blue-200/80 rounded-2xl space-y-2 animate-scale-up">
-                  <div className="flex justify-between items-center text-[10px] font-bold text-slate-700">
-                    <span className="flex items-center gap-1.5">
-                      <KeyRound className="w-3.5 h-3.5 text-blue-600" /> Enter 6-digit Email OTP
-                    </span>
-                    {resendCooldown > 0 && (
-                      <span className="text-blue-600 font-mono text-[9px] font-extrabold">Resend in {resendCooldown}s</span>
-                    )}
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      maxLength={6}
-                      inputMode="numeric"
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                      placeholder="123456"
-                      className="flex-1 bg-white border border-slate-300 rounded-xl py-2 px-3 text-xs font-mono font-black tracking-widest text-slate-800 placeholder-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 shadow-xs"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleVerifyInlineOtp}
-                      disabled={otpVerifying || otp.length !== 6}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold text-xs rounded-xl transition-all shadow-xs flex items-center gap-1 cursor-pointer shrink-0"
-                    >
-                      {otpVerifying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Verify'}
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Password field */}
@@ -584,7 +527,7 @@ export default function LoginPage() {
                   setMessage('');
                   setMode(mode === 'signin' ? 'signup' : 'signin');
                 }}
-                className="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl transition-all text-xs cursor-pointer"
+                className="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold py-3.5 px-4 rounded-xl transition-all text-xs cursor-pointer"
               >
                 {mode === 'signin' ? 'New here? Create an account' : 'Already have an account? Sign In'}
               </button>
@@ -600,7 +543,7 @@ export default function LoginPage() {
                 type="button"
                 onClick={handleGoogleLogin}
                 disabled={loading}
-                className="w-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-bold py-3 px-4 rounded-xl transition-all disabled:opacity-55 flex items-center justify-center gap-2.5 shadow-sm text-xs cursor-pointer"
+                className="w-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-bold py-3.5 px-4 rounded-xl transition-all disabled:opacity-55 flex items-center justify-center gap-2.5 shadow-sm text-xs cursor-pointer"
               >
                 <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
                   <g transform="matrix(1, 0, 0, 1, 0, 0)">
