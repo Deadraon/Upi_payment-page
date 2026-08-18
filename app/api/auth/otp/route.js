@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
 
 // In-memory OTP storage with timestamp expiry (10 minutes)
 const otpStore = new Map();
@@ -17,6 +16,8 @@ export async function POST(req) {
     }
 
     const cleanEmail = email.trim().toLowerCase();
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://kfsnpkpcojfypqmfskif.supabase.co';
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_uCdoAw2Gk9E5iVzGgKhQiQ_HPEF6wz_';
 
     // ──────────────────────────────────────────
     // 1. ACTION: SEND OTP
@@ -31,21 +32,35 @@ export async function POST(req) {
         attempts: 0,
       });
 
-      console.log(`[AUTH OTP] Dispatching OTP for ${cleanEmail}...`);
+      console.log(`[AUTH OTP] Triggering OTP email for ${cleanEmail}...`);
 
-      // Trigger Supabase OTP email dispatch via configured SMTP
-      const { data, error } = await supabase.auth.signInWithOtp({
-        email: cleanEmail,
-        options: {
-          shouldCreateUser: true,
-        },
-      });
+      let emailSent = false;
+      let errorDetail = null;
 
-      if (error) {
-        console.error('[AUTH OTP] Supabase signInWithOtp error:', error);
-        return NextResponse.json({
-          error: error.message || 'Failed to send OTP email.',
-        }, { status: 400 });
+      try {
+        const response = await fetch(`${supabaseUrl}/auth/v1/otp`, {
+          method: 'POST',
+          headers: {
+            'apikey': anonKey,
+            'Authorization': `Bearer ${anonKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            email: cleanEmail,
+            create_user: true
+          }),
+        });
+
+        if (response.ok) {
+          emailSent = true;
+        } else {
+          const errData = await response.json().catch(() => ({}));
+          errorDetail = errData.msg || errData.message || `HTTP ${response.status}`;
+          console.warn('[AUTH OTP] Supabase OTP response notice:', errorDetail);
+        }
+      } catch (fetchErr) {
+        console.warn('[AUTH OTP] Supabase direct fetch error:', fetchErr.message);
+        errorDetail = fetchErr.message;
       }
 
       return NextResponse.json({
@@ -66,22 +81,30 @@ export async function POST(req) {
       const cleanOtp = otp.trim();
       let isVerified = false;
 
-      // 1. Verify against Supabase Auth OTP
+      // 1. Try Supabase verify OTP endpoint
       try {
-        const { data, error } = await supabase.auth.verifyOtp({
-          email: cleanEmail,
-          token: cleanOtp,
-          type: 'email',
+        const verifyRes = await fetch(`${supabaseUrl}/auth/v1/verify`, {
+          method: 'POST',
+          headers: {
+            'apikey': anonKey,
+            'Authorization': `Bearer ${anonKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            email: cleanEmail,
+            token: cleanOtp,
+            type: 'email'
+          }),
         });
 
-        if (!error && (data?.user || data?.session)) {
+        if (verifyRes.ok) {
           isVerified = true;
         }
-      } catch (err) {
-        console.warn('[AUTH OTP] Supabase verify notice:', err.message);
+      } catch (verifyErr) {
+        console.warn('[AUTH OTP] Supabase verify error:', verifyErr.message);
       }
 
-      // 2. Verify against in-memory fallback store
+      // 2. Fallback: check stored OTP in memory
       const stored = otpStore.get(cleanEmail);
       if (!isVerified && stored) {
         if (Date.now() <= stored.expiresAt && stored.code === cleanOtp) {
@@ -99,16 +122,8 @@ export async function POST(req) {
         });
       }
 
-      if (stored) {
-        stored.attempts = (stored.attempts || 0) + 1;
-        if (stored.attempts > 5) {
-          otpStore.delete(cleanEmail);
-          return NextResponse.json({ error: 'Too many incorrect attempts. Please request a new OTP code.' }, { status: 400 });
-        }
-      }
-
       return NextResponse.json({
-        error: 'Invalid or expired OTP code. Please check your email and re-enter.'
+        error: 'Invalid or expired verification code. Please check and re-enter.'
       }, { status: 400 });
     }
 
