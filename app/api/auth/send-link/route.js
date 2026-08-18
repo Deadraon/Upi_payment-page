@@ -44,16 +44,14 @@ export async function POST(req) {
       }, { status: 400 });
     }
 
-    // If user exists, ensure merchant profile exists
-    if (existingUser) {
-      await supabaseAdmin.from('merchants').upsert({
-        id: existingUser.id,
-        business_name: businessName ? businessName.trim() : 'My Business',
-        upi_id: upiId ? upiId.trim() : 'pending@upi',
-        phone_number: cleanPhone || undefined,
-        subscription_status: 'active',
-        sandbox_mode: true,
-      }, { onConflict: 'id' });
+    // If user exists, only update fields that the user explicitly provided (no default names)
+    if (existingUser && (businessName?.trim() || upiId?.trim() || cleanPhone)) {
+      const updates = { id: existingUser.id };
+      if (businessName?.trim()) updates.business_name = businessName.trim();
+      if (upiId?.trim()) updates.upi_id = upiId.trim();
+      if (cleanPhone) updates.phone_number = cleanPhone;
+
+      await supabaseAdmin.from('merchants').upsert(updates, { onConflict: 'id' });
     }
 
     return NextResponse.json({
