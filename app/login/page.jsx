@@ -11,7 +11,7 @@ import {
 import Link from 'next/link';
 import InteractiveBackground from '@/components/InteractiveBackground';
 
-const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = '#0F172A' }) => (
+const MyMobPayLogo = ({ className = 'w-44 h-auto', textColor = '#FFFFFF' }) => (
   <svg viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
     <text x="2" y="42" letterSpacing="0">
       {/* MyMob */}
@@ -24,7 +24,7 @@ const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = '#0F172A' }) => (
 
 export default function LoginPage() {
   const router = useRouter();
-  const [mode, setMode] = useState('signup'); // 'signin' or 'signup'
+  const [mode, setMode] = useState('signin'); // 'signin' or 'signup'
   
   // Registration Inputs
   const [email, setEmail] = useState('');
@@ -164,7 +164,6 @@ export default function LoginPage() {
 
     try {
       if (action === 'signup') {
-        // Use our robust server-side registration endpoint
         const res = await fetch('/api/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -184,14 +183,10 @@ export default function LoginPage() {
         }
 
         // Seamlessly sign in client session
-        const { error: signInError } = await supabase.auth.signInWithPassword({
+        await supabase.auth.signInWithPassword({
           email: email.trim(),
           password: password,
         });
-
-        if (signInError) {
-          console.warn('Auto sign-in notice:', signInError);
-        }
 
         setMessage('Account created! Launching your merchant console...');
         setTimeout(() => router.push('/dashboard'), 800);
@@ -238,11 +233,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen lg:h-screen lg:overflow-hidden grid grid-cols-1 lg:grid-cols-12 bg-[#F1F5F9] font-sans text-slate-900 relative">
+    <div className="min-h-screen lg:h-screen lg:overflow-hidden grid grid-cols-1 lg:grid-cols-12 bg-[#F8FAFC] font-sans text-slate-900 relative">
       <InteractiveBackground />
       
       {/* ────────────────────────────────────────────────────────
-         LEFT PANE: STATIC PRODUCT HERO SHOWCASE (Desktop only)
+         LEFT PANE: STATIC HERO PRODUCT SHOWCASE (Desktop only)
          ──────────────────────────────────────────────────────── */}
       <div className="hidden lg:flex lg:col-span-7 bg-[#0B0F19] relative z-10 flex-col justify-between p-8 xl:p-12 h-screen overflow-hidden border-r border-slate-800/80 shrink-0">
         
@@ -288,7 +283,7 @@ export default function LoginPage() {
 
           {/* Interactive Bezel Frame containing payment mockup */}
           <div className="col-span-5 flex justify-end">
-            <div className="relative w-full max-w-[220px] xl:max-w-[240px] bg-slate-900 border-4 border-slate-800 rounded-[28px] shadow-2xl overflow-hidden aspect-[9/18] flex flex-col transition-transform duration-500 hover:scale-[1.03]">
+            <div className="relative w-full max-w-[210px] xl:max-w-[230px] bg-slate-900 border-4 border-slate-800 rounded-[28px] shadow-2xl overflow-hidden aspect-[9/18] flex flex-col transition-transform duration-500 hover:scale-[1.03]">
               
               {/* Speaker camera notch */}
               <div className="absolute top-0 inset-x-0 h-4 flex justify-center z-30">
@@ -305,7 +300,7 @@ export default function LoginPage() {
                   </div>
 
                   <div className="flex flex-col items-center pt-0.5">
-                    <MyMobPayLogo className="w-22 h-auto" textColor="#FFFFFF" />
+                    <MyMobPayLogo className="w-20 h-auto" textColor="#FFFFFF" />
                     <p className="text-[6px] text-slate-400 font-extrabold uppercase tracking-wider mt-0.5">Direct Bank Checkout</p>
                   </div>
 
@@ -320,13 +315,11 @@ export default function LoginPage() {
                     </div>
                   </div>
 
-                  {/* QR Vector preview with Animated Scanning Laser */}
+                  {/* QR Vector preview */}
                   <div className="bg-white border border-slate-200 rounded-xl p-2 shadow-sm flex flex-col items-center justify-center space-y-1.5 relative overflow-hidden group">
-                    
-                    {/* Laser Scanner Beam */}
                     <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-[#3395FF] to-transparent top-0 animate-laser" />
 
-                    <svg viewBox="0 0 100 100" className="w-18 h-18 text-slate-800" fill="currentColor">
+                    <svg viewBox="0 0 100 100" className="w-16 h-16 text-slate-800" fill="currentColor">
                       <path d="M0,0 h24 v6 h-18 v18 h-6 z M76,0 h24 v24 h-6 v-18 h-18 z M0,76 h6 v18 h18 v6 h-24 z M76,100 h24 v-24 h-6 v18 h-18 z" fill="#00529B" opacity="0.15" />
                       <rect x="10" y="10" width="20" height="20" fill="#0F172A" rx="2" />
                       <rect x="14" y="14" width="12" height="12" fill="#FFFFFF" rx="1.5" />
@@ -368,22 +361,22 @@ export default function LoginPage() {
       </div>
 
       {/* ────────────────────────────────────────────────────────
-         RIGHT PANE: SCROLLABLE AUTHENTICATION CONSOLE
+         RIGHT PANE: UNIFIED COMPACT AUTHENTICATION CARD
          ──────────────────────────────────────────────────────── */}
-      <div className="col-span-1 lg:col-span-5 bg-gradient-to-b from-[#F8FAFC] to-[#EEF2F6] flex flex-col justify-start lg:justify-center items-center px-4 sm:px-8 py-6 lg:py-8 relative z-10 h-auto lg:h-screen overflow-y-auto">
+      <div className="col-span-1 lg:col-span-5 bg-gradient-to-b from-[#F8FAFC] to-[#EDF2F7] flex flex-col justify-start lg:justify-center items-center px-4 sm:px-6 py-6 lg:py-6 relative z-10 h-auto lg:h-screen overflow-y-auto">
         
         {/* Mobile Header Brand visibility logo */}
-        <div className="lg:hidden mb-5 relative z-10 mt-4">
+        <div className="lg:hidden mb-4 relative z-10 mt-2">
           <Link href="/">
-            <MyMobPayLogo className="w-40 h-auto" />
+            <MyMobPayLogo className="w-36 h-auto" textColor="#0F172A" />
           </Link>
         </div>
 
-        {/* Authentication Card */}
-        <div className="w-full max-w-[460px] bg-white border border-[#E2E8F0] rounded-2xl p-6 sm:p-7 shadow-[0_8px_30px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)] relative z-10 my-auto">
+        {/* Single Unified Card for Both Sign In and Create Account */}
+        <div className="w-full max-w-[420px] bg-white border border-[#E2E8F0] rounded-2xl p-5 sm:p-6 shadow-[0_4px_25px_rgba(0,0,0,0.06)] relative z-10 my-auto transition-all">
           
-          {/* HIGH VISIBILITY DUAL-TAB SELECTOR AT TOP */}
-          <div className="bg-[#F1F5F9] p-1 rounded-xl border border-[#E2E8F0] flex gap-1 mb-5">
+          {/* COMPACT DUAL-TAB SELECTOR */}
+          <div className="bg-[#F1F5F9] p-1 rounded-xl border border-[#E2E8F0] flex gap-1 mb-4">
             <button
               type="button"
               onClick={() => {
@@ -391,10 +384,10 @@ export default function LoginPage() {
                 setMessage('');
                 setMode('signin');
               }}
-              className={`flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-extrabold transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition-all duration-150 flex items-center justify-center gap-1.5 cursor-pointer ${
                 mode === 'signin'
                   ? 'bg-white text-[#2563EB] shadow-xs border border-[#CBD5E1]'
-                  : 'text-[#475569] hover:text-[#0F172A] hover:bg-white/60'
+                  : 'text-[#64748B] hover:text-[#0F172A] hover:bg-white/50'
               }`}
             >
               <LogIn className={`w-3.5 h-3.5 ${mode === 'signin' ? 'text-[#2563EB]' : 'text-[#64748B]'}`} />
@@ -408,10 +401,10 @@ export default function LoginPage() {
                 setMessage('');
                 setMode('signup');
               }}
-              className={`flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-extrabold transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition-all duration-150 flex items-center justify-center gap-1.5 cursor-pointer ${
                 mode === 'signup'
                   ? 'bg-[#2563EB] text-white shadow-xs'
-                  : 'text-[#475569] hover:text-[#0F172A] hover:bg-white/60'
+                  : 'text-[#64748B] hover:text-[#0F172A] hover:bg-white/50'
               }`}
             >
               <Sparkles className={`w-3.5 h-3.5 ${mode === 'signup' ? 'text-white' : 'text-[#2563EB]'}`} />
@@ -420,48 +413,48 @@ export default function LoginPage() {
           </div>
 
           {/* Header Title */}
-          <div className="text-left mb-4">
-            <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight">
-              {mode === 'signin' ? 'Welcome back' : 'Create Merchant Account'}
+          <div className="text-left mb-3.5">
+            <h1 className="text-lg sm:text-xl font-extrabold text-[#0F172A] tracking-tight">
+              {mode === 'signin' ? 'Sign in to Console' : 'Create Merchant Account'}
             </h1>
-            <p className="text-xs text-[#64748B] font-medium mt-0.5">
+            <p className="text-[11px] text-[#64748B] font-medium mt-0.5">
               {mode === 'signin' 
-                ? 'Sign in to access your dashboard, payments & API keys' 
-                : 'Start accepting instant 0% fee UPI payments in minutes'}
+                ? 'Enter your credentials to access your merchant dashboard' 
+                : 'Start accepting 0% fee direct UPI payments'}
             </p>
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-xl text-xs font-bold mb-4 flex items-start gap-2">
+            <div className="bg-red-50 border border-red-200 text-red-700 p-2.5 rounded-xl text-[11px] font-bold mb-3 flex items-start gap-2">
               <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
               <div className="flex-1 leading-normal">{error}</div>
             </div>
           )}
 
           {message && (
-            <div className="bg-emerald-50 border border-emerald-300 text-emerald-800 p-3 rounded-xl text-xs font-bold mb-4 flex items-center gap-2">
+            <div className="bg-emerald-50 border border-emerald-300 text-emerald-800 p-2.5 rounded-xl text-[11px] font-bold mb-3 flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
               <span>{message}</span>
             </div>
           )}
 
-          <form onSubmit={(e) => { e.preventDefault(); handleAuth(mode); }} className="space-y-3">
+          <form onSubmit={(e) => { e.preventDefault(); handleAuth(mode); }} className="space-y-2.5">
             
             {/* Business / Brand Name (Signup only) */}
             {mode === 'signup' && (
               <div>
-                <label className="block text-[11px] font-extrabold text-[#1E293B] uppercase tracking-wider mb-1">
+                <label className="block text-[10px] font-bold text-[#334155] uppercase tracking-wider mb-1">
                   Business / Brand Name <span className="text-[#2563EB]">*</span>
                 </label>
                 <div className="relative">
-                  <Building2 className="absolute left-3.5 top-3 w-4 h-4 text-[#64748B]" />
+                  <Building2 className="absolute left-3 top-2.5 w-3.5 h-3.5 text-[#64748B]" />
                   <input
                     type="text"
                     required
                     value={businessName}
                     onChange={(e) => setBusinessName(e.target.value)}
-                    style={{ backgroundColor: '#ffffff', color: '#0f172a' }}
-                    className="w-full !bg-white border border-[#CBD5E1] rounded-xl py-2.5 pl-10 pr-3.5 text-xs font-semibold !text-[#0F172A] placeholder:text-[#94A3B8] focus:!bg-white focus:outline-none focus:border-[#2563EB] focus:ring-4 focus:ring-[#2563EB]/15 transition-all shadow-xs"
+                    style={{ backgroundColor: '#ffffff', color: '#0f172a', borderColor: '#cbd5e1' }}
+                    className="w-full !bg-white border border-[#CBD5E1] rounded-lg py-2 pl-9 pr-3 text-xs font-medium !text-[#0F172A] placeholder:text-[#94A3B8] focus:!bg-white focus:outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15 transition-all shadow-xs"
                     placeholder="e.g. Acme Tech Studio"
                   />
                 </div>
@@ -471,19 +464,19 @@ export default function LoginPage() {
             {/* Receiving UPI ID (Signup only) */}
             {mode === 'signup' && (
               <div>
-                <label className="block text-[11px] font-extrabold text-[#1E293B] uppercase tracking-wider mb-1">
+                <label className="block text-[10px] font-bold text-[#334155] uppercase tracking-wider mb-1">
                   Receiving UPI ID (VPA) <span className="text-[#2563EB]">*</span>
                 </label>
                 <div className="relative">
-                  <QrCode className="absolute left-3.5 top-3 w-4 h-4 text-[#64748B]" />
+                  <QrCode className="absolute left-3 top-2.5 w-3.5 h-3.5 text-[#64748B]" />
                   <input
                     type="text"
                     required
                     value={upiId}
                     onChange={(e) => setUpiId(e.target.value)}
-                    style={{ backgroundColor: '#ffffff', color: '#0f172a' }}
-                    className="w-full !bg-white border border-[#CBD5E1] rounded-xl py-2.5 pl-10 pr-3.5 text-xs font-semibold !text-[#0F172A] placeholder:text-[#94A3B8] focus:!bg-white focus:outline-none focus:border-[#2563EB] focus:ring-4 focus:ring-[#2563EB]/15 transition-all shadow-xs"
-                    placeholder="e.g. yourname@okhdfcbank or merchant@upi"
+                    style={{ backgroundColor: '#ffffff', color: '#0f172a', borderColor: '#cbd5e1' }}
+                    className="w-full !bg-white border border-[#CBD5E1] rounded-lg py-2 pl-9 pr-3 text-xs font-medium !text-[#0F172A] placeholder:text-[#94A3B8] focus:!bg-white focus:outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15 transition-all shadow-xs"
+                    placeholder="e.g. merchant@okhdfcbank"
                   />
                 </div>
               </div>
@@ -492,11 +485,11 @@ export default function LoginPage() {
             {/* Phone Number (Signup only) */}
             {mode === 'signup' && (
               <div>
-                <label className="block text-[11px] font-extrabold text-[#1E293B] uppercase tracking-wider mb-1">
+                <label className="block text-[10px] font-bold text-[#334155] uppercase tracking-wider mb-1">
                   Mobile Phone Number <span className="text-[#2563EB]">*</span>
                 </label>
                 <div className="relative">
-                  <Phone className="absolute left-3.5 top-3 w-4 h-4 text-[#64748B]" />
+                  <Phone className="absolute left-3 top-2.5 w-3.5 h-3.5 text-[#64748B]" />
                   <input
                     type="tel"
                     required
@@ -504,56 +497,53 @@ export default function LoginPage() {
                     inputMode="numeric"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                    style={{ backgroundColor: '#ffffff', color: '#0f172a' }}
-                    className="w-full !bg-white border border-[#CBD5E1] rounded-xl py-2.5 pl-10 pr-3.5 text-xs font-semibold !text-[#0F172A] placeholder:text-[#94A3B8] focus:!bg-white focus:outline-none focus:border-[#2563EB] focus:ring-4 focus:ring-[#2563EB]/15 transition-all shadow-xs"
+                    style={{ backgroundColor: '#ffffff', color: '#0f172a', borderColor: '#cbd5e1' }}
+                    className="w-full !bg-white border border-[#CBD5E1] rounded-lg py-2 pl-9 pr-3 text-xs font-medium !text-[#0F172A] placeholder:text-[#94A3B8] focus:!bg-white focus:outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15 transition-all shadow-xs"
                     placeholder="10-digit mobile number"
                   />
                 </div>
               </div>
             )}
 
-            {/* Email field with Inline Send OTP Button */}
+            {/* Email field */}
             <div>
               <div className="flex justify-between items-center mb-1">
-                <label className="block text-[11px] font-extrabold text-[#1E293B] uppercase tracking-wider">
+                <label className="block text-[10px] font-bold text-[#334155] uppercase tracking-wider">
                   {mode === 'signup' ? 'Work Email Address' : 'Email Address'} <span className="text-[#2563EB]">*</span>
                 </label>
                 {mode === 'signup' && isEmailVerified && (
-                  <span className="text-emerald-700 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-full text-[10px] font-extrabold flex items-center gap-1">
+                  <span className="text-emerald-700 bg-emerald-100 border border-emerald-300 px-1.5 py-0.2 rounded-full text-[9px] font-bold flex items-center gap-0.5">
                     <Check className="w-3 h-3 text-emerald-700 stroke-[3]" /> Verified
                   </span>
                 )}
               </div>
               
               <div className="relative flex items-center">
-                <Mail className="absolute left-3.5 top-3 w-4 h-4 text-[#64748B]" />
+                <Mail className="absolute left-3 top-2.5 w-3.5 h-3.5 text-[#64748B]" />
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => handleEmailChange(e.target.value)}
-                  style={{ backgroundColor: '#ffffff', color: '#0f172a' }}
-                  className={`w-full !bg-white border border-[#CBD5E1] rounded-xl py-2.5 pl-10 ${mode === 'signup' ? 'pr-28' : 'pr-3.5'} text-xs font-semibold !text-[#0F172A] placeholder:text-[#94A3B8] focus:!bg-white focus:outline-none focus:border-[#2563EB] focus:ring-4 focus:ring-[#2563EB]/15 transition-all shadow-xs`}
+                  style={{ backgroundColor: '#ffffff', color: '#0f172a', borderColor: '#cbd5e1' }}
+                  className={`w-full !bg-white border border-[#CBD5E1] rounded-lg py-2 pl-9 ${mode === 'signup' ? 'pr-24' : 'pr-3'} text-xs font-medium !text-[#0F172A] placeholder:text-[#94A3B8] focus:!bg-white focus:outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15 transition-all shadow-xs`}
                   placeholder="name@company.com"
                 />
 
-                {/* Send OTP button next to / inside Email column */}
+                {/* Send OTP button in Signup */}
                 {mode === 'signup' && !isEmailVerified && (
                   <button
                     type="button"
                     onClick={handleSendEmailOtp}
                     disabled={otpSending || resendCooldown > 0 || !email.includes('@')}
-                    className="absolute right-1.5 px-2.5 py-1.5 bg-[#2563EB] hover:bg-[#1D4ED8] disabled:bg-[#E2E8F0] disabled:text-[#94A3B8] text-white font-extrabold text-[10px] rounded-lg transition-all shadow-xs cursor-pointer flex items-center gap-1 select-none"
+                    className="absolute right-1 px-2 py-1 bg-[#2563EB] hover:bg-[#1D4ED8] disabled:bg-[#E2E8F0] disabled:text-[#94A3B8] text-white font-bold text-[10px] rounded-md transition-all shadow-xs cursor-pointer flex items-center gap-1 select-none"
                   >
                     {otpSending ? (
-                      <>
-                        <Loader2 className="w-3 h-3 animate-spin" />
-                        <span>Sending...</span>
-                      </>
+                      <Loader2 className="w-3 h-3 animate-spin" />
                     ) : resendCooldown > 0 ? (
-                      `Resend (${resendCooldown}s)`
+                      `${resendCooldown}s`
                     ) : otpSent ? (
-                      'Resend Code'
+                      'Resend'
                     ) : (
                       'Send OTP'
                     )}
@@ -563,17 +553,17 @@ export default function LoginPage() {
 
               {/* Inline OTP input box appearing directly under Email section */}
               {mode === 'signup' && otpSent && !isEmailVerified && (
-                <div className="mt-2.5 p-3 bg-blue-50/90 border border-blue-200 rounded-xl space-y-2 animate-scale-up shadow-xs">
-                  <div className="flex justify-between items-center text-[11px] font-extrabold text-[#1E293B]">
-                    <span className="flex items-center gap-1.5">
-                      <KeyRound className="w-3.5 h-3.5 text-[#2563EB]" /> Enter 6-digit Email OTP
+                <div className="mt-2 p-2.5 bg-blue-50/90 border border-blue-200 rounded-xl space-y-1.5 animate-scale-up shadow-xs">
+                  <div className="flex justify-between items-center text-[10px] font-bold text-[#1E293B]">
+                    <span className="flex items-center gap-1">
+                      <KeyRound className="w-3 h-3 text-[#2563EB]" /> Enter 6-digit OTP
                     </span>
                     {resendCooldown > 0 && (
-                      <span className="text-[#2563EB] font-mono text-[10px] font-extrabold">Resend in {resendCooldown}s</span>
+                      <span className="text-[#2563EB] font-mono text-[9px] font-bold">Resend in {resendCooldown}s</span>
                     )}
                   </div>
                   
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
                     <input
                       type="text"
                       maxLength={6}
@@ -581,70 +571,67 @@ export default function LoginPage() {
                       value={otp}
                       onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
                       placeholder="123456"
-                      style={{ backgroundColor: '#ffffff', color: '#0f172a' }}
-                      className="flex-1 !bg-white border border-[#CBD5E1] rounded-lg py-2 px-3 text-xs font-mono font-black tracking-widest !text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 shadow-xs"
+                      style={{ backgroundColor: '#ffffff', color: '#0f172a', borderColor: '#cbd5e1' }}
+                      className="flex-1 !bg-white border border-[#CBD5E1] rounded-lg py-1.5 px-2.5 text-xs font-mono font-bold tracking-widest !text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 shadow-xs"
                     />
                     <button
                       type="button"
                       onClick={handleVerifyInlineOtp}
                       disabled={otpVerifying || otp.length < 4}
-                      className="px-3.5 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] disabled:bg-[#CBD5E1] disabled:text-[#64748B] text-white font-extrabold text-xs rounded-lg transition-all shadow-xs flex items-center gap-1 cursor-pointer shrink-0"
+                      className="px-3 py-1.5 bg-[#2563EB] hover:bg-[#1D4ED8] disabled:bg-[#CBD5E1] disabled:text-[#64748B] text-white font-bold text-xs rounded-lg transition-all shadow-xs flex items-center gap-1 cursor-pointer shrink-0"
                     >
-                      {otpVerifying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Verify Code'}
+                      {otpVerifying ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Verify'}
                     </button>
                   </div>
-                  <p className="text-[10px] text-[#64748B] font-medium">
-                    Enter the code sent to your email. You can also proceed directly by clicking Create Account below.
-                  </p>
                 </div>
               )}
             </div>
 
             {/* Password field */}
             <div>
-              <label className="block text-[11px] font-extrabold text-[#1E293B] uppercase tracking-wider mb-1">
+              <label className="block text-[10px] font-bold text-[#334155] uppercase tracking-wider mb-1">
                 {mode === 'signup' ? 'Create Password (min 6 chars)' : 'Password'} <span className="text-[#2563EB]">*</span>
               </label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-3 w-4 h-4 text-[#64748B]" />
+                <Lock className="absolute left-3 top-2.5 w-3.5 h-3.5 text-[#64748B]" />
                 <input
                   type="password"
                   required
                   minLength={6}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  style={{ backgroundColor: '#ffffff', color: '#0f172a' }}
-                  className="w-full !bg-white border border-[#CBD5E1] rounded-xl py-2.5 pl-10 pr-3.5 text-xs font-semibold !text-[#0F172A] placeholder:text-[#94A3B8] focus:!bg-white focus:outline-none focus:border-[#2563EB] focus:ring-4 focus:ring-[#2563EB]/15 transition-all shadow-xs"
+                  style={{ backgroundColor: '#ffffff', color: '#0f172a', borderColor: '#cbd5e1' }}
+                  className="w-full !bg-white border border-[#CBD5E1] rounded-lg py-2 pl-9 pr-3 text-xs font-medium !text-[#0F172A] placeholder:text-[#94A3B8] focus:!bg-white focus:outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15 transition-all shadow-xs"
                   placeholder="••••••••"
                 />
               </div>
             </div>
 
-            <div className="pt-2 flex flex-col gap-2.5">
+            <div className="pt-1.5 flex flex-col gap-2">
               
-              {/* Primary Action CTA (Sign In / Create Account) */}
+              {/* Primary Action CTA */}
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-[#2563EB] to-[#1D4ED8] hover:from-[#1D4ED8] hover:to-[#1E40AF] text-white font-black py-3.5 px-5 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 hover:shadow-blue-500/30 active:scale-[0.99] text-xs sm:text-sm cursor-pointer"
+                className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold py-2.5 px-4 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.99] text-xs cursor-pointer"
               >
                 {loading ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin text-white" />
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
                     <span>Processing...</span>
                   </>
                 ) : (
                   <>
                     <span>{mode === 'signin' ? 'Sign In to Console' : 'Create Account'}</span>
-                    <ArrowRight className="w-4 h-4 text-white" />
+                    <ArrowRight className="w-3.5 h-3.5 text-white" />
                   </>
                 )}
               </button>
               
-              {/* Bottom Quick Switch Mode Text */}
+              {/* Quick Switch */}
               <div className="text-center">
-                <p className="text-[11px] text-[#64748B] font-bold">
-                  {mode === 'signin' ? "Don't have a merchant account? " : "Already have an account? "}
+                <p className="text-[11px] text-[#64748B] font-medium">
+                  {mode === 'signin' ? "Don't have an account? " : "Already have an account? "}
                   <button
                     type="button"
                     onClick={() => {
@@ -652,16 +639,16 @@ export default function LoginPage() {
                       setMessage('');
                       setMode(mode === 'signin' ? 'signup' : 'signin');
                     }}
-                    className="text-[#2563EB] hover:text-[#1D4ED8] hover:underline font-extrabold cursor-pointer ml-0.5"
+                    className="text-[#2563EB] hover:text-[#1D4ED8] hover:underline font-bold cursor-pointer"
                   >
-                    {mode === 'signin' ? 'Create one here' : 'Sign in here'}
+                    {mode === 'signin' ? 'Create one' : 'Sign in'}
                   </button>
                 </p>
               </div>
 
-              <div className="relative my-1 flex items-center">
+              <div className="relative my-0.5 flex items-center">
                 <div className="flex-grow border-t border-[#E2E8F0]"></div>
-                <span className="flex-shrink mx-3 text-[#94A3B8] text-[9px] font-extrabold uppercase tracking-widest">or continue with</span>
+                <span className="flex-shrink mx-2 text-[#94A3B8] text-[9px] font-bold uppercase tracking-wider">or</span>
                 <div className="flex-grow border-t border-[#E2E8F0]"></div>
               </div>
 
@@ -670,9 +657,9 @@ export default function LoginPage() {
                 type="button"
                 onClick={handleGoogleLogin}
                 disabled={loading}
-                className="w-full bg-white hover:bg-[#F8FAFC] border border-[#CBD5E1] text-[#1E293B] font-extrabold py-2.5 px-4 rounded-xl transition-all disabled:opacity-55 flex items-center justify-center gap-2.5 shadow-xs text-xs cursor-pointer"
+                className="w-full bg-white hover:bg-[#F8FAFC] border border-[#CBD5E1] text-[#1E293B] font-bold py-2 px-3 rounded-xl transition-all disabled:opacity-55 flex items-center justify-center gap-2 shadow-xs text-xs cursor-pointer"
               >
-                <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+                <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
                   <g transform="matrix(1, 0, 0, 1, 0, 0)">
                     <path d="M21.35,11.1H12v2.7h5.38c-0.24,1.28 -0.96,2.37 -2.05,3.1v2.57h3.32c1.94,-1.78 3.05,-4.4 3.05,-7.47c0,-0.3 -0.03,-0.6 -0.08,-0.9Z" fill="#4285F4" />
                     <path d="M12,20.7c2.35,0 4.32,-0.78 5.76,-2.13l-3.32,-2.57c-0.92,0.62 -2.1,0.98 -3.44,0.98c-2.28,0 -4.21,-1.54 -4.9,-3.61H2.68v2.66c1.47,2.92 4.5,4.67 7.92,4.67Z" fill="#34A853" />
@@ -688,7 +675,7 @@ export default function LoginPage() {
 
         </div>
 
-        <p className="lg:hidden mt-4 text-[10px] text-[#94A3B8] font-semibold text-center mb-4">
+        <p className="lg:hidden mt-3 text-[10px] text-[#94A3B8] font-medium text-center">
           © 2026 MyMobPay · B2B Payments Gateway
         </p>
 
