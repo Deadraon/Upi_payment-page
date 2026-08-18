@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { 
   Loader2, Lock, Mail, ArrowRight, ShieldCheck, 
-  CheckCircle2, Building2, QrCode, Phone, Check, Send
+  CheckCircle2, Building2, QrCode, Phone, Check, KeyRound, RefreshCw
 } from 'lucide-react';
 import Link from 'next/link';
 import InteractiveBackground from '@/components/InteractiveBackground';
@@ -32,9 +32,12 @@ export default function LoginPage() {
   const [upiId, setUpiId] = useState('');
   const [phone, setPhone] = useState('');
 
-  // Email link verification states
-  const [linkSent, setLinkSent] = useState(false);
-  const [linkSending, setLinkSending] = useState(false);
+  // OTP Verification States
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpVerifying, setOtpVerifying] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
 
   const [loading, setLoading] = useState(false);
@@ -53,34 +56,34 @@ export default function LoginPage() {
     return () => clearInterval(timer);
   }, [resendCooldown]);
 
-  // Reset link state if email changes
+  // Reset OTP state when email changes
   const handleEmailChange = (newEmail) => {
     setEmail(newEmail);
-    if (linkSent) {
-      setLinkSent(false);
+    if (otpSent || otpVerified) {
+      setOtpSent(false);
+      setOtpVerified(false);
+      setOtp('');
     }
   };
 
-  // Send verification link handler (triggered when email format is valid)
-  const handleSendEmailLink = async () => {
+  // Send OTP handler
+  const handleSendOtp = async () => {
     if (!isValidEmail(email)) {
-      setError('Please enter a valid email address (e.g. name@domain.com).');
+      setError('Please enter a valid work email address.');
       return;
     }
 
-    setLinkSending(true);
+    setOtpSending(true);
     setError('');
     setMessage('');
 
     try {
-      const res = await fetch('/api/auth/send-link', {
+      const res = await fetch('/api/auth/otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          action: 'send',
           email: email.trim(),
-          businessName: businessName.trim(),
-          upiId: upiId.trim(),
-          phone: phone.trim(),
         }),
       });
 
@@ -88,22 +91,64 @@ export default function LoginPage() {
       try {
         data = await res.json();
       } catch (jsonErr) {
-        throw new Error(`Server returned status ${res.status} (${res.statusText || 'No response data'})`);
+        throw new Error(`Server returned status ${res.status}`);
       }
 
       if (!res.ok || data.error) {
-        throw new Error(data.error || `Failed to send link (HTTP ${res.status})`);
+        throw new Error(data.error || 'Failed to send OTP code.');
       }
 
-      setLinkSent(true);
+      setOtpSent(true);
       setResendCooldown(60);
-      setMessage(data.message || `Verification link sent! Please check your email at ${email.trim()}`);
+      setMessage(data.message || `OTP sent to ${email.trim()}! Please check your inbox.`);
     } catch (err) {
-      console.error('Send link error:', err);
-      const exactMessage = err?.message || err?.toString() || 'Failed to send verification link.';
-      setError(exactMessage);
+      console.error('Send OTP error:', err);
+      setError(err.message || 'Failed to send OTP code. Please try again.');
     } finally {
-      setLinkSending(false);
+      setOtpSending(false);
+    }
+  };
+
+  // Verify OTP handler
+  const handleVerifyOtp = async () => {
+    if (!otp.trim() || otp.trim().length < 4) {
+      setError('Please enter the 6-digit verification code.');
+      return;
+    }
+
+    setOtpVerifying(true);
+    setError('');
+    setMessage('');
+
+    try {
+      const res = await fetch('/api/auth/otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'verify',
+          email: email.trim(),
+          otp: otp.trim(),
+        }),
+      });
+
+      let data = {};
+      try {
+        data = await res.json();
+      } catch (jsonErr) {
+        throw new Error(`Server returned status ${res.status}`);
+      }
+
+      if (!res.ok || data.error) {
+        throw new Error(data.error || 'Invalid OTP verification code.');
+      }
+
+      setOtpVerified(true);
+      setMessage('Email verified successfully! You can now create your account.');
+    } catch (err) {
+      console.error('Verify OTP error:', err);
+      setError(err.message || 'Invalid or expired OTP code.');
+    } finally {
+      setOtpVerifying(false);
     }
   };
 
@@ -126,6 +171,10 @@ export default function LoginPage() {
       const cleanPhone = phone.trim().replace(/\D/g, '');
       if (cleanPhone.length !== 10) {
         setError('Please enter a valid 10-digit mobile phone number.');
+        return;
+      }
+      if (!otpVerified) {
+        setError('Please send and verify the OTP code sent to your email before continuing.');
         return;
       }
     }
@@ -157,7 +206,7 @@ export default function LoginPage() {
         try {
           data = await res.json();
         } catch (jsonErr) {
-          throw new Error(`Server returned status ${res.status} (${res.statusText || 'No response data'})`);
+          throw new Error(`Server returned status ${res.status} (${res.statusText || 'No status text'})`);
         }
 
         if (!res.ok || data.error) {
@@ -171,10 +220,10 @@ export default function LoginPage() {
         });
 
         if (signInError) {
-          setMessage('Account created! Please sign in with your password.');
+          setMessage('Account created! Please sign in with your credentials.');
           setMode('signin');
         } else {
-          setMessage('Account created successfully! Launching your merchant dashboard...');
+          setMessage('Account created! Launching your merchant console...');
           setTimeout(() => router.push('/dashboard'), 800);
         }
 
@@ -457,15 +506,15 @@ export default function LoginPage() {
                 </div>
               )}
 
-              {/* Work Email Address with Send Link button when valid */}
+              {/* Work Email Address with Send OTP button */}
               <div>
                 <div className="flex justify-between items-center mb-1.5">
                   <label className="block text-[10px] font-black text-slate-900 uppercase tracking-widest">
                     {mode === 'signup' ? 'Work Email Address' : 'Email Address'}
                   </label>
-                  {mode === 'signup' && linkSent && (
-                    <span className="text-blue-600 text-[10px] font-extrabold flex items-center gap-1">
-                      <Check className="w-3 h-3 text-blue-600 stroke-[3]" /> Link Sent
+                  {mode === 'signup' && otpVerified && (
+                    <span className="text-emerald-600 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+                      <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[3]" /> Verified ✓
                     </span>
                   )}
                 </div>
@@ -477,34 +526,70 @@ export default function LoginPage() {
                     required
                     value={email}
                     onChange={(e) => handleEmailChange(e.target.value)}
-                    className={`w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 ${mode === 'signup' && isValidEmail(email) ? 'pr-28' : 'pr-4'} text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm`}
+                    disabled={mode === 'signup' && otpVerified}
+                    className={`w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 ${mode === 'signup' && isValidEmail(email) && !otpVerified ? 'pr-28' : 'pr-4'} text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm disabled:bg-slate-50 disabled:text-slate-500`}
                     placeholder="email@example.com"
                   />
 
-                  {/* "Send Link" button only appears when user types valid email format */}
-                  {mode === 'signup' && isValidEmail(email) && (
+                  {/* "Send OTP" button only appears when user types valid email format and not yet verified */}
+                  {mode === 'signup' && isValidEmail(email) && !otpVerified && (
                     <button
                       type="button"
-                      onClick={handleSendEmailLink}
-                      disabled={linkSending || resendCooldown > 0}
+                      onClick={handleSendOtp}
+                      disabled={otpSending || resendCooldown > 0}
                       className="absolute right-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-extrabold text-[10px] rounded-lg transition-all shadow-xs cursor-pointer flex items-center gap-1 select-none animate-fade-in"
                     >
-                      {linkSending ? (
+                      {otpSending ? (
                         <Loader2 className="w-3 h-3 animate-spin" />
                       ) : resendCooldown > 0 ? (
                         `${resendCooldown}s`
-                      ) : linkSent ? (
-                        'Resend Link'
-                      ) : (
+                      ) : otpSent ? (
                         <>
-                          <Send className="w-3 h-3" />
-                          <span>Send Link</span>
+                          <RefreshCw className="w-2.5 h-2.5" />
+                          <span>Resend OTP</span>
                         </>
+                      ) : (
+                        'Send OTP'
                       )}
                     </button>
                   )}
                 </div>
               </div>
+
+              {/* OTP Code Entry Section (Signup only, appears after OTP is sent and not yet verified) */}
+              {mode === 'signup' && otpSent && !otpVerified && (
+                <div className="animate-fade-in bg-blue-50/50 border border-blue-100 rounded-2xl p-3.5 space-y-2">
+                  <div className="flex justify-between items-center">
+                    <label className="block text-[10px] font-black text-blue-900 uppercase tracking-widest">
+                      Enter 6-Digit OTP Code
+                    </label>
+                    <span className="text-[10px] font-semibold text-slate-500">Check inbox / spam</span>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <KeyRound className="absolute left-3.5 top-3.5 w-4 h-4 text-blue-400" />
+                      <input
+                        type="text"
+                        maxLength={6}
+                        inputMode="numeric"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                        className="w-full bg-white border border-blue-200 rounded-xl py-2.5 pl-10 pr-3 text-xs font-black tracking-widest text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                        placeholder="••••••"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleVerifyOtp}
+                      disabled={otpVerifying || otp.length < 4}
+                      className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-extrabold text-xs rounded-xl transition-all shadow-xs cursor-pointer flex items-center justify-center gap-1"
+                    >
+                      {otpVerifying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Verify'}
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Password */}
               <div>
