@@ -6,12 +6,12 @@ import { supabase } from '@/lib/supabase';
 import { 
   Loader2, Lock, Mail, ArrowRight, ShieldCheck, 
   CheckCircle2, Building2, QrCode, Phone, KeyRound, 
-  Check, UserPlus, LogIn, Sparkles, AlertCircle
+  Check, LogIn, Sparkles, AlertCircle
 } from 'lucide-react';
 import Link from 'next/link';
 import InteractiveBackground from '@/components/InteractiveBackground';
 
-const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = 'var(--text-primary)' }) => (
+const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = '#0F172A' }) => (
   <svg viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
     <text x="2" y="42" letterSpacing="0">
       {/* MyMob */}
@@ -24,7 +24,7 @@ const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = 'var(--text-prima
 
 export default function LoginPage() {
   const router = useRouter();
-  const [mode, setMode] = useState('signup'); // Default to 'signup' or 'signin'
+  const [mode, setMode] = useState('signup'); // 'signin' or 'signup'
   
   // Registration Inputs
   const [email, setEmail] = useState('');
@@ -238,57 +238,57 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-slate-100 font-sans text-slate-900 overflow-hidden relative">
+    <div className="min-h-screen lg:h-screen lg:overflow-hidden grid grid-cols-1 lg:grid-cols-12 bg-[#F1F5F9] font-sans text-slate-900 relative">
       <InteractiveBackground />
       
       {/* ────────────────────────────────────────────────────────
-         LEFT PANE: DYNAMIC PRODUCT HERO SHOWCASE (Desktop only)
+         LEFT PANE: STATIC PRODUCT HERO SHOWCASE (Desktop only)
          ──────────────────────────────────────────────────────── */}
-      <div className="hidden lg:flex lg:col-span-7 bg-[#0B0F19] relative z-10 flex-col justify-between p-12 overflow-hidden border-r border-slate-800/80">
+      <div className="hidden lg:flex lg:col-span-7 bg-[#0B0F19] relative z-10 flex-col justify-between p-8 xl:p-12 h-screen overflow-hidden border-r border-slate-800/80 shrink-0">
         
         {/* Deep Tech Grid Line Overlay */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:3.5rem_3.5rem] opacity-25 pointer-events-none" />
 
         {/* Logo Wordmark header */}
-        <Link href="/" className="inline-block relative z-10">
-          <MyMobPayLogo className="w-44 h-auto" textColor="#FFFFFF" />
+        <Link href="/" className="inline-block relative z-10 shrink-0">
+          <MyMobPayLogo className="w-40 xl:w-44 h-auto" textColor="#FFFFFF" />
         </Link>
 
         {/* Core Value Copy and Vector Terminal Simulator alignment */}
-        <div className="grid grid-cols-12 gap-8 items-center relative z-10 my-auto">
+        <div className="grid grid-cols-12 gap-6 xl:gap-8 items-center relative z-10 my-auto">
           
-          <div className="col-span-7 space-y-6">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-blue-900/60 border border-blue-700/80 rounded-full text-xs font-extrabold text-blue-300 uppercase tracking-wider shadow-sm">
+          <div className="col-span-7 space-y-5">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-900/50 border border-blue-700/70 rounded-full text-[11px] font-extrabold text-blue-300 uppercase tracking-wider shadow-sm">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Direct P2P Settlements
             </div>
             
-            <h2 className="text-4xl font-black text-white leading-tight tracking-tight drop-shadow-sm">
+            <h2 className="text-3xl xl:text-4xl font-black text-white leading-tight tracking-tight drop-shadow-sm">
               Built for founders defying all odds
             </h2>
             
-            <p className="text-sm text-slate-300 leading-relaxed font-medium">
+            <p className="text-xs xl:text-sm text-slate-300 leading-relaxed font-medium">
               Join thousands of businesses managing billing programmatically with flat-rate subscriptions and 0% gateway cuts.
             </p>
 
-            <div className="pt-2 space-y-3.5 font-semibold text-xs text-white">
+            <div className="pt-1 space-y-3 font-semibold text-xs text-white">
               <p className="flex items-center gap-2.5">
-                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-                <span className="text-slate-100 text-sm font-medium">Zero transaction cuts on monthly volumes</span>
+                <CheckCircle2 className="w-4.5 h-4.5 text-emerald-400 shrink-0" />
+                <span className="text-slate-100 text-xs xl:text-sm font-medium">Zero transaction cuts on monthly volumes</span>
               </p>
               <p className="flex items-center gap-2.5">
-                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-                <span className="text-slate-100 text-sm font-medium">HMAC-SHA256 signed developer webhooks</span>
+                <CheckCircle2 className="w-4.5 h-4.5 text-emerald-400 shrink-0" />
+                <span className="text-slate-100 text-xs xl:text-sm font-medium">HMAC-SHA256 signed developer webhooks</span>
               </p>
               <p className="flex items-center gap-2.5">
-                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-                <span className="text-slate-100 text-sm font-medium">Risk-free sandbox simulation active</span>
+                <CheckCircle2 className="w-4.5 h-4.5 text-emerald-400 shrink-0" />
+                <span className="text-slate-100 text-xs xl:text-sm font-medium">Risk-free sandbox simulation active</span>
               </p>
             </div>
           </div>
 
           {/* Interactive Bezel Frame containing payment mockup */}
           <div className="col-span-5 flex justify-end">
-            <div className="relative w-full max-w-[240px] bg-slate-900 border-4 border-slate-800 rounded-[30px] shadow-2xl overflow-hidden aspect-[9/18.5] flex flex-col scale-105 transition-transform duration-500 hover:scale-[1.07]">
+            <div className="relative w-full max-w-[220px] xl:max-w-[240px] bg-slate-900 border-4 border-slate-800 rounded-[28px] shadow-2xl overflow-hidden aspect-[9/18] flex flex-col transition-transform duration-500 hover:scale-[1.03]">
               
               {/* Speaker camera notch */}
               <div className="absolute top-0 inset-x-0 h-4 flex justify-center z-30">
@@ -296,66 +296,60 @@ export default function LoginPage() {
               </div>
 
               {/* simulated checkout screen content */}
-              <div className="flex-1 bg-[#0B192C] pt-6 px-3.5 pb-3.5 flex flex-col justify-between font-sans select-none text-white text-[10px]">
+              <div className="flex-1 bg-[#0B192C] pt-5 px-3 pb-3 flex flex-col justify-between font-sans select-none text-white text-[10px]">
                 
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   <div className="flex justify-between items-center text-[7px] font-bold text-slate-400 px-0.5">
                     <span>10:42 AM</span>
                     <span>LTE</span>
                   </div>
 
-                  <div className="flex flex-col items-center pt-1">
-                    <MyMobPayLogo className="w-24 h-auto" textColor="#FFFFFF" />
+                  <div className="flex flex-col items-center pt-0.5">
+                    <MyMobPayLogo className="w-22 h-auto" textColor="#FFFFFF" />
                     <p className="text-[6px] text-slate-400 font-extrabold uppercase tracking-wider mt-0.5">Direct Bank Checkout</p>
                   </div>
 
-                  <div className="bg-[#0F1E36] border border-[#1D2D44] rounded-xl p-2.5 shadow-sm space-y-1.5">
-                    <div className="flex justify-between items-center text-[7px] text-slate-400 font-bold uppercase">
+                  <div className="bg-[#0F1E36] border border-[#1D2D44] rounded-xl p-2 shadow-sm space-y-1">
+                    <div className="flex justify-between items-center text-[6.5px] text-slate-400 font-bold uppercase">
                       <span>Total Due</span>
                       <span className="text-[#3395FF] font-extrabold bg-[#0B2447] px-1 py-0.2 rounded text-[5px] uppercase">P2P Route</span>
                     </div>
                     <div className="flex items-baseline">
-                      <span className="text-[10px] font-bold text-slate-400 mr-0.2">₹</span>
-                      <span className="text-xl font-black text-white tracking-tight leading-none">500.00</span>
+                      <span className="text-[9px] font-bold text-slate-400 mr-0.2">₹</span>
+                      <span className="text-lg font-black text-white tracking-tight leading-none">500.00</span>
                     </div>
                   </div>
 
                   {/* QR Vector preview with Animated Scanning Laser */}
-                  <div className="bg-white border border-slate-200 rounded-xl p-2.5 shadow-sm flex flex-col items-center justify-center space-y-2 relative overflow-hidden group">
+                  <div className="bg-white border border-slate-200 rounded-xl p-2 shadow-sm flex flex-col items-center justify-center space-y-1.5 relative overflow-hidden group">
                     
                     {/* Laser Scanner Beam */}
                     <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-[#3395FF] to-transparent top-0 animate-laser" />
 
-                    <svg viewBox="0 0 100 100" className="w-20 h-20 text-slate-800" fill="currentColor">
-                      {/* Corner marks */}
+                    <svg viewBox="0 0 100 100" className="w-18 h-18 text-slate-800" fill="currentColor">
                       <path d="M0,0 h24 v6 h-18 v18 h-6 z M76,0 h24 v24 h-6 v-18 h-18 z M0,76 h6 v18 h18 v6 h-24 z M76,100 h24 v-24 h-6 v18 h-18 z" fill="#00529B" opacity="0.15" />
-                      
                       <rect x="10" y="10" width="20" height="20" fill="#0F172A" rx="2" />
                       <rect x="14" y="14" width="12" height="12" fill="#FFFFFF" rx="1.5" />
                       <rect x="17" y="17" width="6" height="6" fill="#3B82F6" />
-                      
                       <rect x="70" y="10" width="20" height="20" fill="#0F172A" rx="2" />
                       <rect x="74" y="14" width="12" height="12" fill="#FFFFFF" rx="1.5" />
                       <rect x="77" y="17" width="6" height="6" fill="#3B82F6" />
-                      
                       <rect x="10" y="70" width="20" height="20" fill="#0F172A" rx="2" />
                       <rect x="14" y="74" width="12" height="12" fill="#FFFFFF" rx="1.5" />
                       <rect x="17" y="77" width="6" height="6" fill="#3B82F6" />
-                      
                       <path d="M40,10 h6 v6 h-6 z M50,15 h8 v4 h-8 z M45,25 h10 v4 h-10 z M35,35 h8 v8 h-8 z M55,35 h12 v4 h-12 z M35,50 h12 v4 h-12 z M50,50 h6 v6 h-6 z M10,40 h8 v8 h-8 z M25,45 h10 v4 h-10 z M70,40 h8 v6 h-8 z M82,45 h8 v4 h-8 z M70,55 h12 v4 h-12 z M10,55 h6 v6 h-6 z M80,70 h10 v8 h-10 z M80,85 h8 v8 h-8 z" fill="#0F172A" />
-                      
                       <rect x="40" y="40" width="20" height="20" fill="#3B82F6" rx="3" />
                       <text x="50" y="54" fontFamily="'Orbitron', sans-serif" fontWeight="950" fontSize="13" fill="#FFFFFF" textAnchor="middle">M</text>
                     </svg>
                     
-                    <span className="text-[6px] text-slate-500 font-extrabold uppercase tracking-wider flex items-center gap-0.5">
+                    <span className="text-[5.5px] text-slate-500 font-extrabold uppercase tracking-wider flex items-center gap-0.5">
                       <ShieldCheck className="w-2.5 h-2.5 text-emerald-500" /> Auto-Verify Active
                     </span>
                   </div>
 
                 </div>
 
-                <div className="space-y-2 pt-2.5 border-t border-slate-700/50 text-center text-[6px] font-bold text-slate-400 uppercase tracking-wide">
+                <div className="space-y-1.5 pt-2 border-t border-slate-700/50 text-center text-[6px] font-bold text-slate-400 uppercase tracking-wide">
                   Secure checkout by MyMobPay
                 </div>
 
@@ -367,29 +361,29 @@ export default function LoginPage() {
         </div>
 
         {/* Footer info in left panel */}
-        <p className="text-xs text-slate-400 font-semibold relative z-10">
+        <p className="text-xs text-slate-400 font-semibold relative z-10 shrink-0">
           © 2026 MyMobPay · Secure B2B Gateway Infrastructures
         </p>
 
       </div>
 
       {/* ────────────────────────────────────────────────────────
-         RIGHT PANE: BRAND MATCHED AUTHENTICATION CONSOLE
+         RIGHT PANE: SCROLLABLE AUTHENTICATION CONSOLE
          ──────────────────────────────────────────────────────── */}
-      <div className="col-span-1 lg:col-span-5 bg-gradient-to-b from-slate-100 to-slate-200/80 flex flex-col justify-center items-center px-4 sm:px-8 py-10 lg:p-12 relative z-10 overflow-y-auto">
+      <div className="col-span-1 lg:col-span-5 bg-gradient-to-b from-[#F8FAFC] to-[#EEF2F6] flex flex-col justify-start lg:justify-center items-center px-4 sm:px-8 py-6 lg:py-8 relative z-10 h-auto lg:h-screen overflow-y-auto">
         
         {/* Mobile Header Brand visibility logo */}
-        <div className="lg:hidden mb-6 relative z-10">
+        <div className="lg:hidden mb-5 relative z-10 mt-4">
           <Link href="/">
             <MyMobPayLogo className="w-40 h-auto" />
           </Link>
         </div>
 
         {/* Authentication Card */}
-        <div className="w-full max-w-[480px] bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-9 shadow-[0_12px_40px_rgba(0,0,0,0.08),0_2px_6px_rgba(0,0,0,0.04)] animate-scale-up relative z-10">
+        <div className="w-full max-w-[460px] bg-white border border-[#E2E8F0] rounded-2xl p-6 sm:p-7 shadow-[0_8px_30px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)] relative z-10 my-auto">
           
           {/* HIGH VISIBILITY DUAL-TAB SELECTOR AT TOP */}
-          <div className="bg-slate-100 p-1.5 rounded-2xl border border-slate-200 flex gap-1.5 mb-6">
+          <div className="bg-[#F1F5F9] p-1 rounded-xl border border-[#E2E8F0] flex gap-1 mb-5">
             <button
               type="button"
               onClick={() => {
@@ -397,13 +391,13 @@ export default function LoginPage() {
                 setMessage('');
                 setMode('signin');
               }}
-              className={`flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-extrabold transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer ${
+              className={`flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-extrabold transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer ${
                 mode === 'signin'
-                  ? 'bg-white text-blue-600 shadow-md border border-slate-200/80'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+                  ? 'bg-white text-[#2563EB] shadow-xs border border-[#CBD5E1]'
+                  : 'text-[#475569] hover:text-[#0F172A] hover:bg-white/60'
               }`}
             >
-              <LogIn className={`w-4 h-4 ${mode === 'signin' ? 'text-blue-600' : 'text-slate-500'}`} />
+              <LogIn className={`w-3.5 h-3.5 ${mode === 'signin' ? 'text-[#2563EB]' : 'text-[#64748B]'}`} />
               <span>Sign In</span>
             </button>
 
@@ -414,23 +408,23 @@ export default function LoginPage() {
                 setMessage('');
                 setMode('signup');
               }}
-              className={`flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-extrabold transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer ${
+              className={`flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-extrabold transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer ${
                 mode === 'signup'
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+                  ? 'bg-[#2563EB] text-white shadow-xs'
+                  : 'text-[#475569] hover:text-[#0F172A] hover:bg-white/60'
               }`}
             >
-              <Sparkles className={`w-4 h-4 ${mode === 'signup' ? 'text-white' : 'text-blue-500'}`} />
+              <Sparkles className={`w-3.5 h-3.5 ${mode === 'signup' ? 'text-white' : 'text-[#2563EB]'}`} />
               <span>Create Account</span>
             </button>
           </div>
 
           {/* Header Title */}
-          <div className="text-left mb-6">
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+          <div className="text-left mb-4">
+            <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight">
               {mode === 'signin' ? 'Welcome back' : 'Create Merchant Account'}
             </h1>
-            <p className="text-xs sm:text-sm text-slate-600 font-semibold mt-1">
+            <p className="text-xs text-[#64748B] font-medium mt-0.5">
               {mode === 'signin' 
                 ? 'Sign in to access your dashboard, payments & API keys' 
                 : 'Start accepting instant 0% fee UPI payments in minutes'}
@@ -438,35 +432,36 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 p-3.5 rounded-xl text-xs font-bold mb-5 flex items-start gap-2.5">
+            <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-xl text-xs font-bold mb-4 flex items-start gap-2">
               <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
               <div className="flex-1 leading-normal">{error}</div>
             </div>
           )}
 
           {message && (
-            <div className="bg-emerald-50 border border-emerald-300 text-emerald-800 p-3.5 rounded-xl text-xs font-bold mb-5 flex items-center gap-2">
+            <div className="bg-emerald-50 border border-emerald-300 text-emerald-800 p-3 rounded-xl text-xs font-bold mb-4 flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
               <span>{message}</span>
             </div>
           )}
 
-          <form onSubmit={(e) => { e.preventDefault(); handleAuth(mode); }} className="space-y-4">
+          <form onSubmit={(e) => { e.preventDefault(); handleAuth(mode); }} className="space-y-3">
             
             {/* Business / Brand Name (Signup only) */}
             {mode === 'signup' && (
               <div>
-                <label className="block text-xs font-extrabold text-slate-800 uppercase tracking-wider mb-1.5">
-                  Business / Brand Name <span className="text-blue-600">*</span>
+                <label className="block text-[11px] font-extrabold text-[#1E293B] uppercase tracking-wider mb-1">
+                  Business / Brand Name <span className="text-[#2563EB]">*</span>
                 </label>
                 <div className="relative">
-                  <Building2 className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-500" />
+                  <Building2 className="absolute left-3.5 top-3 w-4 h-4 text-[#64748B]" />
                   <input
                     type="text"
                     required
                     value={businessName}
                     onChange={(e) => setBusinessName(e.target.value)}
-                    className="w-full bg-slate-50/50 border border-slate-300 rounded-xl py-3 pl-11 pr-4 text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-500/15 transition-all shadow-xs"
+                    style={{ backgroundColor: '#ffffff', color: '#0f172a' }}
+                    className="w-full !bg-white border border-[#CBD5E1] rounded-xl py-2.5 pl-10 pr-3.5 text-xs font-semibold !text-[#0F172A] placeholder:text-[#94A3B8] focus:!bg-white focus:outline-none focus:border-[#2563EB] focus:ring-4 focus:ring-[#2563EB]/15 transition-all shadow-xs"
                     placeholder="e.g. Acme Tech Studio"
                   />
                 </div>
@@ -476,17 +471,18 @@ export default function LoginPage() {
             {/* Receiving UPI ID (Signup only) */}
             {mode === 'signup' && (
               <div>
-                <label className="block text-xs font-extrabold text-slate-800 uppercase tracking-wider mb-1.5">
-                  Receiving UPI ID (VPA) <span className="text-blue-600">*</span>
+                <label className="block text-[11px] font-extrabold text-[#1E293B] uppercase tracking-wider mb-1">
+                  Receiving UPI ID (VPA) <span className="text-[#2563EB]">*</span>
                 </label>
                 <div className="relative">
-                  <QrCode className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-500" />
+                  <QrCode className="absolute left-3.5 top-3 w-4 h-4 text-[#64748B]" />
                   <input
                     type="text"
                     required
                     value={upiId}
                     onChange={(e) => setUpiId(e.target.value)}
-                    className="w-full bg-slate-50/50 border border-slate-300 rounded-xl py-3 pl-11 pr-4 text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-500/15 transition-all shadow-xs"
+                    style={{ backgroundColor: '#ffffff', color: '#0f172a' }}
+                    className="w-full !bg-white border border-[#CBD5E1] rounded-xl py-2.5 pl-10 pr-3.5 text-xs font-semibold !text-[#0F172A] placeholder:text-[#94A3B8] focus:!bg-white focus:outline-none focus:border-[#2563EB] focus:ring-4 focus:ring-[#2563EB]/15 transition-all shadow-xs"
                     placeholder="e.g. yourname@okhdfcbank or merchant@upi"
                   />
                 </div>
@@ -496,11 +492,11 @@ export default function LoginPage() {
             {/* Phone Number (Signup only) */}
             {mode === 'signup' && (
               <div>
-                <label className="block text-xs font-extrabold text-slate-800 uppercase tracking-wider mb-1.5">
-                  Mobile Phone Number <span className="text-blue-600">*</span>
+                <label className="block text-[11px] font-extrabold text-[#1E293B] uppercase tracking-wider mb-1">
+                  Mobile Phone Number <span className="text-[#2563EB]">*</span>
                 </label>
                 <div className="relative">
-                  <Phone className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-500" />
+                  <Phone className="absolute left-3.5 top-3 w-4 h-4 text-[#64748B]" />
                   <input
                     type="tel"
                     required
@@ -508,7 +504,8 @@ export default function LoginPage() {
                     inputMode="numeric"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                    className="w-full bg-slate-50/50 border border-slate-300 rounded-xl py-3 pl-11 pr-4 text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-500/15 transition-all shadow-xs"
+                    style={{ backgroundColor: '#ffffff', color: '#0f172a' }}
+                    className="w-full !bg-white border border-[#CBD5E1] rounded-xl py-2.5 pl-10 pr-3.5 text-xs font-semibold !text-[#0F172A] placeholder:text-[#94A3B8] focus:!bg-white focus:outline-none focus:border-[#2563EB] focus:ring-4 focus:ring-[#2563EB]/15 transition-all shadow-xs"
                     placeholder="10-digit mobile number"
                   />
                 </div>
@@ -517,25 +514,26 @@ export default function LoginPage() {
 
             {/* Email field with Inline Send OTP Button */}
             <div>
-              <div className="flex justify-between items-center mb-1.5">
-                <label className="block text-xs font-extrabold text-slate-800 uppercase tracking-wider">
-                  {mode === 'signup' ? 'Work Email Address' : 'Email Address'} <span className="text-blue-600">*</span>
+              <div className="flex justify-between items-center mb-1">
+                <label className="block text-[11px] font-extrabold text-[#1E293B] uppercase tracking-wider">
+                  {mode === 'signup' ? 'Work Email Address' : 'Email Address'} <span className="text-[#2563EB]">*</span>
                 </label>
                 {mode === 'signup' && isEmailVerified && (
-                  <span className="text-emerald-700 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-full text-xs font-extrabold flex items-center gap-1">
-                    <Check className="w-3.5 h-3.5 text-emerald-700 stroke-[3]" /> Verified
+                  <span className="text-emerald-700 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-full text-[10px] font-extrabold flex items-center gap-1">
+                    <Check className="w-3 h-3 text-emerald-700 stroke-[3]" /> Verified
                   </span>
                 )}
               </div>
               
               <div className="relative flex items-center">
-                <Mail className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-500" />
+                <Mail className="absolute left-3.5 top-3 w-4 h-4 text-[#64748B]" />
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => handleEmailChange(e.target.value)}
-                  className={`w-full bg-slate-50/50 border border-slate-300 rounded-xl py-3 pl-11 ${mode === 'signup' ? 'pr-28' : 'pr-4'} text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-500/15 transition-all shadow-xs`}
+                  style={{ backgroundColor: '#ffffff', color: '#0f172a' }}
+                  className={`w-full !bg-white border border-[#CBD5E1] rounded-xl py-2.5 pl-10 ${mode === 'signup' ? 'pr-28' : 'pr-3.5'} text-xs font-semibold !text-[#0F172A] placeholder:text-[#94A3B8] focus:!bg-white focus:outline-none focus:border-[#2563EB] focus:ring-4 focus:ring-[#2563EB]/15 transition-all shadow-xs`}
                   placeholder="name@company.com"
                 />
 
@@ -545,7 +543,7 @@ export default function LoginPage() {
                     type="button"
                     onClick={handleSendEmailOtp}
                     disabled={otpSending || resendCooldown > 0 || !email.includes('@')}
-                    className="absolute right-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-500 text-white font-extrabold text-xs rounded-lg transition-all shadow-xs cursor-pointer flex items-center gap-1 select-none"
+                    className="absolute right-1.5 px-2.5 py-1.5 bg-[#2563EB] hover:bg-[#1D4ED8] disabled:bg-[#E2E8F0] disabled:text-[#94A3B8] text-white font-extrabold text-[10px] rounded-lg transition-all shadow-xs cursor-pointer flex items-center gap-1 select-none"
                   >
                     {otpSending ? (
                       <>
@@ -565,13 +563,13 @@ export default function LoginPage() {
 
               {/* Inline OTP input box appearing directly under Email section */}
               {mode === 'signup' && otpSent && !isEmailVerified && (
-                <div className="mt-3 p-4 bg-blue-50/90 border border-blue-200 rounded-2xl space-y-2.5 animate-scale-up shadow-xs">
-                  <div className="flex justify-between items-center text-xs font-extrabold text-slate-800">
+                <div className="mt-2.5 p-3 bg-blue-50/90 border border-blue-200 rounded-xl space-y-2 animate-scale-up shadow-xs">
+                  <div className="flex justify-between items-center text-[11px] font-extrabold text-[#1E293B]">
                     <span className="flex items-center gap-1.5">
-                      <KeyRound className="w-4 h-4 text-blue-600" /> Enter 6-digit Email OTP
+                      <KeyRound className="w-3.5 h-3.5 text-[#2563EB]" /> Enter 6-digit Email OTP
                     </span>
                     {resendCooldown > 0 && (
-                      <span className="text-blue-700 font-mono text-xs font-extrabold">Resend in {resendCooldown}s</span>
+                      <span className="text-[#2563EB] font-mono text-[10px] font-extrabold">Resend in {resendCooldown}s</span>
                     )}
                   </div>
                   
@@ -583,18 +581,19 @@ export default function LoginPage() {
                       value={otp}
                       onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
                       placeholder="123456"
-                      className="flex-1 bg-white border border-slate-300 rounded-xl py-2.5 px-3.5 text-sm font-mono font-black tracking-widest text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 shadow-xs"
+                      style={{ backgroundColor: '#ffffff', color: '#0f172a' }}
+                      className="flex-1 !bg-white border border-[#CBD5E1] rounded-lg py-2 px-3 text-xs font-mono font-black tracking-widest !text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 shadow-xs"
                     />
                     <button
                       type="button"
                       onClick={handleVerifyInlineOtp}
                       disabled={otpVerifying || otp.length < 4}
-                      className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:text-slate-500 text-white font-extrabold text-xs rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer shrink-0"
+                      className="px-3.5 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] disabled:bg-[#CBD5E1] disabled:text-[#64748B] text-white font-extrabold text-xs rounded-lg transition-all shadow-xs flex items-center gap-1 cursor-pointer shrink-0"
                     >
-                      {otpVerifying ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Verify Code'}
+                      {otpVerifying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Verify Code'}
                     </button>
                   </div>
-                  <p className="text-[11px] text-slate-600 font-medium">
+                  <p className="text-[10px] text-[#64748B] font-medium">
                     Enter the code sent to your email. You can also proceed directly by clicking Create Account below.
                   </p>
                 </div>
@@ -603,30 +602,31 @@ export default function LoginPage() {
 
             {/* Password field */}
             <div>
-              <label className="block text-xs font-extrabold text-slate-800 uppercase tracking-wider mb-1.5">
-                {mode === 'signup' ? 'Create Password (min 6 chars)' : 'Password'} <span className="text-blue-600">*</span>
+              <label className="block text-[11px] font-extrabold text-[#1E293B] uppercase tracking-wider mb-1">
+                {mode === 'signup' ? 'Create Password (min 6 chars)' : 'Password'} <span className="text-[#2563EB]">*</span>
               </label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-500" />
+                <Lock className="absolute left-3.5 top-3 w-4 h-4 text-[#64748B]" />
                 <input
                   type="password"
                   required
                   minLength={6}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-slate-50/50 border border-slate-300 rounded-xl py-3 pl-11 pr-4 text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-500/15 transition-all shadow-xs"
+                  style={{ backgroundColor: '#ffffff', color: '#0f172a' }}
+                  className="w-full !bg-white border border-[#CBD5E1] rounded-xl py-2.5 pl-10 pr-3.5 text-xs font-semibold !text-[#0F172A] placeholder:text-[#94A3B8] focus:!bg-white focus:outline-none focus:border-[#2563EB] focus:ring-4 focus:ring-[#2563EB]/15 transition-all shadow-xs"
                   placeholder="••••••••"
                 />
               </div>
             </div>
 
-            <div className="pt-3 flex flex-col gap-3">
+            <div className="pt-2 flex flex-col gap-2.5">
               
               {/* Primary Action CTA (Sign In / Create Account) */}
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black py-4 px-6 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 active:scale-[0.99] text-sm cursor-pointer"
+                className="w-full bg-gradient-to-r from-[#2563EB] to-[#1D4ED8] hover:from-[#1D4ED8] hover:to-[#1E40AF] text-white font-black py-3.5 px-5 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 hover:shadow-blue-500/30 active:scale-[0.99] text-xs sm:text-sm cursor-pointer"
               >
                 {loading ? (
                   <>
@@ -642,8 +642,8 @@ export default function LoginPage() {
               </button>
               
               {/* Bottom Quick Switch Mode Text */}
-              <div className="text-center pt-1">
-                <p className="text-xs text-slate-600 font-bold">
+              <div className="text-center">
+                <p className="text-[11px] text-[#64748B] font-bold">
                   {mode === 'signin' ? "Don't have a merchant account? " : "Already have an account? "}
                   <button
                     type="button"
@@ -652,17 +652,17 @@ export default function LoginPage() {
                       setMessage('');
                       setMode(mode === 'signin' ? 'signup' : 'signin');
                     }}
-                    className="text-blue-600 hover:text-blue-800 hover:underline font-extrabold cursor-pointer ml-1"
+                    className="text-[#2563EB] hover:text-[#1D4ED8] hover:underline font-extrabold cursor-pointer ml-0.5"
                   >
                     {mode === 'signin' ? 'Create one here' : 'Sign in here'}
                   </button>
                 </p>
               </div>
 
-              <div className="relative my-2 flex items-center">
-                <div className="flex-grow border-t border-slate-200"></div>
-                <span className="flex-shrink mx-4 text-slate-500 text-[10px] font-extrabold uppercase tracking-widest">or continue with</span>
-                <div className="flex-grow border-t border-slate-200"></div>
+              <div className="relative my-1 flex items-center">
+                <div className="flex-grow border-t border-[#E2E8F0]"></div>
+                <span className="flex-shrink mx-3 text-[#94A3B8] text-[9px] font-extrabold uppercase tracking-widest">or continue with</span>
+                <div className="flex-grow border-t border-[#E2E8F0]"></div>
               </div>
 
               {/* Google OAuth Login */}
@@ -670,7 +670,7 @@ export default function LoginPage() {
                 type="button"
                 onClick={handleGoogleLogin}
                 disabled={loading}
-                className="w-full bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 font-extrabold py-3.5 px-4 rounded-xl transition-all disabled:opacity-55 flex items-center justify-center gap-3 shadow-xs text-xs sm:text-sm cursor-pointer"
+                className="w-full bg-white hover:bg-[#F8FAFC] border border-[#CBD5E1] text-[#1E293B] font-extrabold py-2.5 px-4 rounded-xl transition-all disabled:opacity-55 flex items-center justify-center gap-2.5 shadow-xs text-xs cursor-pointer"
               >
                 <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
                   <g transform="matrix(1, 0, 0, 1, 0, 0)">
@@ -688,7 +688,7 @@ export default function LoginPage() {
 
         </div>
 
-        <p className="lg:hidden mt-6 text-xs text-slate-500 font-semibold text-center">
+        <p className="lg:hidden mt-4 text-[10px] text-[#94A3B8] font-semibold text-center mb-4">
           © 2026 MyMobPay · B2B Payments Gateway
         </p>
 
