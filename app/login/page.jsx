@@ -345,22 +345,24 @@ export default function LoginPage() {
 
       {/* ────────────────────────────────────────────────────────
          RIGHT PANE: BRAND MATCHED AUTHENTICATION CONSOLE
-         (Fixed top spacing with smooth scrollability)
+         (Properly centered with generous top/bottom padding and smooth scrolling)
          ──────────────────────────────────────────────────────── */}
-      <div className="col-span-1 lg:col-span-5 bg-slate-50/60 flex flex-col justify-start lg:justify-center items-center px-6 py-12 lg:py-16 relative z-10 h-auto lg:h-screen lg:overflow-y-auto">
+      <div className="col-span-1 lg:col-span-5 bg-slate-50/60 h-auto lg:h-screen lg:overflow-y-auto relative z-10">
         
-        {/* Mobile Header Brand visibility logo */}
-        <div className="lg:hidden mb-6 relative z-10">
-          <Link href="/">
-            <MyMobPayLogo className="w-40 h-auto" />
-          </Link>
-        </div>
-
-        {/* Authentication Card (Framed with sufficient top and bottom margin) */}
-        <div className="w-full max-w-[460px] bg-white border border-slate-200/90 rounded-3xl p-8 sm:p-10 shadow-[0_10px_35px_rgba(0,0,0,0.06),0_1px_4px_rgba(0,0,0,0.04)] animate-scale-up relative z-10 my-auto">
+        <div className="min-h-full w-full flex flex-col justify-center items-center px-6 py-12 lg:py-16">
           
-          {/* Header Title */}
-          <div className="text-center mb-7">
+          {/* Mobile Header Brand visibility logo */}
+          <div className="lg:hidden mb-6">
+            <Link href="/">
+              <MyMobPayLogo className="w-40 h-auto" />
+            </Link>
+          </div>
+
+          {/* Authentication Card */}
+          <div className="w-full max-w-[460px] bg-white border border-slate-200/90 rounded-3xl p-8 sm:p-10 shadow-[0_10px_35px_rgba(0,0,0,0.06),0_1px_4px_rgba(0,0,0,0.04)] animate-scale-up relative z-10">
+            
+            {/* Header Title */}
+            <div className="text-center mb-7">
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
               {mode === 'signin' ? 'Welcome back' : 'Create an account'}
             </h1>
@@ -566,6 +568,8 @@ export default function LoginPage() {
         <p className="lg:hidden mt-6 text-[10px] text-slate-400 font-semibold text-center mb-4">
           © 2026 MyMobPay · B2B Payments Gateway
         </p>
+
+        </div>
 
       </div>
 
