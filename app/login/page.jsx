@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { 
   Loader2, Lock, Mail, ArrowRight, ShieldCheck, 
   CheckCircle2, Building2, QrCode, Phone, KeyRound, 
-  RotateCcw, Check
+  Check
 } from 'lucide-react';
 import Link from 'next/link';
 import InteractiveBackground from '@/components/InteractiveBackground';
@@ -74,45 +74,23 @@ export default function LoginPage() {
     setMessage('');
 
     try {
-      // 1. Trigger Supabase Signup with email confirmation
-      const { data, error: authError } = await supabase.auth.signUp({
-        email: email.trim(),
-        password: password || 'MyMobPaySecurePass123!',
-        options: {
-          data: {
-            phone: phone.trim(),
-            business_name: businessName.trim(),
-            upi_id: upiId.trim(),
-          },
-        },
+      const res = await fetch('/api/auth/otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'send', email: email.trim() }),
       });
 
-      if (authError) {
-        if (authError.message?.toLowerCase().includes('already registered')) {
-          throw new Error('This email is already registered. Please click Sign In below.');
-        }
-        // Try resend
-        const { error: resendErr } = await supabase.auth.resend({
-          type: 'signup',
-          email: email.trim(),
-        });
-        if (resendErr) throw authError;
-      } else if (data?.user?.identities?.length === 0) {
-        // User already exists in auth.users
-        const { error: resendErr } = await supabase.auth.resend({
-          type: 'signup',
-          email: email.trim(),
-        });
-        if (resendErr) {
-          throw new Error('This email is already registered. Please click Sign In below.');
-        }
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        throw new Error(data.error || 'Failed to send OTP code.');
       }
 
       setOtpSent(true);
-      setResendCooldown(60);
-      setMessage(`OTP sent! Please check your inbox (and spam folder) at ${email.trim()}`);
+      setResendCooldown(45);
+      setMessage(data.message || `OTP sent! Please check your inbox at ${email.trim()}`);
     } catch (err) {
-      setError(err.message || 'Failed to send OTP code.');
+      setError(err.message || 'Failed to send OTP code. Please try again.');
     } finally {
       setOtpSending(false);
     }
@@ -121,7 +99,7 @@ export default function LoginPage() {
   // Inline "Verify OTP" button handler
   const handleVerifyInlineOtp = async () => {
     const cleanOtp = otp.trim();
-    if (cleanOtp.length !== 6) {
+    if (cleanOtp.length < 4) {
       setError('Please enter the full 6-digit OTP code.');
       return;
     }
@@ -131,26 +109,16 @@ export default function LoginPage() {
     setMessage('');
 
     try {
-      let authUser = null;
-      
-      // Try signup OTP verification first
-      const { data: signupData, error: signupError } = await supabase.auth.verifyOtp({
-        email: email.trim(),
-        token: cleanOtp,
-        type: 'signup',
+      const res = await fetch('/api/auth/otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'verify', email: email.trim(), otp: cleanOtp }),
       });
 
-      if (signupError) {
-        // Fallback to email OTP verification
-        const { data: emailData, error: emailError } = await supabase.auth.verifyOtp({
-          email: email.trim(),
-          token: cleanOtp,
-          type: 'email',
-        });
-        if (emailError) throw signupError;
-        authUser = emailData?.user;
-      } else {
-        authUser = signupData?.user;
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        throw new Error(data.error || 'Invalid or expired OTP code.');
       }
 
       setIsEmailVerified(true);
@@ -183,10 +151,6 @@ export default function LoginPage() {
         setError('Please enter a valid 10-digit mobile phone number.');
         return;
       }
-      if (!isEmailVerified) {
-        setError('Please click Send OTP and verify your email first.');
-        return;
-      }
     }
 
     if (password.length < 6) {
@@ -200,23 +164,32 @@ export default function LoginPage() {
 
     try {
       if (action === 'signup') {
-        // If password was updated after verification, update user password
-        await supabase.auth.updateUser({ password: password });
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: email.trim(),
+            password: password,
+            businessName: businessName.trim(),
+            upiId: upiId.trim(),
+            phone: phone.trim(),
+          }),
+        });
 
-        const activeUser = (await supabase.auth.getUser()).data?.user;
-        if (activeUser) {
-          await supabase
-            .from('merchants')
-            .upsert({
-              id: activeUser.id,
-              business_name: businessName.trim() || 'My Business',
-              upi_id: upiId.trim() || 'pending@upi',
-              phone_number: phone.trim() || undefined,
-            });
+        const data = await res.json();
+
+        if (!res.ok || data.error) {
+          throw new Error(data.error || 'Failed to create account.');
         }
 
+        // Sign in client session
+        await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password: password,
+        });
+
         setMessage('Account created! Launching your merchant console...');
-        setTimeout(() => router.push('/dashboard'), 1200);
+        setTimeout(() => router.push('/dashboard'), 800);
 
       } else if (action === 'signin') {
         const { error: authError } = await supabase.auth.signInWithPassword({
@@ -224,8 +197,15 @@ export default function LoginPage() {
           password: password,
         });
 
-        if (authError) throw authError;
-        router.push('/dashboard');
+        if (authError) {
+          if (authError.message?.toLowerCase().includes('invalid login credentials')) {
+            throw new Error('Invalid email or password. If you are new, click "Create an account" below.');
+          }
+          throw authError;
+        }
+
+        setMessage('Welcome back! Launching your merchant dashboard...');
+        setTimeout(() => router.push('/dashboard'), 600);
       }
     } catch (err) {
       setError(err.message || 'An error occurred during authentication.');
@@ -253,35 +233,35 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-slate-50 font-sans text-slate-900 overflow-hidden relative">
+    <div className="min-h-screen lg:h-screen lg:overflow-hidden grid grid-cols-1 lg:grid-cols-12 bg-slate-50 font-sans text-slate-900 relative">
       <InteractiveBackground />
       
       {/* ────────────────────────────────────────────────────────
          LEFT PANE: DYNAMIC PRODUCT HERO SHOWCASE (Desktop only)
          ──────────────────────────────────────────────────────── */}
-      <div className="hidden lg:flex lg:col-span-7 bg-[#0B0F19] relative z-10 flex-col justify-between p-12 overflow-hidden border-r border-slate-800/80">
+      <div className="hidden lg:flex lg:col-span-7 bg-[#0B0F19] relative z-10 flex-col justify-between p-8 xl:p-12 h-screen overflow-hidden border-r border-slate-800/80 shrink-0">
         
         {/* Deep Tech Grid Line Overlay */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:3.5rem_3.5rem] opacity-25 pointer-events-none" />
 
         {/* Logo Wordmark header */}
-        <Link href="/" className="inline-block relative z-10">
-          <MyMobPayLogo className="w-40 h-auto" textColor="#FFFFFF" />
+        <Link href="/" className="inline-block relative z-10 shrink-0">
+          <MyMobPayLogo className="w-40 xl:w-44 h-auto" textColor="#FFFFFF" />
         </Link>
 
         {/* Core Value Copy and Vector Terminal Simulator alignment */}
-        <div className="grid grid-cols-12 gap-8 items-center relative z-10 my-auto">
+        <div className="grid grid-cols-12 gap-6 xl:gap-8 items-center relative z-10 my-auto">
           
           <div className="col-span-7 space-y-6">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-900/40 border border-blue-800 rounded-full text-[10px] font-extrabold text-blue-400 uppercase tracking-wider">
               🟢 Direct P2P Settlements
             </div>
             
-            <h2 className="text-4xl font-black text-white leading-tight tracking-tight">
+            <h2 className="text-3xl xl:text-4xl font-black text-white leading-tight tracking-tight">
               Built for founders defying all odds
             </h2>
             
-            <p className="text-sm text-slate-200 leading-relaxed font-medium">
+            <p className="text-xs xl:text-sm text-slate-200 leading-relaxed font-medium">
               Join thousands of businesses managing billing programmatically with flat-rate subscriptions and 0% gateway cuts.
             </p>
 
@@ -303,7 +283,7 @@ export default function LoginPage() {
 
           {/* Interactive Bezel Frame containing payment mockup */}
           <div className="col-span-5 flex justify-end">
-            <div className="relative w-full max-w-[240px] bg-slate-900 border-4 border-slate-800 rounded-[30px] shadow-2xl overflow-hidden aspect-[9/18.5] flex flex-col scale-105 transition-transform duration-500 hover:scale-[1.07]">
+            <div className="relative w-full max-w-[220px] xl:max-w-[240px] bg-slate-900 border-4 border-slate-800 rounded-[30px] shadow-2xl overflow-hidden aspect-[9/18.5] flex flex-col transition-transform duration-500 hover:scale-[1.04]">
               
               {/* Speaker camera notch */}
               <div className="absolute top-0 inset-x-0 h-4 flex justify-center z-30">
@@ -320,7 +300,7 @@ export default function LoginPage() {
                   </div>
 
                   <div className="flex flex-col items-center pt-1">
-                    <MyMobPayLogo className="w-24 h-auto" textColor="#FFFFFF" />
+                    <MyMobPayLogo className="w-22 h-auto" textColor="#FFFFFF" />
                     <p className="text-[6px] text-slate-400 font-extrabold uppercase tracking-wider mt-0.5">Direct Bank Checkout</p>
                   </div>
 
@@ -341,7 +321,7 @@ export default function LoginPage() {
                     {/* Laser Scanner Beam */}
                     <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-[#3395FF] to-transparent top-0 animate-laser" />
 
-                    <svg viewBox="0 0 100 100" className="w-20 h-20 text-slate-800" fill="currentColor">
+                    <svg viewBox="0 0 100 100" className="w-18 h-18 text-slate-800" fill="currentColor">
                       {/* Corner marks */}
                       <path d="M0,0 h24 v6 h-18 v18 h-6 z M76,0 h24 v24 h-6 v-18 h-18 z M0,76 h6 v18 h18 v6 h-24 z M76,100 h24 v-24 h-6 v18 h-18 z" fill="#00529B" opacity="0.15" />
                       
@@ -382,7 +362,7 @@ export default function LoginPage() {
         </div>
 
         {/* Footer info in left panel */}
-        <p className="text-[10px] text-slate-300 font-semibold relative z-10">
+        <p className="text-[10px] text-slate-300 font-semibold relative z-10 shrink-0">
           © 2026 MyMobPay · Secure B2B Gateway Infrastructures
         </p>
 
@@ -391,48 +371,48 @@ export default function LoginPage() {
       {/* ────────────────────────────────────────────────────────
          RIGHT PANE: BRAND MATCHED AUTHENTICATION CONSOLE
          ──────────────────────────────────────────────────────── */}
-      <div className="col-span-1 lg:col-span-5 bg-slate-50/50 flex flex-col justify-center items-center px-6 py-12 lg:p-16 relative z-10">
+      <div className="col-span-1 lg:col-span-5 bg-slate-50/50 flex flex-col justify-start lg:justify-center items-center px-6 py-8 lg:p-12 relative z-10 h-auto lg:h-screen lg:overflow-y-auto">
         
         {/* Mobile Header Brand visibility logo */}
-        <div className="lg:hidden mb-8 relative z-10">
+        <div className="lg:hidden mb-6 relative z-10 mt-2">
           <Link href="/">
             <MyMobPayLogo className="w-40 h-auto" />
           </Link>
         </div>
 
         {/* Authentication Card */}
-        <div className="w-full max-w-[460px] bg-white border border-slate-200/90 rounded-3xl p-8 sm:p-10 shadow-[0_10px_35px_rgba(0,0,0,0.06),0_1px_4px_rgba(0,0,0,0.04)] animate-scale-up relative z-10">
+        <div className="w-full max-w-[460px] bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-[0_10px_35px_rgba(0,0,0,0.06),0_1px_4px_rgba(0,0,0,0.04)] animate-scale-up relative z-10 my-auto">
           
           {/* Header Title */}
-          <div className="text-center mb-8">
+          <div className="text-center mb-6">
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
               {mode === 'signin' ? 'Welcome back' : 'Create an account'}
             </h1>
-            <p className="text-xs text-slate-500 font-semibold mt-1.5 leading-relaxed">
+            <p className="text-xs text-slate-600 font-semibold mt-1.5 leading-relaxed">
               {mode === 'signin' ? 'Sign in to access your merchant console' : 'Start collecting instant UPI payments in minutes'}
             </p>
           </div>
 
           {error && (
-            <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-3.5 rounded-xl text-xs font-semibold mb-6 flex items-start gap-2.5">
+            <div className="bg-red-500/10 border border-red-500/20 text-red-600 p-3.5 rounded-xl text-xs font-semibold mb-5 flex items-start gap-2.5">
               <div className="mt-0.5"><Lock className="w-4 h-4 text-red-500 shrink-0" /></div>
               <div className="flex-1 leading-normal">{error}</div>
             </div>
           )}
 
           {message && (
-            <div className="bg-emerald-50 border border-emerald-200/60 text-emerald-700 p-3.5 rounded-xl text-xs font-semibold mb-6 flex items-center gap-2">
+            <div className="bg-emerald-50 border border-emerald-200/60 text-emerald-700 p-3.5 rounded-xl text-xs font-semibold mb-5 flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
               <span>{message}</span>
             </div>
           )}
 
-          <form onSubmit={(e) => { e.preventDefault(); handleAuth(mode); }} className="space-y-4">
+          <form onSubmit={(e) => { e.preventDefault(); handleAuth(mode); }} className="space-y-3.5">
             
             {/* Business / Brand Name (Signup only) */}
             {mode === 'signup' && (
               <div>
-                <label className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-2">Business / Brand Name</label>
+                <label className="block text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1.5">Business / Brand Name</label>
                 <div className="relative">
                   <Building2 className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
                   <input
@@ -450,7 +430,7 @@ export default function LoginPage() {
             {/* Receiving UPI ID (Signup only) */}
             {mode === 'signup' && (
               <div>
-                <label className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-2">Receiving UPI ID (VPA)</label>
+                <label className="block text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1.5">Receiving UPI ID (VPA)</label>
                 <div className="relative">
                   <QrCode className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
                   <input
@@ -468,7 +448,7 @@ export default function LoginPage() {
             {/* Phone Number (Signup only) */}
             {mode === 'signup' && (
               <div>
-                <label className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-2">Phone Number</label>
+                <label className="block text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1.5">Phone Number</label>
                 <div className="relative">
                   <Phone className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
                   <input
@@ -487,8 +467,8 @@ export default function LoginPage() {
 
             {/* Email field with Inline Send OTP Button */}
             <div>
-              <div className="flex justify-between items-center mb-2">
-                <label className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">
+              <div className="flex justify-between items-center mb-1.5">
+                <label className="block text-[10px] font-black text-slate-900 uppercase tracking-widest">
                   {mode === 'signup' ? 'Work Email Address' : 'Email Address'}
                 </label>
                 {mode === 'signup' && isEmailVerified && (
@@ -567,7 +547,7 @@ export default function LoginPage() {
 
             {/* Password field */}
             <div>
-              <label className="block text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-2">
+              <label className="block text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1.5">
                 {mode === 'signup' ? 'Create Password (min 6 chars)' : 'Password'}
               </label>
               <div className="relative">
@@ -604,14 +584,14 @@ export default function LoginPage() {
                   setMessage('');
                   setMode(mode === 'signin' ? 'signup' : 'signin');
                 }}
-                className="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 font-bold py-3.5 px-4 rounded-xl transition-all text-xs cursor-pointer"
+                className="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl transition-all text-xs cursor-pointer"
               >
                 {mode === 'signin' ? 'New here? Create an account' : 'Already have an account? Sign In'}
               </button>
 
-              <div className="relative my-3 flex items-center">
+              <div className="relative my-2 flex items-center">
                 <div className="flex-grow border-t border-slate-200"></div>
-                <span className="flex-shrink mx-4 text-slate-400 text-[8px] font-extrabold uppercase tracking-widest">or continue with</span>
+                <span className="flex-shrink mx-4 text-slate-600 text-[8px] font-black uppercase tracking-widest">or continue with</span>
                 <div className="flex-grow border-t border-slate-200"></div>
               </div>
 
@@ -620,7 +600,7 @@ export default function LoginPage() {
                 type="button"
                 onClick={handleGoogleLogin}
                 disabled={loading}
-                className="w-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-bold py-3.5 px-4 rounded-xl transition-all disabled:opacity-55 flex items-center justify-center gap-2.5 shadow-sm text-xs cursor-pointer"
+                className="w-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-bold py-3 px-4 rounded-xl transition-all disabled:opacity-55 flex items-center justify-center gap-2.5 shadow-sm text-xs cursor-pointer"
               >
                 <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
                   <g transform="matrix(1, 0, 0, 1, 0, 0)">
@@ -638,7 +618,7 @@ export default function LoginPage() {
 
         </div>
 
-        <p className="lg:hidden mt-8 text-[10px] text-slate-400 font-semibold text-center">
+        <p className="lg:hidden mt-6 text-[10px] text-slate-400 font-semibold text-center mb-4">
           © 2026 MyMobPay · B2B Payments Gateway
         </p>
 
