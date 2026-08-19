@@ -645,51 +645,57 @@ export default function HomePage() {
           {/* Interactive Calculator Slider Card */}
           <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-md space-y-8">
             
-            {/* Slider header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
-              <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Your Monthly Sales Volume</p>
-                <h3 className="text-3xl font-black text-slate-950 mt-1 flex items-baseline">
-                  <span className="text-lg font-bold text-slate-400 mr-0.5">₹</span>
-                  {monthlyVolume.toLocaleString('en-IN')}
-                </h3>
+            {/* Slider Section - Solid Card matching panels below */}
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-4">
+
+              {/* Slider header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Your Monthly Sales Volume</p>
+                  <h3 className="text-3xl font-black text-slate-950 mt-1 flex items-baseline">
+                    <span className="text-lg font-bold text-slate-400 mr-0.5">₹</span>
+                    {monthlyVolume.toLocaleString('en-IN')}
+                  </h3>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setMonthlyVolume(prev => Math.max(10000, prev - 100000))}
+                    className="p-2 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl transition-all"
+                    title="Decrease volume"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setMonthlyVolume(prev => Math.min(5000000, prev + 100000))}
+                    className="p-2 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl transition-all"
+                    title="Increase volume"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-              
-              <div className="flex items-center gap-2">
-                <button 
-                  onClick={() => setMonthlyVolume(prev => Math.max(10000, prev - 100000))}
-                  className="p-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all"
-                  title="Decrease volume"
-                >
-                  <Minus className="w-4 h-4" />
-                </button>
-                <button 
-                  onClick={() => setMonthlyVolume(prev => Math.min(5000000, prev + 100000))}
-                  className="p-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all"
-                  title="Increase volume"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
+
+              {/* Range Slider */}
+              <div className="space-y-2">
+                <input
+                  type="range"
+                  min="10000"
+                  max="5000000"
+                  step="50000"
+                  value={monthlyVolume}
+                  onChange={e => setMonthlyVolume(parseInt(e.target.value))}
+                  className="w-full accent-blue-600 h-2 bg-slate-200 rounded-lg cursor-pointer"
+                />
+                <div className="flex justify-between text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                  <span>₹10K</span>
+                  <span>₹25L</span>
+                  <span>₹50L</span>
+                </div>
               </div>
+
             </div>
 
-            {/* Custom Slider Input */}
-            <div className="space-y-2">
-              <input 
-                type="range"
-                min="10000"
-                max="5000000"
-                step="50000"
-                value={monthlyVolume}
-                onChange={e => setMonthlyVolume(parseInt(e.target.value))}
-                className="w-full accent-blue-600 h-2 bg-slate-100 rounded-lg cursor-pointer"
-              />
-              <div className="flex justify-between text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                <span>₹10K</span>
-                <span>₹25L</span>
-                <span>₹50L</span>
-              </div>
-            </div>
 
             {/* Split Comparison Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
