@@ -627,7 +627,7 @@ export default function HomePage() {
       {/* ────────────────────────────────────────────────────────
          INTERACTIVE SAVINGS SLIDER CALCULATOR
          ──────────────────────────────────────────────────────── */}
-      <section id="pricing-section" className="py-24 bg-slate-50 border-y border-slate-200/60">
+      <section id="pricing-section" className="relative z-10 py-24 bg-slate-50 border-y border-slate-200/60">
         <div className="max-w-4xl mx-auto px-6 space-y-12">
           
           <div className="text-center space-y-3">
@@ -643,7 +643,7 @@ export default function HomePage() {
           </div>
 
           {/* Interactive Calculator Slider Card */}
-          <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-8">
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-md space-y-8">
             
             {/* Slider header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
