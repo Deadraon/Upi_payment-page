@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { 
   Loader2, Lock, Mail, ArrowRight, ShieldCheck, 
-  CheckCircle2, Building2, QrCode, Phone, Check, KeyRound, RefreshCw
+  CheckCircle2, Building2, QrCode, Phone
 } from 'lucide-react';
 import Link from 'next/link';
 import InteractiveBackground from '@/components/InteractiveBackground';
@@ -32,125 +32,9 @@ export default function LoginPage() {
   const [upiId, setUpiId] = useState('');
   const [phone, setPhone] = useState('');
 
-  // OTP Verification States
-  const [otp, setOtp] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpVerified, setOtpVerified] = useState(false);
-  const [otpSending, setOtpSending] = useState(false);
-  const [otpVerifying, setOtpVerifying] = useState(false);
-  const [resendCooldown, setResendCooldown] = useState(0);
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
-
-  // Helper to validate email format (user@domain.com)
-  const isValidEmail = (val) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
-  };
-
-  // Resend cooldown timer
-  useEffect(() => {
-    if (resendCooldown <= 0) return;
-    const timer = setInterval(() => setResendCooldown(c => c - 1), 1000);
-    return () => clearInterval(timer);
-  }, [resendCooldown]);
-
-  // Reset OTP state when email changes
-  const handleEmailChange = (newEmail) => {
-    setEmail(newEmail);
-    if (otpSent || otpVerified) {
-      setOtpSent(false);
-      setOtpVerified(false);
-      setOtp('');
-    }
-  };
-
-  // Send OTP handler
-  const handleSendOtp = async () => {
-    if (!isValidEmail(email)) {
-      setError('Please enter a valid work email address.');
-      return;
-    }
-
-    setOtpSending(true);
-    setError('');
-    setMessage('');
-
-    try {
-      const res = await fetch('/api/auth/otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'send',
-          email: email.trim(),
-        }),
-      });
-
-      let data = {};
-      try {
-        data = await res.json();
-      } catch (jsonErr) {
-        throw new Error(`Server returned status ${res.status}`);
-      }
-
-      if (!res.ok || data.error) {
-        throw new Error(data.error || 'Failed to send OTP code.');
-      }
-
-      setOtpSent(true);
-      setResendCooldown(60);
-      setMessage(data.message || `OTP sent to ${email.trim()}! Please check your inbox.`);
-    } catch (err) {
-      console.error('Send OTP error:', err);
-      setError(err.message || 'Failed to send OTP code. Please try again.');
-    } finally {
-      setOtpSending(false);
-    }
-  };
-
-  // Verify OTP handler
-  const handleVerifyOtp = async () => {
-    if (!otp.trim() || otp.trim().length < 4) {
-      setError('Please enter the 6-digit verification code.');
-      return;
-    }
-
-    setOtpVerifying(true);
-    setError('');
-    setMessage('');
-
-    try {
-      const res = await fetch('/api/auth/otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'verify',
-          email: email.trim(),
-          otp: otp.trim(),
-        }),
-      });
-
-      let data = {};
-      try {
-        data = await res.json();
-      } catch (jsonErr) {
-        throw new Error(`Server returned status ${res.status}`);
-      }
-
-      if (!res.ok || data.error) {
-        throw new Error(data.error || 'Invalid OTP verification code.');
-      }
-
-      setOtpVerified(true);
-      setMessage('Email verified successfully! You can now create your account.');
-    } catch (err) {
-      console.error('Verify OTP error:', err);
-      setError(err.message || 'Invalid or expired OTP code.');
-    } finally {
-      setOtpVerifying(false);
-    }
-  };
 
   // Main Form Submit Handler
   const handleAuth = async (action) => {
@@ -171,10 +55,6 @@ export default function LoginPage() {
       const cleanPhone = phone.trim().replace(/\D/g, '');
       if (cleanPhone.length !== 10) {
         setError('Please enter a valid 10-digit mobile phone number.');
-        return;
-      }
-      if (!otpVerified) {
-        setError('Please send and verify the OTP code sent to your email before continuing.');
         return;
       }
     }
@@ -506,90 +386,25 @@ export default function LoginPage() {
                 </div>
               )}
 
-              {/* Work Email Address with Send OTP button */}
+              {/* Email Address */}
               <div>
-                <div className="flex justify-between items-center mb-1.5">
-                  <label className="block text-[10px] font-black text-slate-900 uppercase tracking-widest">
-                    {mode === 'signup' ? 'Work Email Address' : 'Email Address'}
-                  </label>
-                  {mode === 'signup' && otpVerified && (
-                    <span className="text-emerald-600 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
-                      <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[3]" /> Verified ✓
-                    </span>
-                  )}
-                </div>
-                
-                <div className="relative flex items-center">
+                <label className="block text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1.5">
+                  {mode === 'signup' ? 'Work Email Address' : 'Email Address'}
+                </label>
+                <div className="relative">
                   <Mail className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
                   <input
                     type="email"
                     required
                     value={email}
-                    onChange={(e) => handleEmailChange(e.target.value)}
-                    disabled={mode === 'signup' && otpVerified}
-                    className={`w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 ${mode === 'signup' && isValidEmail(email) && !otpVerified ? 'pr-28' : 'pr-4'} text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm disabled:bg-slate-50 disabled:text-slate-500`}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
                     placeholder="email@example.com"
                   />
-
-                  {/* "Send OTP" button only appears when user types valid email format and not yet verified */}
-                  {mode === 'signup' && isValidEmail(email) && !otpVerified && (
-                    <button
-                      type="button"
-                      onClick={handleSendOtp}
-                      disabled={otpSending || resendCooldown > 0}
-                      className="absolute right-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-extrabold text-[10px] rounded-lg transition-all shadow-xs cursor-pointer flex items-center gap-1 select-none animate-fade-in"
-                    >
-                      {otpSending ? (
-                        <Loader2 className="w-3 h-3 animate-spin" />
-                      ) : resendCooldown > 0 ? (
-                        `${resendCooldown}s`
-                      ) : otpSent ? (
-                        <>
-                          <RefreshCw className="w-2.5 h-2.5" />
-                          <span>Resend OTP</span>
-                        </>
-                      ) : (
-                        'Send OTP'
-                      )}
-                    </button>
-                  )}
                 </div>
               </div>
 
-              {/* OTP Code Entry Section (Signup only, appears after OTP is sent and not yet verified) */}
-              {mode === 'signup' && otpSent && !otpVerified && (
-                <div className="animate-fade-in bg-blue-50/50 border border-blue-100 rounded-2xl p-3.5 space-y-2">
-                  <div className="flex justify-between items-center">
-                    <label className="block text-[10px] font-black text-blue-900 uppercase tracking-widest">
-                      Enter 6-Digit OTP Code
-                    </label>
-                    <span className="text-[10px] font-semibold text-slate-500">Check inbox / spam</span>
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <div className="relative flex-1">
-                      <KeyRound className="absolute left-3.5 top-3.5 w-4 h-4 text-blue-400" />
-                      <input
-                        type="text"
-                        maxLength={6}
-                        inputMode="numeric"
-                        value={otp}
-                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                        className="w-full bg-white border border-blue-200 rounded-xl py-2.5 pl-10 pr-3 text-xs font-black tracking-widest text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                        placeholder="••••••"
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleVerifyOtp}
-                      disabled={otpVerifying || otp.length < 4}
-                      className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-extrabold text-xs rounded-xl transition-all shadow-xs cursor-pointer flex items-center justify-center gap-1"
-                    >
-                      {otpVerifying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Verify'}
-                    </button>
-                  </div>
-                </div>
-              )}
+
 
               {/* Password */}
               <div>
