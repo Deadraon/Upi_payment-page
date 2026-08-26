@@ -115,7 +115,7 @@ export default function HomePage() {
       {/* ────────────────────────────────────────────────────────
          ORIGINAL FULL-WIDTH STATIC HEADER WITH MULTI-LAYERED SHADOWS
          ──────────────────────────────────────────────────────── */}
-      <header className="relative z-50 w-full bg-white/90 backdrop-blur-md border-b border-slate-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.02),0_6px_20px_rgba(0,0,0,0.04)] transition-all">
+      <header className="fixed top-0 left-0 right-0 z-50 w-full bg-white/90 backdrop-blur-md border-b border-slate-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.02),0_6px_20px_rgba(0,0,0,0.04)] transition-all">
         <div className="w-full px-6 md:px-10 h-20 flex items-center justify-between relative">
           
           {/* Logo */}
@@ -392,7 +392,7 @@ export default function HomePage() {
       {/* ────────────────────────────────────────────────────────
          HERO SECTION WITH PREMIUM CUSTOM GRAPHICS
          ──────────────────────────────────────────────────────── */}
-      <section className="relative pt-12 pb-24 md:pt-20 md:pb-32 overflow-hidden bg-transparent">
+      <section className="relative mt-20 pt-12 pb-24 md:pt-20 md:pb-32 overflow-hidden bg-transparent">
         
         {/* Glow Effects (Slow Mesh Rotations) */}
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-200/25 rounded-full filter blur-[120px] pointer-events-none -z-10 animate-mesh-rotate" />
