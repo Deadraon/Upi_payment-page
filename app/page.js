@@ -625,6 +625,137 @@ export default function HomePage() {
       </section>
 
       {/* ────────────────────────────────────────────────────────
+         DASHBOARD PREVIEW SHOWCASE
+         ──────────────────────────────────────────────────────── */}
+      <section className="relative z-10 py-24 bg-white overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-50/50 to-white pointer-events-none" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[2px] bg-gradient-to-r from-transparent via-blue-300/40 to-transparent" />
+
+        <div className="max-w-7xl mx-auto px-6 space-y-12">
+          <div className="text-center space-y-3">
+            <span className="text-[10px] font-extrabold uppercase text-blue-600 tracking-widest bg-blue-50 border border-blue-200 px-3 py-1 rounded-full">
+              Live Dashboard
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+              Full visibility. Real-time insights.
+            </h2>
+            <p className="text-sm text-slate-500 font-semibold max-w-md mx-auto">
+              Monitor every transaction, webhook, and settlement directly from your MyMobPay merchant console.
+            </p>
+          </div>
+
+          {/* Browser mockup frame with dashboard image */}
+          <div className="relative group">
+            {/* Glow behind the frame */}
+            <div className="absolute -inset-4 bg-blue-500/5 rounded-[32px] blur-2xl group-hover:bg-blue-500/10 transition-all duration-700" />
+            
+            {/* Browser chrome */}
+            <div className="relative bg-slate-100 border border-slate-200 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.08),0_4px_16px_rgba(0,0,0,0.04)] overflow-hidden">
+              {/* Browser top bar */}
+              <div className="flex items-center gap-2 px-4 py-3 bg-slate-50 border-b border-slate-200">
+                <div className="flex gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-red-400" />
+                  <div className="w-3 h-3 rounded-full bg-amber-400" />
+                  <div className="w-3 h-3 rounded-full bg-emerald-400" />
+                </div>
+                <div className="flex-1 mx-4">
+                  <div className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 flex items-center gap-2">
+                    <svg className="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4" /></svg>
+                    <span className="text-[11px] text-slate-500 font-medium">dashboard.mymobpay.com</span>
+                    <ShieldCheck className="w-3 h-3 text-emerald-500 ml-auto" />
+                  </div>
+                </div>
+              </div>
+              {/* Dashboard screenshot */}
+              <div className="relative overflow-hidden">
+                <Image
+                  src="/dashboard_mockup.jpg"
+                  alt="MyMobPay merchant dashboard showing revenue analytics, transaction table and 99.98% success rate"
+                  width={1280}
+                  height={720}
+                  className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+                  priority
+                />
+                {/* Subtle gradient overlay at bottom */}
+                <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-white/30 to-transparent pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Floating stat chips */}
+            <div className="absolute -left-4 top-1/3 bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-xl flex items-center gap-3 animate-float hidden lg:flex">
+              <div className="w-8 h-8 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-center">
+                <Zap className="w-4 h-4 text-emerald-600" />
+              </div>
+              <div>
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Settlement Speed</p>
+                <p className="text-sm font-black text-emerald-600">0 Seconds</p>
+              </div>
+            </div>
+
+            <div className="absolute -right-4 top-1/2 bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-xl flex items-center gap-3 animate-float hidden lg:flex" style={{ animationDelay: '-2s' }}>
+              <div className="w-8 h-8 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-center">
+                <ShieldCheck className="w-4 h-4 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Success Rate</p>
+                <p className="text-sm font-black text-blue-600">99.98%</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ────────────────────────────────────────────────────────
+         HOW IT WORKS SECTION
+         ──────────────────────────────────────────────────────── */}
+      <section className="relative z-10 py-24 bg-slate-50 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 space-y-12">
+          <div className="text-center space-y-3">
+            <span className="text-[10px] font-extrabold uppercase text-indigo-600 tracking-widest bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-full">
+              How It Works
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+              3 steps. Zero middlemen.
+            </h2>
+            <p className="text-sm text-slate-500 font-semibold max-w-md mx-auto">
+              Customer scans, funds route P2P, you receive instantly. No escrow. No cuts.
+            </p>
+          </div>
+
+          <div className="relative group rounded-3xl overflow-hidden border border-slate-200 shadow-[0_8px_32px_rgba(0,0,0,0.06)] bg-white">
+            <Image
+              src="/how_it_works_flow.jpg"
+              alt="3-step UPI payment flow: Customer scans QR, P2P bank routing, Funds settle in merchant account"
+              width={1280}
+              height={720}
+              className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-[1.01]"
+            />
+          </div>
+
+          {/* 3 step cards below */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { step: '01', title: 'Customer Scans QR', desc: 'Merchant generates a payment QR or link. Customer opens any UPI app and scans it.', color: 'blue', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 3.5a.5.5 0 11-1 0 .5.5 0 011 0zM6 7.5a.5.5 0 11-1 0 .5.5 0 011 0zm.75 8.25a.5.5 0 11-1 0 .5.5 0 011 0zM16.5 7.5a.5.5 0 11-1 0 .5.5 0 011 0z" /></svg> },
+              { step: '02', title: 'P2P Bank Routing', desc: 'MyMobPay routes the UPI transaction directly to your merchant VPA. No intermediary holds.', color: 'indigo', icon: <Zap className="w-5 h-5" /> },
+              { step: '03', title: 'Instant Settlement', desc: 'Funds appear in your bank account in real time. Webhook fires confirming the UTR match.', color: 'emerald', icon: <CheckCircle2 className="w-5 h-5" /> },
+            ].map(({ step, title, desc, color, icon }) => (
+              <div key={step} className={`bg-white border border-slate-200 rounded-2xl p-6 space-y-3 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group`}>
+                <div className="flex items-center gap-3">
+                  <span className={`text-[10px] font-black text-${color}-600 bg-${color}-50 border border-${color}-200 px-2 py-0.5 rounded-full`}>STEP {step}</span>
+                </div>
+                <div className={`w-10 h-10 rounded-xl bg-${color}-500 text-white flex items-center justify-center shadow-md group-hover:scale-105 transition-transform`}>
+                  {icon}
+                </div>
+                <h3 className="font-black text-slate-900 text-base">{title}</h3>
+                <p className="text-xs text-slate-500 font-medium leading-relaxed">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ────────────────────────────────────────────────────────
          INTERACTIVE SAVINGS SLIDER CALCULATOR
          ──────────────────────────────────────────────────────── */}
       <section id="pricing-section" className="relative z-10 py-24 bg-slate-50 border-y border-slate-200/60">
@@ -856,41 +987,72 @@ export default function HomePage() {
 
             </div>
 
-            {/* Right Column Product Card Mockup */}
-            <div className="lg:col-span-6 flex items-center justify-center relative">
-              <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-md w-full max-w-[420px] space-y-4">
-                
-                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-center">
-                      <Landmark className="w-4.5 h-4.5 text-blue-600" />
+            {/* Right Column — Dynamic image per tab */}
+            <div className="lg:col-span-6 flex items-center justify-center relative group">
+              <div className="relative w-full rounded-2xl overflow-hidden border border-slate-200 shadow-[0_8px_32px_rgba(0,0,0,0.08)] bg-white">
+                {/* Tab image switcher */}
+                {activeProductTab === 'accept' && (
+                  <div className="relative">
+                    <Image
+                      src="/accept_payments_ui.jpg"
+                      alt="UPI payment link generator with QR code preview and success notification"
+                      width={840}
+                      height={630}
+                      className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                    />
+                    <div className="absolute top-3 right-3 bg-emerald-500 text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow-md">
+                      ✓ Live
                     </div>
-                    <span className="text-xs font-black text-slate-900">Checkout Preview</span>
                   </div>
-                  <span className="text-[9px] bg-amber-50 text-amber-700 px-2 py-0.5 border border-amber-200 rounded font-bold uppercase">
-                    Sandbox mode
-                  </span>
-                </div>
-
-                <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
-                  <div className="flex justify-between items-baseline">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase">Customer Invoice</span>
-                    <span className="text-base font-black text-slate-900">₹{parseFloat(demoAmount).toFixed(2)}</span>
+                )}
+                {activeProductTab === 'payouts' && (
+                  <div className="relative">
+                    <Image
+                      src="/dashboard_mockup.jpg"
+                      alt="MyMobPay dashboard showing settlements and payout analytics"
+                      width={840}
+                      height={630}
+                      className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                    />
+                    <div className="absolute top-3 right-3 bg-blue-600 text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow-md">
+                      Real-Time
+                    </div>
                   </div>
-                  <code className="block bg-white border border-slate-200/80 p-2.5 rounded-xl text-[10px] font-mono break-all text-slate-600 font-semibold leading-normal">
-                    mymobpay.com/pay?api_key=test_apikey...
-                  </code>
+                )}
+                {activeProductTab === 'sandbox' && (
+                  <div className="relative">
+                    <Image
+                      src="/sandbox_developer_ui.jpg"
+                      alt="Developer sandbox API testing panel with webhook log stream"
+                      width={840}
+                      height={630}
+                      className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                    />
+                    <div className="absolute top-3 right-3 bg-amber-500 text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow-md">
+                      Sandbox
+                    </div>
+                  </div>
+                )}
+                {activeProductTab === 'settlement' && (
+                  <div className="relative">
+                    <Image
+                      src="/how_it_works_flow.jpg"
+                      alt="Zero escrow P2P settlement flow visualization"
+                      width={840}
+                      height={630}
+                      className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                    />
+                    <div className="absolute top-3 right-3 bg-emerald-600 text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow-md">
+                      0s Settle
+                    </div>
+                  </div>
+                )}
+                {/* Bottom glass label */}
+                <div className="absolute bottom-0 inset-x-0 h-12 bg-gradient-to-t from-black/30 to-transparent" />
+                <div className="absolute bottom-3 left-3 flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-[9px] font-bold text-white/90 uppercase tracking-wider">Interactive Preview</span>
                 </div>
-
-                <div className="grid grid-cols-2 gap-3 pt-2">
-                  <button className="py-2.5 bg-slate-950 text-white rounded-xl text-[10px] font-bold shadow-md shadow-slate-950/10">
-                    Simulate Success
-                  </button>
-                  <button className="py-2.5 border border-slate-200 text-slate-650 rounded-xl text-[10px] font-bold">
-                    Simulate Failure
-                  </button>
-                </div>
-
               </div>
             </div>
 
