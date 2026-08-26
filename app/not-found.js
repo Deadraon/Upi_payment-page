@@ -33,7 +33,7 @@ export default function NotFound() {
       <div className="absolute bottom-10 left-0 w-[300px] h-[300px] bg-indigo-200/15 rounded-full filter blur-[90px] pointer-events-none -z-10 animate-mesh-rotate" style={{ animationDelay: '-5s' }} />
 
       {/* Header */}
-      <header className="w-full px-6 md:px-10 h-20 flex items-center justify-between border-b border-slate-200/60 bg-white/80 backdrop-blur-md">
+      <header className="w-full px-6 md:px-10 h-20 flex items-center justify-between border-b border-slate-200 bg-white">
         <Link href="/" className="flex items-center gap-2 select-none">
           <MyMobPayLogo className="w-40 h-auto" />
         </Link>
