@@ -625,92 +625,193 @@ export default function HomePage() {
       </section>
 
       {/* ────────────────────────────────────────────────────────
-         DASHBOARD PREVIEW SHOWCASE
+         CODED DASHBOARD SHOWCASE (Razorpay-style coded mockup)
          ──────────────────────────────────────────────────────── */}
-      <section className="relative z-10 py-24 bg-white overflow-hidden">
-        {/* Background decoration */}
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-50/50 to-white pointer-events-none" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[2px] bg-gradient-to-r from-transparent via-blue-300/40 to-transparent" />
+      <section className="relative z-10 py-24 bg-[#060d1a] overflow-hidden">
+        {/* Ambient glow */}
+        <div className="absolute top-0 left-1/4 w-[600px] h-[300px] bg-blue-600/10 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute bottom-0 right-1/4 w-[400px] h-[300px] bg-indigo-600/10 rounded-full blur-[100px] pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-6 space-y-12">
+        <div className="max-w-7xl mx-auto px-6 space-y-14">
           <div className="text-center space-y-3">
-            <span className="text-[10px] font-extrabold uppercase text-blue-600 tracking-widest bg-blue-50 border border-blue-200 px-3 py-1 rounded-full">
-              Live Dashboard
+            <span className="text-[10px] font-extrabold uppercase text-blue-400 tracking-widest bg-blue-950/60 border border-blue-800/60 px-3 py-1 rounded-full">
+              Merchant Console
             </span>
-            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+            <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
               Full visibility. Real-time insights.
             </h2>
-            <p className="text-sm text-slate-500 font-semibold max-w-md mx-auto">
-              Monitor every transaction, webhook, and settlement directly from your MyMobPay merchant console.
+            <p className="text-sm text-slate-400 font-medium max-w-md mx-auto">
+              Monitor every transaction, webhook, and settlement from your live MyMobPay console.
             </p>
           </div>
 
-          {/* Browser mockup frame with dashboard image */}
-          <div className="relative group">
-            {/* Glow behind the frame */}
-            <div className="absolute -inset-4 bg-blue-500/5 rounded-[32px] blur-2xl group-hover:bg-blue-500/10 transition-all duration-700" />
-            
-            {/* Browser chrome */}
-            <div className="relative bg-slate-100 border border-slate-200 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.08),0_4px_16px_rgba(0,0,0,0.04)] overflow-hidden">
-              {/* Browser top bar */}
-              <div className="flex items-center gap-2 px-4 py-3 bg-slate-50 border-b border-slate-200">
+          {/* === CODED DASHBOARD MOCKUP === */}
+          <div className="relative">
+            {/* Glow */}
+            <div className="absolute -inset-px bg-gradient-to-r from-blue-600/30 via-indigo-600/20 to-blue-600/30 rounded-2xl blur-sm" />
+
+            {/* Browser frame */}
+            <div className="relative bg-[#0d1b2e] border border-[#1e3a5f] rounded-2xl overflow-hidden shadow-[0_40px_120px_rgba(0,0,0,0.6)]">
+
+              {/* Browser chrome */}
+              <div className="flex items-center gap-3 px-4 py-3 bg-[#0a1628] border-b border-[#1e3a5f]">
                 <div className="flex gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-red-400" />
-                  <div className="w-3 h-3 rounded-full bg-amber-400" />
-                  <div className="w-3 h-3 rounded-full bg-emerald-400" />
+                  <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
+                  <div className="w-3 h-3 rounded-full bg-[#febc2e]" />
+                  <div className="w-3 h-3 rounded-full bg-[#28c840]" />
                 </div>
-                <div className="flex-1 mx-4">
-                  <div className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 flex items-center gap-2">
-                    <svg className="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4" /></svg>
-                    <span className="text-[11px] text-slate-500 font-medium">dashboard.mymobpay.com</span>
-                    <ShieldCheck className="w-3 h-3 text-emerald-500 ml-auto" />
+                <div className="flex-1 mx-2">
+                  <div className="bg-[#0d1b2e] border border-[#1e3a5f] rounded-md px-3 py-1 flex items-center gap-2 max-w-xs mx-auto">
+                    <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                    <span className="text-[11px] text-slate-400 font-mono">dashboard.mymobpay.com</span>
                   </div>
                 </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-wider">Live</span>
+                </div>
               </div>
-              {/* Dashboard screenshot */}
-              <div className="relative overflow-hidden">
-                <Image
-                  src="/dashboard_mockup.jpg"
-                  alt="MyMobPay merchant dashboard showing revenue analytics, transaction table and 99.98% success rate"
-                  width={1280}
-                  height={720}
-                  className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-[1.02]"
-                  priority
-                />
-                {/* Subtle gradient overlay at bottom */}
-                <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-white/30 to-transparent pointer-events-none" />
-              </div>
-            </div>
 
-            {/* Floating stat chips */}
-            <div className="absolute -left-4 top-1/3 bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-xl flex items-center gap-3 animate-float hidden lg:flex">
-              <div className="w-8 h-8 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-center">
-                <Zap className="w-4 h-4 text-emerald-600" />
-              </div>
-              <div>
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Settlement Speed</p>
-                <p className="text-sm font-black text-emerald-600">0 Seconds</p>
-              </div>
-            </div>
+              {/* Dashboard content */}
+              <div className="flex min-h-[480px]">
 
-            <div className="absolute -right-4 top-1/2 bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-xl flex items-center gap-3 animate-float hidden lg:flex" style={{ animationDelay: '-2s' }}>
-              <div className="w-8 h-8 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-center">
-                <ShieldCheck className="w-4 h-4 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Success Rate</p>
-                <p className="text-sm font-black text-blue-600">99.98%</p>
+                {/* Sidebar */}
+                <div className="hidden md:flex w-[180px] bg-[#080f1d] border-r border-[#1e3a5f] flex-col py-6 px-3 gap-1 flex-shrink-0">
+                  <div className="px-3 pb-4">
+                    <MyMobPayLogo className="w-28 h-auto" textColor="#FFFFFF" />
+                  </div>
+                  {[
+                    { label: 'Dashboard', active: true, dot: 'bg-blue-500' },
+                    { label: 'Orders', active: false, dot: null },
+                    { label: 'Analytics', active: false, dot: null },
+                    { label: 'Settlements', active: false, dot: null },
+                    { label: 'Webhooks', active: false, dot: 'bg-amber-400' },
+                    { label: 'API Keys', active: false, dot: null },
+                    { label: 'Sandbox', active: false, dot: null },
+                  ].map(item => (
+                    <div key={item.label} className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold cursor-pointer transition-all ${
+                      item.active
+                        ? 'bg-blue-600/20 text-blue-300 border border-blue-600/30'
+                        : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
+                    }`}>
+                      <span>{item.label}</span>
+                      {item.dot && <span className={`w-1.5 h-1.5 rounded-full ${item.dot}`} />}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Main panel */}
+                <div className="flex-1 p-5 space-y-5 overflow-hidden">
+
+                  {/* Top stat cards */}
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    {[
+                      { label: 'Total Revenue', value: '₹4,82,500', change: '+12.4%', color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
+                      { label: 'Transactions', value: '1,842', change: '+8.1%', color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20' },
+                      { label: 'Success Rate', value: '99.98%', change: '+0.02%', color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
+                      { label: 'Avg. Settlement', value: '0.0s', change: 'Real-time', color: 'text-indigo-400', bg: 'bg-indigo-500/10 border-indigo-500/20' },
+                    ].map(stat => (
+                      <div key={stat.label} className={`${stat.bg} border rounded-xl p-3.5 space-y-1`}>
+                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">{stat.label}</p>
+                        <p className="text-base font-black text-white">{stat.value}</p>
+                        <p className={`text-[9px] font-bold ${stat.color}`}>{stat.change}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Chart + Recent Transactions */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    {/* Chart */}
+                    <div className="lg:col-span-2 bg-[#0a1628] border border-[#1e3a5f] rounded-xl p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-black text-white">Revenue (Last 30 Days)</p>
+                        <span className="text-[9px] bg-blue-600/20 text-blue-400 border border-blue-600/30 px-2 py-0.5 rounded font-bold">LIVE</span>
+                      </div>
+                      {/* SVG Sparkline chart */}
+                      <svg viewBox="0 0 400 80" className="w-full h-20" preserveAspectRatio="none">
+                        <defs>
+                          <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.4" />
+                            <stop offset="100%" stopColor="#3B82F6" stopOpacity="0" />
+                          </linearGradient>
+                        </defs>
+                        {/* Area fill */}
+                        <path d="M0,65 C20,60 40,50 60,45 C80,40 100,55 120,48 C140,41 160,30 180,25 C200,20 220,35 240,28 C260,21 280,15 300,18 C320,21 340,10 360,8 C380,6 400,12 400,12 L400,80 L0,80 Z" fill="url(#chartGrad)" />
+                        {/* Line */}
+                        <path d="M0,65 C20,60 40,50 60,45 C80,40 100,55 120,48 C140,41 160,30 180,25 C200,20 220,35 240,28 C260,21 280,15 300,18 C320,21 340,10 360,8 C380,6 400,12 400,12" fill="none" stroke="#3B82F6" strokeWidth="2" />
+                        {/* Grid lines */}
+                        {[20, 40, 60].map(y => (
+                          <line key={y} x1="0" y1={y} x2="400" y2={y} stroke="#1e3a5f" strokeWidth="0.5" strokeDasharray="4" />
+                        ))}
+                        {/* Dot on peak */}
+                        <circle cx="360" cy="8" r="4" fill="#3B82F6" />
+                        <circle cx="360" cy="8" r="8" fill="#3B82F6" opacity="0.2" />
+                      </svg>
+                      <div className="flex justify-between text-[8px] text-slate-600 font-bold">
+                        {['Aug 1','Aug 7','Aug 14','Aug 21','Aug 26'].map(d => <span key={d}>{d}</span>)}
+                      </div>
+                    </div>
+
+                    {/* Recent transactions */}
+                    <div className="bg-[#0a1628] border border-[#1e3a5f] rounded-xl p-4 space-y-3">
+                      <p className="text-xs font-black text-white">Recent Payments</p>
+                      <div className="space-y-2">
+                        {[
+                          { id: '#MP0891', upi: 'raj@okaxis', amt: '₹4,500', status: 'SUCCESS' },
+                          { id: '#MP0890', upi: 'sara@ybl', amt: '₹1,200', status: 'SUCCESS' },
+                          { id: '#MP0889', upi: 'dev@paytm', amt: '₹800', status: 'PENDING' },
+                          { id: '#MP0888', upi: 'mia@upi', amt: '₹12,000', status: 'SUCCESS' },
+                        ].map(tx => (
+                          <div key={tx.id} className="flex items-center justify-between py-1.5 border-b border-[#1e3a5f]/50 last:border-0">
+                            <div>
+                              <p className="text-[10px] font-black text-blue-400">{tx.id}</p>
+                              <p className="text-[9px] text-slate-500 font-mono">{tx.upi}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-[10px] font-black text-white">{tx.amt}</p>
+                              <span className={`text-[8px] font-black px-1.5 py-0.5 rounded ${
+                                tx.status === 'SUCCESS'
+                                  ? 'bg-emerald-500/15 text-emerald-400'
+                                  : 'bg-amber-500/15 text-amber-400'
+                              }`}>{tx.status}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
               </div>
             </div>
+          </div>
+
+          {/* Bottom metric chips */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { label: 'Uptime SLA', value: '99.99%', icon: <ShieldCheck className="w-4 h-4" />, color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
+              { label: 'Webhook Latency', value: '<200ms', icon: <Zap className="w-4 h-4" />, color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20' },
+              { label: 'Avg. Settlement', value: '0 sec', icon: <RefreshCw className="w-4 h-4" />, color: 'text-indigo-400', bg: 'bg-indigo-500/10 border-indigo-500/20' },
+              { label: 'Gateway Fee', value: '0%', icon: <CheckCircle2 className="w-4 h-4" />, color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
+            ].map(m => (
+              <div key={m.label} className={`${m.bg} border rounded-2xl px-5 py-4 flex items-center gap-3`}>
+                <div className={`${m.color}`}>{m.icon}</div>
+                <div>
+                  <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">{m.label}</p>
+                  <p className={`text-lg font-black ${m.color}`}>{m.value}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* ────────────────────────────────────────────────────────
-         HOW IT WORKS SECTION
+         HOW IT WORKS — CODED VISUAL FLOW
          ──────────────────────────────────────────────────────── */}
-      <section className="relative z-10 py-24 bg-slate-50 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 space-y-12">
+      <section className="relative z-10 py-24 bg-white overflow-hidden">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:3rem_3rem] opacity-40 pointer-events-none" />
+        <div className="max-w-7xl mx-auto px-6 space-y-16">
           <div className="text-center space-y-3">
             <span className="text-[10px] font-extrabold uppercase text-indigo-600 tracking-widest bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-full">
               How It Works
@@ -723,34 +824,138 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="relative group rounded-3xl overflow-hidden border border-slate-200 shadow-[0_8px_32px_rgba(0,0,0,0.06)] bg-white">
-            <Image
-              src="/how_it_works_flow.jpg"
-              alt="3-step UPI payment flow: Customer scans QR, P2P bank routing, Funds settle in merchant account"
-              width={1280}
-              height={720}
-              className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-[1.01]"
-            />
-          </div>
+          {/* Visual step flow */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
+            {/* Connector line */}
+            <div className="hidden lg:block absolute top-[72px] left-[33%] right-[33%] h-px bg-gradient-to-r from-blue-300 via-indigo-400 to-emerald-300 z-0" />
 
-          {/* 3 step cards below */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { step: '01', title: 'Customer Scans QR', desc: 'Merchant generates a payment QR or link. Customer opens any UPI app and scans it.', color: 'blue', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 3.5a.5.5 0 11-1 0 .5.5 0 011 0zM6 7.5a.5.5 0 11-1 0 .5.5 0 011 0zm.75 8.25a.5.5 0 11-1 0 .5.5 0 011 0zM16.5 7.5a.5.5 0 11-1 0 .5.5 0 011 0z" /></svg> },
-              { step: '02', title: 'P2P Bank Routing', desc: 'MyMobPay routes the UPI transaction directly to your merchant VPA. No intermediary holds.', color: 'indigo', icon: <Zap className="w-5 h-5" /> },
-              { step: '03', title: 'Instant Settlement', desc: 'Funds appear in your bank account in real time. Webhook fires confirming the UTR match.', color: 'emerald', icon: <CheckCircle2 className="w-5 h-5" /> },
-            ].map(({ step, title, desc, color, icon }) => (
-              <div key={step} className={`bg-white border border-slate-200 rounded-2xl p-6 space-y-3 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group`}>
-                <div className="flex items-center gap-3">
-                  <span className={`text-[10px] font-black text-${color}-600 bg-${color}-50 border border-${color}-200 px-2 py-0.5 rounded-full`}>STEP {step}</span>
+            {/* Step 1 */}
+            <div className="relative z-10 flex flex-col items-center gap-6">
+              <div className="w-full bg-gradient-to-br from-blue-50 to-white border-2 border-blue-200 rounded-3xl p-6 space-y-5 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                {/* Phone mockup */}
+                <div className="mx-auto w-36 bg-slate-900 rounded-[28px] border-4 border-slate-800 overflow-hidden p-3 space-y-3 shadow-2xl">
+                  <div className="flex justify-center"><div className="w-12 h-1.5 bg-slate-700 rounded-full" /></div>
+                  <div className="bg-[#0B192C] rounded-xl p-2 space-y-2">
+                    <p className="text-[7px] font-black text-blue-400 text-center">PAYMENT REQUEST</p>
+                    <div className="bg-white rounded-lg p-2 flex items-center justify-center">
+                      <svg viewBox="0 0 40 40" className="w-12 h-12" fill="#0F172A">
+                        <rect x="2" y="2" width="12" height="12" rx="1" /><rect x="4" y="4" width="8" height="8" rx="0.5" fill="white" /><rect x="6" y="6" width="4" height="4" fill="#3B82F6" />
+                        <rect x="26" y="2" width="12" height="12" rx="1" /><rect x="28" y="4" width="8" height="8" rx="0.5" fill="white" /><rect x="30" y="6" width="4" height="4" fill="#3B82F6" />
+                        <rect x="2" y="26" width="12" height="12" rx="1" /><rect x="4" y="28" width="8" height="8" rx="0.5" fill="white" /><rect x="6" y="30" width="4" height="4" fill="#3B82F6" />
+                        <rect x="17" y="2" width="4" height="4" /><rect x="17" y="8" width="4" height="4" /><rect x="23" y="2" width="2" height="2" />
+                        <rect x="17" y="17" width="4" height="4" /><rect x="23" y="17" width="4" height="4" /><rect x="17" y="23" width="4" height="4" /><rect x="23" y="23" width="4" height="4" />
+                        <rect x="17" y="30" width="4" height="4" /><rect x="23" y="30" width="4" height="4" /><rect x="29" y="30" width="4" height="4" />
+                        <rect x="17" y="36" width="4" height="2" /><rect x="23" y="36" width="4" height="2" />
+                      </svg>
+                    </div>
+                    <p className="text-[7px] font-bold text-slate-400 text-center">Scan with GPay / PhonePe</p>
+                    <div className="flex justify-center gap-1">
+                      {['G','Ph','Pt'].map(a => <span key={a} className="text-[6px] bg-white/10 text-white px-1 py-0.5 rounded font-bold">{a}</span>)}
+                    </div>
+                  </div>
                 </div>
-                <div className={`w-10 h-10 rounded-xl bg-${color}-500 text-white flex items-center justify-center shadow-md group-hover:scale-105 transition-transform`}>
-                  {icon}
+                <div className="text-center space-y-1">
+                  <div className="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto shadow-md shadow-blue-500/20">
+                    <span className="text-white font-black text-sm">1</span>
+                  </div>
+                  <h3 className="font-black text-slate-900">Customer Scans</h3>
+                  <p className="text-xs text-slate-500 font-medium">Customer opens any UPI app and scans the payment QR or taps your link.</p>
                 </div>
-                <h3 className="font-black text-slate-900 text-base">{title}</h3>
-                <p className="text-xs text-slate-500 font-medium leading-relaxed">{desc}</p>
               </div>
-            ))}
+            </div>
+
+            {/* Step 2 */}
+            <div className="relative z-10 flex flex-col items-center gap-6 lg:mt-8">
+              <div className="w-full bg-gradient-to-br from-indigo-50 to-white border-2 border-indigo-200 rounded-3xl p-6 space-y-5 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                {/* Routing visual */}
+                <div className="mx-auto w-44 h-28 relative">
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <svg viewBox="0 0 180 100" className="w-full h-full">
+                      {/* Customer node */}
+                      <circle cx="20" cy="50" r="14" fill="#EFF6FF" stroke="#3B82F6" strokeWidth="2" />
+                      <text x="20" y="54" textAnchor="middle" fontSize="9" fill="#3B82F6" fontWeight="900">USR</text>
+                      {/* Arrow */}
+                      <path d="M35,50 L75,50" stroke="#6366F1" strokeWidth="2" strokeDasharray="4" markerEnd="url(#arr)" />
+                      {/* MyMobPay center */}
+                      <circle cx="90" cy="50" r="18" fill="#4F46E5" />
+                      <text x="90" y="47" textAnchor="middle" fontSize="7" fill="white" fontWeight="900">MyMob</text>
+                      <text x="90" y="57" textAnchor="middle" fontSize="7" fill="#A5B4FC" fontWeight="800">Pay</text>
+                      {/* Lightning */}
+                      <path d="M87,38 L83,52 L90,52 L86,64" stroke="#FCD34D" strokeWidth="1.5" fill="none" />
+                      {/* Arrow */}
+                      <path d="M108,50 L148,50" stroke="#10B981" strokeWidth="2" strokeDasharray="4" markerEnd="url(#arr2)" />
+                      {/* Bank node */}
+                      <circle cx="162" cy="50" r="14" fill="#ECFDF5" stroke="#10B981" strokeWidth="2" />
+                      <text x="162" y="47" textAnchor="middle" fontSize="7" fill="#10B981" fontWeight="900">BANK</text>
+                      <text x="162" y="56" textAnchor="middle" fontSize="7" fill="#6EE7B7" fontWeight="700">P2P</text>
+                      <defs>
+                        <marker id="arr" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto">
+                          <path d="M0,0 L6,3 L0,6" fill="none" stroke="#6366F1" strokeWidth="1" />
+                        </marker>
+                        <marker id="arr2" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto">
+                          <path d="M0,0 L6,3 L0,6" fill="none" stroke="#10B981" strokeWidth="1" />
+                        </marker>
+                      </defs>
+                      {/* Labels */}
+                      <text x="55" y="44" textAnchor="middle" fontSize="6" fill="#6366F1" fontWeight="700">UPI</text>
+                      <text x="128" y="44" textAnchor="middle" fontSize="6" fill="#10B981" fontWeight="700">Direct</text>
+                    </svg>
+                  </div>
+                </div>
+                <div className="text-center space-y-1">
+                  <div className="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center mx-auto shadow-md shadow-indigo-500/20">
+                    <span className="text-white font-black text-sm">2</span>
+                  </div>
+                  <h3 className="font-black text-slate-900">P2P Bank Route</h3>
+                  <p className="text-xs text-slate-500 font-medium">MyMobPay routes the payment directly to your merchant VPA — no escrow holds.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 3 */}
+            <div className="relative z-10 flex flex-col items-center gap-6">
+              <div className="w-full bg-gradient-to-br from-emerald-50 to-white border-2 border-emerald-200 rounded-3xl p-6 space-y-5 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                {/* Settled card visual */}
+                <div className="mx-auto w-44 space-y-2">
+                  <div className="bg-slate-900 rounded-2xl p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[8px] font-black text-slate-400">SETTLEMENT</span>
+                      <span className="text-[7px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded font-black">CONFIRMED</span>
+                    </div>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-xs font-bold text-slate-400">₹</span>
+                      <span className="text-xl font-black text-white">4,500</span>
+                    </div>
+                    <div className="border-t border-slate-700 pt-2 space-y-1">
+                      <div className="flex justify-between text-[8px]">
+                        <span className="text-slate-500">UTR</span>
+                        <span className="text-slate-300 font-mono">123456789012</span>
+                      </div>
+                      <div className="flex justify-between text-[8px]">
+                        <span className="text-slate-500">Time</span>
+                        <span className="text-emerald-400 font-bold">0.0 seconds</span>
+                      </div>
+                      <div className="flex justify-between text-[8px]">
+                        <span className="text-slate-500">Fee</span>
+                        <span className="text-emerald-400 font-bold">₹0.00</span>
+                      </div>
+                    </div>
+                    {/* Webhook ping */}
+                    <div className="bg-[#0a1f14] border border-emerald-800/50 rounded-lg px-2 py-1.5 flex items-center gap-1.5">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      <span className="text-[7px] font-mono text-emerald-400">webhook → payment.success ✓</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-center space-y-1">
+                  <div className="w-10 h-10 bg-emerald-600 rounded-2xl flex items-center justify-center mx-auto shadow-md shadow-emerald-500/20">
+                    <span className="text-white font-black text-sm">3</span>
+                  </div>
+                  <h3 className="font-black text-slate-900">Instant Settlement</h3>
+                  <p className="text-xs text-slate-500 font-medium">Funds hit your bank in real time. Webhook fires with UTR confirmation in &lt;200ms.</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -987,71 +1192,213 @@ export default function HomePage() {
 
             </div>
 
-            {/* Right Column — Dynamic image per tab */}
-            <div className="lg:col-span-6 flex items-center justify-center relative group">
-              <div className="relative w-full rounded-2xl overflow-hidden border border-slate-200 shadow-[0_8px_32px_rgba(0,0,0,0.08)] bg-white">
-                {/* Tab image switcher */}
+            {/* Right Column — Coded interactive UI mockup per tab */}
+            <div className="lg:col-span-6 flex items-center justify-center relative">
+              <div className="relative w-full rounded-2xl overflow-hidden border border-slate-200 shadow-[0_8px_32px_rgba(0,0,0,0.08)]">
+
+                {/* ACCEPT PAYMENTS tab */}
                 {activeProductTab === 'accept' && (
-                  <div className="relative">
-                    <Image
-                      src="/accept_payments_ui.jpg"
-                      alt="UPI payment link generator with QR code preview and success notification"
-                      width={840}
-                      height={630}
-                      className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                    />
-                    <div className="absolute top-3 right-3 bg-emerald-500 text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow-md">
-                      ✓ Live
+                  <div className="bg-white p-6 space-y-4">
+                    <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-center"><Landmark className="w-3.5 h-3.5 text-blue-600" /></div>
+                        <span className="text-xs font-black text-slate-900">Generate Payment Link</span>
+                      </div>
+                      <span className="text-[8px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded font-black uppercase">Live Mode</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-3">
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Amount (₹)</label>
+                          <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 flex items-center justify-between">
+                            <span className="text-sm font-black text-slate-900">₹500.00</span>
+                            <CheckCircle2 className="w-3.5 h-3.5 text-blue-500" />
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Customer UPI</label>
+                          <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5">
+                            <span className="text-[11px] font-mono text-slate-600">raj@okaxis</span>
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Order ID</label>
+                          <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5">
+                            <span className="text-[11px] font-mono text-slate-600">ORD-2891-XYZ</span>
+                          </div>
+                        </div>
+                        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                          <div>
+                            <p className="text-[9px] font-black text-emerald-800">Payment Successful</p>
+                            <p className="text-[8px] text-emerald-600 font-medium">UTR: 123456789012 · ₹500</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-center gap-3 bg-[#0B192C] rounded-2xl p-4">
+                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-wider">Scan to Pay</p>
+                        <div className="bg-white rounded-xl p-2">
+                          <svg viewBox="0 0 60 60" className="w-20 h-20" fill="#0F172A">
+                            <rect x="3" y="3" width="18" height="18" rx="1.5" /><rect x="6" y="6" width="12" height="12" rx="1" fill="white" /><rect x="9" y="9" width="6" height="6" fill="#3B82F6" />
+                            <rect x="39" y="3" width="18" height="18" rx="1.5" /><rect x="42" y="6" width="12" height="12" rx="1" fill="white" /><rect x="45" y="9" width="6" height="6" fill="#3B82F6" />
+                            <rect x="3" y="39" width="18" height="18" rx="1.5" /><rect x="6" y="42" width="12" height="12" rx="1" fill="white" /><rect x="9" y="45" width="6" height="6" fill="#3B82F6" />
+                            <rect x="24" y="3" width="6" height="6" /><rect x="24" y="12" width="6" height="6" /><rect x="33" y="3" width="3" height="3" />
+                            <rect x="24" y="24" width="6" height="6" /><rect x="33" y="24" width="6" height="6" /><rect x="24" y="33" width="6" height="6" /><rect x="33" y="33" width="6" height="6" />
+                            <rect x="24" y="45" width="6" height="6" /><rect x="33" y="45" width="6" height="6" /><rect x="45" y="45" width="6" height="6" />
+                            <rect x="27" y="30" width="6" height="3" />
+                            <rect x="27" y="54" width="6" height="3" /><rect x="36" y="54" width="6" height="3" />
+                          </svg>
+                        </div>
+                        <div className="flex gap-1.5">
+                          {['G','Ph','Pt','B'].map(a => (
+                            <div key={a} className="w-7 h-7 bg-white/10 border border-white/20 rounded-lg flex items-center justify-center">
+                              <span className="text-[8px] font-black text-white">{a}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+                          <span className="text-[8px] font-bold text-emerald-400">Auto-verify active</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
+
+                {/* DIRECT PAYOUTS tab */}
                 {activeProductTab === 'payouts' && (
-                  <div className="relative">
-                    <Image
-                      src="/dashboard_mockup.jpg"
-                      alt="MyMobPay dashboard showing settlements and payout analytics"
-                      width={840}
-                      height={630}
-                      className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                    />
-                    <div className="absolute top-3 right-3 bg-blue-600 text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow-md">
-                      Real-Time
+                  <div className="bg-[#060d1a] p-6 space-y-4">
+                    <div className="flex items-center justify-between pb-3 border-b border-[#1e3a5f]">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 bg-blue-900/40 border border-blue-700/50 rounded-lg flex items-center justify-center"><Zap className="w-3.5 h-3.5 text-blue-400" /></div>
+                        <span className="text-xs font-black text-white">Bulk Payout Console</span>
+                      </div>
+                      <span className="text-[8px] bg-blue-500/20 text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded font-black uppercase">API v2</span>
+                    </div>
+                    <div className="space-y-2">
+                      {[
+                        { to: 'vendor@ybl', amount: '₹25,000', status: 'SENT', time: '0.1s' },
+                        { to: 'dev@okaxis', amount: '₹12,500', status: 'SENT', time: '0.0s' },
+                        { to: 'raj@paytm', amount: '₹8,000', status: 'QUEUED', time: '—' },
+                        { to: 'mia@upi', amount: '₹45,000', status: 'SENT', time: '0.2s' },
+                      ].map((row, i) => (
+                        <div key={i} className="flex items-center justify-between bg-[#0a1628] border border-[#1e3a5f] rounded-xl px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-7 h-7 bg-[#0d1b2e] border border-[#1e3a5f] rounded-lg flex items-center justify-center">
+                              <Landmark className="w-3.5 h-3.5 text-slate-400" />
+                            </div>
+                            <div>
+                              <p className="text-[10px] font-black text-white">{row.to}</p>
+                              <p className="text-[8px] text-slate-500 font-medium">Settlement: {row.time}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-[11px] font-black text-white">{row.amount}</p>
+                            <span className={`text-[8px] font-black px-1.5 py-0.5 rounded ${
+                              row.status === 'SENT' ? 'bg-emerald-500/15 text-emerald-400' : 'bg-amber-500/15 text-amber-400'
+                            }`}>{row.status}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="bg-[#0a1628] border border-[#1e3a5f] rounded-xl p-3 flex items-center justify-between">
+                      <span className="text-[9px] font-black text-slate-400">Total Disbursed</span>
+                      <span className="text-base font-black text-emerald-400">₹90,500</span>
                     </div>
                   </div>
                 )}
+
+                {/* SANDBOX tab */}
                 {activeProductTab === 'sandbox' && (
-                  <div className="relative">
-                    <Image
-                      src="/sandbox_developer_ui.jpg"
-                      alt="Developer sandbox API testing panel with webhook log stream"
-                      width={840}
-                      height={630}
-                      className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                    />
-                    <div className="absolute top-3 right-3 bg-amber-500 text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow-md">
-                      Sandbox
+                  <div className="bg-[#060d1a] p-6 space-y-3 font-mono">
+                    <div className="flex items-center justify-between pb-3 border-b border-[#1e3a5f]">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 bg-amber-900/30 border border-amber-700/40 rounded-lg flex items-center justify-center"><Code className="w-3.5 h-3.5 text-amber-400" /></div>
+                        <span className="text-xs font-black text-white">API Sandbox Console</span>
+                      </div>
+                      <span className="text-[8px] bg-amber-500/15 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded font-black uppercase">test_ mode</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-[#0a1628] border border-[#1e3a5f] rounded-xl p-3 space-y-2">
+                        <p className="text-[8px] font-black text-blue-400 uppercase">POST /orders/create</p>
+                        <pre className="text-[8px] text-slate-300 leading-relaxed">{`{
+  "amount": 549.99,
+  "upi_id": "test@upi",
+  "order_id": "ORD-001",
+  "webhook_url":
+  "https://cb.dev/wh"
+}`}</pre>
+                      </div>
+                      <div className="bg-[#0a1628] border border-emerald-800/40 rounded-xl p-3 space-y-2">
+                        <p className="text-[8px] font-black text-emerald-400 uppercase">200 OK · 0.14s</p>
+                        <pre className="text-[8px] text-slate-300 leading-relaxed">{`{
+  "status": "SUCCESS",
+  "tx_id": "PAY_abc",
+  "utr": "123456",
+  "fee": 0.00
+}`}</pre>
+                      </div>
+                    </div>
+                    <div className="bg-[#040810] border border-[#1e3a5f] rounded-xl p-3 space-y-1">
+                      <p className="text-[8px] font-black text-slate-500 uppercase mb-2">Webhook Log Stream</p>
+                      {[
+                        '[10:30:16] payment.created → ORD-001 | RECEIVED',
+                        '[10:30:17] payment.success → PAY_abc | DELIVERED',
+                        '[10:30:17] utr.matched → 123456 | VERIFIED ✓',
+                      ].map((log, i) => (
+                        <p key={i} className="text-[8px] text-emerald-400">{log}</p>
+                      ))}
                     </div>
                   </div>
                 )}
+
+                {/* SETTLEMENT tab */}
                 {activeProductTab === 'settlement' && (
-                  <div className="relative">
-                    <Image
-                      src="/how_it_works_flow.jpg"
-                      alt="Zero escrow P2P settlement flow visualization"
-                      width={840}
-                      height={630}
-                      className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                    />
-                    <div className="absolute top-3 right-3 bg-emerald-600 text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow-md">
-                      0s Settle
+                  <div className="bg-white p-6 space-y-4">
+                    <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center justify-center"><Layers className="w-3.5 h-3.5 text-emerald-600" /></div>
+                        <span className="text-xs font-black text-slate-900">Settlement Ledger</span>
+                      </div>
+                      <span className="text-[8px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded font-black uppercase">0s Escrow</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-3">
+                      {[
+                        { label: 'Gateway Cut', val: '₹0', color: 'text-emerald-600', bg: 'bg-emerald-50 border-emerald-200' },
+                        { label: 'Escrow Hold', val: '0 days', color: 'text-emerald-600', bg: 'bg-emerald-50 border-emerald-200' },
+                        { label: 'Settle Speed', val: '0.0s', color: 'text-blue-600', bg: 'bg-blue-50 border-blue-200' },
+                      ].map(s => (
+                        <div key={s.label} className={`${s.bg} border rounded-xl p-3 text-center`}>
+                          <p className="text-[8px] font-bold text-slate-400 uppercase">{s.label}</p>
+                          <p className={`text-lg font-black ${s.color} mt-1`}>{s.val}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="space-y-2">
+                      {[
+                        { date: 'Aug 26', txns: 42, total: '₹2,14,000', status: 'Settled' },
+                        { date: 'Aug 25', txns: 38, total: '₹1,89,500', status: 'Settled' },
+                        { date: 'Aug 24', txns: 55, total: '₹2,75,000', status: 'Settled' },
+                      ].map((row, i) => (
+                        <div key={i} className="flex items-center justify-between bg-slate-50 border border-slate-100 rounded-xl px-4 py-3">
+                          <div>
+                            <p className="text-[10px] font-black text-slate-900">{row.date}</p>
+                            <p className="text-[8px] text-slate-400 font-medium">{row.txns} transactions</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-[11px] font-black text-slate-900">{row.total}</p>
+                            <span className="text-[8px] font-black bg-emerald-50 text-emerald-600 border border-emerald-200 px-1.5 py-0.5 rounded">{row.status}</span>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
-                {/* Bottom glass label */}
-                <div className="absolute bottom-0 inset-x-0 h-12 bg-gradient-to-t from-black/30 to-transparent" />
-                <div className="absolute bottom-3 left-3 flex items-center gap-1.5">
+
+                {/* Live indicator */}
+                <div className="absolute bottom-3 right-3 flex items-center gap-1.5 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-full px-2.5 py-1 shadow-sm">
                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="text-[9px] font-bold text-white/90 uppercase tracking-wider">Interactive Preview</span>
+                  <span className="text-[8px] font-black text-slate-600 uppercase tracking-wider">Live Preview</span>
                 </div>
               </div>
             </div>
