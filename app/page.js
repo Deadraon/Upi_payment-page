@@ -11,8 +11,6 @@ import {
   Key, Landmark, Code, Play, Star, Plus, Minus, Info, Lock
 } from 'lucide-react';
 import InteractiveBackground from '@/components/InteractiveBackground';
-import RazorpayInteractiveHero from '@/components/RazorpayInteractiveHero';
-import RazorpayHumanShowcase from '@/components/RazorpayHumanShowcase';
 
 const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = 'var(--text-primary)' }) => (
   <svg viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
@@ -483,9 +481,144 @@ export default function HomePage() {
 
           </div>
 
-          {/* Right Column: Real Human Interactive Hero (Razorpay Style) */}
+          {/* Right Column Custom Render Mockup Graphic */}
           <div className="lg:col-span-5 relative flex items-center justify-center lg:justify-end animate-scale-up">
-            <RazorpayInteractiveHero demoAmount={demoAmount} />
+            
+            {/* Premium Interactive Phone Glow Container */}
+            <div className="phone-glow-container w-full max-w-[340px]">
+              
+              {/* Dynamic breathing glowing background backdrop */}
+              <div className="phone-glow-backdrop animate-aurora-breathe" />
+
+              {/* Premium Simulated Smartphone Frame displaying Actual MyMobPay checkout screen */}
+              <div className="relative w-full bg-slate-900 border-8 border-slate-800 rounded-[44px] premium-phone-shadow overflow-hidden aspect-[9/18.5] flex flex-col">
+              
+              {/* Speaker / Camera Notch (Dynamic Island) */}
+              <div className="absolute top-0 inset-x-0 h-6 flex justify-center z-30">
+                <div className="bg-slate-800 w-28 h-4 rounded-b-2xl" />
+              </div>
+
+              {/* Internal Screen Content */}
+              <div className="flex-1 bg-[#0B192C] pt-8 px-5 pb-5 flex flex-col justify-between font-sans select-none text-white">
+                
+                {/* Header Info */}
+                <div className="space-y-4">
+                  
+                  {/* Status Bar */}
+                  <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 px-1">
+                    <span>10:42 AM</span>
+                    <div className="flex items-center gap-1">
+                      <span>LTE</span>
+                      <div className="w-4 h-2 border border-slate-350 rounded-sm p-0.5 flex items-center">
+                        <div className="bg-slate-400 w-full h-full rounded-xs" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Logo */}
+                  <div className="flex flex-col items-center justify-center pt-2">
+                    <MyMobPayLogo className="w-36 h-auto" textColor="#FFFFFF" />
+                    <p className="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest mt-1">Direct Bank Checkout</p>
+                  </div>
+
+                  {/* Due amount card */}
+                  <div className="bg-[#0F1E36] border border-[#1D2D44] rounded-2xl p-4 shadow-sm space-y-2">
+                    <div className="flex justify-between items-center text-[10px] text-slate-400 font-bold uppercase">
+                      <span>Total Due</span>
+                      <span className="text-[#3395FF] font-extrabold bg-[#0B2447] px-2 py-0.5 rounded text-[8px] uppercase">P2P Bank Route</span>
+                    </div>
+                    <div className="flex items-baseline">
+                      <span className="text-sm font-bold text-slate-450 mr-0.5">₹</span>
+                      <span className="text-3xl font-black text-white tracking-tight leading-none">
+                        {parseFloat(demoAmount || '500').toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                    <div className="pt-2 border-t border-[#1D2D44] flex justify-between text-[10px] font-semibold text-slate-400">
+                      <span>Paying to:</span>
+                      <span className="font-bold text-slate-200">Demo Store</span>
+                    </div>
+                  </div>
+
+                  {/* QR Code Container */}
+                  <div className="bg-white-pure border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col items-center justify-center space-y-3 relative overflow-hidden group">
+                    
+                    {/* Futuristic Scanning Laser line */}
+                    <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-[#3395FF] to-transparent top-0 animate-laser" />
+
+                    {/* Highly stylized SVG vector QR Code */}
+                    <svg viewBox="0 0 100 100" className="w-32 h-32 text-slate-800" fill="currentColor">
+                      {/* Quiet Zone borders */}
+                      <path d="M0,0 h28 v8 h-20 v20 h-8 z M72,0 h28 v28 h-8 v-20 h-20 z M0,72 h8 v20 h-20 v-28 h8 z M72,100 h28 v-28 h-8 v20 h-20 z" fill="#00529B" opacity="0.15" />
+                      
+                      {/* Dynamic Modules - Grid mock points */}
+                      <rect x="10" y="10" width="20" height="20" fill="#0F172A" rx="2" />
+                      <rect x="14" y="14" width="12" height="12" fill="#FFFFFF" rx="1.5" />
+                      <rect x="17" y="17" width="6" height="6" fill="#3B82F6" />
+
+                      <rect x="70" y="10" width="20" height="20" fill="#0F172A" rx="2" />
+                      <rect x="74" y="14" width="12" height="12" fill="#FFFFFF" rx="1.5" />
+                      <rect x="77" y="17" width="6" height="6" fill="#3B82F6" />
+
+                      <rect x="10" y="70" width="20" height="20" fill="#0F172A" rx="2" />
+                      <rect x="14" y="74" width="12" height="12" fill="#FFFFFF" rx="1.5" />
+                      <rect x="17" y="77" width="6" height="6" fill="#3B82F6" />
+
+                      {/* Random mock QR dots */}
+                      <path d="M40,10 h6 v6 h-6 z M50,15 h8 v4 h-8 z M45,25 h10 v4 h-10 z M35,35 h8 v8 h-8 z M55,35 h12 v4 h-12 z M35,50 h12 v4 h-12 z M50,50 h6 v6 h-6 z M10,40 h8 v8 h-8 z M25,45 h10 v4 h-10 z M70,40 h8 v6 h-8 z M82,45 h8 v4 h-8 z M70,55 h12 v4 h-12 z M10,55 h6 v6 h-6 z M80,70 h10 v8 h-10 z M80,85 h8 v8 h-8 z M40,70 h6 v10 h-6 z M52,75 h8 v4 h-8 z M45,85 h12 v4 h-12 z" fill="#0F172A" />
+                      
+                      {/* Custom Center Logo */}
+                      <rect x="40" y="40" width="20" height="20" fill="#3B82F6" rx="4" />
+                      <text x="50" y="54" fontFamily="'Orbitron', sans-serif" fontWeight="950" fontSize="14" fill="#FFFFFF" textAnchor="middle">M</text>
+                    </svg>
+
+                    <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider flex items-center gap-1">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> Auto-Verify Active
+                    </span>
+
+                  </div>
+
+                </div>
+
+                {/* Footer Section */}
+                <div className="space-y-4 pt-4 border-t border-slate-200">
+                  
+                  {/* Apps row */}
+                  <div className="space-y-2">
+                    <p className="text-[8px] text-slate-400 font-extrabold uppercase tracking-widest text-center">Scan with any UPI app</p>
+                    <div className="flex justify-center gap-2">
+                      <Image src="/logos/gpay.svg" width={32} height={32} className="w-8 h-8 object-contain bg-white-pure border border-slate-250/70 p-1.5 rounded-xl shadow-xs" alt="GPay" />
+                      <Image src="/logos/phonepe.svg" width={32} height={32} className="w-8 h-8 object-contain bg-white-pure border border-slate-250/70 p-1.5 rounded-xl shadow-xs" alt="PhonePe" />
+                      <Image src="/logos/paytm.svg" width={32} height={32} className="w-8 h-8 object-contain bg-white-pure border border-slate-250/70 p-1.5 rounded-xl shadow-xs" alt="Paytm" />
+                      <Image src="/logos/bhim.svg" width={32} height={32} className="w-8 h-8 object-contain bg-white-pure border border-slate-250/70 p-1.5 rounded-xl shadow-xs" alt="BHIM" />
+                    </div>
+                  </div>
+
+                  {/* Security copy */}
+                  <div className="flex items-center justify-center gap-1.5 text-[8px] font-bold text-slate-400 uppercase tracking-wide text-center">
+                    <Lock className="w-3 h-3 text-slate-350" /> Secure B2B checkout by MyMobPay
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+            </div> {/* closes phone-glow-container */}
+
+            {/* Metric float chips */}
+            <div className="absolute -left-6 top-1/4 bg-white border border-slate-200 p-4 rounded-2xl shadow-xl flex flex-col gap-1 -rotate-6 animate-float">
+              <span className="text-[8px] font-black text-blue-600 uppercase tracking-wider leading-none">Platform Average</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-0.5">Success Rate</span>
+              <span className="text-xl font-black text-slate-900 leading-none mt-1">99.98%</span>
+            </div>
+
+            <div className="absolute -right-6 bottom-1/4 bg-white border border-slate-200 p-4 rounded-2xl shadow-xl flex flex-col gap-1 rotate-6 animate-float delay-500">
+              <span className="text-[8px] font-black text-blue-600 uppercase tracking-wider leading-none">Real-Time Routing</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-0.5">Settlement</span>
+              <span className="text-xl font-black text-emerald-600 leading-none mt-1">0 SECONDS</span>
+            </div>
+
           </div>
 
         </div>
@@ -1342,11 +1475,6 @@ export default function HomePage() {
 
         </div>
       </section>
-
-      {/* ────────────────────────────────────────────────────────
-         INTERACTIVE HUMAN FEATURE SHOWCASE (RAZORPAY STYLE)
-         ──────────────────────────────────────────────────────── */}
-      <RazorpayHumanShowcase />
 
       {/* ────────────────────────────────────────────────────────
          PRICING SUBSCRIPTION CALLOUT
