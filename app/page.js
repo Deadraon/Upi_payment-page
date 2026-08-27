@@ -627,7 +627,7 @@ export default function HomePage() {
       {/* ────────────────────────────────────────────────────────
          CODED DASHBOARD SHOWCASE (Clean Light Theme)
          ──────────────────────────────────────────────────────── */}
-      <section className="relative z-10 py-24 bg-slate-50 border-y border-slate-200/80 overflow-hidden">
+      <section className="relative z-10 py-24 bg-transparent border-y border-slate-200/60 overflow-hidden">
         {/* Ambient soft glow */}
         <div className="absolute top-0 left-1/4 w-[600px] h-[300px] bg-blue-200/30 rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute bottom-0 right-1/4 w-[400px] h-[300px] bg-indigo-200/30 rounded-full blur-[120px] pointer-events-none" />
@@ -811,7 +811,7 @@ export default function HomePage() {
       {/* ────────────────────────────────────────────────────────
          HOW IT WORKS — CODED VISUAL FLOW
          ──────────────────────────────────────────────────────── */}
-      <section className="relative z-10 py-24 bg-white overflow-hidden">
+      <section className="relative z-10 py-24 bg-transparent border-b border-slate-200/60 overflow-hidden">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:3rem_3rem] opacity-40 pointer-events-none" />
         <div className="max-w-7xl mx-auto px-6 space-y-16">
           <div className="text-center space-y-3">
@@ -965,7 +965,7 @@ export default function HomePage() {
       {/* ────────────────────────────────────────────────────────
          INTERACTIVE SAVINGS SLIDER CALCULATOR
          ──────────────────────────────────────────────────────── */}
-      <section id="pricing-section" className="relative z-10 py-24 bg-slate-50 border-y border-slate-200/60">
+      <section id="pricing-section" className="relative z-10 py-24 bg-transparent border-b border-slate-200/60">
         <div className="max-w-4xl mx-auto px-6 space-y-12">
           
           <div className="text-center space-y-3">
@@ -1097,7 +1097,7 @@ export default function HomePage() {
       {/* ────────────────────────────────────────────────────────
          BOTTOM PRODUCT TAB SELECTOR (RAZORPAY STYLE)
          ──────────────────────────────────────────────────────── */}
-      <section id="products-section" className="py-24 bg-white">
+      <section id="products-section" className="py-24 bg-transparent border-b border-slate-200/60">
         <div className="max-w-7xl mx-auto px-6 space-y-12">
           
           <div className="text-center space-y-3">
@@ -1415,7 +1415,7 @@ export default function HomePage() {
       {/* ────────────────────────────────────────────────────────
          CORE TECHNICAL FEATURE GRID
          ──────────────────────────────────────────────────────── */}
-      <section className="py-24 bg-white border-b border-slate-200/60">
+      <section className="py-24 bg-transparent border-b border-slate-200/60">
         <div className="max-w-7xl mx-auto px-6 space-y-16">
           
           <div className="text-center space-y-3">
@@ -1481,7 +1481,7 @@ export default function HomePage() {
       {/* ────────────────────────────────────────────────────────
          PRICING SUBSCRIPTION CALLOUT
          ──────────────────────────────────────────────────────── */}
-      <section className="py-24 bg-slate-50 relative overflow-hidden">
+      <section className="py-24 bg-transparent relative overflow-hidden">
         {/* Glow background filter */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-100/30 rounded-full filter blur-[130px] pointer-events-none -z-10 animate-mesh-rotate" />
 
