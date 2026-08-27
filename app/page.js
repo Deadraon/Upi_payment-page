@@ -625,50 +625,50 @@ export default function HomePage() {
       </section>
 
       {/* ────────────────────────────────────────────────────────
-         CODED DASHBOARD SHOWCASE (Razorpay-style coded mockup)
+         CODED DASHBOARD SHOWCASE (Clean Light Theme)
          ──────────────────────────────────────────────────────── */}
-      <section className="relative z-10 py-24 bg-[#060d1a] overflow-hidden">
-        {/* Ambient glow */}
-        <div className="absolute top-0 left-1/4 w-[600px] h-[300px] bg-blue-600/10 rounded-full blur-[100px] pointer-events-none" />
-        <div className="absolute bottom-0 right-1/4 w-[400px] h-[300px] bg-indigo-600/10 rounded-full blur-[100px] pointer-events-none" />
+      <section className="relative z-10 py-24 bg-slate-50 border-y border-slate-200/80 overflow-hidden">
+        {/* Ambient soft glow */}
+        <div className="absolute top-0 left-1/4 w-[600px] h-[300px] bg-blue-200/30 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-0 right-1/4 w-[400px] h-[300px] bg-indigo-200/30 rounded-full blur-[120px] pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-6 space-y-14">
           <div className="text-center space-y-3">
-            <span className="text-[10px] font-extrabold uppercase text-blue-400 tracking-widest bg-blue-950/60 border border-blue-800/60 px-3 py-1 rounded-full">
+            <span className="text-[10px] font-extrabold uppercase text-blue-600 tracking-widest bg-blue-50 border border-blue-200 px-3 py-1 rounded-full">
               Merchant Console
             </span>
-            <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
               Full visibility. Real-time insights.
             </h2>
-            <p className="text-sm text-slate-400 font-medium max-w-md mx-auto">
+            <p className="text-sm text-slate-500 font-medium max-w-md mx-auto">
               Monitor every transaction, webhook, and settlement from your live MyMobPay console.
             </p>
           </div>
 
-          {/* === CODED DASHBOARD MOCKUP === */}
+          {/* === CODED DASHBOARD MOCKUP (LIGHT THEME) === */}
           <div className="relative">
             {/* Glow */}
-            <div className="absolute -inset-px bg-gradient-to-r from-blue-600/30 via-indigo-600/20 to-blue-600/30 rounded-2xl blur-sm" />
+            <div className="absolute -inset-px bg-gradient-to-r from-blue-500/15 via-indigo-500/10 to-blue-500/15 rounded-2xl blur-md" />
 
             {/* Browser frame */}
-            <div className="relative bg-[#0d1b2e] border border-[#1e3a5f] rounded-2xl overflow-hidden shadow-[0_40px_120px_rgba(0,0,0,0.6)]">
+            <div className="relative bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
 
               {/* Browser chrome */}
-              <div className="flex items-center gap-3 px-4 py-3 bg-[#0a1628] border-b border-[#1e3a5f]">
+              <div className="flex items-center gap-3 px-4 py-3 bg-slate-50/90 border-b border-slate-200">
                 <div className="flex gap-1.5">
                   <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
                   <div className="w-3 h-3 rounded-full bg-[#febc2e]" />
                   <div className="w-3 h-3 rounded-full bg-[#28c840]" />
                 </div>
                 <div className="flex-1 mx-2">
-                  <div className="bg-[#0d1b2e] border border-[#1e3a5f] rounded-md px-3 py-1 flex items-center gap-2 max-w-xs mx-auto">
-                    <ShieldCheck className="w-3 h-3 text-emerald-400" />
-                    <span className="text-[11px] text-slate-400 font-mono">dashboard.mymobpay.com</span>
+                  <div className="bg-white border border-slate-200 rounded-md px-3 py-1 flex items-center gap-2 max-w-xs mx-auto shadow-xs">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                    <span className="text-[11px] text-slate-600 font-mono">dashboard.mymobpay.com</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-wider">Live</span>
+                <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-[9px] text-emerald-700 font-bold uppercase tracking-wider">Live</span>
                 </div>
               </div>
 
@@ -676,9 +676,9 @@ export default function HomePage() {
               <div className="flex min-h-[480px]">
 
                 {/* Sidebar */}
-                <div className="hidden md:flex w-[180px] bg-[#080f1d] border-r border-[#1e3a5f] flex-col py-6 px-3 gap-1 flex-shrink-0">
+                <div className="hidden md:flex w-[180px] bg-slate-50/80 border-r border-slate-200 flex-col py-6 px-3 gap-1 flex-shrink-0">
                   <div className="px-3 pb-4">
-                    <MyMobPayLogo className="w-28 h-auto" textColor="#FFFFFF" />
+                    <MyMobPayLogo className="w-28 h-auto" textColor="#0F172A" />
                   </div>
                   {[
                     { label: 'Dashboard', active: true, dot: 'bg-blue-500' },
@@ -689,10 +689,10 @@ export default function HomePage() {
                     { label: 'API Keys', active: false, dot: null },
                     { label: 'Sandbox', active: false, dot: null },
                   ].map(item => (
-                    <div key={item.label} className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold cursor-pointer transition-all ${
+                    <div key={item.label} className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold cursor-pointer transition-all ${
                       item.active
-                        ? 'bg-blue-600/20 text-blue-300 border border-blue-600/30'
-                        : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
+                        ? 'bg-blue-50 text-blue-600 border border-blue-200 shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                     }`}>
                       <span>{item.label}</span>
                       {item.dot && <span className={`w-1.5 h-1.5 rounded-full ${item.dot}`} />}
@@ -701,20 +701,20 @@ export default function HomePage() {
                 </div>
 
                 {/* Main panel */}
-                <div className="flex-1 p-5 space-y-5 overflow-hidden">
+                <div className="flex-1 p-5 sm:p-6 space-y-5 bg-white overflow-hidden">
 
                   {/* Top stat cards */}
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                     {[
-                      { label: 'Total Revenue', value: '₹4,82,500', change: '+12.4%', color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
-                      { label: 'Transactions', value: '1,842', change: '+8.1%', color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20' },
-                      { label: 'Success Rate', value: '99.98%', change: '+0.02%', color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
-                      { label: 'Avg. Settlement', value: '0.0s', change: 'Real-time', color: 'text-indigo-400', bg: 'bg-indigo-500/10 border-indigo-500/20' },
+                      { label: 'Total Revenue', value: '₹4,82,500', change: '+12.4%', color: 'text-emerald-700', bg: 'bg-slate-50 border-slate-200' },
+                      { label: 'Transactions', value: '1,842', change: '+8.1%', color: 'text-blue-700', bg: 'bg-slate-50 border-slate-200' },
+                      { label: 'Success Rate', value: '99.98%', change: '+0.02%', color: 'text-emerald-700', bg: 'bg-slate-50 border-slate-200' },
+                      { label: 'Avg. Settlement', value: '0.0s', change: 'Real-time', color: 'text-indigo-700', bg: 'bg-slate-50 border-slate-200' },
                     ].map(stat => (
-                      <div key={stat.label} className={`${stat.bg} border rounded-xl p-3.5 space-y-1`}>
-                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">{stat.label}</p>
-                        <p className="text-base font-black text-white">{stat.value}</p>
-                        <p className={`text-[9px] font-bold ${stat.color}`}>{stat.change}</p>
+                      <div key={stat.label} className={`${stat.bg} border rounded-xl p-3.5 space-y-1 shadow-xs hover:border-slate-300 transition-all`}>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{stat.label}</p>
+                        <p className="text-base sm:text-lg font-black text-slate-900">{stat.value}</p>
+                        <p className={`text-[10px] font-bold ${stat.color}`}>{stat.change}</p>
                       </div>
                     ))}
                   </div>
@@ -722,39 +722,39 @@ export default function HomePage() {
                   {/* Chart + Recent Transactions */}
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                     {/* Chart */}
-                    <div className="lg:col-span-2 bg-[#0a1628] border border-[#1e3a5f] rounded-xl p-4 space-y-3">
+                    <div className="lg:col-span-2 bg-slate-50/60 border border-slate-200 rounded-xl p-4 space-y-3 shadow-xs">
                       <div className="flex items-center justify-between">
-                        <p className="text-xs font-black text-white">Revenue (Last 30 Days)</p>
-                        <span className="text-[9px] bg-blue-600/20 text-blue-400 border border-blue-600/30 px-2 py-0.5 rounded font-bold">LIVE</span>
+                        <p className="text-xs font-black text-slate-900">Revenue (Last 30 Days)</p>
+                        <span className="text-[9px] bg-blue-50 text-blue-600 border border-blue-200 px-2 py-0.5 rounded font-bold">LIVE</span>
                       </div>
                       {/* SVG Sparkline chart */}
                       <svg viewBox="0 0 400 80" className="w-full h-20" preserveAspectRatio="none">
                         <defs>
                           <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.4" />
-                            <stop offset="100%" stopColor="#3B82F6" stopOpacity="0" />
+                            <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.25" />
+                            <stop offset="100%" stopColor="#3B82F6" stopOpacity="0.0" />
                           </linearGradient>
                         </defs>
                         {/* Area fill */}
                         <path d="M0,65 C20,60 40,50 60,45 C80,40 100,55 120,48 C140,41 160,30 180,25 C200,20 220,35 240,28 C260,21 280,15 300,18 C320,21 340,10 360,8 C380,6 400,12 400,12 L400,80 L0,80 Z" fill="url(#chartGrad)" />
                         {/* Line */}
-                        <path d="M0,65 C20,60 40,50 60,45 C80,40 100,55 120,48 C140,41 160,30 180,25 C200,20 220,35 240,28 C260,21 280,15 300,18 C320,21 340,10 360,8 C380,6 400,12 400,12" fill="none" stroke="#3B82F6" strokeWidth="2" />
+                        <path d="M0,65 C20,60 40,50 60,45 C80,40 100,55 120,48 C140,41 160,30 180,25 C200,20 220,35 240,28 C260,21 280,15 300,18 C320,21 340,10 360,8 C380,6 400,12 400,12" fill="none" stroke="#2563EB" strokeWidth="2.5" />
                         {/* Grid lines */}
                         {[20, 40, 60].map(y => (
-                          <line key={y} x1="0" y1={y} x2="400" y2={y} stroke="#1e3a5f" strokeWidth="0.5" strokeDasharray="4" />
+                          <line key={y} x1="0" y1={y} x2="400" y2={y} stroke="#E2E8F0" strokeWidth="0.75" strokeDasharray="4" />
                         ))}
                         {/* Dot on peak */}
-                        <circle cx="360" cy="8" r="4" fill="#3B82F6" />
-                        <circle cx="360" cy="8" r="8" fill="#3B82F6" opacity="0.2" />
+                        <circle cx="360" cy="8" r="4" fill="#2563EB" />
+                        <circle cx="360" cy="8" r="8" fill="#2563EB" opacity="0.25" />
                       </svg>
-                      <div className="flex justify-between text-[8px] text-slate-600 font-bold">
+                      <div className="flex justify-between text-[8px] text-slate-400 font-bold">
                         {['Aug 1','Aug 7','Aug 14','Aug 21','Aug 26'].map(d => <span key={d}>{d}</span>)}
                       </div>
                     </div>
 
                     {/* Recent transactions */}
-                    <div className="bg-[#0a1628] border border-[#1e3a5f] rounded-xl p-4 space-y-3">
-                      <p className="text-xs font-black text-white">Recent Payments</p>
+                    <div className="bg-slate-50/60 border border-slate-200 rounded-xl p-4 space-y-3 shadow-xs">
+                      <p className="text-xs font-black text-slate-900">Recent Payments</p>
                       <div className="space-y-2">
                         {[
                           { id: '#MP0891', upi: 'raj@okaxis', amt: '₹4,500', status: 'SUCCESS' },
@@ -762,17 +762,17 @@ export default function HomePage() {
                           { id: '#MP0889', upi: 'dev@paytm', amt: '₹800', status: 'PENDING' },
                           { id: '#MP0888', upi: 'mia@upi', amt: '₹12,000', status: 'SUCCESS' },
                         ].map(tx => (
-                          <div key={tx.id} className="flex items-center justify-between py-1.5 border-b border-[#1e3a5f]/50 last:border-0">
+                          <div key={tx.id} className="flex items-center justify-between py-1.5 border-b border-slate-200/60 last:border-0">
                             <div>
-                              <p className="text-[10px] font-black text-blue-400">{tx.id}</p>
-                              <p className="text-[9px] text-slate-500 font-mono">{tx.upi}</p>
+                              <p className="text-[10px] font-black text-blue-600">{tx.id}</p>
+                              <p className="text-[9px] text-slate-400 font-mono">{tx.upi}</p>
                             </div>
                             <div className="text-right">
-                              <p className="text-[10px] font-black text-white">{tx.amt}</p>
+                              <p className="text-[10px] font-black text-slate-900">{tx.amt}</p>
                               <span className={`text-[8px] font-black px-1.5 py-0.5 rounded ${
                                 tx.status === 'SUCCESS'
-                                  ? 'bg-emerald-500/15 text-emerald-400'
-                                  : 'bg-amber-500/15 text-amber-400'
+                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                  : 'bg-amber-50 text-amber-700 border border-amber-200'
                               }`}>{tx.status}</span>
                             </div>
                           </div>
@@ -789,16 +789,18 @@ export default function HomePage() {
           {/* Bottom metric chips */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: 'Uptime SLA', value: '99.99%', icon: <ShieldCheck className="w-4 h-4" />, color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
-              { label: 'Webhook Latency', value: '<200ms', icon: <Zap className="w-4 h-4" />, color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20' },
-              { label: 'Avg. Settlement', value: '0 sec', icon: <RefreshCw className="w-4 h-4" />, color: 'text-indigo-400', bg: 'bg-indigo-500/10 border-indigo-500/20' },
-              { label: 'Gateway Fee', value: '0%', icon: <CheckCircle2 className="w-4 h-4" />, color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
+              { label: 'Uptime SLA', value: '99.99%', icon: <ShieldCheck className="w-4 h-4" />, iconBg: 'bg-emerald-50 text-emerald-600 border-emerald-200' },
+              { label: 'Webhook Latency', value: '<200ms', icon: <Zap className="w-4 h-4" />, iconBg: 'bg-blue-50 text-blue-600 border-blue-200' },
+              { label: 'Avg. Settlement', value: '0 sec', icon: <RefreshCw className="w-4 h-4" />, iconBg: 'bg-indigo-50 text-indigo-600 border-indigo-200' },
+              { label: 'Gateway Fee', value: '0%', icon: <CheckCircle2 className="w-4 h-4" />, iconBg: 'bg-emerald-50 text-emerald-600 border-emerald-200' },
             ].map(m => (
-              <div key={m.label} className={`${m.bg} border rounded-2xl px-5 py-4 flex items-center gap-3`}>
-                <div className={`${m.color}`}>{m.icon}</div>
+              <div key={m.label} className="bg-white border border-slate-200 rounded-2xl px-5 py-4 flex items-center gap-3.5 shadow-xs hover:border-slate-300 hover:shadow-md transition-all">
+                <div className={`w-9 h-9 rounded-xl border flex items-center justify-center flex-shrink-0 ${m.iconBg}`}>
+                  {m.icon}
+                </div>
                 <div>
-                  <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">{m.label}</p>
-                  <p className={`text-lg font-black ${m.color}`}>{m.value}</p>
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{m.label}</p>
+                  <p className="text-lg font-black text-slate-900">{m.value}</p>
                 </div>
               </div>
             ))}
