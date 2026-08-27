@@ -8,7 +8,7 @@ import { CONFIG } from '@/lib/config';
 import { 
   ArrowRight, CheckCircle2, ChevronRight, Menu, X, 
   ArrowUpRight, ShieldCheck, Zap, Layers, RefreshCw, 
-  Key, Landmark, Code, Play, Star, Plus, Minus, Info, Lock
+  Key, Landmark, Code, Play, Star, Plus, Minus, Info, Lock, Sparkles
 } from 'lucide-react';
 import InteractiveBackground from '@/components/InteractiveBackground';
 
@@ -48,6 +48,7 @@ export default function HomePage() {
   // Interactive Live Invoice demo states
   const [demoAmount, setDemoAmount] = useState('500');
   const [demoNote, setDemoNote] = useState('Payment_Note');
+  const [simulatedPaid, setSimulatedPaid] = useState(false);
 
   // Dynamic Typewriter visual states
   const words = useMemo(() => ['founders', 'indie hackers', 'SaaS startups', 'creators', 'businesses'], []);
@@ -792,7 +793,6 @@ export default function HomePage() {
               { label: 'Uptime SLA', value: '99.99%', icon: <ShieldCheck className="w-4 h-4" />, iconBg: 'bg-emerald-50 text-emerald-600 border-emerald-200' },
               { label: 'Webhook Latency', value: '<200ms', icon: <Zap className="w-4 h-4" />, iconBg: 'bg-blue-50 text-blue-600 border-blue-200' },
               { label: 'Avg. Settlement', value: '0 sec', icon: <RefreshCw className="w-4 h-4" />, iconBg: 'bg-indigo-50 text-indigo-600 border-indigo-200' },
-              { label: 'Gateway Fee', value: '0%', icon: <CheckCircle2 className="w-4 h-4" />, iconBg: 'bg-emerald-50 text-emerald-600 border-emerald-200' },
             ].map(m => (
               <div key={m.label} className="bg-white border border-slate-200 rounded-2xl px-5 py-4 flex items-center gap-3.5 shadow-xs hover:border-slate-300 hover:shadow-md transition-all">
                 <div className={`w-9 h-9 rounded-xl border flex items-center justify-center flex-shrink-0 ${m.iconBg}`}>
@@ -805,160 +805,257 @@ export default function HomePage() {
               </div>
             ))}
           </div>
+
         </div>
       </section>
 
       {/* ────────────────────────────────────────────────────────
-         HOW IT WORKS — CODED VISUAL FLOW
+         HOW IT WORKS — PREMIUM FINTECH ARCHITECTURE FLOW
          ──────────────────────────────────────────────────────── */}
       <section className="relative z-10 py-24 bg-transparent border-b border-slate-200/60 overflow-hidden">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:3rem_3rem] opacity-40 pointer-events-none" />
         <div className="max-w-7xl mx-auto px-6 space-y-16">
+          
+          {/* Section Header */}
           <div className="text-center space-y-3">
-            <span className="text-[10px] font-extrabold uppercase text-indigo-600 tracking-widest bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-full">
-              How It Works
+            <span className="text-[10px] font-extrabold uppercase text-blue-600 tracking-widest bg-blue-50 border border-blue-200 px-3.5 py-1.5 rounded-full inline-flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-blue-500" />
+              <span>Direct P2P Architecture</span>
             </span>
-            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
-              3 steps. Zero middlemen.
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight">
+              3 steps. Zero middlemen. Real-time bank credit.
             </h2>
-            <p className="text-sm text-slate-500 font-semibold max-w-md mx-auto">
-              Customer scans, funds route P2P, you receive instantly. No escrow. No cuts.
+            <p className="text-sm sm:text-base text-slate-500 font-medium max-w-xl mx-auto leading-relaxed">
+              Eliminate payment gateway holding periods and 2% transaction taxes. Customer scans, funds route directly to your bank, webhooks fire instantly.
             </p>
           </div>
 
-          {/* Visual step flow */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
-            {/* Connector line */}
-            <div className="hidden lg:block absolute top-[72px] left-[33%] right-[33%] h-px bg-gradient-to-r from-blue-300 via-indigo-400 to-emerald-300 z-0" />
+          {/* Visual 3-Step Premium Flow */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 relative">
 
-            {/* Step 1 */}
-            <div className="relative z-10 flex flex-col items-center gap-6">
-              <div className="w-full bg-gradient-to-br from-blue-50 to-white border-2 border-blue-200 rounded-3xl p-6 space-y-5 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                {/* Phone mockup */}
-                <div className="mx-auto w-36 bg-slate-900 rounded-[28px] border-4 border-slate-800 overflow-hidden p-3 space-y-3 shadow-2xl">
-                  <div className="flex justify-center"><div className="w-12 h-1.5 bg-slate-700 rounded-full" /></div>
-                  <div className="bg-[#0B192C] rounded-xl p-2 space-y-2">
-                    <p className="text-[7px] font-black text-blue-400 text-center">PAYMENT REQUEST</p>
-                    <div className="bg-white rounded-lg p-2 flex items-center justify-center">
-                      <svg viewBox="0 0 40 40" className="w-12 h-12" fill="#0F172A">
-                        <rect x="2" y="2" width="12" height="12" rx="1" /><rect x="4" y="4" width="8" height="8" rx="0.5" fill="white" /><rect x="6" y="6" width="4" height="4" fill="#3B82F6" />
-                        <rect x="26" y="2" width="12" height="12" rx="1" /><rect x="28" y="4" width="8" height="8" rx="0.5" fill="white" /><rect x="30" y="6" width="4" height="4" fill="#3B82F6" />
-                        <rect x="2" y="26" width="12" height="12" rx="1" /><rect x="4" y="28" width="8" height="8" rx="0.5" fill="white" /><rect x="6" y="30" width="4" height="4" fill="#3B82F6" />
-                        <rect x="17" y="2" width="4" height="4" /><rect x="17" y="8" width="4" height="4" /><rect x="23" y="2" width="2" height="2" />
-                        <rect x="17" y="17" width="4" height="4" /><rect x="23" y="17" width="4" height="4" /><rect x="17" y="23" width="4" height="4" /><rect x="23" y="23" width="4" height="4" />
-                        <rect x="17" y="30" width="4" height="4" /><rect x="23" y="30" width="4" height="4" /><rect x="29" y="30" width="4" height="4" />
-                        <rect x="17" y="36" width="4" height="2" /><rect x="23" y="36" width="4" height="2" />
-                      </svg>
-                    </div>
-                    <p className="text-[7px] font-bold text-slate-400 text-center">Scan with GPay / PhonePe</p>
-                    <div className="flex justify-center gap-1">
-                      {['G','Ph','Pt'].map(a => <span key={a} className="text-[6px] bg-white/10 text-white px-1 py-0.5 rounded font-bold">{a}</span>)}
-                    </div>
-                  </div>
+            {/* STEP 1: Universal 1-Click Scan */}
+            <div className="bg-white border border-slate-200 rounded-3xl p-7 shadow-[0_10px_30px_rgba(15,23,42,0.05)] hover:shadow-[0_20px_50px_rgba(37,99,235,0.12)] hover:-translate-y-1.5 transition-all duration-300 group flex flex-col justify-between relative overflow-hidden">
+              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-500 to-sky-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+              
+              <div className="space-y-6">
+                {/* Step Pill */}
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black tracking-widest uppercase bg-blue-50 text-blue-600 border border-blue-200 px-2.5 py-1 rounded-full">
+                    Step 01 · Scan
+                  </span>
+                  <span className="text-[11px] font-bold text-slate-400">Universal UPI</span>
                 </div>
-                <div className="text-center space-y-1">
-                  <div className="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto shadow-md shadow-blue-500/20">
-                    <span className="text-white font-black text-sm">1</span>
-                  </div>
-                  <h3 className="font-black text-slate-900">Customer Scans</h3>
-                  <p className="text-xs text-slate-500 font-medium">Customer opens any UPI app and scans the payment QR or taps your link.</p>
-                </div>
-              </div>
-            </div>
 
-            {/* Step 2 */}
-            <div className="relative z-10 flex flex-col items-center gap-6 lg:mt-8">
-              <div className="w-full bg-gradient-to-br from-indigo-50 to-white border-2 border-indigo-200 rounded-3xl p-6 space-y-5 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                {/* Routing visual */}
-                <div className="mx-auto w-44 h-28 relative">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <svg viewBox="0 0 180 100" className="w-full h-full">
-                      {/* Customer node */}
-                      <circle cx="20" cy="50" r="14" fill="#EFF6FF" stroke="#3B82F6" strokeWidth="2" />
-                      <text x="20" y="54" textAnchor="middle" fontSize="9" fill="#3B82F6" fontWeight="900">USR</text>
-                      {/* Arrow */}
-                      <path d="M35,50 L75,50" stroke="#6366F1" strokeWidth="2" strokeDasharray="4" markerEnd="url(#arr)" />
-                      {/* MyMobPay center */}
-                      <circle cx="90" cy="50" r="18" fill="#4F46E5" />
-                      <text x="90" y="47" textAnchor="middle" fontSize="7" fill="white" fontWeight="900">MyMob</text>
-                      <text x="90" y="57" textAnchor="middle" fontSize="7" fill="#A5B4FC" fontWeight="800">Pay</text>
-                      {/* Lightning */}
-                      <path d="M87,38 L83,52 L90,52 L86,64" stroke="#FCD34D" strokeWidth="1.5" fill="none" />
-                      {/* Arrow */}
-                      <path d="M108,50 L148,50" stroke="#10B981" strokeWidth="2" strokeDasharray="4" markerEnd="url(#arr2)" />
-                      {/* Bank node */}
-                      <circle cx="162" cy="50" r="14" fill="#ECFDF5" stroke="#10B981" strokeWidth="2" />
-                      <text x="162" y="47" textAnchor="middle" fontSize="7" fill="#10B981" fontWeight="900">BANK</text>
-                      <text x="162" y="56" textAnchor="middle" fontSize="7" fill="#6EE7B7" fontWeight="700">P2P</text>
-                      <defs>
-                        <marker id="arr" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto">
-                          <path d="M0,0 L6,3 L0,6" fill="none" stroke="#6366F1" strokeWidth="1" />
-                        </marker>
-                        <marker id="arr2" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto">
-                          <path d="M0,0 L6,3 L0,6" fill="none" stroke="#10B981" strokeWidth="1" />
-                        </marker>
-                      </defs>
-                      {/* Labels */}
-                      <text x="55" y="44" textAnchor="middle" fontSize="6" fill="#6366F1" fontWeight="700">UPI</text>
-                      <text x="128" y="44" textAnchor="middle" fontSize="6" fill="#10B981" fontWeight="700">Direct</text>
+                {/* Sleek Light Mobile Checkout Visual */}
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3 relative overflow-hidden">
+                  <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
+                    <div className="flex items-center gap-1.5">
+                      <Lock className="w-3 h-3 text-emerald-500" />
+                      <span className="text-[10px] font-black text-slate-700">Checkout · ₹500</span>
+                    </div>
+                    <span className="text-[8px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">Live QR</span>
+                  </div>
+
+                  {/* QR Box with animated scanning laser line */}
+                  <div className="bg-white border border-slate-200 rounded-xl p-3 flex flex-col items-center justify-center relative overflow-hidden group/qr shadow-xs">
+                    <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent top-0 animate-laser" />
+                    
+                    <svg viewBox="0 0 100 100" className="w-24 h-24 text-slate-800" fill="currentColor">
+                      <rect x="5" y="5" width="26" height="26" fill="#0F172A" rx="4" />
+                      <rect x="9" y="9" width="18" height="18" fill="#FFFFFF" rx="2" />
+                      <rect x="13" y="13" width="10" height="10" fill="#3B82F6" rx="1.5" />
+
+                      <rect x="69" y="5" width="26" height="26" fill="#0F172A" rx="4" />
+                      <rect x="73" y="9" width="18" height="18" fill="#FFFFFF" rx="2" />
+                      <rect x="77" y="13" width="10" height="10" fill="#3B82F6" rx="1.5" />
+
+                      <rect x="5" y="69" width="26" height="26" fill="#0F172A" rx="4" />
+                      <rect x="9" y="73" width="18" height="18" fill="#FFFFFF" rx="2" />
+                      <rect x="13" y="77" width="10" height="10" fill="#3B82F6" rx="1.5" />
+
+                      <circle cx="45" cy="20" r="3" fill="#0F172A" />
+                      <circle cx="55" cy="20" r="3" fill="#0F172A" />
+                      <circle cx="50" cy="35" r="3.5" fill="#0F172A" />
+                      <circle cx="35" cy="50" r="3" fill="#0F172A" />
+                      <circle cx="65" cy="50" r="3" fill="#0F172A" />
+                      <circle cx="50" cy="65" r="3" fill="#0F172A" />
+                      <circle cx="40" cy="80" r="3" fill="#0F172A" />
+                      <circle cx="60" cy="80" r="3" fill="#0F172A" />
+                      <rect x="42" y="42" width="16" height="16" fill="#3B82F6" rx="3" />
+                      <text x="50" y="53" fontFamily="'Orbitron', sans-serif" fontWeight="950" fontSize="10" fill="#FFFFFF" textAnchor="middle">M</text>
                     </svg>
+
+                    <p className="text-[8px] font-extrabold uppercase tracking-wider text-slate-400 mt-2">Scan with any UPI app</p>
+                  </div>
+
+                  {/* UPI Apps Row */}
+                  <div className="grid grid-cols-4 gap-1.5 pt-1">
+                    {[
+                      { name: 'GPay', color: 'text-blue-600 bg-blue-50 border-blue-200' },
+                      { name: 'PhonePe', color: 'text-purple-600 bg-purple-50 border-purple-200' },
+                      { name: 'Paytm', color: 'text-sky-600 bg-sky-50 border-sky-200' },
+                      { name: 'BHIM', color: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
+                    ].map(app => (
+                      <div key={app.name} className={`${app.color} border rounded-lg py-1 text-center font-black text-[9px]`}>
+                        {app.name}
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <div className="text-center space-y-1">
-                  <div className="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center mx-auto shadow-md shadow-indigo-500/20">
-                    <span className="text-white font-black text-sm">2</span>
-                  </div>
-                  <h3 className="font-black text-slate-900">P2P Bank Route</h3>
-                  <p className="text-xs text-slate-500 font-medium">MyMobPay routes the payment directly to your merchant VPA — no escrow holds.</p>
+
+                {/* Text Content */}
+                <div className="space-y-2">
+                  <h3 className="text-xl font-black text-slate-900">Customer Scans Any UPI App</h3>
+                  <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                    Customer opens Google Pay, PhonePe, Paytm, or CRED and scans the payment QR code or clicks your direct payment link.
+                  </p>
                 </div>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-400">
+                <span>Speed: Instant</span>
+                <span className="text-blue-600 flex items-center gap-1">100% App Coverage <CheckCircle2 className="w-3.5 h-3.5 text-blue-500" /></span>
               </div>
             </div>
 
-            {/* Step 3 */}
-            <div className="relative z-10 flex flex-col items-center gap-6">
-              <div className="w-full bg-gradient-to-br from-emerald-50 to-white border-2 border-emerald-200 rounded-3xl p-6 space-y-5 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                {/* Settled card visual */}
-                <div className="mx-auto w-44 space-y-2">
-                  <div className="bg-slate-900 rounded-2xl p-3 space-y-2">
+            {/* STEP 2: P2P Direct Banking Pipeline */}
+            <div className="bg-white border border-slate-200 rounded-3xl p-7 shadow-[0_10px_30px_rgba(15,23,42,0.05)] hover:shadow-[0_20px_50px_rgba(99,102,241,0.12)] hover:-translate-y-1.5 transition-all duration-300 group flex flex-col justify-between relative overflow-hidden">
+              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+              
+              <div className="space-y-6">
+                {/* Step Pill */}
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black tracking-widest uppercase bg-indigo-50 text-indigo-600 border border-indigo-200 px-2.5 py-1 rounded-full">
+                    Step 02 · Route
+                  </span>
+                  <span className="text-[11px] font-bold text-slate-400">0% Intermediary Fee</span>
+                </div>
+
+                {/* Fintech Network Pipeline Visual */}
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-4 relative">
+                  <div className="flex items-center justify-between relative">
+                    {/* Buyer Bank Node */}
+                    <div className="flex flex-col items-center gap-1.5 z-10">
+                      <div className="w-12 h-12 rounded-2xl bg-white border-2 border-blue-500 shadow-sm flex items-center justify-center">
+                        <Landmark className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <span className="text-[9px] font-black text-slate-800">Buyer Bank</span>
+                      <span className="text-[8px] font-bold text-slate-400">HDFC / ICICI</span>
+                    </div>
+
+                    {/* Animated Connecting Track */}
+                    <div className="flex-1 mx-2 relative h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                      <div className="absolute inset-y-0 w-8 bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-500 rounded-full animate-progress" />
+                    </div>
+
+                    {/* Central Protocol Shield */}
+                    <div className="flex flex-col items-center gap-1.5 z-10">
+                      <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white shadow-md shadow-indigo-500/25 flex items-center justify-center">
+                        <Zap className="w-5 h-5 text-amber-300" />
+                      </div>
+                      <span className="text-[9px] font-black text-indigo-700">MyMobPay</span>
+                      <span className="text-[8px] font-bold text-slate-400">P2P Engine</span>
+                    </div>
+
+                    {/* Animated Connecting Track */}
+                    <div className="flex-1 mx-2 relative h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                      <div className="absolute inset-y-0 w-8 bg-gradient-to-r from-indigo-500 via-emerald-400 to-emerald-500 rounded-full animate-progress" />
+                    </div>
+
+                    {/* Merchant Bank Node */}
+                    <div className="flex flex-col items-center gap-1.5 z-10">
+                      <div className="w-12 h-12 rounded-2xl bg-white border-2 border-emerald-500 shadow-sm flex items-center justify-center">
+                        <ShieldCheck className="w-5 h-5 text-emerald-600" />
+                      </div>
+                      <span className="text-[9px] font-black text-slate-800">Your Bank</span>
+                      <span className="text-[8px] font-bold text-emerald-600">0% Escrow</span>
+                    </div>
+                  </div>
+
+                  {/* Feature Chip below pipeline */}
+                  <div className="bg-white border border-slate-200/90 rounded-xl p-2.5 flex items-center justify-between text-[10px] font-bold text-slate-600 shadow-xs">
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                      NPCI Protocol Route
+                    </span>
+                    <span className="text-indigo-600 font-black">Direct VPA Deposit</span>
+                  </div>
+                </div>
+
+                {/* Text Content */}
+                <div className="space-y-2">
+                  <h3 className="text-xl font-black text-slate-900">Direct Account-to-Account Route</h3>
+                  <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                    Transactions route directly through bank UPI rail parameters into your own merchant account. Zero escrow holding accounts.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-400">
+                <span>Intermediaries: Zero</span>
+                <span className="text-indigo-600 flex items-center gap-1">Encrypted Rail <CheckCircle2 className="w-3.5 h-3.5 text-indigo-500" /></span>
+              </div>
+            </div>
+
+            {/* STEP 3: Real-Time Verified Settlement & Webhook */}
+            <div className="bg-white border border-slate-200 rounded-3xl p-7 shadow-[0_10px_30px_rgba(15,23,42,0.05)] hover:shadow-[0_20px_50px_rgba(16,185,129,0.12)] hover:-translate-y-1.5 transition-all duration-300 group flex flex-col justify-between relative overflow-hidden">
+              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+              
+              <div className="space-y-6">
+                {/* Step Pill */}
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black tracking-widest uppercase bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full">
+                    Step 03 · Settle
+                  </span>
+                  <span className="text-[11px] font-bold text-slate-400">Instant Liquidity</span>
+                </div>
+
+                {/* Light Instant Settlement Confirmation Panel */}
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+                  <div className="bg-white border border-slate-200 rounded-xl p-3.5 space-y-2 shadow-xs">
                     <div className="flex items-center justify-between">
-                      <span className="text-[8px] font-black text-slate-400">SETTLEMENT</span>
-                      <span className="text-[7px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded font-black">CONFIRMED</span>
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Settlement Alert</span>
+                      <span className="text-[8px] font-black uppercase text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                        ✓ Confirmed
+                      </span>
                     </div>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-xs font-bold text-slate-400">₹</span>
-                      <span className="text-xl font-black text-white">4,500</span>
+                      <span className="text-sm font-bold text-slate-400">₹</span>
+                      <span className="text-2xl font-black text-slate-900 tracking-tight">500.00</span>
+                      <span className="text-[10px] font-bold text-emerald-600 ml-1">in your bank</span>
                     </div>
-                    <div className="border-t border-slate-700 pt-2 space-y-1">
-                      <div className="flex justify-between text-[8px]">
-                        <span className="text-slate-500">UTR</span>
-                        <span className="text-slate-300 font-mono">123456789012</span>
-                      </div>
-                      <div className="flex justify-between text-[8px]">
-                        <span className="text-slate-500">Time</span>
-                        <span className="text-emerald-400 font-bold">0.0 seconds</span>
-                      </div>
-                      <div className="flex justify-between text-[8px]">
-                        <span className="text-slate-500">Fee</span>
-                        <span className="text-emerald-400 font-bold">₹0.00</span>
-                      </div>
+                    <div className="pt-2 border-t border-slate-100 grid grid-cols-2 gap-2 text-[9px] font-semibold text-slate-500">
+                      <div>UTR: <span className="font-mono text-slate-900 font-bold">4291084920</span></div>
+                      <div className="text-right">Speed: <span className="text-emerald-600 font-bold">0.0s (Live)</span></div>
                     </div>
-                    {/* Webhook ping */}
-                    <div className="bg-[#0a1f14] border border-emerald-800/50 rounded-lg px-2 py-1.5 flex items-center gap-1.5">
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                      <span className="text-[7px] font-mono text-emerald-400">webhook → payment.success ✓</span>
+                  </div>
+
+                  {/* Webhook Response Badge */}
+                  <div className="bg-emerald-50/80 border border-emerald-200 rounded-xl px-3 py-2 flex items-center justify-between text-[9px]">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                      <span className="font-mono font-bold text-emerald-900">POST /webhook 200 OK</span>
                     </div>
+                    <span className="font-bold text-emerald-700">138ms</span>
                   </div>
                 </div>
-                <div className="text-center space-y-1">
-                  <div className="w-10 h-10 bg-emerald-600 rounded-2xl flex items-center justify-center mx-auto shadow-md shadow-emerald-500/20">
-                    <span className="text-white font-black text-sm">3</span>
-                  </div>
-                  <h3 className="font-black text-slate-900">Instant Settlement</h3>
-                  <p className="text-xs text-slate-500 font-medium">Funds hit your bank in real time. Webhook fires with UTR confirmation in &lt;200ms.</p>
+
+                {/* Text Content */}
+                <div className="space-y-2">
+                  <h3 className="text-xl font-black text-slate-900">0-Second Settlement & Webhook</h3>
+                  <p className="text-xs text-slate-550 font-medium leading-relaxed">
+                    Funds hit your private bank account instantly. An HMAC SHA-256 cryptographically signed webhook notifies your servers in under 200ms.
+                  </p>
                 </div>
               </div>
+
+              <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-400">
+                <span>Hold Time: 0 Days</span>
+                <span className="text-emerald-600 flex items-center gap-1">Auto-Matched <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /></span>
+              </div>
             </div>
+
           </div>
+
         </div>
       </section>
 
@@ -1095,188 +1192,371 @@ export default function HomePage() {
       </section>
 
       {/* ────────────────────────────────────────────────────────
-         BOTTOM PRODUCT TAB SELECTOR (RAZORPAY STYLE)
+         BOTTOM PRODUCT TAB SELECTOR (PREMIUM FINTECH SHOWCASE)
          ──────────────────────────────────────────────────────── */}
       <section id="products-section" className="py-24 bg-transparent border-b border-slate-200/60">
         <div className="max-w-7xl mx-auto px-6 space-y-12">
           
+          {/* Header */}
           <div className="text-center space-y-3">
-            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+            <span className="text-[10px] font-extrabold uppercase text-blue-600 tracking-widest bg-blue-50 border border-blue-200 px-3.5 py-1.5 rounded-full inline-flex items-center gap-1.5">
+              <Layers className="w-3.5 h-3.5 text-blue-500" />
+              <span>FinTech Infrastructure Suite</span>
+            </span>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight">
               One unified P2P infrastructure
             </h2>
-            <p className="text-sm text-slate-500 font-semibold max-w-md mx-auto">
-              Engineered to bypass intermediary payment escrows and process settlements in real time.
+            <p className="text-sm sm:text-base text-slate-500 font-medium max-w-lg mx-auto leading-relaxed">
+              Engineered to bypass intermediary payment escrows, eliminate transaction fees, and settle funds in real time.
             </p>
           </div>
 
           {/* Interactive product segment tabs */}
-          <div className="flex items-center justify-center overflow-x-auto pb-2 border-b border-slate-100 gap-2">
-            {[
-              { id: 'accept', label: 'Accept Payments', icon: Landmark },
-              { id: 'payouts', label: 'Direct Payouts', icon: Zap },
-              { id: 'sandbox', label: 'Developer Sandbox', icon: Key },
-              { id: 'settlement', label: 'Zero Escrow Settlements', icon: Layers }
-            ].map(tab => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveProductTab(tab.id)}
-                  className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-bold border transition-all whitespace-nowrap ${activeProductTab === tab.id ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-500/10' : 'bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-100/50'}`}
-                >
-                  <Icon className={`w-4 h-4 transition-colors ${activeProductTab === tab.id ? 'text-white' : 'text-slate-400'}`} />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
+          <div className="flex justify-center">
+            <div className="bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200 flex items-center gap-1.5 overflow-x-auto max-w-full">
+              {[
+                { id: 'accept', label: 'Accept Payments', icon: Landmark },
+                { id: 'payouts', label: 'Direct Payouts', icon: Zap },
+                { id: 'sandbox', label: 'Developer Sandbox', icon: Key },
+                { id: 'settlement', label: 'Zero Escrow Settlements', icon: Layers }
+              ].map(tab => {
+                const Icon = tab.icon;
+                const isActive = activeProductTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => {
+                      setActiveProductTab(tab.id);
+                      setSimulatedPaid(false);
+                    }}
+                    className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition-all whitespace-nowrap ${
+                      isActive 
+                        ? 'bg-white text-blue-600 shadow-sm border border-slate-200/80' 
+                        : 'text-slate-500 hover:text-slate-900 hover:bg-white/50 border border-transparent'
+                    }`}
+                  >
+                    <Icon className={`w-4 h-4 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          {/* Dynamic Tab Visual and Benefits Showcase */}
-          <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 sm:p-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center min-h-[350px]">
+          {/* Dynamic Tab Visual and Benefits Showcase Card */}
+          <div className="bg-white border border-slate-200 rounded-3xl p-8 sm:p-12 shadow-[0_20px_60px_rgba(15,23,42,0.06)] grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
             
+            {/* Left Column: Feature Storytelling & Live Controls */}
             <div className="lg:col-span-6 space-y-6">
               
               {activeProductTab === 'accept' && (
                 <>
-                  <h3 className="text-2xl font-black text-slate-950">Accept customer direct transfers</h3>
-                  <p className="text-sm text-slate-550 leading-relaxed font-medium">
-                    Generate instant direct payment links or scan screens. Your clients scan via any UPI app (GPay, PhonePe, Paytm) and funds route directly to your merchant VPA.
-                  </p>
-                  <ul className="space-y-2.5 text-xs text-slate-600 font-bold">
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> Integrated client copy fields showing dynamic VPAs</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> Automatically verified matching via bank notification triggers</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> Fully custom theme matches to your business profile</li>
+                  <div className="space-y-2">
+                    <span className="text-[10px] font-extrabold uppercase text-blue-600 tracking-wider bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-md">
+                      Universal UPI Checkout
+                    </span>
+                    <h3 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
+                      Accept customer direct transfers
+                    </h3>
+                    <p className="text-sm text-slate-550 leading-relaxed font-medium">
+                      Generate instant direct payment links or scan screens. Your clients scan via any UPI app (GPay, PhonePe, Paytm, CRED) and funds route directly to your merchant bank account.
+                    </p>
+                  </div>
+
+                  {/* Interactive Amount Pill Selector */}
+                  <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Interactive Demo Amount:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {['250', '500', '1499', '4999'].map(amt => (
+                        <button
+                          key={amt}
+                          onClick={() => {
+                            setDemoAmount(amt);
+                            setSimulatedPaid(false);
+                          }}
+                          className={`px-3.5 py-1.5 rounded-xl text-xs font-black border transition-all ${
+                            demoAmount === amt 
+                              ? 'bg-blue-600 border-blue-600 text-white shadow-sm' 
+                              : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
+                          }`}
+                        >
+                          ₹{parseInt(amt).toLocaleString('en-IN')}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Bullet Benefits */}
+                  <ul className="space-y-3 text-xs text-slate-650 font-semibold">
+                    <li className="flex items-center gap-2.5">
+                      <div className="w-5 h-5 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center flex-shrink-0">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      </div>
+                      <span>Integrated dynamic VPA fields with 1-click clipboard copy</span>
+                    </li>
+                    <li className="flex items-center gap-2.5">
+                      <div className="w-5 h-5 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center flex-shrink-0">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      </div>
+                      <span>Automated transaction matching via bank SMS & notification engine</span>
+                    </li>
+                    <li className="flex items-center gap-2.5">
+                      <div className="w-5 h-5 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center flex-shrink-0">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      </div>
+                      <span>Full brand theme customization to match your app interface</span>
+                    </li>
                   </ul>
                 </>
               )}
 
               {activeProductTab === 'payouts' && (
                 <>
-                  <h3 className="text-2xl font-black text-slate-950">Automated Direct Payouts</h3>
-                  <p className="text-sm text-slate-550 leading-relaxed font-medium">
-                    Build seamless dispatches to your partner contractors or developers using high-speed programmatic outbound API triggers.
-                  </p>
-                  <ul className="space-y-2.5 text-xs text-slate-600 font-bold">
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> Zero intermediation or lock-up escrow layers</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> Verified UTR callback dispatch in under 200 milliseconds</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> Secure programmatic API key permissions and locks</li>
+                  <div className="space-y-2">
+                    <span className="text-[10px] font-extrabold uppercase text-indigo-600 tracking-wider bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-md">
+                      Instant Disbursements
+                    </span>
+                    <h3 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
+                      Automated Direct Payouts
+                    </h3>
+                    <p className="text-sm text-slate-550 leading-relaxed font-medium">
+                      Disburse automated payouts to contractors, vendors, and affiliates using programmatic high-speed API dispatches with immediate UTR confirmation.
+                    </p>
+                  </div>
+                  <ul className="space-y-3 text-xs text-slate-650 font-semibold">
+                    <li className="flex items-center gap-2.5">
+                      <div className="w-5 h-5 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center flex-shrink-0">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      </div>
+                      <span>Zero escrow or lock-up intermediary holding layers</span>
+                    </li>
+                    <li className="flex items-center gap-2.5">
+                      <div className="w-5 h-5 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center flex-shrink-0">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      </div>
+                      <span>Verified bank UTR callback dispatch in under 200 milliseconds</span>
+                    </li>
+                    <li className="flex items-center gap-2.5">
+                      <div className="w-5 h-5 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center flex-shrink-0">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      </div>
+                      <span>Granular API key permissions with IP whitelisting safeguards</span>
+                    </li>
                   </ul>
                 </>
               )}
 
               {activeProductTab === 'sandbox' && (
                 <>
-                  <h3 className="text-2xl font-black text-slate-950">Frictionless integration sandbox</h3>
-                  <p className="text-sm text-slate-550 leading-relaxed font-medium">
-                    Test your outbound callback hooks, test order redirection flows, and webhook endpoints with isolated test transactions—completely risk-free.
-                  </p>
-                  <ul className="space-y-2.5 text-xs text-slate-600 font-bold">
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> Accounts default to Sandbox Mode to assure safe setup</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> Stripe-style `test_` vs `live_` key prefixes prevent mixing</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> Simulation panels let you mock payments instantly</li>
+                  <div className="space-y-2">
+                    <span className="text-[10px] font-extrabold uppercase text-amber-600 tracking-wider bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-md">
+                      Developer Environment
+                    </span>
+                    <h3 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
+                      Frictionless API sandbox
+                    </h3>
+                    <p className="text-sm text-slate-550 leading-relaxed font-medium">
+                      Test your checkout redirection flows, webhook callback dispatches, and signature verifications with isolated test transactions—completely risk-free.
+                    </p>
+                  </div>
+                  <ul className="space-y-3 text-xs text-slate-650 font-semibold">
+                    <li className="flex items-center gap-2.5">
+                      <div className="w-5 h-5 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center flex-shrink-0">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      </div>
+                      <span>Isolated accounts default to Sandbox Mode for zero-risk testing</span>
+                    </li>
+                    <li className="flex items-center gap-2.5">
+                      <div className="w-5 h-5 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center flex-shrink-0">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      </div>
+                      <span>Stripe-style <code className="font-mono text-blue-600 font-bold">test_</code> vs <code className="font-mono text-emerald-600 font-bold">live_</code> key prefixes prevent mistakes</span>
+                    </li>
+                    <li className="flex items-center gap-2.5">
+                      <div className="w-5 h-5 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center flex-shrink-0">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      </div>
+                      <span>Real-time webhook simulator triggers delivery in one click</span>
+                    </li>
                   </ul>
                 </>
               )}
 
               {activeProductTab === 'settlement' && (
                 <>
-                  <h3 className="text-2xl font-black text-slate-950">Immediate bank route settlements</h3>
-                  <p className="text-sm text-slate-550 leading-relaxed font-medium">
-                    Traditional gateways withhold your earnings for 2-3 business days. MyMobPay operates on 0-second escrow parameters, directing funds to your bank in real time.
-                  </p>
-                  <ul className="space-y-2.5 text-xs text-slate-600 font-bold">
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> Absolute zero escrow holds on transaction revenue</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> 0% direct gateway cuts on volume</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> Safe, P2P encryption keys safeguard every transaction</li>
+                  <div className="space-y-2">
+                    <span className="text-[10px] font-extrabold uppercase text-emerald-600 tracking-wider bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-md">
+                      0-Second Settlement
+                    </span>
+                    <h3 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
+                      Immediate bank route settlements
+                    </h3>
+                    <p className="text-sm text-slate-550 leading-relaxed font-medium">
+                      Traditional gateways withhold your hard-earned revenue for 2–3 business days. MyMobPay directs funds to your bank in real time with 0-second escrow.
+                    </p>
+                  </div>
+                  <ul className="space-y-3 text-xs text-slate-650 font-semibold">
+                    <li className="flex items-center gap-2.5">
+                      <div className="w-5 h-5 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center flex-shrink-0">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      </div>
+                      <span>Zero escrow holds on your company revenue</span>
+                    </li>
+                    <li className="flex items-center gap-2.5">
+                      <div className="w-5 h-5 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center flex-shrink-0">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      </div>
+                      <span>0% direct gateway cuts on your transaction volumes</span>
+                    </li>
+                    <li className="flex items-center gap-2.5">
+                      <div className="w-5 h-5 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center flex-shrink-0">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      </div>
+                      <span>HMAC SHA-256 cryptographic signatures safeguard every verification</span>
+                    </li>
                   </ul>
                 </>
               )}
 
             </div>
 
-            {/* Right Column — Coded interactive UI mockup per tab */}
+            {/* Right Column: Premium Light-Theme Interactive Product Visuals */}
             <div className="lg:col-span-6 flex items-center justify-center relative">
-              <div className="relative w-full rounded-2xl overflow-hidden border border-slate-200 shadow-[0_8px_32px_rgba(0,0,0,0.08)]">
+              <div className="w-full bg-slate-50/70 border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-sm relative overflow-hidden">
 
-                {/* ACCEPT PAYMENTS tab */}
+                {/* ACCEPT PAYMENTS TAB: Premium Checkout Mockup */}
                 {activeProductTab === 'accept' && (
-                  <div className="bg-white p-6 space-y-4">
+                  <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 space-y-5 shadow-md">
+                    {/* Top checkout header */}
                     <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-center"><Landmark className="w-3.5 h-3.5 text-blue-600" /></div>
-                        <span className="text-xs font-black text-slate-900">Generate Payment Link</span>
+                        <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center">
+                          <Landmark className="w-4 h-4 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-black text-slate-900">MyMobPay Secure Checkout</p>
+                          <p className="text-[9px] text-slate-400 font-bold">Store: MyMob Merchant</p>
+                        </div>
                       </div>
-                      <span className="text-[8px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded font-black uppercase">Live Mode</span>
+                      <span className="text-[9px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full font-black uppercase tracking-wider flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                        Live UPI
+                      </span>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-3">
-                        <div className="space-y-1">
-                          <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Amount (₹)</label>
-                          <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 flex items-center justify-between">
-                            <span className="text-sm font-black text-slate-900">₹500.00</span>
-                            <CheckCircle2 className="w-3.5 h-3.5 text-blue-500" />
-                          </div>
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Customer UPI</label>
-                          <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5">
-                            <span className="text-[11px] font-mono text-slate-600">raj@okaxis</span>
-                          </div>
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Order ID</label>
-                          <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5">
-                            <span className="text-[11px] font-mono text-slate-600">ORD-2891-XYZ</span>
-                          </div>
-                        </div>
-                        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center gap-2">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                          <div>
-                            <p className="text-[9px] font-black text-emerald-800">Payment Successful</p>
-                            <p className="text-[8px] text-emerald-600 font-medium">UTR: 123456789012 · ₹500</p>
-                          </div>
-                        </div>
+
+                    {/* Order summary bar */}
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between">
+                      <div>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Amount Due</p>
+                        <p className="text-xl font-black text-slate-950">₹{parseInt(demoAmount).toLocaleString('en-IN')}.00</p>
                       </div>
-                      <div className="flex flex-col items-center gap-3 bg-[#0B192C] rounded-2xl p-4">
-                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-wider">Scan to Pay</p>
-                        <div className="bg-white rounded-xl p-2">
-                          <svg viewBox="0 0 60 60" className="w-20 h-20" fill="#0F172A">
-                            <rect x="3" y="3" width="18" height="18" rx="1.5" /><rect x="6" y="6" width="12" height="12" rx="1" fill="white" /><rect x="9" y="9" width="6" height="6" fill="#3B82F6" />
-                            <rect x="39" y="3" width="18" height="18" rx="1.5" /><rect x="42" y="6" width="12" height="12" rx="1" fill="white" /><rect x="45" y="9" width="6" height="6" fill="#3B82F6" />
-                            <rect x="3" y="39" width="18" height="18" rx="1.5" /><rect x="6" y="42" width="12" height="12" rx="1" fill="white" /><rect x="9" y="45" width="6" height="6" fill="#3B82F6" />
-                            <rect x="24" y="3" width="6" height="6" /><rect x="24" y="12" width="6" height="6" /><rect x="33" y="3" width="3" height="3" />
-                            <rect x="24" y="24" width="6" height="6" /><rect x="33" y="24" width="6" height="6" /><rect x="24" y="33" width="6" height="6" /><rect x="33" y="33" width="6" height="6" />
-                            <rect x="24" y="45" width="6" height="6" /><rect x="33" y="45" width="6" height="6" /><rect x="45" y="45" width="6" height="6" />
-                            <rect x="27" y="30" width="6" height="3" />
-                            <rect x="27" y="54" width="6" height="3" /><rect x="36" y="54" width="6" height="3" />
-                          </svg>
-                        </div>
-                        <div className="flex gap-1.5">
-                          {['G','Ph','Pt','B'].map(a => (
-                            <div key={a} className="w-7 h-7 bg-white/10 border border-white/20 rounded-lg flex items-center justify-center">
-                              <span className="text-[8px] font-black text-white">{a}</span>
+                      <div className="text-right">
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Order ID</p>
+                        <p className="text-xs font-mono font-bold text-blue-600">ORD-2891-XYZ</p>
+                      </div>
+                    </div>
+
+                    {/* Dynamic QR Box with Laser Scan Animation */}
+                    <div className="bg-slate-50/60 border border-slate-200 rounded-xl p-4 flex flex-col items-center justify-center relative overflow-hidden">
+                      <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent top-0 animate-laser" />
+                      
+                      <div className="bg-white border border-slate-200 p-3 rounded-xl shadow-xs">
+                        <svg viewBox="0 0 100 100" className="w-28 h-28 text-slate-800" fill="currentColor">
+                          <rect x="5" y="5" width="26" height="26" fill="#0F172A" rx="4" />
+                          <rect x="9" y="9" width="18" height="18" fill="#FFFFFF" rx="2" />
+                          <rect x="13" y="13" width="10" height="10" fill="#3B82F6" rx="1.5" />
+
+                          <rect x="69" y="5" width="26" height="26" fill="#0F172A" rx="4" />
+                          <rect x="73" y="9" width="18" height="18" fill="#FFFFFF" rx="2" />
+                          <rect x="77" y="13" width="10" height="10" fill="#3B82F6" rx="1.5" />
+
+                          <rect x="5" y="69" width="26" height="26" fill="#0F172A" rx="4" />
+                          <rect x="9" y="73" width="18" height="18" fill="#FFFFFF" rx="2" />
+                          <rect x="13" y="77" width="10" height="10" fill="#3B82F6" rx="1.5" />
+
+                          <circle cx="45" cy="20" r="3" fill="#0F172A" />
+                          <circle cx="55" cy="20" r="3" fill="#0F172A" />
+                          <circle cx="50" cy="35" r="3.5" fill="#0F172A" />
+                          <circle cx="35" cy="50" r="3" fill="#0F172A" />
+                          <circle cx="65" cy="50" r="3" fill="#0F172A" />
+                          <circle cx="50" cy="65" r="3" fill="#0F172A" />
+                          <circle cx="40" cy="80" r="3" fill="#0F172A" />
+                          <circle cx="60" cy="80" r="3" fill="#0F172A" />
+                          <rect x="42" y="42" width="16" height="16" fill="#3B82F6" rx="3" />
+                          <text x="50" y="53" fontFamily="'Orbitron', sans-serif" fontWeight="950" fontSize="10" fill="#FFFFFF" textAnchor="middle">M</text>
+                        </svg>
+                      </div>
+
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-2.5">
+                        Scan to Pay with Any UPI App
+                      </p>
+
+                      {/* Branded UPI Apps Bar */}
+                      <div className="flex gap-2 mt-2">
+                        {[
+                          { name: 'GPay', color: 'bg-blue-50 text-blue-600 border-blue-200' },
+                          { name: 'PhonePe', color: 'bg-purple-50 text-purple-600 border-purple-200' },
+                          { name: 'Paytm', color: 'bg-sky-50 text-sky-600 border-sky-200' },
+                          { name: 'BHIM', color: 'bg-emerald-50 text-emerald-600 border-emerald-200' },
+                        ].map(app => (
+                          <span key={app.name} className={`${app.color} border px-2 py-0.5 rounded-md text-[9px] font-black`}>
+                            {app.name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Interactive Simulate Button */}
+                    <div>
+                      {!simulatedPaid ? (
+                        <button
+                          onClick={() => setSimulatedPaid(true)}
+                          className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-xs transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2"
+                        >
+                          <Zap className="w-3.5 h-3.5 text-amber-300" />
+                          <span>Simulate Customer Payment (Test)</span>
+                        </button>
+                      ) : (
+                        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center justify-between">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center">
+                              <CheckCircle2 className="w-4 h-4" />
                             </div>
-                          ))}
+                            <div>
+                              <p className="text-xs font-black text-emerald-900">Payment Verified Instantly!</p>
+                              <p className="text-[9px] text-emerald-700 font-mono font-bold">UTR: 4291084920 · Deposited to Bank</p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => setSimulatedPaid(false)}
+                            className="text-[9px] text-emerald-700 hover:underline font-bold"
+                          >
+                            Reset
+                          </button>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-                          <span className="text-[8px] font-bold text-emerald-400">Auto-verify active</span>
-                        </div>
-                      </div>
+                      )}
                     </div>
                   </div>
                 )}
 
-                {/* DIRECT PAYOUTS tab */}
+                {/* DIRECT PAYOUTS TAB */}
                 {activeProductTab === 'payouts' && (
-                  <div className="bg-[#060d1a] p-6 space-y-4">
-                    <div className="flex items-center justify-between pb-3 border-b border-[#1e3a5f]">
+                  <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 space-y-4 shadow-md">
+                    <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 bg-blue-900/40 border border-blue-700/50 rounded-lg flex items-center justify-center"><Zap className="w-3.5 h-3.5 text-blue-400" /></div>
-                        <span className="text-xs font-black text-white">Bulk Payout Console</span>
+                        <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-200 flex items-center justify-center">
+                          <Zap className="w-4 h-4 text-indigo-600" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-black text-slate-900">Bulk Payout Dispatcher</p>
+                          <p className="text-[9px] text-slate-400 font-bold">Batch #4902 · Live API</p>
+                        </div>
                       </div>
-                      <span className="text-[8px] bg-blue-500/20 text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded font-black uppercase">API v2</span>
+                      <span className="text-[9px] bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 rounded-full font-black uppercase">
+                        v2 Connected
+                      </span>
                     </div>
+
                     <div className="space-y-2">
                       {[
                         { to: 'vendor@ybl', amount: '₹25,000', status: 'SENT', time: '0.1s' },
@@ -1284,112 +1564,130 @@ export default function HomePage() {
                         { to: 'raj@paytm', amount: '₹8,000', status: 'QUEUED', time: '—' },
                         { to: 'mia@upi', amount: '₹45,000', status: 'SENT', time: '0.2s' },
                       ].map((row, i) => (
-                        <div key={i} className="flex items-center justify-between bg-[#0a1628] border border-[#1e3a5f] rounded-xl px-4 py-3">
+                        <div key={i} className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5">
                           <div className="flex items-center gap-3">
-                            <div className="w-7 h-7 bg-[#0d1b2e] border border-[#1e3a5f] rounded-lg flex items-center justify-center">
-                              <Landmark className="w-3.5 h-3.5 text-slate-400" />
+                            <div className="w-7 h-7 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-slate-600">
+                              <Landmark className="w-3.5 h-3.5" />
                             </div>
                             <div>
-                              <p className="text-[10px] font-black text-white">{row.to}</p>
-                              <p className="text-[8px] text-slate-500 font-medium">Settlement: {row.time}</p>
+                              <p className="text-xs font-black text-slate-900">{row.to}</p>
+                              <p className="text-[9px] text-slate-400 font-medium">Settlement: {row.time}</p>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-[11px] font-black text-white">{row.amount}</p>
+                            <p className="text-xs font-black text-slate-900">{row.amount}</p>
                             <span className={`text-[8px] font-black px-1.5 py-0.5 rounded ${
-                              row.status === 'SENT' ? 'bg-emerald-500/15 text-emerald-400' : 'bg-amber-500/15 text-amber-400'
+                              row.status === 'SENT' 
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                                : 'bg-amber-50 text-amber-700 border border-amber-200'
                             }`}>{row.status}</span>
                           </div>
                         </div>
                       ))}
                     </div>
-                    <div className="bg-[#0a1628] border border-[#1e3a5f] rounded-xl p-3 flex items-center justify-between">
-                      <span className="text-[9px] font-black text-slate-400">Total Disbursed</span>
-                      <span className="text-base font-black text-emerald-400">₹90,500</span>
+
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase">Total Disbursed Today</span>
+                      <span className="text-base font-black text-emerald-600">₹90,500.00</span>
                     </div>
                   </div>
                 )}
 
-                {/* SANDBOX tab */}
+                {/* DEVELOPER SANDBOX TAB */}
                 {activeProductTab === 'sandbox' && (
-                  <div className="bg-[#060d1a] p-6 space-y-3 font-mono">
-                    <div className="flex items-center justify-between pb-3 border-b border-[#1e3a5f]">
+                  <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 space-y-4 shadow-md font-mono">
+                    <div className="flex items-center justify-between pb-3 border-b border-slate-100 font-sans">
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 bg-amber-900/30 border border-amber-700/40 rounded-lg flex items-center justify-center"><Code className="w-3.5 h-3.5 text-amber-400" /></div>
-                        <span className="text-xs font-black text-white">API Sandbox Console</span>
+                        <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center">
+                          <Code className="w-4 h-4 text-amber-600" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-black text-slate-900">Developer Sandbox</p>
+                          <p className="text-[9px] text-slate-400 font-bold">API v1 · Isolated Mock</p>
+                        </div>
                       </div>
-                      <span className="text-[8px] bg-amber-500/15 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded font-black uppercase">test_ mode</span>
+                      <span className="text-[9px] bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded font-black uppercase">
+                        test_ mode
+                      </span>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="bg-[#0a1628] border border-[#1e3a5f] rounded-xl p-3 space-y-2">
-                        <p className="text-[8px] font-black text-blue-400 uppercase">POST /orders/create</p>
-                        <pre className="text-[8px] text-slate-300 leading-relaxed">{`{
-  "amount": 549.99,
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-1.5">
+                        <p className="text-[9px] font-black text-blue-600 uppercase">POST /orders/create</p>
+                        <pre className="text-[9px] text-slate-700 leading-relaxed font-mono">{`{
+  "amount": 500.00,
   "upi_id": "test@upi",
-  "order_id": "ORD-001",
-  "webhook_url":
-  "https://cb.dev/wh"
+  "order_id": "ORD-001"
 }`}</pre>
                       </div>
-                      <div className="bg-[#0a1628] border border-emerald-800/40 rounded-xl p-3 space-y-2">
-                        <p className="text-[8px] font-black text-emerald-400 uppercase">200 OK · 0.14s</p>
-                        <pre className="text-[8px] text-slate-300 leading-relaxed">{`{
+                      <div className="bg-emerald-50/50 border border-emerald-200 rounded-xl p-3 space-y-1.5">
+                        <p className="text-[9px] font-black text-emerald-700 uppercase">200 OK · 0.12s</p>
+                        <pre className="text-[9px] text-slate-700 leading-relaxed font-mono">{`{
   "status": "SUCCESS",
-  "tx_id": "PAY_abc",
-  "utr": "123456",
-  "fee": 0.00
+  "tx_id": "PAY_8921",
+  "utr": "123456789"
 }`}</pre>
                       </div>
                     </div>
-                    <div className="bg-[#040810] border border-[#1e3a5f] rounded-xl p-3 space-y-1">
-                      <p className="text-[8px] font-black text-slate-500 uppercase mb-2">Webhook Log Stream</p>
+
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-1">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1.5 font-sans">Webhook Event Stream</p>
                       {[
                         '[10:30:16] payment.created → ORD-001 | RECEIVED',
-                        '[10:30:17] payment.success → PAY_abc | DELIVERED',
-                        '[10:30:17] utr.matched → 123456 | VERIFIED ✓',
+                        '[10:30:17] payment.success → PAY_8921 | DELIVERED',
+                        '[10:30:17] utr.matched → 123456789 | VERIFIED ✓',
                       ].map((log, i) => (
-                        <p key={i} className="text-[8px] text-emerald-400">{log}</p>
+                        <p key={i} className="text-[9px] text-emerald-600 font-bold">{log}</p>
                       ))}
                     </div>
                   </div>
                 )}
 
-                {/* SETTLEMENT tab */}
+                {/* ZERO ESCROW SETTLEMENTS TAB */}
                 {activeProductTab === 'settlement' && (
-                  <div className="bg-white p-6 space-y-4">
+                  <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 space-y-4 shadow-md">
                     <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center justify-center"><Layers className="w-3.5 h-3.5 text-emerald-600" /></div>
-                        <span className="text-xs font-black text-slate-900">Settlement Ledger</span>
+                        <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center">
+                          <Layers className="w-4 h-4 text-emerald-600" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-black text-slate-900">Direct Bank Settlement Ledger</p>
+                          <p className="text-[9px] text-slate-400 font-bold">Real-time Deposited Funds</p>
+                        </div>
                       </div>
-                      <span className="text-[8px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded font-black uppercase">0s Escrow</span>
+                      <span className="text-[9px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-black uppercase">
+                        0s Escrow
+                      </span>
                     </div>
-                    <div className="grid grid-cols-3 gap-3">
+
+                    <div className="grid grid-cols-3 gap-2 sm:gap-3">
                       {[
-                        { label: 'Gateway Cut', val: '₹0', color: 'text-emerald-600', bg: 'bg-emerald-50 border-emerald-200' },
+                        { label: 'Gateway Fee', val: '₹0.00', color: 'text-emerald-600', bg: 'bg-emerald-50 border-emerald-200' },
                         { label: 'Escrow Hold', val: '0 days', color: 'text-emerald-600', bg: 'bg-emerald-50 border-emerald-200' },
-                        { label: 'Settle Speed', val: '0.0s', color: 'text-blue-600', bg: 'bg-blue-50 border-blue-200' },
+                        { label: 'Settlement', val: '0.0s', color: 'text-blue-600', bg: 'bg-blue-50 border-blue-200' },
                       ].map(s => (
                         <div key={s.label} className={`${s.bg} border rounded-xl p-3 text-center`}>
                           <p className="text-[8px] font-bold text-slate-400 uppercase">{s.label}</p>
-                          <p className={`text-lg font-black ${s.color} mt-1`}>{s.val}</p>
+                          <p className={`text-base sm:text-lg font-black ${s.color} mt-0.5`}>{s.val}</p>
                         </div>
                       ))}
                     </div>
+
                     <div className="space-y-2">
                       {[
-                        { date: 'Aug 26', txns: 42, total: '₹2,14,000', status: 'Settled' },
-                        { date: 'Aug 25', txns: 38, total: '₹1,89,500', status: 'Settled' },
-                        { date: 'Aug 24', txns: 55, total: '₹2,75,000', status: 'Settled' },
+                        { date: 'Today · 10:45 AM', txns: 42, total: '₹2,14,000', status: 'Deposited' },
+                        { date: 'Yesterday', txns: 38, total: '₹1,89,500', status: 'Deposited' },
+                        { date: '25 Aug 2026', txns: 55, total: '₹2,75,000', status: 'Deposited' },
                       ].map((row, i) => (
-                        <div key={i} className="flex items-center justify-between bg-slate-50 border border-slate-100 rounded-xl px-4 py-3">
+                        <div key={i} className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5">
                           <div>
-                            <p className="text-[10px] font-black text-slate-900">{row.date}</p>
-                            <p className="text-[8px] text-slate-400 font-medium">{row.txns} transactions</p>
+                            <p className="text-xs font-black text-slate-900">{row.date}</p>
+                            <p className="text-[9px] text-slate-400 font-medium">{row.txns} transactions</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-[11px] font-black text-slate-900">{row.total}</p>
-                            <span className="text-[8px] font-black bg-emerald-50 text-emerald-600 border border-emerald-200 px-1.5 py-0.5 rounded">{row.status}</span>
+                            <p className="text-xs font-black text-slate-900">{row.total}</p>
+                            <span className="text-[8px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 rounded">{row.status}</span>
                           </div>
                         </div>
                       ))}
@@ -1397,11 +1695,6 @@ export default function HomePage() {
                   </div>
                 )}
 
-                {/* Live indicator */}
-                <div className="absolute bottom-3 right-3 flex items-center gap-1.5 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-full px-2.5 py-1 shadow-sm">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="text-[8px] font-black text-slate-600 uppercase tracking-wider">Live Preview</span>
-                </div>
               </div>
             </div>
 
