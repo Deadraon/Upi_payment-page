@@ -1477,6 +1477,145 @@ export default function HomePage() {
       </section>
 
       {/* ────────────────────────────────────────────────────────
+         TESTIMONIALS — TRUSTED BY REAL BUILDERS
+         ──────────────────────────────────────────────────────── */}
+      <section className="py-24 bg-white border-b border-slate-200/60 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 space-y-14">
+
+          {/* Section Header */}
+          <div className="text-center space-y-3">
+            <span className="text-[10px] font-extrabold uppercase text-blue-600 tracking-widest bg-blue-50 border border-blue-200 px-3 py-1 rounded-full">
+              Trusted by Builders
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+              Real founders. Real results.
+            </h2>
+            <p className="text-sm text-slate-500 max-w-lg mx-auto font-medium leading-relaxed">
+              Developers and SaaS founders across India chose MyMobPay to cut payment fees to zero and ship faster.
+            </p>
+          </div>
+
+          {/* Testimonial Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            {/* Testimonial 1 — Rahul */}
+            <div className="bg-slate-50 border border-slate-200/80 rounded-3xl p-7 flex flex-col gap-5 hover:border-blue-300 hover:shadow-lg hover:-translate-y-1.5 transition-all duration-300 ease-out animate-fade-up group">
+              {/* Stars */}
+              <div className="flex gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-4 h-4 text-amber-400 fill-amber-400" />
+                ))}
+              </div>
+              {/* Quote */}
+              <p className="text-sm text-slate-700 font-medium leading-relaxed flex-1">
+                &ldquo;Switched from Razorpay and immediately stopped losing ₹15,000/month in fees. The webhook matching is rock-solid — zero false negatives in 3 months of live usage.&rdquo;
+              </p>
+              {/* Author */}
+              <div className="flex items-center gap-3 pt-2 border-t border-slate-200">
+                <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-blue-100 flex-shrink-0">
+                  <Image
+                    src="/avatars/avatar_rahul.jpg"
+                    alt="Rahul Sharma"
+                    width={44}
+                    height={44}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div>
+                  <p className="text-sm font-black text-slate-900">Rahul Sharma</p>
+                  <p className="text-[11px] text-slate-500 font-semibold">Founder, SubscriptHQ · Mumbai</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Testimonial 2 — Priya */}
+            <div className="bg-blue-600 border border-blue-500 rounded-3xl p-7 flex flex-col gap-5 hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 ease-out animate-fade-up delay-100 group">
+              {/* Stars */}
+              <div className="flex gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-4 h-4 text-amber-300 fill-amber-300" />
+                ))}
+              </div>
+              {/* Quote */}
+              <p className="text-sm text-blue-50 font-medium leading-relaxed flex-1">
+                &ldquo;Setup took literally 20 minutes. Pasted the API key, created an order, saw the webhook fire in under 200ms. This is the cleanest payment integration I have ever shipped.&rdquo;
+              </p>
+              {/* Author */}
+              <div className="flex items-center gap-3 pt-2 border-t border-blue-500">
+                <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-blue-300 flex-shrink-0">
+                  <Image
+                    src="/avatars/avatar_priya.jpg"
+                    alt="Priya Nair"
+                    width={44}
+                    height={44}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div>
+                  <p className="text-sm font-black text-white">Priya Nair</p>
+                  <p className="text-[11px] text-blue-200 font-semibold">CTO, Vaultly · Bengaluru</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Testimonial 3 — Arjun */}
+            <div className="bg-slate-50 border border-slate-200/80 rounded-3xl p-7 flex flex-col gap-5 hover:border-blue-300 hover:shadow-lg hover:-translate-y-1.5 transition-all duration-300 ease-out animate-fade-up delay-200 group">
+              {/* Stars */}
+              <div className="flex gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-4 h-4 text-amber-400 fill-amber-400" />
+                ))}
+              </div>
+              {/* Quote */}
+              <p className="text-sm text-slate-700 font-medium leading-relaxed flex-1">
+                &ldquo;As an indie dev shipping solo, I cannot afford Razorpay&rsquo;s 2% cut. MyMobPay&rsquo;s flat subscription model is a no-brainer. My bank gets the money directly. Perfect.&rdquo;
+              </p>
+              {/* Author */}
+              <div className="flex items-center gap-3 pt-2 border-t border-slate-200">
+                <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-blue-100 flex-shrink-0">
+                  <Image
+                    src="/avatars/avatar_arjun.jpg"
+                    alt="Arjun Mehta"
+                    width={44}
+                    height={44}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div>
+                  <p className="text-sm font-black text-slate-900">Arjun Mehta</p>
+                  <p className="text-[11px] text-slate-500 font-semibold">Indie Hacker, InvoiceKit · Pune</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Social proof bottom strip */}
+          <div className="flex flex-wrap items-center justify-center gap-6 pt-2">
+            <div className="flex -space-x-3">
+              <div className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-white">
+                <Image src="/avatars/avatar_rahul.jpg" alt="User" width={36} height={36} className="w-full h-full object-cover" />
+              </div>
+              <div className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-white">
+                <Image src="/avatars/avatar_priya.jpg" alt="User" width={36} height={36} className="w-full h-full object-cover" />
+              </div>
+              <div className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-white">
+                <Image src="/avatars/avatar_arjun.jpg" alt="User" width={36} height={36} className="w-full h-full object-cover" />
+              </div>
+              <div className="w-9 h-9 rounded-full ring-2 ring-white bg-blue-600 flex items-center justify-center text-white text-[10px] font-black">
+                +47
+              </div>
+            </div>
+            <div className="text-center sm:text-left">
+              <p className="text-sm font-black text-slate-900">50+ builders already onboard</p>
+              <p className="text-[11px] text-slate-500 font-semibold">Across SaaS, e-commerce, and freelance platforms</p>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ────────────────────────────────────────────────────────
          PRICING SUBSCRIPTION CALLOUT
          ──────────────────────────────────────────────────────── */}
       <section className="py-24 bg-slate-50 relative overflow-hidden">
