@@ -463,20 +463,7 @@ export default function HomePage() {
               </Link>
             </div>
 
-            {/* Human Merchants Social Proof */}
-            <div className="pt-2 flex items-center justify-center lg:justify-start gap-4 animate-fade-up delay-250">
-              <div className="flex -space-x-2.5">
-                <Image src="/images/founder_female.jpg" width={38} height={38} alt="Active SaaS Founder" className="w-9 h-9 rounded-full border-2 border-white object-cover shadow-sm" />
-                <Image src="/images/founder_male.jpg" width={38} height={38} alt="Active Indie Hacker" className="w-9 h-9 rounded-full border-2 border-white object-cover shadow-sm" />
-                <Image src="/images/hero_merchant.jpg" width={38} height={38} alt="Active Merchant" className="w-9 h-9 rounded-full border-2 border-white object-cover shadow-sm" />
-              </div>
-              <div className="text-left text-xs">
-                <p className="font-extrabold text-slate-900 flex items-center gap-1">
-                  <span>Trusted by 500+ Founders &amp; Merchants</span>
-                </p>
-                <p className="text-[11px] text-slate-500 font-semibold">Real-time bank deposits with 0% gateway commission</p>
-              </div>
-            </div>
+
 
             {/* Micro proof counts */}
             <div className="pt-2 grid grid-cols-3 gap-2 sm:gap-6 max-w-md mx-auto lg:mx-0 text-slate-400 font-bold tracking-wider text-[8px] sm:text-[10px] animate-fade-up delay-300">
