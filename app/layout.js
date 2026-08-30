@@ -19,16 +19,15 @@ export const metadata = {
     template: "%s | MyMobPay",
   },
   description:
-    "Accept direct-to-bank UPI payments with 0% transaction fees. Instant automated verification via GPay, PhonePe, Paytm & BHIM. Built for SaaS founders, indie hackers & developers.",
+    "Accept direct-to-bank UPI payments with 0% transaction fees. Instant automated verification across all UPI applications. Built for SaaS founders, indie hackers & developers.",
   keywords: [
     "UPI payment gateway",
     "UPI payment for SaaS",
     "payment gateway India",
     "0% transaction fee payment gateway",
-    "GPay integration",
-    "PhonePe API",
-    "Paytm checkout",
-    "BHIM UPI",
+    "direct UPI integration",
+    "universal UPI QR",
+    "instant UPI checkout",
     "direct bank payment",
     "webhook payment verification",
     "UPI QR code",
@@ -67,7 +66,7 @@ export const metadata = {
     siteName: "MyMobPay",
     title: "MyMobPay — UPI Payments with 0% Transaction Fees",
     description:
-      "Accept GPay, PhonePe, Paytm & BHIM UPI payments directly to your bank account. Instant auto-verification, signed webhooks, sandbox mode. Built for modern builders.",
+      "Accept UPI payments directly to your bank account with instant auto-verification, signed webhooks, and zero transaction fees. Built for modern builders.",
     images: [
       {
         url: "/og-banner.png",
@@ -86,7 +85,7 @@ export const metadata = {
     creator: "@mymobpay",
     title: "MyMobPay — UPI Payments with 0% Transaction Fees",
     description:
-      "Accept GPay, PhonePe, Paytm & BHIM UPI payments directly to your bank. Instant verification, HMAC webhooks, sandbox mode. Built for modern builders.",
+      "Accept UPI payments directly to your bank. Instant verification, HMAC webhooks, zero gateway fees. Built for modern builders.",
     images: ["/og-banner.png"],
   },
 
@@ -178,7 +177,7 @@ export default function RootLayout({ children }) {
               url: BASE_URL,
               logo: `${BASE_URL}/og-banner.png`,
               description:
-                "Direct-to-bank UPI payment gateway with 0% transaction fees. Accept GPay, PhonePe, Paytm & BHIM payments with instant automated verification.",
+                "Direct-to-bank UPI payment gateway with 0% transaction fees. Accept instant UPI payments with real-time automated verification.",
               sameAs: [],
               contactPoint: {
                 "@type": "ContactPoint",
@@ -219,8 +218,8 @@ export default function RootLayout({ children }) {
                 "Direct bank P2P settlement",
                 "Automatic UPI payment verification",
                 "HMAC-SHA256 signed webhooks",
-                "Sandbox test mode",
-                "GPay, PhonePe, Paytm, BHIM support",
+                "Developer API integration",
+                "Universal UPI application support",
                 "Real-time order status",
                 "Multi-merchant SaaS platform",
               ],
@@ -257,7 +256,7 @@ export default function RootLayout({ children }) {
                   name: "Which UPI apps does MyMobPay support?",
                   acceptedAnswer: {
                     "@type": "Answer",
-                    text: "MyMobPay supports all major UPI apps including Google Pay (GPay), PhonePe, Paytm, BHIM, and any other UPI-compatible application via QR code.",
+                    text: "MyMobPay supports all standard UPI apps and any UPI-compatible application via QR code or direct payment intent.",
                   },
                 },
                 {

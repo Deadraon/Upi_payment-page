@@ -62,11 +62,27 @@ const getDeepLink = (appId, amount, orderId, merchant, isMandate) => {
   }
 };
 
-/* ── App Logos — official brand images from /public/logos/ ── */
-const GPayLogo    = () => <Image src="/logos/gpay.svg"    alt="Google Pay"  width={32} height={32} className="w-8 h-8 object-contain bg-white-pure p-1.5 rounded-xl" />;
-const PhonePeLogo = () => <Image src="/logos/phonepe.svg" alt="PhonePe"     width={32} height={32} className="w-8 h-8 object-contain bg-white-pure p-1.5 rounded-xl" />;
-const PaytmLogo   = () => <Image src="/logos/paytm.svg"   alt="Paytm"       width={32} height={32} className="w-8 h-8 object-contain bg-white-pure p-1.5 rounded-xl" />;
-const BhimLogo    = () => <Image src="/logos/bhim.svg"    alt="BHIM UPI"    width={32} height={32} className="w-8 h-8 object-contain bg-white-pure p-1.5 rounded-xl" />;
+const UniversalUpiLogo = () => (
+  <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-xs shadow-sm">
+    UPI
+  </div>
+);
+const DirectBankLogo = () => (
+  <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-sm">
+    <Zap className="w-4 h-4" />
+  </div>
+);
+const FastScanLogo = () => (
+  <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-sm">
+    <QrCode className="w-4 h-4" />
+  </div>
+);
+const MobileAppLogo = () => (
+  <div className="w-8 h-8 rounded-xl bg-slate-800 text-white flex items-center justify-center shadow-sm">
+    <Smartphone className="w-4 h-4" />
+  </div>
+);
+
 const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = 'var(--text-primary)' }) => (
   <svg viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
     {/* Single unified wordmark with unique mixed fonts */}
@@ -80,10 +96,10 @@ const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = 'var(--text-prima
 );
 
 const UPI_APPS = [
-  { id: 'gpay',    label: 'Google Pay',  sub: 'Pay via GPay',    logo: <GPayLogo />,    accent: '#4285F4' },
-  { id: 'phonepe', label: 'PhonePe',     sub: 'Pay via PhonePe', logo: <PhonePeLogo />, accent: '#5F259F' },
-  { id: 'paytm',   label: 'Paytm',       sub: 'Pay via Paytm',   logo: <PaytmLogo />,   accent: '#00BAF2' },
-  { id: 'bhim',    label: 'BHIM UPI',    sub: 'Pay via BHIM',    logo: <BhimLogo />,    accent: '#00529B' },
+  { id: 'universal', label: 'Any UPI App',      sub: 'Auto-launch installed app', logo: <UniversalUpiLogo />, accent: '#2563EB' },
+  { id: 'direct',    label: 'Direct UPI Pay',   sub: 'Instant bank transfer',    logo: <DirectBankLogo />,    accent: '#059669' },
+  { id: 'mobile',    label: 'Mobile UPI Rail',  sub: 'Direct mobile intent',     logo: <MobileAppLogo />,     accent: '#4F46E5' },
+  { id: 'scan',      label: 'Interactive Scan', sub: 'Fast dynamic QR',          logo: <FastScanLogo />,      accent: '#0284C7' },
 ];
 
 /* ── Animated check ────────────────────────────────────────── */
@@ -433,14 +449,14 @@ function PayPageContent() {
                   <span style={{ color: merchant?.theme_color || '#3B82F6' }}>UPI Payments</span>
                 </h1>
                 <p className="text-[13px] text-slate-500 leading-relaxed">
-                  Pay via GPay, PhonePe, Paytm or scan a QR code — auto-verified in seconds.
+                  Pay via any standard UPI app or scan the QR code — auto-verified in seconds.
                 </p>
               </div>
               <div className="space-y-3">
                 {[
                   { icon: <ShieldCheck className="w-4 h-4 text-emerald-400" />, title: '256-bit SSL encryption', sub: 'Bank-grade security' },
                   { icon: <Zap className="w-4 h-4" style={{ color: merchant?.theme_color || '#3B82F6' }} />, title: 'Auto-verified instantly', sub: 'No manual confirmation' },
-                  { icon: <Lock className="w-4 h-4 text-slate-500" />, title: 'All UPI apps supported', sub: 'GPay, PhonePe, Paytm & more' },
+                  { icon: <Lock className="w-4 h-4 text-slate-500" />, title: 'All UPI apps supported', sub: 'Universal UPI application coverage' },
                 ].map((feat, i) => (
                   <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-white border border-slate-100">
                     <div className="mt-0.5 flex-shrink-0">{feat.icon}</div>
@@ -453,13 +469,13 @@ function PayPageContent() {
               </div>
             </div>
             <div className="mt-8 pt-5 border-t border-slate-100">
-              <p className="text-[10px] text-[#484F58] mb-3">Works with all UPI apps</p>
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl overflow-hidden border border-slate-200 flex-shrink-0"><GPayLogo /></div>
-                <div className="w-8 h-8 rounded-xl overflow-hidden border border-slate-200 flex-shrink-0"><PhonePeLogo /></div>
-                <div className="w-8 h-8 rounded-xl overflow-hidden border border-slate-200 flex-shrink-0"><PaytmLogo /></div>
-                <div className="w-8 h-8 rounded-xl overflow-hidden border border-slate-200 flex-shrink-0"><BhimLogo /></div>
-                <span className="text-[10px] text-slate-500">&amp; more</span>
+              <p className="text-[10px] text-[#484F58] mb-3">Works with all standard UPI apps</p>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl overflow-hidden flex-shrink-0"><UniversalUpiLogo /></div>
+                <div className="w-8 h-8 rounded-xl overflow-hidden flex-shrink-0"><DirectBankLogo /></div>
+                <div className="w-8 h-8 rounded-xl overflow-hidden flex-shrink-0"><FastScanLogo /></div>
+                <div className="w-8 h-8 rounded-xl overflow-hidden flex-shrink-0"><MobileAppLogo /></div>
+                <span className="text-[10px] text-slate-500 font-bold ml-1">Universal UPI</span>
               </div>
             </div>
           </div>
@@ -583,59 +599,18 @@ function PayPageContent() {
                 </div>
               )}
 
-              {orderMode === 'test' ? (
-                /* ── SANDBOX TEST MODE SIMULATOR UI ── */
-                <div className="space-y-5 animate-fade-up">
-                  <div className="p-4 bg-amber-50 border border-amber-200/60 text-amber-800 rounded-2xl flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0 animate-pulse mt-0.5" />
-                    <div>
-                      <strong className="text-amber-900 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider">Sandbox Test Mode Active</strong>
-                      <p className="text-[11px] font-semibold text-amber-700 mt-1 leading-relaxed">
-                        No real money will be debited or transferred. You are using the checkout simulator to test system database updates and automated webhooks.
-                      </p>
-                    </div>
+              {orderMode === 'test' && (
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-200/80 rounded-xl flex items-center justify-between text-xs text-blue-900 font-semibold">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                    <span>Developer Test Mode Active</span>
                   </div>
-
-                  {error && (
-                    <div className="flex items-center gap-2 p-3 rounded-xl bg-red-900/25 border border-red-500/25 text-xs text-red-400">
-                      <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />{error}
-                    </div>
-                  )}
-
-                  <div className="space-y-3 pt-2">
-                    <p className="text-[10px] text-slate-500 uppercase tracking-widest font-extrabold text-center">Simulate Customer Payments Actions</p>
-                    
-                    {/* Simulate Success Button */}
-                    <button
-                      type="button"
-                      onClick={() => handleSimulatePayment('success')}
-                      disabled={loading}
-                      className="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white-pure font-black text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 shadow-lg shadow-emerald-500/20"
-                    >
-                      {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle className="w-5 h-5" />}
-                      {isMandate ? "Simulate Successful Autopay Mandate Authorization" : "Simulate Successful Payment (Instant Webhook)"}
-                    </button>
-
-                    {/* Simulate Failure Button */}
-                    <button
-                      type="button"
-                      onClick={() => handleSimulatePayment('failed')}
-                      disabled={loading}
-                      className="w-full py-4 rounded-2xl bg-red-50 hover:bg-red-100/80 border border-red-200/60 text-red-700 font-extrabold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
-                    >
-                      {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <AlertCircle className="w-5 h-5" />}
-                      Simulate Failed / Expired Transaction
-                    </button>
-                  </div>
-
-                  <div className="pt-2 border-t border-slate-100 text-center">
-                    <p className="text-[9px] font-mono text-slate-400">Order ID: {orderId} • Simulated via MyMobPay Sandbox API</p>
-                  </div>
+                  <span className="font-mono text-[10px] text-blue-600 font-bold">Order ID: {orderId}</span>
                 </div>
-              ) : (
-                /* ── ORIGINAL UPI LIVE FLOW ── */
-                <>
-                  {/* Apps / QR toggle */}
+              )}
+
+              {/* ── UPI LIVE FLOW ── */}
+              {/* Apps / QR toggle */}
                   <div className="flex p-1 bg-slate-50 rounded-xl mb-5 border border-slate-100">
                     {[
                       { id: 'apps', icon: <Smartphone className="w-3.5 h-3.5" />, label: 'UPI Apps' },
@@ -751,14 +726,14 @@ function PayPageContent() {
                           <div>
                             <h4 className="text-xs font-black text-slate-900 uppercase tracking-wide">Autopay Scan Restriction</h4>
                             <p className="text-[10px] text-slate-500 mt-1 leading-relaxed font-semibold">
-                              NPCI regulations strictly require UPI Autopay scan-to-pay QR codes to be cryptographically signed by an official banking partner. Unsigned QR codes will be rejected by Paytm, GPay, and PhonePe as <strong>&quot;Invalid QR&quot;</strong>.
+                              NPCI regulations strictly require UPI Autopay scan-to-pay QR codes to be cryptographically signed by an official banking partner. Unsigned QR codes will be rejected by UPI applications as <strong>&quot;Invalid QR&quot;</strong>.
                             </p>
                           </div>
                           <div className="p-3 bg-violet-50 border border-violet-200/60 rounded-xl text-left">
                             <h5 className="text-[9px] font-black text-violet-850 uppercase tracking-wider">How to complete setup:</h5>
                             <ul className="text-[9px] text-slate-600 font-semibold list-disc pl-3.5 space-y-1 mt-1">
                               <li>Open this checkout link directly on a <strong>mobile device</strong> and use the <strong>&quot;UPI Apps&quot;</strong> tab to trigger direct, secure app deep-links.</li>
-                              <li>Or, use the <strong>&quot;I&apos;ve Paid — Verify Now&quot;</strong> button to simulate mandate confirmation in Sandbox mode.</li>
+                              <li>Or use instant manual verification once completed in your bank app.</li>
                             </ul>
                           </div>
                         </div>
@@ -794,15 +769,13 @@ function PayPageContent() {
                       Checking status automatically in real-time
                     </p>
                   </div>
-                </>
-              )}
+                </div>
+              </div>
             </div>
+
+            <p className="text-center text-[10px] text-slate-400 mt-4">© 2026 MyMobPay · 256-bit TLS</p>
           </div>
         </div>
-
-        <p className="text-center text-[10px] text-[#e2e8f0] mt-4">© 2026 MyMobPay · 256-bit TLS</p>
-      </div>
-    </div>
   );
 }
 

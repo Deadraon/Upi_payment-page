@@ -58,7 +58,7 @@ export default function PrivacyPage() {
               </p>
             </div>
             <p>
-              Because peer-to-peer UPI payments operate directly from the customer&apos;s mobile device to the merchant&apos;s bank account via official UPI applications (Google Pay, PhonePe, Paytm, BHIM), no intermediary cards or sensitive customer banking details ever pass through our servers.
+              Because peer-to-peer UPI payments operate directly from the customer&apos;s mobile device to the merchant&apos;s bank account via official UPI applications, no intermediary cards or sensitive customer banking details ever pass through our servers.
             </p>
           </section>
 

@@ -8,8 +8,8 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        'paytm-blue':  '#00BAF2',
-        'paytm-dark':  '#002970',
+        'brand-blue':  '#2563EB',
+        'brand-dark':  '#0B192C',
         'bg-base':     'var(--bg-base)',
         'bg-card':     'var(--bg-card)',
         'white-pure':  '#ffffff',
