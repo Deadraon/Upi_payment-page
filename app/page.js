@@ -1800,60 +1800,7 @@ export default function HomePage() {
 
           </div>
 
-          {/* Merchant Testimonial Stories */}
-          <div className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-8">
-            
-            {/* Testimonial 1 */}
-            <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm flex flex-col justify-between space-y-6 relative">
-              <div className="flex items-center gap-1 text-amber-400">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-current" />
-                ))}
-              </div>
-              <p className="text-sm text-slate-700 font-medium leading-relaxed italic">
-                &ldquo;Switching our SaaS checkout to MyMobPay saved us over ₹45,000 every single month in gateway fees. Money goes straight to our bank account instantly with zero escrow holding.&rdquo;
-              </p>
-              <div className="flex items-center gap-4 pt-2 border-t border-slate-100">
-                <Image 
-                  src="/images/founder_female.jpg" 
-                  width={48} 
-                  height={48} 
-                  alt="Ananya Sharma" 
-                  className="w-12 h-12 rounded-full object-cover border-2 border-blue-500 shadow-sm"
-                />
-                <div>
-                  <h4 className="text-sm font-black text-slate-900">Ananya Sharma</h4>
-                  <p className="text-xs text-slate-500 font-medium">Founder &amp; CEO, SaaSFlow</p>
-                </div>
-              </div>
-            </div>
 
-            {/* Testimonial 2 */}
-            <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm flex flex-col justify-between space-y-6 relative">
-              <div className="flex items-center gap-1 text-amber-400">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-current" />
-                ))}
-              </div>
-              <p className="text-sm text-slate-700 font-medium leading-relaxed italic">
-                &ldquo;The developer integration was completed in 15 minutes. Outbound HMAC webhooks arrive in less than 200ms, making automated license activations instant for our customers.&rdquo;
-              </p>
-              <div className="flex items-center gap-4 pt-2 border-t border-slate-100">
-                <Image 
-                  src="/images/founder_male.jpg" 
-                  width={48} 
-                  height={48} 
-                  alt="Rohan Verma" 
-                  className="w-12 h-12 rounded-full object-cover border-2 border-indigo-500 shadow-sm"
-                />
-                <div>
-                  <h4 className="text-sm font-black text-slate-900">Rohan Verma</h4>
-                  <p className="text-xs text-slate-500 font-medium">Lead Engineer &amp; Indie Builder, DevStack</p>
-                </div>
-              </div>
-            </div>
-
-          </div>
 
         </div>
       </section>
