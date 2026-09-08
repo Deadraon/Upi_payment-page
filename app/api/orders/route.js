@@ -1,9 +1,24 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { CONFIG } from '@/lib/config';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 
 export async function POST(request) {
   try {
+    const clientIp = getClientIp(request);
+    const rateLimit = checkRateLimit(`order_create_${clientIp}`, 60, 60 * 1000);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        {
+          error: 'Rate limit exceeded for order creation. Please slow down your requests.',
+          code: 'RATE_LIMIT_EXCEEDED',
+        },
+        {
+          status: 429,
+          headers: { 'Retry-After': rateLimit.resetInSeconds.toString() },
+        }
+      );
+    }
     const hasUrl = !!process.env.NEXT_PUBLIC_SUPABASE_URL;
     const hasServiceKey = !!process.env.SUPABASE_SERVICE_KEY;
 

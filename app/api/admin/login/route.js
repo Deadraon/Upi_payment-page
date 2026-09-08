@@ -1,13 +1,39 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { getAdminSettings, verifyTOTP, isAuthorizedEmail } from '@/lib/adminSettings';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 
 export async function POST(request) {
   try {
+    // 0. Rate limiting to protect against brute-force attacks (5 attempts per minute)
+    const clientIp = getClientIp(request);
+    const rateLimit = checkRateLimit(`admin_login_${clientIp}`, 5, 60 * 1000);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        {
+          error: `Too many login attempts. Please try again in ${rateLimit.resetInSeconds} seconds.`,
+          code: 'RATE_LIMIT_EXCEEDED',
+        },
+        {
+          status: 429,
+          headers: { 'Retry-After': rateLimit.resetInSeconds.toString() },
+        }
+      );
+    }
+
     const body = await request.json();
     const { password, totpCode, provider, token } = body;
 
-    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+    const isDev = process.env.NODE_ENV !== 'production';
+    const adminPassword = process.env.ADMIN_PASSWORD || (isDev ? 'admin123' : null);
+
+    if (!adminPassword) {
+      console.error('[SECURITY CRITICAL] ADMIN_PASSWORD environment variable is not configured in production.');
+      return NextResponse.json(
+        { error: 'Server authentication misconfiguration. Please contact support.' },
+        { status: 500 }
+      );
+    }
 
     // 1. Google OAuth Session Validation
     if (provider === 'google') {
@@ -29,7 +55,6 @@ export async function POST(request) {
 
       return NextResponse.json({ success: true, user: { email: user.email } });
     }
-
 
     // 2. Standard Password / 2FA Login
     if (!password) {
