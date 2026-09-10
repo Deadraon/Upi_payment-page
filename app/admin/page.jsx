@@ -1001,34 +1001,42 @@ export default function AdminPage() {
 
   /* LOGGED IN DASHBOARD */
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-700 font-sans flex flex-col justify-between selection:bg-blue-500/10">
+    <div className="min-h-screen bg-slate-50 text-slate-700 font-sans flex flex-col md:flex-row selection:bg-blue-500/10">
       
-      {/* Top Header bar */}
-      <header className="bg-white/90 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-40 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-3">
-          
-          {/* Brand Logo & Console Tag */}
-          <div className="flex items-center gap-3 shrink-0">
-            <div>
-              <div className="flex items-center gap-2.5">
-                <MyMobPayLogo className="w-32 sm:w-36 h-auto" />
-                <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/60 font-extrabold text-[10px] uppercase tracking-wide">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>Admin Console</span>
-                </span>
-              </div>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Gateway Platform Management</p>
-            </div>
+      {/* ═══════════════════════════════════════════════════════════
+         VERTICAL SIDEBAR (Desktop: md:flex)
+         ═══════════════════════════════════════════════════════════ */}
+      <aside className="hidden md:flex flex-col justify-between w-64 xl:w-72 bg-white border-r border-slate-200/80 h-screen sticky top-0 z-30 shadow-[1px_0_10px_rgba(0,0,0,0.02)] select-none shrink-0">
+        
+        {/* Top: Logo & System Indicator */}
+        <div className="p-5 border-b border-slate-100 flex flex-col space-y-2">
+          <div className="flex items-center justify-between">
+            <MyMobPayLogo className="w-32 xl:w-36 h-auto" />
+            <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/60 font-black text-[9px] uppercase tracking-wide">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Admin</span>
+            </span>
           </div>
+          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+            Gateway Management Console
+          </p>
+        </div>
 
-          {/* Tab Selection (Desktop) */}
-          <nav className="hidden lg:flex bg-slate-100/90 border border-slate-200/80 p-1 rounded-2xl gap-1 shrink-0">
+        {/* Middle: Scrollable Menu Sections */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-6">
+          
+          {/* Main Modules */}
+          <div className="space-y-1.5">
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-3 pb-1">
+              Platform Modules
+            </p>
+
             {[
-              { id: 'overview', label: 'Platform Stats', icon: Activity },
-              { id: 'transactions', label: 'Global Orders', icon: FileText },
-              { id: 'merchants', label: 'Merchants (SaaS)', icon: Store },
-              { id: 'subscriptions', label: 'Subscriptions & Gifts', icon: Gift },
-              { id: 'config', label: 'System Config', icon: Settings },
+              { id: 'overview', label: 'Platform Stats', icon: Activity, count: null },
+              { id: 'transactions', label: 'Global Orders', icon: FileText, count: orders.length > 0 ? orders.length : null },
+              { id: 'merchants', label: 'Merchants (SaaS)', icon: Store, count: merchants.length > 0 ? merchants.length : null },
+              { id: 'subscriptions', label: 'Subscriptions & Gifts', icon: Gift, count: giftCodesList.length > 0 ? `${giftCodesList.length} codes` : null },
+              { id: 'config', label: 'System Config', icon: Settings, count: null },
             ].map(tab => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -1036,115 +1044,229 @@ export default function AdminPage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+                  className={`w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold transition-all ${
                     isActive
-                      ? 'bg-white text-blue-700 shadow-sm border border-slate-200/60'
-                      : 'text-slate-500 hover:text-slate-900 border border-transparent'
+                      ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
+                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent'
                   }`}
                 >
-                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
-                  <span>{tab.label}</span>
+                  <div className="flex items-center gap-3">
+                    <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                    <span>{tab.label}</span>
+                  </div>
+                  {tab.count !== null && (
+                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold ${
+                      isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
+                    }`}>
+                      {tab.count}
+                    </span>
+                  )}
                 </button>
               );
             })}
-          </nav>
-
-          {/* Action Buttons & User Profile (Desktop) */}
-          <div className="hidden sm:flex items-center gap-2.5">
-            {googleUser?.email && (
-              <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 text-xs font-semibold">
-                <User className="w-3.5 h-3.5 text-slate-400" />
-                <span className="max-w-[150px] truncate">{googleUser.email}</span>
-              </div>
-            )}
-            <button 
-              onClick={handleRefreshAll}
-              disabled={loading || merchantsLoading}
-              className="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 disabled:opacity-50 transition-all shadow-sm cursor-pointer"
-              title="Sync Platform Data"
-            >
-              <RefreshCw className={`w-4 h-4 ${loading || merchantsLoading ? 'animate-spin text-blue-600' : ''}`} />
-            </button>
-            <button 
-              onClick={handleLogout}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-50 hover:bg-red-50 border border-slate-200 hover:border-red-200 text-slate-600 hover:text-red-600 transition-all text-xs font-bold shadow-sm cursor-pointer"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span>Log Out</span>
-            </button>
           </div>
 
-          {/* Hamburger Menu Controls (Mobile) */}
-          <div className="lg:hidden flex items-center gap-2">
-            <button 
+          {/* Quick Shortcuts */}
+          <div className="space-y-1.5 pt-4 border-t border-slate-100">
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-3 pb-1">
+              Quick Portals
+            </p>
+            <a
+              href="/dashboard"
+              target="_blank"
+              rel="noreferrer"
+              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all"
+            >
+              <div className="flex items-center gap-3">
+                <Store className="w-4 h-4 text-slate-400" />
+                <span>Merchant Console</span>
+              </div>
+              <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
+            </a>
+
+            <a
+              href="/pay?type=subscription"
+              target="_blank"
+              rel="noreferrer"
+              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all"
+            >
+              <div className="flex items-center gap-3">
+                <ArrowUpRight className="w-4 h-4 text-slate-400" />
+                <span>Live Checkout Demo</span>
+              </div>
+              <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
+            </a>
+          </div>
+
+        </div>
+
+        {/* Bottom: User Card & Quick Controls */}
+        <div className="p-4 border-t border-slate-100 bg-slate-50/60 space-y-3">
+          <div className="flex items-center gap-3 px-1">
+            <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-black flex items-center justify-center text-xs shadow-md shadow-blue-500/20 shrink-0">
+              {googleUser?.email ? googleUser.email.charAt(0).toUpperCase() : 'A'}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-black text-slate-900 truncate">
+                {googleUser?.email || 'Platform Owner'}
+              </p>
+              <span className="inline-block text-[9px] font-extrabold uppercase text-blue-700 bg-blue-100/60 px-1.5 py-0.5 rounded">
+                Super Admin
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 pt-1">
+            <button
               onClick={handleRefreshAll}
               disabled={loading || merchantsLoading}
-              className="p-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-slate-900 transition-colors shadow-sm"
-              title="Sync"
+              className="flex-1 py-2 px-3 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer"
+              title="Refresh Platform Data"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${loading || merchantsLoading ? 'animate-spin text-blue-600' : ''}`} />
+              <RefreshCw className={`w-3.5 h-3.5 text-blue-600 ${loading || merchantsLoading ? 'animate-spin' : ''}`} />
+              <span>Sync</span>
             </button>
             <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:text-slate-900 transition-colors shadow-sm"
-              title="Menu"
+              onClick={handleLogout}
+              className="py-2 px-3 bg-white hover:bg-red-50 border border-slate-200 hover:border-red-200 text-slate-700 hover:text-red-600 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1 cursor-pointer"
+              title="Log Out"
             >
-              {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Logout</span>
             </button>
           </div>
+        </div>
+
+      </aside>
+
+      {/* ═══════════════════════════════════════════════════════════
+         MOBILE TOP BAR (md:hidden)
+         ═══════════════════════════════════════════════════════════ */}
+      <header className="md:hidden bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 px-4 py-3 flex items-center justify-between shadow-sm">
+        <div className="flex items-center gap-2">
+          <MyMobPayLogo className="w-28 h-auto" />
+          <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[9px] font-extrabold uppercase">
+            Admin
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleRefreshAll}
+            disabled={loading || merchantsLoading}
+            className="p-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 hover:text-slate-900 shadow-sm"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading || merchantsLoading ? 'animate-spin text-blue-600' : ''}`} />
+          </button>
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="p-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 hover:text-slate-900 shadow-sm"
+          >
+            {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+          </button>
         </div>
       </header>
 
-      {/* Mobile Drawer Slide-out overlay Navigation (Mobile Only) */}
+      {/* ═══════════════════════════════════════════════════════════
+         MOBILE DRAWER SLIDE-OVER (md:hidden)
+         ═══════════════════════════════════════════════════════════ */}
       {isMobileMenuOpen && (
-        <div className="md:hidden fixed inset-x-0 bottom-0 top-[64px] z-30 bg-white/95 backdrop-blur-xl flex flex-col pt-6 px-6 pb-8 space-y-8 animate-fadeIn">
-          <div className="flex flex-col space-y-3">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3">Navigation Menu</p>
-            {[
-              { id: 'overview', label: 'Platform Stats', icon: Activity },
-              { id: 'transactions', label: 'Global Orders', icon: FileText },
-              { id: 'merchants', label: 'Merchants (SaaS)', icon: Store },
-              { id: 'subscriptions', label: 'Subscriptions & Gifts', icon: Gift },
-              { id: 'config', label: 'System Config', icon: Settings },
-            ].map(tab => {
-              const Icon = tab.icon;
-              return (
+        <div className="md:hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex justify-start animate-fadeIn">
+          <div className="w-72 bg-white h-full shadow-2xl flex flex-col justify-between p-6 animate-slideIn">
+            <div className="space-y-6">
+              <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+                <MyMobPayLogo className="w-32 h-auto" />
                 <button
-                  key={tab.id}
-                  onClick={() => {
-                    setActiveTab(tab.id);
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all border ${activeTab === tab.id ? 'bg-blue-50/60 text-blue-600 border-blue-100 shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 border-transparent'}`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-2 rounded-xl hover:bg-slate-100 text-slate-500"
                 >
-                  <Icon className="w-4.5 h-4.5 text-blue-600" />
-                  <span>{tab.label}</span>
+                  <X className="w-5 h-5" />
                 </button>
-              );
-            })}
-          </div>
+              </div>
 
-          <div className="flex-1"></div>
-
-          {/* Mobile Drawer Actions */}
-          <div className="space-y-4 pt-6 border-t border-slate-100">
-            <div className="flex justify-between items-center px-2">
-              <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Gateway Platform Admin</span>
-              <span className="text-[8px] bg-blue-50 text-blue-600 border border-blue-100 px-2 py-0.5 rounded font-black uppercase">v1.1</span>
+              <div className="space-y-1.5">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2">Navigation Menu</p>
+                {[
+                  { id: 'overview', label: 'Platform Stats', icon: Activity },
+                  { id: 'transactions', label: 'Global Orders', icon: FileText },
+                  { id: 'merchants', label: 'Merchants (SaaS)', icon: Store },
+                  { id: 'subscriptions', label: 'Subscriptions & Gifts', icon: Gift },
+                  { id: 'config', label: 'System Config', icon: Settings },
+                ].map(tab => {
+                  const Icon = tab.icon;
+                  const isActive = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => {
+                        setActiveTab(tab.id);
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition-all ${
+                        isActive
+                          ? 'bg-blue-600 text-white shadow-md'
+                          : 'text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" />
+                      <span>{tab.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            <button 
-              onClick={() => {
-                handleLogout();
-                setIsMobileMenuOpen(false);
-              }}
-              className="w-full flex items-center justify-center gap-2.5 px-4 py-3.5 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 transition-all text-sm font-bold shadow-sm"
-            >
-              <LogOut className="w-4.5 h-4.5 text-slate-500" />
-              <span>Log Out Platform</span>
-            </button>
+
+            <div className="pt-6 border-t border-slate-100 space-y-3">
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-slate-50 hover:bg-red-50 text-slate-700 hover:text-red-600 text-xs font-bold border border-slate-200"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Log Out Platform</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
+
+      {/* ═══════════════════════════════════════════════════════════
+         MAIN WORKSPACE (Right Area)
+         ═══════════════════════════════════════════════════════════ */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto min-h-screen">
+        
+        {/* Desktop Top Workspace Title Bar */}
+        <div className="hidden md:flex items-center justify-between px-8 py-4.5 bg-white border-b border-slate-200/80 sticky top-0 z-20 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+          <div>
+            <h1 className="text-lg font-black text-slate-900">
+              {activeTab === 'overview' && 'Platform Performance & Leaderboards'}
+              {activeTab === 'transactions' && 'Global Transaction Logs'}
+              {activeTab === 'merchants' && 'Registered Merchants Directory'}
+              {activeTab === 'subscriptions' && 'Subscription & Gift Codes Manager'}
+              {activeTab === 'config' && 'System Configuration & Security'}
+            </h1>
+            <p className="text-[11px] text-slate-400 font-medium mt-0.5">
+              MyMobPay SaaS Platform Gateway • Live Operational Mode
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200/60 text-emerald-700 px-3 py-1.5 rounded-xl text-xs font-bold">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Realtime Gateway Active</span>
+            </div>
+
+            <button
+              onClick={handleRefreshAll}
+              disabled={loading || merchantsLoading}
+              className="px-3.5 py-1.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 transition-all text-xs font-bold shadow-sm flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 text-blue-600 ${loading || merchantsLoading ? 'animate-spin' : ''}`} />
+              <span>Sync</span>
+            </button>
+          </div>
+        </div>
 
       {/* Main Admin View */}
       <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 flex-1 space-y-8">
@@ -2827,6 +2949,8 @@ export default function AdminPage() {
         <p className="font-medium">&copy; 2026 {CONFIG.businessName} SaaS Gateway Platform. All rights reserved.</p>
         <p className="mt-1 text-[10px] text-slate-400 font-mono">Protected Admin Console • Session ID: {Math.floor(1000000000 + Math.random() * 9000000000)}</p>
       </footer>
+
+      </div>
 
     </div>
   );
