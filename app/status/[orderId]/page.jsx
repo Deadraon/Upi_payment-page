@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import {
@@ -77,6 +77,7 @@ export default function StatusPage() {
   const [utrError, setUtrError]           = useState('');
   const [utrSuccess, setUtrSuccess]       = useState('');
   const [redirecting, setRedirecting]     = useState(false);
+  const redirectTriggeredRef             = useRef(false);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -101,9 +102,15 @@ export default function StatusPage() {
   }, [orderId]);
 
   const executeRedirect = (targetCallback) => {
-    const cb = targetCallback || localStorage.getItem(`callback_${orderId}`) || order?.callback_url;
+    let cb = targetCallback || (typeof window !== 'undefined' && localStorage.getItem(`callback_${orderId}`)) || order?.callback_url;
+    
+    // Automatic fallback for Trial and Subscription payments
+    if (!cb && (order?.note === 'Trial_Setup_3Day' || order?.note === 'Autopay_Setup_3DayTrial' || order?.note?.startsWith('Subscription_'))) {
+      cb = typeof window !== 'undefined' ? `${window.location.origin}/dashboard` : '/dashboard';
+    }
+    
     if (!cb) return;
-    const externalRef = localStorage.getItem(`ref_${orderId}`) || order?.external_ref;
+    const externalRef = (typeof window !== 'undefined' && localStorage.getItem(`ref_${orderId}`)) || order?.external_ref;
     try {
       let resolvedUrl = cb.trim();
       if (!/^https?:\/\//i.test(resolvedUrl) && !resolvedUrl.startsWith('/')) {
@@ -115,24 +122,30 @@ export default function StatusPage() {
       url.searchParams.set('orderId', orderId);
       if (order?.utr) url.searchParams.set('utr', order.utr);
       if (externalRef) url.searchParams.set('ref', externalRef);
-      window.location.replace(url.toString());
+      window.location.href = url.toString();
     } catch (e) {
       console.error('Redirect URL parsing failed:', e);
-      window.location.replace(cb);
+      window.location.href = cb;
     }
   };
 
   useEffect(() => {
-    if (!order || order.status !== 'verified' || redirecting) return;
-    const callback = localStorage.getItem(`callback_${orderId}`) || order.callback_url;
-    if (callback) {
+    if (!order || order.status !== 'verified' || redirectTriggeredRef.current) return;
+    
+    let cb = (typeof window !== 'undefined' && localStorage.getItem(`callback_${orderId}`)) || order.callback_url;
+    if (!cb && (order.note === 'Trial_Setup_3Day' || order.note === 'Autopay_Setup_3DayTrial' || order.note?.startsWith('Subscription_'))) {
+      cb = typeof window !== 'undefined' ? `${window.location.origin}/dashboard` : '/dashboard';
+    }
+
+    if (cb) {
+      redirectTriggeredRef.current = true;
       setRedirecting(true);
       const timer = setTimeout(() => {
-        executeRedirect(callback);
-      }, 1800);
+        executeRedirect(cb);
+      }, 1200);
       return () => clearTimeout(timer);
     }
-  }, [order, orderId, redirecting]);
+  }, [order?.status, orderId]);
 
   const handleUtrSubmit = async (e) => {
     e.preventDefault();
@@ -194,7 +207,11 @@ export default function StatusPage() {
   );
 
   const isUtrSubmitted = order.utr && /^\d{12}$/.test(order.utr.trim());
-  const callback = (typeof window !== 'undefined' && localStorage.getItem(`callback_${orderId}`)) || order.callback_url;
+  let callback = (typeof window !== 'undefined' && localStorage.getItem(`callback_${orderId}`)) || order.callback_url;
+  if (!callback && (order?.note === 'Trial_Setup_3Day' || order?.note === 'Autopay_Setup_3DayTrial' || order?.note?.startsWith('Subscription_'))) {
+    callback = typeof window !== 'undefined' ? `${window.location.origin}/dashboard` : '/dashboard';
+  }
+  const isTrialOrSub = order?.note === 'Trial_Setup_3Day' || order?.note === 'Autopay_Setup_3DayTrial' || order?.note?.startsWith('Subscription_');
 
   /* ═══════════════════════════════════════════════════════════
      VERIFIED
@@ -234,22 +251,27 @@ export default function StatusPage() {
             </div>
             <div className="px-5 pb-6 space-y-2.5">
               {callback ? (
-                <button 
-                  onClick={() => executeRedirect(callback)} 
-                  className="w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-98 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 transition-all cursor-pointer"
-                >
-                  {redirecting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin text-white" />
-                      <span>Redirecting to {order.project || 'your app'}...</span>
-                    </>
-                  ) : (
-                    <>
-                      <ExternalLink className="w-4 h-4" /> 
-                      <span>Return to {order.project || 'App'}</span>
-                    </>
-                  )}
-                </button>
+                <>
+                  <button 
+                    onClick={() => executeRedirect(callback)} 
+                    className="w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-98 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+                  >
+                    {redirecting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin text-white" />
+                        <span>Redirecting to {order.project || (isTrialOrSub ? 'Dashboard' : 'your app')}... (Click to skip)</span>
+                      </>
+                    ) : (
+                      <>
+                        <ExternalLink className="w-4 h-4" /> 
+                        <span>Return to {order.project || (isTrialOrSub ? 'Dashboard' : 'App')}</span>
+                      </>
+                    )}
+                  </button>
+                  <p className="text-[11px] text-center text-slate-400 font-medium">
+                    Redirecting automatically. If stuck, <button type="button" onClick={() => executeRedirect(callback)} className="text-blue-600 hover:underline font-bold cursor-pointer">click here</button>.
+                  </p>
+                </>
               ) : (
                 <button onClick={() => router.push('/pay')}
                   className="w-full py-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-sm flex items-center justify-center gap-2 transition-all">

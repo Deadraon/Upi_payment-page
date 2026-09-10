@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { parseTransactionText } from '@/lib/parseSms';
 import { CONFIG } from '@/lib/config';
+import { checkAndProcessSubscription } from '@/lib/adminSettings';
+import { triggerMerchantWebhook } from '@/lib/webhook';
 
 export async function POST(request) {
   try {
@@ -94,6 +96,12 @@ export async function POST(request) {
       console.error('Error updating order:', updateError);
       return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
+
+    // Call subscription renewal and trial activation check
+    await checkAndProcessSubscription(updatedOrder, '');
+
+    // Trigger outbound webhook safely
+    await triggerMerchantWebhook(matchedOrder.id);
 
     return NextResponse.json({
       success: true,

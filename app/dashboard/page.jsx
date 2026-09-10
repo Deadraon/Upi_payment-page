@@ -1534,96 +1534,83 @@ export default function DashboardPage() {
 
       setUser(session.user);
 
+      await fetchProfile(session.user.id);
+      fetchSubscriptionHistory(session.user.id);
 
-
-      fetchProfile(session.user.id);
-
-
+      // Handle redirect from payment gateway (e.g. ?status=success&gateway_id=...)
+      if (typeof window !== 'undefined') {
+        const urlParams = new URLSearchParams(window.location.search);
+        const pStatus = urlParams.get('status');
+        const pOrderId = urlParams.get('orderId') || urlParams.get('gateway_id');
+        if (pStatus === 'success' || pOrderId) {
+          // Re-fetch profile and subscription history
+          setTimeout(() => {
+            fetchProfile(session.user.id);
+            fetchSubscriptionHistory(session.user.id);
+          }, 600);
+          setTimeout(() => {
+            fetchProfile(session.user.id);
+            fetchSubscriptionHistory(session.user.id);
+          }, 2000);
+          // Clean URL parameters smoothly without reloading
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      }
 
     };
-
-
-
-
-
-
 
     fetchSession();
 
-
-
   }, [router]);
 
-
-
-
-
-
-
-  // Real-time Order updates subscription
-
-
-
+  // Real-time Order updates and subscription updates
   useEffect(() => {
-
-
-
     if (!user) return;
 
-
-
+    // 1. Regular customer orders for this merchant
     const channel = supabase.channel(`dashboard-orders-${user.id}`)
-
-
-
       .on('postgres_changes', { 
-
-
-
         event: '*', 
-
-
-
         schema: 'public', 
-
-
-
         table: 'orders', 
-
-
-
         filter: `merchant_id=eq.${user.id}` 
-
-
-
-      }, (payload) => {
-
-
-
+      }, () => {
         fetchOrders(user.id);
-
-
-
       })
-
-
-
       .subscribe();
 
+    // 2. Subscription/Trial orders where external_ref is this merchant
+    const subOrdersChannel = supabase.channel(`dashboard-sub-orders-${user.id}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'orders',
+        filter: `external_ref=eq.${user.id}`
+      }, () => {
+        fetchProfile(user.id);
+        fetchSubscriptionHistory(user.id);
+      })
+      .subscribe();
 
+    // 3. Realtime merchant profile updates (instant unlock when subscription_status becomes active)
+    const merchantChannel = supabase.channel(`dashboard-merchant-${user.id}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'merchants',
+        filter: `id=eq.${user.id}`
+      }, (payload) => {
+        if (payload.new) {
+          setProfile(payload.new);
+        }
+      })
+      .subscribe();
 
     return () => {
-
-
-
       supabase.removeChannel(channel);
-
-
-
+      supabase.removeChannel(subOrdersChannel);
+      supabase.removeChannel(merchantChannel);
     };
-
-
-
   }, [user]);
 
 
@@ -1969,40 +1956,53 @@ export default function DashboardPage() {
 
 
       // Auto-expire check
-
-
-
       if (data.subscription_status === 'active' && data.subscription_expires_at) {
-
-
-
         const isExpired = new Date(data.subscription_expires_at) < new Date();
-
-
-
         if (isExpired) {
-
-
-
           data.subscription_status = 'expired';
-
-
-
           await supabase.from('merchants').update({ subscription_status: 'expired' }).eq('id', userId);
-
-
-
         }
-
-
-
       }
 
+      // Safety auto-activation: if user has a verified trial or subscription order in the orders table, ensure status is active!
+      if (data.subscription_status !== 'active') {
+        const { data: verifiedOrders } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('external_ref', userId)
+          .eq('status', 'verified')
+          .order('created_at', { ascending: false })
+          .limit(1);
 
+        if (verifiedOrders && verifiedOrders.length > 0) {
+          const ord = verifiedOrders[0];
+          const isTrial = ord.note === 'Trial_Setup_3Day' || ord.note === 'Autopay_Setup_3DayTrial';
+          const orderDate = new Date(ord.verified_at || ord.created_at);
+          const durationDays = isTrial ? 3 : 30;
+          const expiryDate = new Date(orderDate.getTime() + durationDays * 24 * 60 * 60 * 1000);
 
-
-
-
+          if (expiryDate > new Date()) {
+            data.subscription_status = 'active';
+            data.subscription_expires_at = expiryDate.toISOString();
+            const currProg = data.setup_progress || {};
+            const updatedProg = {
+              ...currProg,
+              trial_activated_at: isTrial ? orderDate.toISOString() : (currProg.trial_activated_at || null),
+              trial_expires_at: isTrial ? expiryDate.toISOString() : (currProg.trial_expires_at || null),
+              subscription_activated_at: !isTrial ? orderDate.toISOString() : (currProg.subscription_activated_at || null),
+              plan_type: isTrial ? 'trial_3day' : 'subscription',
+              last_payment_at: orderDate.toISOString(),
+              last_order_id: ord.id
+            };
+            data.setup_progress = updatedProg;
+            await supabase.from('merchants').update({
+              subscription_status: 'active',
+              subscription_expires_at: expiryDate.toISOString(),
+              setup_progress: updatedProg
+            }).eq('id', userId);
+          }
+        }
+      }
 
       setProfile(data);
 
@@ -5485,29 +5485,12 @@ echo "Order Created: " . $data['orderId'];
 
 
     const handleRefreshStatus = async () => {
-
-
-
       setStatusChecking(true);
-
-
-
       if (user?.id) {
-
-
-
         await fetchProfile(user.id);
-
-
-
+        await fetchSubscriptionHistory(user.id);
       }
-
-
-
       setStatusChecking(false);
-
-
-
     };
 
 
@@ -5761,21 +5744,9 @@ echo "Order Created: " . $data['orderId'];
 
 
                 <button
-
-
-
                   onClick={() => {
-
-
-
                     const trialPayUrl = `/pay?api_key=${CONFIG.platformApiKey}&amount=1&ref=${profile?.id}&note=Trial_Setup_3Day&callback=${encodeURIComponent(callbackUrl)}`;
-
-
-
-                    window.open(trialPayUrl, '_blank');
-
-
-
+                    window.location.href = trialPayUrl;
                   }}
 
 
@@ -6005,10 +5976,7 @@ echo "Order Created: " . $data['orderId'];
 
 
                 <button
-
-
-
-                  onClick={() => window.open(payUrl, '_blank')}
+                  onClick={() => { window.location.href = payUrl; }}
 
 
 
@@ -6404,22 +6372,58 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-  // Helper: days left from expiry date
+  // Helper: Get comprehensive subscription and trial details
+  const getSubscriptionDetails = () => {
+    if (!profile) return null;
+    const isSubActive = profile.subscription_status === 'active';
+    const expiresAt = profile.subscription_expires_at ? new Date(profile.subscription_expires_at) : null;
+    const isValidExpiry = expiresAt && !isNaN(expiresAt.getTime());
+    const isExpired = isValidExpiry && expiresAt.getTime() < Date.now();
+    const active = isSubActive && isValidExpiry && !isExpired;
 
+    const setupProg = profile.setup_progress || {};
+    const isTrial = setupProg.plan_type === 'trial_3day' || 
+                    setupProg.plan_type === 'autopay_trial' || 
+                    Boolean(setupProg.trial_activated_at) ||
+                    Boolean(historyOrders.find(o => o.status === 'verified' && (o.note === 'Trial_Setup_3Day' || o.note === 'Autopay_Setup_3DayTrial')));
 
+    let activatedAt = null;
+    if (setupProg.trial_activated_at) {
+      activatedAt = new Date(setupProg.trial_activated_at);
+    } else if (setupProg.subscription_activated_at) {
+      activatedAt = new Date(setupProg.subscription_activated_at);
+    } else {
+      const verifiedSub = historyOrders.find(o => o.status === 'verified' && (o.note?.includes('Trial') || o.note?.startsWith('Subscription_')));
+      if (verifiedSub) {
+        activatedAt = new Date(verifiedSub.verified_at || verifiedSub.created_at);
+      } else if (expiresAt) {
+        const daysToSubtract = isTrial ? 3 : 30;
+        activatedAt = new Date(expiresAt.getTime() - daysToSubtract * 24 * 60 * 60 * 1000);
+      } else {
+        activatedAt = profile.created_at ? new Date(profile.created_at) : null;
+      }
+    }
+
+    const now = Date.now();
+    const msLeft = isValidExpiry ? expiresAt.getTime() - now : 0;
+    const daysLeft = isValidExpiry ? Math.max(0, Math.ceil(msLeft / 86400000)) : null;
+    const hoursLeft = isValidExpiry ? Math.max(0, Math.floor((msLeft % 86400000) / 3600000)) : null;
+
+    return {
+      active,
+      isTrial,
+      planName: isTrial ? '3-Day Free Trial' : 'Premium Subscription Tier',
+      activatedAt,
+      expiresAt,
+      daysLeft,
+      hoursLeft,
+      rawStatus: profile.subscription_status
+    };
+  };
 
   const getDaysLeft = () => {
-
-
-
-    if (!profile?.subscription_expires_at) return null;
-
-
-
-    return Math.ceil((new Date(profile.subscription_expires_at) - new Date()) / 86400000);
-
-
-
+    const sub = getSubscriptionDetails();
+    return sub?.daysLeft ?? null;
   };
 
 
@@ -6677,26 +6681,44 @@ echo "Order Created: " . $data['orderId'];
 
 
                 <p className="text-white-pure/70 text-xs mt-2 font-medium leading-relaxed max-w-md">
-
-
-
                   {isActive 
-
-
-
                     ? `Your payment gateway operates fully. Next billing on ${expiresAt ? expiresAt.toLocaleDateString('en-IN', { dateStyle: 'long' }) : 'Not configured'}.`
-
-
-
                     : 'Your API routing is locked. Renew your monthly license to restore webhook relays and bank deposits matches.'
-
-
-
                   }
-
-
-
                 </p>
+
+                {/* Activation & Expiry Date Highlight Cards */}
+                {(() => {
+                  const sub = getSubscriptionDetails();
+                  if (!sub || !sub.active) return null;
+                  return (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3">
+                      <div className="bg-white/5 border border-white/10 rounded-2xl p-3 flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+                          <Calendar className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Activation Date</span>
+                          <span className="text-xs font-black text-white truncate block">
+                            {sub.activatedAt ? sub.activatedAt.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="bg-white/5 border border-white/10 rounded-2xl p-3 flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0">
+                          <Clock className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Expiry Date</span>
+                          <span className="text-xs font-black text-amber-300 truncate block">
+                            {sub.expiresAt ? sub.expiresAt.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
 
 
 
@@ -10925,19 +10947,31 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-              const expiresAt = profile?.subscription_expires_at ? new Date(profile.subscription_expires_at) : null;
+              const sub = getSubscriptionDetails();
 
 
 
-              const isValidDate = expiresAt && !isNaN(expiresAt.getTime()) && expiresAt.getTime() > Date.now();
+              if (!sub || !sub.active) return null;
 
 
 
-              const d = isValidDate ? Math.ceil((expiresAt - new Date()) / 86400000) : -1;
+              const text = sub.isTrial 
 
 
 
-              const text = d > 0 ? `Premium · ${d} days left` : 'Premium · Active';
+                ? (sub.daysLeft > 0 ? `3-Day Trial · ${sub.daysLeft}d left` : '3-Day Trial · Active')
+
+
+
+                : (sub.daysLeft > 0 ? `Premium · ${sub.daysLeft}d left` : 'Premium · Active');
+
+
+
+              const tooltip = `Activated: ${sub.activatedAt ? sub.activatedAt.toLocaleDateString('en-IN') : 'N/A'} · Expires: ${sub.expiresAt ? sub.expiresAt.toLocaleDateString('en-IN') : 'N/A'}`;
+
+
+
+
 
 
 
@@ -10953,11 +10987,27 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-                  className="flex items-center gap-2 bg-gradient-to-r from-violet-500/10 to-indigo-500/10 hover:from-violet-500/20 hover:to-indigo-500/20 border border-violet-500/30 hover:border-violet-500/50 px-4 py-2 rounded-2xl transition-all shadow-xs cursor-pointer"
+                  className={`flex items-center gap-2 border px-4 py-2 rounded-2xl transition-all shadow-xs cursor-pointer ${
 
 
 
-                  title="View Premium Subscription"
+                    sub.isTrial 
+
+
+
+                      ? 'bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/30 hover:border-emerald-500/50 text-emerald-700'
+
+
+
+                      : 'bg-gradient-to-r from-violet-500/10 to-indigo-500/10 hover:from-violet-500/20 hover:to-indigo-500/20 border-violet-500/30 hover:border-violet-500/50 text-violet-700'
+
+
+
+                  }`}
+
+
+
+                  title={tooltip}
 
 
 
@@ -10965,11 +11015,11 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-                  <span className="w-2 h-2 rounded-full bg-violet-500 animate-pulse" />
+                  <span className={`w-2 h-2 rounded-full animate-pulse ${sub.isTrial ? 'bg-emerald-500' : 'bg-violet-500'}`} />
 
 
 
-                  <span className="text-[10px] font-black text-violet-700 uppercase tracking-wider">{text}</span>
+                  <span className="text-[10px] font-black uppercase tracking-wider">{text}</span>
 
 
 
@@ -11774,66 +11824,128 @@ echo "Order Created: " . $data['orderId'];
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
 
                   <div>
-
                     <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide">SaaS Metrics Overview</h3>
-
                     <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Last {analyticsTimeframe} days performance across your connected gateways.</p>
-
                   </div>
 
                   <div className="flex flex-wrap items-center gap-3 self-stretch md:self-auto justify-end select-none">
-
                     {/* Timeframe Toggles */}
                     <div className="flex items-center gap-1.5">
-
                       {[7, 30].map(days => (
-
                         <button
-
                           key={days}
-
                           onClick={() => setAnalyticsTimeframe(days)}
-
                           className={`px-4 py-2 rounded-xl text-xs font-black border transition-all ${
-
                             analyticsTimeframe === days
-
                               ? 'bg-blue-50 border-blue-500 text-blue-700 shadow-sm'
-
                               : 'bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-800'
-
                           }`}
-
                         >
-
                           {days} Days
-
                         </button>
-
                       ))}
-
                     </div>
 
                     <div className="h-6 w-px bg-slate-200 hidden sm:block" />
 
                     {/* Create Payment Link Shortcut CTA */}
                     <button
-
                       onClick={() => setActiveTab('payment-links')}
-
                       className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl flex items-center gap-1.5 transition-all shadow-md shadow-blue-500/20 active:scale-98 cursor-pointer"
-
                     >
-
                       <Plus className="w-3.5 h-3.5 text-white" />
-
                       Create Payment Link
-
                     </button>
-
                   </div>
-
                 </div>
+
+                {/* ── Active 3-Day Trial / Subscription Milestones Banner ── */}
+                {(() => {
+                  const sub = getSubscriptionDetails();
+                  if (!sub || !sub.active) return null;
+                  return (
+                    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0B0F19] via-[#0F172A] to-[#1E1B4B] text-white border border-slate-800 shadow-xl p-6 sm:p-7 animate-fade-up">
+                      {/* Ambient background glows */}
+                      <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+                      <div className="absolute bottom-0 left-1/4 w-60 h-60 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+
+                      <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                        {/* Left column: Plan info & Dates */}
+                        <div className="space-y-3 max-w-xl">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                              {sub.isTrial ? '3-DAY FREE TRIAL ACTIVE' : 'PREMIUM SUBSCRIPTION ACTIVE'}
+                            </span>
+                            <span className="bg-white/10 text-slate-300 px-2.5 py-0.5 rounded-full text-[10px] font-bold">
+                              Direct VPA Rail · 0% MDR
+                            </span>
+                          </div>
+
+                          <div>
+                            <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-2">
+                              {sub.isTrial ? '3-Day Free Trial Activated' : 'Merchant Gateway License Active'}
+                            </h2>
+                            <p className="text-xs text-slate-300 font-medium mt-1 leading-relaxed">
+                              Your merchant payment routing and API endpoints are fully active. Transaction verifications and webhooks are live.
+                            </p>
+                          </div>
+
+                          {/* Activation & Expiry Date Highlight Cards */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                            <div className="bg-white/5 border border-white/10 rounded-2xl p-3.5 flex items-center gap-3">
+                              <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+                                <Calendar className="w-4.5 h-4.5" />
+                              </div>
+                              <div className="min-w-0">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Activation Date</span>
+                                <span className="text-xs sm:text-sm font-black text-white truncate block">
+                                  {sub.activatedAt ? sub.activatedAt.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Just now'}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="bg-white/5 border border-white/10 rounded-2xl p-3.5 flex items-center gap-3">
+                              <div className="w-9 h-9 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0">
+                                <Clock className="w-4.5 h-4.5" />
+                              </div>
+                              <div className="min-w-0">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Expiry Date</span>
+                                <span className="text-xs sm:text-sm font-black text-amber-300 truncate block">
+                                  {sub.expiresAt ? sub.expiresAt.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '3 Days'}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Right column: Countdown & CTA */}
+                        <div className="flex flex-col sm:flex-row lg:flex-col items-start lg:items-end justify-between gap-4 border-t lg:border-t-0 lg:border-l border-white/10 pt-4 lg:pt-0 lg:pl-8 shrink-0">
+                          <div className="lg:text-right">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Runtime Remaining</span>
+                            <div className="text-2xl sm:text-3xl font-black text-emerald-400 tracking-tight mt-0.5">
+                              {sub.daysLeft !== null ? `${sub.daysLeft} Day${sub.daysLeft === 1 ? '' : 's'}` : 'Active'}
+                              {sub.hoursLeft !== null && sub.daysLeft !== null && sub.daysLeft <= 3 && (
+                                <span className="text-xs font-semibold text-slate-300 ml-1.5">(${sub.hoursLeft}h left)</span>
+                              )}
+                            </div>
+                            <span className="text-[11px] text-slate-400 font-medium block mt-0.5">
+                              Uncapped transaction volume
+                            </span>
+                          </div>
+
+                          <button
+                            onClick={() => setActiveTab('subscription')}
+                            className="w-full sm:w-auto px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-black transition-all shadow-md shadow-blue-500/30 flex items-center justify-center gap-1.5 active:scale-98 cursor-pointer"
+                          >
+                            <Crown className="w-3.5 h-3.5" />
+                            Manage Subscription
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
 
 
 
