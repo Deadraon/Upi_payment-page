@@ -72,6 +72,17 @@ export default function AdminPage() {
   // Active Tab: overview, transactions, merchants, config
   const [activeTab, setActiveTab] = useState('overview');
 
+  // Login UI states
+  const [loginMode, setLoginMode] = useState('google'); // 'google' | 'password'
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Modern Toast notification state
+  const [toast, setToast] = useState(null);
+  const showToast = useCallback((msg, type = 'success') => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3000);
+  }, []);
+
   // Mobile menu open state
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -208,7 +219,7 @@ export default function AdminPage() {
   const handleCreateGiftCode = async (e) => {
     e.preventDefault();
     if (!newGiftCode.code.trim()) {
-      alert('Please enter a coupon/gift code');
+      showToast('Please enter a coupon/gift code', 'error');
       return;
     }
     setCodeActionLoading(true);
@@ -233,9 +244,9 @@ export default function AdminPage() {
       if (!res.ok) throw new Error(data.error || 'Failed to create gift code');
       setGiftCodesList(data.giftCodes || []);
       setNewGiftCode({ code: '', discountType: 'free', discountValue: 0, planDays: 30, maxUses: 10, description: '' });
-      alert('Gift code created successfully!');
+      showToast('Gift code created successfully!', 'success');
     } catch (err) {
-      alert(err.message || 'Error creating gift code');
+      showToast(err.message || 'Error creating gift code', 'error');
     } finally {
       setCodeActionLoading(false);
     }
@@ -260,7 +271,7 @@ export default function AdminPage() {
       if (!res.ok) throw new Error(data.error || 'Failed to delete code');
       setGiftCodesList(data.giftCodes || []);
     } catch (err) {
-      alert(err.message || 'Error deleting gift code');
+      showToast(err.message || 'Error deleting gift code', 'error');
     }
   };
 
@@ -289,9 +300,9 @@ export default function AdminPage() {
       setSubscriptionsList(prev => prev.map(m => m.id === selectedMerchantForEdit.id ? { ...m, ...data.merchant } : m));
       setIsExtendModalOpen(false);
       setSelectedMerchantForEdit(null);
-      alert('Subscription successfully updated!');
+      showToast('Subscription successfully updated!', 'success');
     } catch (err) {
-      alert(err.message || 'Failed to update subscription');
+      showToast(err.message || 'Failed to update subscription', 'error');
     } finally {
       setSubsActionLoading(false);
     }
@@ -541,7 +552,7 @@ export default function AdminPage() {
       // Update local state instantly
       setMerchants(prev => prev.map(m => m.id === merchantId ? data.merchant : m));
     } catch (err) {
-      alert(err.message || 'Operation failed');
+      showToast(err.message || 'Operation failed', 'error');
     }
   };
 
@@ -572,7 +583,7 @@ export default function AdminPage() {
       setUtrPromptId(null);
       setManualUtr('');
     } catch (err) {
-      alert(err.message || 'Operation failed');
+      showToast(err.message || 'Operation failed', 'error');
     } finally {
       setActionLoading(null);
     }
@@ -823,73 +834,166 @@ export default function AdminPage() {
   const brandColor = '#3B82F6'; // Unified Website Blue Brand Color
 
   if (!isLoggedIn) {
-    /* LUXURY LIGHT THEME LOGIN WALL SCREEN */
+    /* LUXURY DUAL-MODE LOGIN WALL SCREEN */
     return (
-      <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-center items-center px-4 font-sans selection:bg-blue-500/10">
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 via-blue-50/20 to-slate-100 text-slate-900 flex flex-col justify-center items-center px-4 py-12 font-sans selection:bg-blue-500/10 relative">
         
-        <div className="max-w-md w-full bg-white border border-slate-200 rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative space-y-7 overflow-hidden">
-          
-          <div className="absolute top-0 left-0 right-0 h-[3px] bg-blue-600"></div>
+        {/* Ambient Top Glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-48 bg-blue-400/10 rounded-full blur-3xl pointer-events-none" />
 
-          <div className="text-center space-y-2 flex flex-col items-center">
-            <MyMobPayLogo className="w-36 h-auto" />
-            <p className="text-[10px] text-slate-400 font-bold tracking-widest uppercase mt-0.5">SaaS Super Admin Console</p>
+        <div className="max-w-md w-full bg-white border border-slate-200/80 rounded-[2.5rem] p-8 sm:p-10 shadow-[0_20px_60px_rgba(15,23,42,0.06)] relative space-y-6 overflow-hidden backdrop-blur-xl">
+          
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500" />
+
+          {/* Logo and Subtitle */}
+          <div className="text-center space-y-2 flex flex-col items-center pt-2">
+            <MyMobPayLogo className="w-40 h-auto" />
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-[10px] font-extrabold uppercase tracking-widest mt-1">
+              <Shield className="w-3.5 h-3.5 text-blue-600" />
+              <span>Super Admin Portal</span>
+            </div>
           </div>
 
+          {/* Error Banner */}
           {authError && (
-            <div className="p-3.5 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-xs flex items-center gap-2.5">
-              <AlertCircle className="w-4.5 h-4.5 text-red-400 flex-shrink-0" />
-              <span className="font-semibold">{authError}</span>
+            <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 rounded-2xl text-xs flex items-center gap-2.5 animate-shake">
+              <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+              <span className="font-semibold leading-relaxed">{authError}</span>
             </div>
           )}
 
-          {/* Security Protocol Information Box */}
-          <div className="p-4 bg-blue-50/70 border border-blue-100 rounded-2xl text-center space-y-1.5">
-            <div className="flex items-center justify-center gap-1.5 text-blue-600 font-extrabold text-[11px] uppercase tracking-wider">
-              <Shield className="w-4 h-4" />
-              <span>Admin Authentication Protocol</span>
-            </div>
-            <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
-              Access to this console is strictly restricted to verified Google Administrator accounts. Please continue with your admin Google ID.
-            </p>
+          {/* Mode Switcher Tabs */}
+          <div className="flex bg-slate-100/80 p-1.5 rounded-2xl gap-1 border border-slate-200/60">
+            <button
+              type="button"
+              onClick={() => {
+                setLoginMode('google');
+                setAuthError('');
+              }}
+              className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                loginMode === 'google'
+                  ? 'bg-white text-blue-700 shadow-sm border border-slate-200/60'
+                  : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24">
+                <path d="M21.35,11.1H12v2.7h5.38c-0.24,1.28 -0.96,2.37 -2.05,3.1v2.57h3.32c1.94,-1.78 3.05,-4.4 3.05,-7.47c0,-0.3 -0.03,-0.6 -0.08,-0.9Z" fill="#4285F4" />
+                <path d="M12,20.7c2.35,0 4.32,-0.78 5.76,-2.13l-3.32,-2.57c-0.92,0.62 -2.1,0.98 -3.44,0.98c-2.28,0 -4.21,-1.54 -4.9,-3.61H2.68v2.66c1.47,2.92 4.5,4.67 7.92,4.67Z" fill="#34A853" />
+                <path d="M7.1,13.38c-0.18,-0.52 -0.28,-1.09 -0.28,-1.68c0,-0.59 0.1,-1.16 0.28,-1.68V7.36H2.68C2.06,8.6 1.7,10.01 1.7,11.7c0,1.69 0.36,3.1 0.98,4.34l3.74,-2.91c-0.18,-0.52 -0.18,-0.75 -0.32,-1.75Z" fill="#FBBC05" />
+                <path d="M12,5.68c1.28,0 2.43,0.44 3.34,1.3l2.5,-2.5C16.31,3.07 14.34,2.7 12,2.7c-3.42,0 -6.45,1.75 -7.92,4.67l4.4,3.38C9.17,7.22 10.1,5.68 12,5.68Z" fill="#EA4335" />
+              </svg>
+              <span>Google ID</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setLoginMode('password');
+                setAuthError('');
+              }}
+              className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                loginMode === 'password'
+                  ? 'bg-white text-blue-700 shadow-sm border border-slate-200/60'
+                  : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              <Key className="w-3.5 h-3.5 text-slate-600" />
+              <span>Master Password</span>
+            </button>
           </div>
 
           {authLoading ? (
-            <div className="py-6 flex flex-col items-center justify-center space-y-3">
-              <RefreshCw className="w-7 h-7 animate-spin text-blue-600" />
-              <p className="text-xs font-bold text-slate-600">Verifying administrator authorization...</p>
+            <div className="py-8 flex flex-col items-center justify-center space-y-3">
+              <RefreshCw className="w-8 h-8 animate-spin text-blue-600" />
+              <p className="text-xs font-bold text-slate-700">Verifying administrator credentials...</p>
+              <p className="text-[11px] text-slate-400">Communicating with authorization servers</p>
             </div>
-          ) : (
-            <div className="space-y-3">
-              {/* Google OAuth Login - Exclusive Access Protocol */}
+          ) : loginMode === 'google' ? (
+            <div className="space-y-4">
+              <div className="p-4 bg-blue-50/60 border border-blue-100 rounded-2xl text-center space-y-1">
+                <p className="text-xs font-bold text-blue-900">One-Click Google Authentication</p>
+                <p className="text-[11px] text-slate-500 leading-relaxed font-medium">
+                  Direct instant access for authorized administrator accounts (<code className="text-[10px] bg-white px-1.5 py-0.5 rounded border text-blue-700 font-mono">chauhankunal695@gmail.com</code> and authorized owners).
+                </p>
+              </div>
+
               <button
                 onClick={handleGoogleLogin}
                 disabled={authLoading}
-                className="w-full bg-white hover:bg-slate-50 border border-slate-300 hover:border-blue-400 text-slate-800 font-extrabold py-3.5 px-4 rounded-2xl transition-all disabled:opacity-55 flex items-center justify-center gap-3 shadow-sm text-xs cursor-pointer active:scale-[0.99]"
+                className="w-full bg-white hover:bg-slate-50 border border-slate-300 hover:border-blue-500 text-slate-800 font-extrabold py-3.5 px-4 rounded-2xl transition-all shadow-sm flex items-center justify-center gap-3 text-xs active:scale-[0.99] cursor-pointer"
               >
-                <svg className="w-4.5 h-4.5 flex-shrink-0" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
-                  <g transform="matrix(1, 0, 0, 1, 0, 0)">
-                    <path d="M21.35,11.1H12v2.7h5.38c-0.24,1.28 -0.96,2.37 -2.05,3.1v2.57h3.32c1.94,-1.78 3.05,-4.4 3.05,-7.47c0,-0.3 -0.03,-0.6 -0.08,-0.9Z" fill="#4285F4" />
-                    <path d="M12,20.7c2.35,0 4.32,-0.78 5.76,-2.13l-3.32,-2.57c-0.92,0.62 -2.1,0.98 -3.44,0.98c-2.28,0 -4.21,-1.54 -4.9,-3.61H2.68v2.66c1.47,2.92 4.5,4.67 7.92,4.67Z" fill="#34A853" />
-                    <path d="M7.1,13.38c-0.18,-0.52 -0.28,-1.09 -0.28,-1.68c0,-0.59 0.1,-1.16 0.28,-1.68V7.36H2.68C2.06,8.6 1.7,10.01 1.7,11.7c0,1.69 0.36,3.1 0.98,4.34l3.74,-2.91c-0.18,-0.52 -0.18,-0.75 -0.32,-1.75Z" fill="#FBBC05" />
-                    <path d="M12,5.68c1.28,0 2.43,0.44 3.34,1.3l2.5,-2.5C16.31,3.07 14.34,2.7 12,2.7c-3.42,0 -6.45,1.75 -7.92,4.67l4.4,3.38C9.17,7.22 10.1,5.68 12,5.68Z" fill="#EA4335" />
-                  </g>
+                <svg className="w-4.5 h-4.5 shrink-0" viewBox="0 0 24 24">
+                  <path d="M21.35,11.1H12v2.7h5.38c-0.24,1.28 -0.96,2.37 -2.05,3.1v2.57h3.32c1.94,-1.78 3.05,-4.4 3.05,-7.47c0,-0.3 -0.03,-0.6 -0.08,-0.9Z" fill="#4285F4" />
+                  <path d="M12,20.7c2.35,0 4.32,-0.78 5.76,-2.13l-3.32,-2.57c-0.92,0.62 -2.1,0.98 -3.44,0.98c-2.28,0 -4.21,-1.54 -4.9,-3.61H2.68v2.66c1.47,2.92 4.5,4.67 7.92,4.67Z" fill="#34A853" />
+                  <path d="M7.1,13.38c-0.18,-0.52 -0.28,-1.09 -0.28,-1.68c0,-0.59 0.1,-1.16 0.28,-1.68V7.36H2.68C2.06,8.6 1.7,10.01 1.7,11.7c0,1.69 0.36,3.1 0.98,4.34l3.74,-2.91c-0.18,-0.52 -0.18,-0.75 -0.32,-1.75Z" fill="#FBBC05" />
+                  <path d="M12,5.68c1.28,0 2.43,0.44 3.34,1.3l2.5,-2.5C16.31,3.07 14.34,2.7 12,2.7c-3.42,0 -6.45,1.75 -7.92,4.67l4.4,3.38C9.17,7.22 10.1,5.68 12,5.68Z" fill="#EA4335" />
                 </svg>
-                <span>Sign in with Admin Google ID</span>
+                <span>Continue with Admin Google ID</span>
               </button>
-
-              <a
-                href="/dashboard"
-                className="w-full py-3 rounded-2xl border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-slate-800 font-bold transition-all text-xs flex items-center justify-center gap-1.5"
-              >
-                <span>Go to Merchant Dashboard</span>
-              </a>
             </div>
+          ) : (
+            <form onSubmit={handleLoginSubmit} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Admin Master Password</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    placeholder="Enter platform admin password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-semibold text-slate-900 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 outline-none transition-all pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {require2fa && (
+                <div className="space-y-1.5 animate-fadeIn">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Google Authenticator Code (2FA)</label>
+                  <input
+                    type="text"
+                    maxLength="6"
+                    required
+                    placeholder="000000"
+                    value={totpCode}
+                    onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ''))}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-center text-base tracking-[0.25em] font-mono font-black text-slate-900 focus:bg-white focus:border-blue-500 outline-none transition-all"
+                  />
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={authLoading}
+                className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl text-xs transition-all shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+              >
+                <Lock className="w-4 h-4" />
+                <span>Unlock Admin Console</span>
+              </button>
+            </form>
           )}
 
-          <p className="text-[10px] text-slate-400 font-semibold text-center mt-2">
-            Secure Platform Gateway • Restricted Access Only
-          </p>
+          {/* Secondary links */}
+          <div className="pt-2 border-t border-slate-100 flex flex-col space-y-2 text-center">
+            <a
+              href="/dashboard"
+              className="text-xs font-bold text-slate-500 hover:text-blue-600 transition-colors py-1 flex items-center justify-center gap-1.5"
+            >
+              <span>Switch to Merchant Dashboard</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </a>
+            <p className="text-[10px] text-slate-400 font-medium">
+              Secure Gateway • Restricted Access Only
+            </p>
+          </div>
+
         </div>
       </div>
     );
@@ -900,22 +1004,25 @@ export default function AdminPage() {
     <div className="min-h-screen bg-slate-50 text-slate-700 font-sans flex flex-col justify-between selection:bg-blue-500/10">
       
       {/* Top Header bar */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-[0_2px_15px_rgb(0,0,0,0.015)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+      <header className="bg-white/90 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-40 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-3">
+          
+          {/* Brand Logo & Console Tag */}
+          <div className="flex items-center gap-3 shrink-0">
             <div>
-              <div className="flex items-center gap-2">
-                <MyMobPayLogo className="w-32 h-auto" />
-                <span className="px-2 py-0.5 text-[9px] rounded bg-blue-50 text-blue-600 border border-blue-100 font-bold uppercase truncate max-w-[220px]">
-                  {googleUser?.email ? `ADMIN (${googleUser.email})` : 'SaaS OWNER'}
+              <div className="flex items-center gap-2.5">
+                <MyMobPayLogo className="w-32 sm:w-36 h-auto" />
+                <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/60 font-extrabold text-[10px] uppercase tracking-wide">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>Admin Console</span>
                 </span>
               </div>
-              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Gateway Platform Admin</p>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Gateway Platform Management</p>
             </div>
           </div>
 
-          {/* Tab Selection (Desktop Only) */}
-          <nav className="hidden md:flex bg-slate-50 border border-slate-200 p-1.5 rounded-2xl gap-1">
+          {/* Tab Selection (Desktop) */}
+          <nav className="hidden lg:flex bg-slate-100/90 border border-slate-200/80 p-1 rounded-2xl gap-1 shrink-0">
             {[
               { id: 'overview', label: 'Platform Stats', icon: Activity },
               { id: 'transactions', label: 'Global Orders', icon: FileText },
@@ -924,54 +1031,65 @@ export default function AdminPage() {
               { id: 'config', label: 'System Config', icon: Settings },
             ].map(tab => {
               const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === tab.id ? 'bg-blue-50 text-blue-700 shadow-sm shadow-blue-500/10' : 'text-slate-500 hover:text-slate-900 border border-transparent'}`}
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+                    isActive
+                      ? 'bg-white text-blue-700 shadow-sm border border-slate-200/60'
+                      : 'text-slate-500 hover:text-slate-900 border border-transparent'
+                  }`}
                 >
-                  <Icon className="w-4 h-4 text-blue-600" />
+                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
                   <span>{tab.label}</span>
                 </button>
               );
             })}
           </nav>
 
-          {/* Action Buttons (Desktop Only) */}
-          <div className="hidden md:flex items-center gap-3">
+          {/* Action Buttons & User Profile (Desktop) */}
+          <div className="hidden sm:flex items-center gap-2.5">
+            {googleUser?.email && (
+              <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 text-xs font-semibold">
+                <User className="w-3.5 h-3.5 text-slate-400" />
+                <span className="max-w-[150px] truncate">{googleUser.email}</span>
+              </div>
+            )}
             <button 
               onClick={handleRefreshAll}
               disabled={loading || merchantsLoading}
-              className="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-50 disabled:opacity-50 transition-colors shadow-sm"
+              className="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 disabled:opacity-50 transition-all shadow-sm cursor-pointer"
               title="Sync Platform Data"
             >
-              <RefreshCw className={`w-4 h-4 ${loading || merchantsLoading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-4 h-4 ${loading || merchantsLoading ? 'animate-spin text-blue-600' : ''}`} />
             </button>
             <button 
               onClick={handleLogout}
-              className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 transition-colors text-xs font-bold shadow-sm"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-50 hover:bg-red-50 border border-slate-200 hover:border-red-200 text-slate-600 hover:text-red-600 transition-all text-xs font-bold shadow-sm cursor-pointer"
             >
-              <LogOut className="w-4 h-4 text-slate-500" />
+              <LogOut className="w-3.5 h-3.5" />
               <span>Log Out</span>
             </button>
           </div>
 
-          {/* Hamburger Menu Controls (Mobile Only) */}
-          <div className="md:hidden flex items-center gap-2">
+          {/* Hamburger Menu Controls (Mobile) */}
+          <div className="lg:hidden flex items-center gap-2">
             <button 
               onClick={handleRefreshAll}
               disabled={loading || merchantsLoading}
-              className="p-2 py-2 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-slate-900 disabled:opacity-50 transition-colors shadow-sm"
+              className="p-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-slate-900 transition-colors shadow-sm"
               title="Sync"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${loading || merchantsLoading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-3.5 h-3.5 ${loading || merchantsLoading ? 'animate-spin text-blue-600' : ''}`} />
             </button>
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-slate-900 transition-colors shadow-sm"
+              className="p-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:text-slate-900 transition-colors shadow-sm"
               title="Menu"
             >
-              {isMobileMenuOpen ? <X className="w-4 h-4 text-slate-900" /> : <Menu className="w-4 h-4 text-slate-900" />}
+              {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
             </button>
           </div>
         </div>
@@ -1394,7 +1512,7 @@ export default function AdminPage() {
                               className="cursor-pointer hover:text-blue-600 flex items-center gap-1"
                               onClick={() => {
                                 navigator.clipboard.writeText(order.id);
-                                alert("Copied full Order ID!");
+                                showToast("Copied full Order ID!", "info");
                               }}
                               title="Copy full Order ID"
                             >
@@ -1500,7 +1618,7 @@ export default function AdminPage() {
                                 <button
                                   onClick={() => {
                                     navigator.clipboard.writeText(order.utr);
-                                    alert("Copied UTR Reference!");
+                                    showToast("Copied UTR Reference!", "info");
                                   }}
                                   className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-900 transition-colors"
                                   title="Copy UTR Reference"
@@ -1574,7 +1692,7 @@ export default function AdminPage() {
                                         setManualUtr(order.utr || `MANUAL-${Math.floor(100000 + Math.random() * 900000)}`);
                                       }}
                                       disabled={actionLoading !== null}
-                                      className="px-2.5 py-1 rounded-lg text-[10px] font-bold border border-emerald-200 bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white-pure transition-all"
+                                      className="px-2.5 py-1 rounded-lg text-[10px] font-bold border border-emerald-200 bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-all"
                                     >
                                       Verify
                                     </button>
@@ -1585,7 +1703,7 @@ export default function AdminPage() {
                                         }
                                       }}
                                       disabled={actionLoading !== null}
-                                      className="px-2.5 py-1 rounded-lg text-[10px] font-bold border border-red-200 bg-red-50 text-red-600 hover:bg-red-500 hover:text-white-pure transition-all"
+                                      className="px-2.5 py-1 rounded-lg text-[10px] font-bold border border-red-200 bg-red-50 text-red-600 hover:bg-red-500 hover:text-white transition-all"
                                     >
                                       Reject
                                     </button>
@@ -1626,7 +1744,7 @@ export default function AdminPage() {
               {/* Search Merchants */}
               <div className="relative max-w-xs w-full">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                  <Search className="w-4 h-4 text-slate-450" />
+                  <Search className="w-4 h-4 text-slate-400" />
                 </div>
                 <input
                   type="text"
@@ -1638,7 +1756,7 @@ export default function AdminPage() {
                 {merchantSearchQuery && (
                   <button
                     onClick={() => setMerchantSearchQuery('')}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-450 hover:text-slate-900 text-xs"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-900 text-xs"
                   >
                     ✕
                   </button>
@@ -1663,7 +1781,7 @@ export default function AdminPage() {
                 <tbody className="divide-y divide-slate-200 bg-white">
                   {merchantsLoading ? (
                     <tr>
-                      <td colSpan="7" className="px-6 py-12 text-center text-xs text-slate-550">
+                      <td colSpan="7" className="px-6 py-12 text-center text-xs text-slate-500">
                         <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-blue-500" />
                         Fetching SaaS merchants database records...
                       </td>
@@ -1713,14 +1831,14 @@ export default function AdminPage() {
                               <div className="flex items-center gap-1">
                                 <button
                                   onClick={() => toggleKeyVisibility(merchant.id)}
-                                  className="text-slate-450 hover:text-slate-900 transition-colors"
+                                  className="text-slate-400 hover:text-slate-900 transition-colors"
                                   title={isKeyRevealed ? "Hide Key" : "Show Key"}
                                 >
                                   {isKeyRevealed ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                                 </button>
                                 <button
                                   onClick={() => handleCopyKey(merchant.id, merchant.api_key)}
-                                  className="text-slate-450 hover:text-slate-900 transition-colors"
+                                  className="text-slate-400 hover:text-slate-900 transition-colors"
                                   title="Copy Key"
                                 >
                                   {isKeyCopied ? <Check className="w-3.5 h-3.5 text-emerald-500 animate-scale-up" /> : <Copy className="w-3.5 h-3.5" />}
@@ -1749,7 +1867,7 @@ export default function AdminPage() {
                           {/* Sub Status */}
                           <td className="px-6 py-4.5 whitespace-nowrap text-xs text-center">
                             {merchant.subscription_status === 'active' ? (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-extrabold uppercase bg-emerald-55 text-emerald-600 border border-emerald-100">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-extrabold uppercase bg-emerald-50 text-emerald-600 border border-emerald-100">
                                 Active
                               </span>
                             ) : (
@@ -1768,7 +1886,7 @@ export default function AdminPage() {
                                   handleToggleSubscription(merchant.id, merchant.subscription_status);
                                 }
                               }}
-                              className={`px-3 py-1.5 rounded-xl text-[10px] font-extrabold border transition-all ${merchant.subscription_status === 'active' ? 'bg-red-50 border-red-200 text-red-600 hover:bg-red-500 hover:text-white-pure' : 'bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-500 hover:text-white-pure'}`}
+                              className={`px-3 py-1.5 rounded-xl text-[10px] font-extrabold border transition-all ${merchant.subscription_status === 'active' ? 'bg-red-50 border-red-200 text-red-600 hover:bg-red-500 hover:text-white' : 'bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-500 hover:text-white'}`}
                             >
                               {merchant.subscription_status === 'active' ? 'SUSPEND' : 'ACTIVATE'}
                             </button>
@@ -1891,7 +2009,7 @@ export default function AdminPage() {
                     placeholder="e.g. VIPGIFT30"
                     value={newGiftCode.code}
                     onChange={(e) => setNewGiftCode(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
-                    className="w-full bg-slate-50 border border-slate-250 rounded-xl px-3.5 py-2.5 text-xs font-mono font-bold text-slate-900 focus:bg-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500/20 outline-none transition-all uppercase"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-bold text-slate-900 focus:bg-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500/20 outline-none transition-all uppercase"
                   />
                 </div>
 
@@ -1900,7 +2018,7 @@ export default function AdminPage() {
                   <select
                     value={newGiftCode.discountType}
                     onChange={(e) => setNewGiftCode(prev => ({ ...prev, discountType: e.target.value }))}
-                    className="w-full bg-slate-50 border border-slate-250 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-800 focus:bg-white focus:border-purple-500 outline-none transition-all"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-800 focus:bg-white focus:border-purple-500 outline-none transition-all"
                   >
                     <option value="free">100% Free Subscription (Gift)</option>
                     <option value="flat">Flat ₹ Discount</option>
@@ -1916,7 +2034,7 @@ export default function AdminPage() {
                       placeholder="e.g. 50"
                       value={newGiftCode.discountValue}
                       onChange={(e) => setNewGiftCode(prev => ({ ...prev, discountValue: e.target.value }))}
-                      className="w-full bg-slate-50 border border-slate-250 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-900 focus:bg-white focus:border-purple-500 outline-none transition-all"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-900 focus:bg-white focus:border-purple-500 outline-none transition-all"
                     />
                   </div>
                 ) : (
@@ -1927,7 +2045,7 @@ export default function AdminPage() {
                       min="1"
                       value={newGiftCode.planDays}
                       onChange={(e) => setNewGiftCode(prev => ({ ...prev, planDays: e.target.value }))}
-                      className="w-full bg-slate-50 border border-slate-250 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-900 focus:bg-white focus:border-purple-500 outline-none transition-all"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-900 focus:bg-white focus:border-purple-500 outline-none transition-all"
                     />
                   </div>
                 )}
@@ -1939,7 +2057,7 @@ export default function AdminPage() {
                     min="1"
                     value={newGiftCode.maxUses}
                     onChange={(e) => setNewGiftCode(prev => ({ ...prev, maxUses: e.target.value }))}
-                    className="w-full bg-slate-50 border border-slate-250 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-900 focus:bg-white focus:border-purple-500 outline-none transition-all"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-900 focus:bg-white focus:border-purple-500 outline-none transition-all"
                   />
                 </div>
 
@@ -1988,7 +2106,7 @@ export default function AdminPage() {
                                   type="button"
                                   onClick={() => {
                                     navigator.clipboard.writeText(gc.code);
-                                    alert(`Copied code ${gc.code} to clipboard!`);
+                                    showToast(`Copied code ${gc.code} to clipboard!`, "info");
                                   }}
                                   className="text-slate-400 hover:text-slate-700 transition-colors"
                                   title="Copy Code"
@@ -2273,7 +2391,7 @@ export default function AdminPage() {
                     required
                     value={extendDays}
                     onChange={(e) => setExtendDays(Number(e.target.value) || 1)}
-                    className="w-full bg-slate-50 border border-slate-250 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:bg-white focus:border-blue-500 outline-none transition-all"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:bg-white focus:border-blue-500 outline-none transition-all"
                   />
                 </div>
 
@@ -2282,7 +2400,7 @@ export default function AdminPage() {
                   <select
                     value={extendStatus}
                     onChange={(e) => setExtendStatus(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-250 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-800 focus:bg-white focus:border-blue-500 outline-none transition-all"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-800 focus:bg-white focus:border-blue-500 outline-none transition-all"
                   >
                     <option value="active">Active (Paid / Granted)</option>
                     <option value="trial">Trial (Free 3-Day or Extended Trial)</option>
@@ -2346,7 +2464,7 @@ export default function AdminPage() {
                   <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
                     <IndianRupee className="w-4.5 h-4.5 text-blue-600" /> Platform UPI Configuration
                   </h3>
-                  <span className="text-[9px] bg-slate-55 border border-slate-200 px-2 py-0.5 rounded text-slate-500 font-bold uppercase">PAYMENTS</span>
+                  <span className="text-[9px] bg-slate-50 border border-slate-200 px-2 py-0.5 rounded text-slate-500 font-bold uppercase">PAYMENTS</span>
                 </div>
 
                 <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex justify-between items-center">
@@ -2368,7 +2486,7 @@ export default function AdminPage() {
                         placeholder="platform@upi"
                         value={adminUpi}
                         onChange={(e) => setAdminUpi(e.target.value)}
-                        className="flex-1 bg-white border border-slate-250 rounded-xl px-4 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
+                        className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
                       />
                       <button
                         onClick={() => openVerification({ type: 'update_upi', data: { upi_id: adminUpi } })}
@@ -2390,7 +2508,7 @@ export default function AdminPage() {
                   <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
                     <Shield className="w-4.5 h-4.5 text-blue-600" /> Double Security & MFA
                   </h3>
-                  <span className="text-[9px] bg-slate-55 border border-slate-200 px-2 py-0.5 rounded text-slate-500 font-bold uppercase">SECURITY</span>
+                  <span className="text-[9px] bg-slate-50 border border-slate-200 px-2 py-0.5 rounded text-slate-500 font-bold uppercase">SECURITY</span>
                 </div>
 
                 {/* Google Authenticator Section */}
@@ -2408,12 +2526,12 @@ export default function AdminPage() {
                   {totpEnabled ? (
                     <button
                       onClick={() => openVerification({ type: 'disable_totp' })}
-                      className="w-full py-2.5 border border-red-205 hover:bg-red-50 text-red-600 font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-1.5"
+                      className="w-full py-2.5 border border-red-200 hover:bg-red-50 text-red-600 font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-1.5"
                     >
                       <Lock className="w-4 h-4" /> Deactivate Authenticator 2FA
                     </button>
                   ) : (
-                    <div className="space-y-4 bg-slate-50 border border-slate-150 rounded-2xl p-4">
+                    <div className="space-y-4 bg-slate-50 border border-slate-200 rounded-2xl p-4">
                       {!totpSecret ? (
                         <button
                           onClick={handleGenerateTotpSecret}
@@ -2442,7 +2560,7 @@ export default function AdminPage() {
                               placeholder="Enter 6-digit verify code"
                               value={totpVerifyCode}
                               onChange={(e) => setTotpVerifyCode(e.target.value.replace(/\D/g, ''))}
-                              className="w-full bg-white border border-slate-250 rounded-xl px-4 py-2 text-center font-bold tracking-[0.2em]"
+                              className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-center font-bold tracking-[0.2em]"
                             />
                             <div className="flex gap-2">
                               <button
@@ -2471,7 +2589,7 @@ export default function AdminPage() {
                   )}
                 </div>
 
-                <div className="border-t border-slate-105 pt-4 space-y-3 font-semibold text-xs text-slate-705">
+                <div className="border-t border-slate-200 pt-4 space-y-3 font-semibold text-xs text-slate-700">
                   {/* Google OAuth Config */}
                   <div className="space-y-1.5">
                     <div>
@@ -2486,7 +2604,7 @@ export default function AdminPage() {
                           placeholder="e.g. chauhankuna, deadraon@"
                           value={adminEmail}
                           onChange={(e) => setAdminEmail(e.target.value)}
-                          className="w-full bg-white border border-slate-250 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
+                          className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
                         />
                       </div>
                       <button
@@ -2509,7 +2627,7 @@ export default function AdminPage() {
                 <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
                   <FileText className="w-4.5 h-4.5 text-blue-600" /> Subscription Payments Ledger
                 </h3>
-                <span className="text-[9px] bg-slate-55 border border-slate-200 px-2 py-0.5 rounded text-slate-500 font-bold uppercase">LEDGER</span>
+                <span className="text-[9px] bg-slate-50 border border-slate-200 px-2 py-0.5 rounded text-slate-500 font-bold uppercase">LEDGER</span>
               </div>
 
               <div className="overflow-x-auto rounded-xl border border-slate-200">
@@ -2527,13 +2645,13 @@ export default function AdminPage() {
                   <tbody className="divide-y divide-slate-200 bg-white text-xs">
                     {settingsLoading ? (
                       <tr>
-                        <td colSpan="6" className="px-5 py-6 text-center text-slate-450">
+                        <td colSpan="6" className="px-5 py-6 text-center text-slate-400">
                           <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-blue-500" /> Loading payment logs...
                         </td>
                       </tr>
                     ) : subscriptionOrders.length === 0 ? (
                       <tr>
-                        <td colSpan="6" className="px-5 py-6 text-center text-slate-450">
+                        <td colSpan="6" className="px-5 py-6 text-center text-slate-400">
                           No subscription renewals recorded on this platform.
                         </td>
                       </tr>
@@ -2588,7 +2706,7 @@ export default function AdminPage() {
                   ].map((env, idx) => (
                     <div key={idx} className="flex justify-between items-center py-2 border-b border-slate-200 last:border-b-0 text-xs">
                       <span className="font-mono text-slate-500 font-bold">{env.name}</span>
-                      <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${env.status.includes('Missing') ? 'bg-red-50 text-red-500 border border-red-100' : 'bg-blue-50 text-blue-600 border border-blue-105'}`}>
+                      <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${env.status.includes('Missing') ? 'bg-red-50 text-red-500 border border-red-100' : 'bg-blue-50 text-blue-600 border border-blue-200'}`}>
                         {env.status}
                       </span>
                     </div>
@@ -2657,7 +2775,7 @@ export default function AdminPage() {
                       required
                       value={verificationPassword}
                       onChange={(e) => setVerificationPassword(e.target.value)}
-                      className="w-full bg-white border border-slate-350 rounded-xl py-3 px-4 text-slate-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/40 transition-all font-semibold"
+                      className="w-full bg-white border border-slate-300 rounded-xl py-3 px-4 text-slate-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/40 transition-all font-semibold"
                     />
                   </div>
                 )}
@@ -2686,12 +2804,28 @@ export default function AdminPage() {
           </div>
         )}
 
+        {/* Toast Notification */}
+        {toast && (
+          <div className="fixed top-5 right-5 z-50 animate-fadeIn">
+            <div className={`px-4 py-3 rounded-2xl shadow-xl border text-xs font-bold flex items-center gap-2.5 backdrop-blur-md ${
+              toast.type === 'error' 
+                ? 'bg-red-50/95 text-red-700 border-red-200 shadow-red-500/10' 
+                : toast.type === 'info'
+                ? 'bg-blue-50/95 text-blue-700 border-blue-200 shadow-blue-500/10'
+                : 'bg-emerald-50/95 text-emerald-700 border-emerald-200 shadow-emerald-500/10'
+            }`}>
+              {toast.type === 'error' ? <AlertCircle className="w-4 h-4 text-red-600" /> : <CheckCircle className="w-4 h-4 text-emerald-600" />}
+              <span>{toast.msg}</span>
+            </div>
+          </div>
+        )}
+
       </main>
 
       {/* Footer */}
-      <footer className="py-6 text-center text-[10px] text-slate-400 border-t border-slate-200 bg-[#070b13]/85 mt-10" style={{ backgroundColor: '#ffffff' }}>
-        <p>&copy; 2026 {CONFIG.businessName} SaaS Gateway Platform. All rights reserved.</p>
-        <p className="mt-1 text-[9px] text-slate-500">Protected Dashboard • Session ID: {Math.floor(1000000000 + Math.random() * 9000000000)}</p>
+      <footer className="py-6 text-center text-xs text-slate-400 border-t border-slate-200 bg-white mt-12">
+        <p className="font-medium">&copy; 2026 {CONFIG.businessName} SaaS Gateway Platform. All rights reserved.</p>
+        <p className="mt-1 text-[10px] text-slate-400 font-mono">Protected Admin Console • Session ID: {Math.floor(1000000000 + Math.random() * 9000000000)}</p>
       </footer>
 
     </div>
