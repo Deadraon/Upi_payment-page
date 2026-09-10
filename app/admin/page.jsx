@@ -40,7 +40,14 @@ import {
   Key,
   Mail,
   Zap,
-  CheckCircle
+  CheckCircle,
+  Gift,
+  Tag,
+  Calendar,
+  Percent,
+  Trash2,
+  Plus,
+  Sparkles
 } from 'lucide-react';
 
 const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = 'var(--text-primary)' }) => (
@@ -117,6 +124,27 @@ export default function AdminPage() {
   // Google User session
   const [googleUser, setGoogleUser] = useState(null);
 
+  // Subscription & Gift Codes states
+  const [subscriptionsList, setSubscriptionsList] = useState([]);
+  const [giftCodesList, setGiftCodesList] = useState([]);
+  const [subsLoading, setSubsLoading] = useState(false);
+  const [subsSearchQuery, setSubsSearchQuery] = useState('');
+  const [subsStatusFilter, setSubsStatusFilter] = useState('all');
+  const [selectedMerchantForEdit, setSelectedMerchantForEdit] = useState(null);
+  const [isExtendModalOpen, setIsExtendModalOpen] = useState(false);
+  const [extendDays, setExtendDays] = useState(30);
+  const [extendStatus, setExtendStatus] = useState('active');
+  const [subsActionLoading, setSubsActionLoading] = useState(false);
+  const [newGiftCode, setNewGiftCode] = useState({
+    code: '',
+    discountType: 'free',
+    discountValue: 0,
+    planDays: 30,
+    maxUses: 10,
+    description: ''
+  });
+  const [codeActionLoading, setCodeActionLoading] = useState(false);
+
   // Helper to dynamically build authorization headers (password vs OAuth token)
   const getAuthHeaders = useCallback(async () => {
     const headers = {};
@@ -157,6 +185,117 @@ export default function AdminPage() {
       setSettingsLoading(false);
     }
   }, [isLoggedIn, getAuthHeaders]);
+
+  // Fetch Subscription Records & Gift Codes
+  const fetchSubscriptions = useCallback(async () => {
+    if (!isLoggedIn) return;
+    setSubsLoading(true);
+    try {
+      const headers = await getAuthHeaders();
+      const res = await fetch('/api/admin/subscriptions', { headers });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to fetch subscriptions');
+      setSubscriptionsList(data.merchants || []);
+      setGiftCodesList(data.giftCodes || []);
+    } catch (err) {
+      console.error('fetchSubscriptions error:', err);
+    } finally {
+      setSubsLoading(false);
+    }
+  }, [isLoggedIn, getAuthHeaders]);
+
+  // Create Gift Code
+  const handleCreateGiftCode = async (e) => {
+    e.preventDefault();
+    if (!newGiftCode.code.trim()) {
+      alert('Please enter a coupon/gift code');
+      return;
+    }
+    setCodeActionLoading(true);
+    try {
+      const headers = await getAuthHeaders();
+      headers['Content-Type'] = 'application/json';
+      const res = await fetch('/api/admin/subscriptions', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          password: password || undefined,
+          action: 'create_gift_code',
+          code: newGiftCode.code.trim().toUpperCase(),
+          discountType: newGiftCode.discountType,
+          discountValue: Number(newGiftCode.discountValue) || 0,
+          planDays: Number(newGiftCode.planDays) || 30,
+          maxUses: Number(newGiftCode.maxUses) || 1,
+          description: newGiftCode.description
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to create gift code');
+      setGiftCodesList(data.giftCodes || []);
+      setNewGiftCode({ code: '', discountType: 'free', discountValue: 0, planDays: 30, maxUses: 10, description: '' });
+      alert('Gift code created successfully!');
+    } catch (err) {
+      alert(err.message || 'Error creating gift code');
+    } finally {
+      setCodeActionLoading(false);
+    }
+  };
+
+  // Delete Gift Code
+  const handleDeleteGiftCode = async (code) => {
+    if (!confirm(`Are you sure you want to delete gift code "${code}"?`)) return;
+    try {
+      const headers = await getAuthHeaders();
+      headers['Content-Type'] = 'application/json';
+      const res = await fetch('/api/admin/subscriptions', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          password: password || undefined,
+          action: 'delete_gift_code',
+          code
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to delete code');
+      setGiftCodesList(data.giftCodes || []);
+    } catch (err) {
+      alert(err.message || 'Error deleting gift code');
+    }
+  };
+
+  // Extend or Grant Merchant Subscription
+  const handleExtendSubscription = async (e) => {
+    e.preventDefault();
+    if (!selectedMerchantForEdit) return;
+    setSubsActionLoading(true);
+    try {
+      const headers = await getAuthHeaders();
+      headers['Content-Type'] = 'application/json';
+      const res = await fetch('/api/admin/subscriptions', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          password: password || undefined,
+          action: 'extend_subscription',
+          merchantId: selectedMerchantForEdit.id,
+          days: Number(extendDays) || 30,
+          status: extendStatus
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to update subscription');
+      
+      setSubscriptionsList(prev => prev.map(m => m.id === selectedMerchantForEdit.id ? { ...m, ...data.merchant } : m));
+      setIsExtendModalOpen(false);
+      setSelectedMerchantForEdit(null);
+      alert('Subscription successfully updated!');
+    } catch (err) {
+      alert(err.message || 'Failed to update subscription');
+    } finally {
+      setSubsActionLoading(false);
+    }
+  };
 
   // Verify a Supabase Google session against backend admin authorization
   const verifyGoogleSession = useCallback(async (session) => {
@@ -292,7 +431,8 @@ export default function AdminPage() {
     fetchOrders();
     fetchMerchants();
     fetchSettings();
-  }, [fetchOrders, fetchMerchants, fetchSettings]);
+    fetchSubscriptions();
+  }, [fetchOrders, fetchMerchants, fetchSettings, fetchSubscriptions]);
 
   // Trigger fetch on login
   useEffect(() => {
@@ -780,6 +920,7 @@ export default function AdminPage() {
               { id: 'overview', label: 'Platform Stats', icon: Activity },
               { id: 'transactions', label: 'Global Orders', icon: FileText },
               { id: 'merchants', label: 'Merchants (SaaS)', icon: Store },
+              { id: 'subscriptions', label: 'Subscriptions & Gifts', icon: Gift },
               { id: 'config', label: 'System Config', icon: Settings },
             ].map(tab => {
               const Icon = tab.icon;
@@ -845,6 +986,7 @@ export default function AdminPage() {
               { id: 'overview', label: 'Platform Stats', icon: Activity },
               { id: 'transactions', label: 'Global Orders', icon: FileText },
               { id: 'merchants', label: 'Merchants (SaaS)', icon: Store },
+              { id: 'subscriptions', label: 'Subscriptions & Gifts', icon: Gift },
               { id: 'config', label: 'System Config', icon: Settings },
             ].map(tab => {
               const Icon = tab.icon;
@@ -1641,6 +1783,539 @@ export default function AdminPage() {
             </div>
 
           </section>
+        )}
+
+        {/* ═══════════════════════════════════════════════════════════
+           TAB: SUBSCRIPTION & GIFT CODES MANAGEMENT
+           ═══════════════════════════════════════════════════════════ */}
+        {activeTab === 'subscriptions' && (
+          <div className="space-y-8 animate-fadeIn">
+            
+            {/* Top Stat Highlights */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-[0_4px_15px_rgb(0,0,0,0.01)] flex flex-col justify-between">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active Subscriptions</p>
+                    <h3 className="text-2xl font-black text-slate-900 mt-2">
+                      {subscriptionsList.filter(m => m.subscription_status === 'active').length}
+                    </h3>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100">
+                    <CheckCircle2 className="w-5 h-5" />
+                  </div>
+                </div>
+                <p className="text-[10px] text-emerald-600 font-bold mt-2">Paying or granted merchants</p>
+              </div>
+
+              <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-[0_4px_15px_rgb(0,0,0,0.01)] flex flex-col justify-between">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active 3-Day Trials</p>
+                    <h3 className="text-2xl font-black text-slate-900 mt-2">
+                      {subscriptionsList.filter(m => m.subscription_status === 'trial').length}
+                    </h3>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-blue-50 text-blue-600 border border-blue-100">
+                    <Clock className="w-5 h-5" />
+                  </div>
+                </div>
+                <p className="text-[10px] text-blue-600 font-bold mt-2">Currently in trial period</p>
+              </div>
+
+              <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-[0_4px_15px_rgb(0,0,0,0.01)] flex flex-col justify-between">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Expired / Inactive</p>
+                    <h3 className="text-2xl font-black text-slate-900 mt-2">
+                      {subscriptionsList.filter(m => m.subscription_status === 'expired' || m.subscription_status === 'inactive').length}
+                    </h3>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-amber-50 text-amber-600 border border-amber-100">
+                    <AlertCircle className="w-5 h-5" />
+                  </div>
+                </div>
+                <p className="text-[10px] text-amber-600 font-bold mt-2">Awaiting renewal or gift</p>
+              </div>
+
+              <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-[0_4px_15px_rgb(0,0,0,0.01)] flex flex-col justify-between">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active Gift Codes</p>
+                    <h3 className="text-2xl font-black text-slate-900 mt-2">
+                      {giftCodesList.length}
+                    </h3>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-purple-50 text-purple-600 border border-purple-100">
+                    <Gift className="w-5 h-5" />
+                  </div>
+                </div>
+                <p className="text-[10px] text-purple-600 font-bold mt-2">Ready for redemption</p>
+              </div>
+            </div>
+
+            {/* Section 1: Gift & Promo Code Generator */}
+            <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-[0_4px_20px_rgb(0,0,0,0.02)] space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 pb-6 border-b border-slate-100">
+                <div>
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 rounded-xl bg-purple-50 text-purple-600 border border-purple-100">
+                      <Gift className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-black text-slate-900">Gift & Promo Code Generator</h3>
+                      <p className="text-xs text-slate-400 font-medium">Create 100% free gift subscription codes or discount vouchers for merchants.</p>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+                    setNewGiftCode(prev => ({ ...prev, code: `GIFT-${randomSuffix}` }));
+                  }}
+                  className="px-3 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold transition-all border border-purple-200 flex items-center gap-1.5 self-start sm:self-auto"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Generate Random Code</span>
+                </button>
+              </div>
+
+              {/* Code Creation Form */}
+              <form onSubmit={handleCreateGiftCode} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Coupon Code *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. VIPGIFT30"
+                    value={newGiftCode.code}
+                    onChange={(e) => setNewGiftCode(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
+                    className="w-full bg-slate-50 border border-slate-250 rounded-xl px-3.5 py-2.5 text-xs font-mono font-bold text-slate-900 focus:bg-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500/20 outline-none transition-all uppercase"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Gift Type</label>
+                  <select
+                    value={newGiftCode.discountType}
+                    onChange={(e) => setNewGiftCode(prev => ({ ...prev, discountType: e.target.value }))}
+                    className="w-full bg-slate-50 border border-slate-250 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-800 focus:bg-white focus:border-purple-500 outline-none transition-all"
+                  >
+                    <option value="free">100% Free Subscription (Gift)</option>
+                    <option value="flat">Flat ₹ Discount</option>
+                  </select>
+                </div>
+
+                {newGiftCode.discountType === 'flat' ? (
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Discount Amount (₹)</label>
+                    <input
+                      type="number"
+                      min="1"
+                      placeholder="e.g. 50"
+                      value={newGiftCode.discountValue}
+                      onChange={(e) => setNewGiftCode(prev => ({ ...prev, discountValue: e.target.value }))}
+                      className="w-full bg-slate-50 border border-slate-250 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-900 focus:bg-white focus:border-purple-500 outline-none transition-all"
+                    />
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Plan Duration (Days)</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={newGiftCode.planDays}
+                      onChange={(e) => setNewGiftCode(prev => ({ ...prev, planDays: e.target.value }))}
+                      className="w-full bg-slate-50 border border-slate-250 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-900 focus:bg-white focus:border-purple-500 outline-none transition-all"
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Max Redemptions</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={newGiftCode.maxUses}
+                    onChange={(e) => setNewGiftCode(prev => ({ ...prev, maxUses: e.target.value }))}
+                    className="w-full bg-slate-50 border border-slate-250 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-900 focus:bg-white focus:border-purple-500 outline-none transition-all"
+                  />
+                </div>
+
+                <div className="flex items-end">
+                  <button
+                    type="submit"
+                    disabled={codeActionLoading}
+                    className="w-full py-2.5 px-4 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-purple-600/20 flex items-center justify-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>{codeActionLoading ? 'Creating...' : 'Create Code'}</span>
+                  </button>
+                </div>
+              </form>
+
+              {/* Active Gift Codes Table */}
+              <div className="overflow-x-auto border border-slate-100 rounded-2xl">
+                <table className="min-w-full divide-y divide-slate-100 text-left">
+                  <thead className="bg-slate-50/80">
+                    <tr>
+                      <th className="px-5 py-3 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Code</th>
+                      <th className="px-5 py-3 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Type & Reward</th>
+                      <th className="px-5 py-3 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Redemptions</th>
+                      <th className="px-5 py-3 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Created</th>
+                      <th className="px-5 py-3 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 bg-white">
+                    {giftCodesList.length === 0 ? (
+                      <tr>
+                        <td colSpan="5" className="px-5 py-8 text-center text-xs text-slate-400 font-semibold">
+                          No gift codes created yet. Generate one above to gift free subscriptions!
+                        </td>
+                      </tr>
+                    ) : (
+                      giftCodesList.map((gc) => {
+                        const isFree = gc.discountType === 'free';
+                        return (
+                          <tr key={gc.code} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="px-5 py-3.5 whitespace-nowrap">
+                              <div className="flex items-center gap-2">
+                                <span className="px-2.5 py-1 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg font-mono font-extrabold text-xs">
+                                  {gc.code}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(gc.code);
+                                    alert(`Copied code ${gc.code} to clipboard!`);
+                                  }}
+                                  className="text-slate-400 hover:text-slate-700 transition-colors"
+                                  title="Copy Code"
+                                >
+                                  <Copy className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </td>
+                            <td className="px-5 py-3.5 whitespace-nowrap text-xs font-semibold text-slate-700">
+                              {isFree ? (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                  <Sparkles className="w-3 h-3 text-emerald-600" />
+                                  100% Free ({gc.planDays || 30} Days)
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-50 text-blue-700 border border-blue-200">
+                                  <Percent className="w-3 h-3 text-blue-600" />
+                                  ₹{gc.discountValue} Flat Discount
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-5 py-3.5 whitespace-nowrap text-xs font-mono font-bold text-slate-600">
+                              {gc.usedCount || 0} / {gc.maxUses || 1} used
+                            </td>
+                            <td className="px-5 py-3.5 whitespace-nowrap text-xs text-slate-400">
+                              {gc.createdAt ? new Date(gc.createdAt).toLocaleDateString('en-IN') : 'N/A'}
+                            </td>
+                            <td className="px-5 py-3.5 whitespace-nowrap text-right">
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteGiftCode(gc.code)}
+                                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                title="Delete Code"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Section 2: Merchants Subscription Directory */}
+            <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-[0_4px_20px_rgb(0,0,0,0.02)] space-y-6">
+              
+              {/* Header & Filters */}
+              <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                <div>
+                  <h3 className="text-base font-black text-slate-900">Merchants Subscription Console</h3>
+                  <p className="text-xs text-slate-400 font-medium">Manage individual merchant access, grant free subscriptions, or extend renewal periods.</p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3">
+                  {/* Status Tabs */}
+                  <div className="flex bg-slate-100 p-1 rounded-xl gap-1">
+                    {['all', 'active', 'trial', 'expired', 'inactive'].map((st) => (
+                      <button
+                        key={st}
+                        onClick={() => setSubsStatusFilter(st)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold capitalize transition-all ${subsStatusFilter === st ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                      >
+                        {st}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Search */}
+                  <div className="relative">
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      placeholder="Search business / UPI..."
+                      value={subsSearchQuery}
+                      onChange={(e) => setSubsSearchQuery(e.target.value)}
+                      className="bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs font-medium outline-none focus:bg-white focus:border-blue-500 transition-all w-52"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Subscriptions Table */}
+              <div className="overflow-x-auto border border-slate-100 rounded-2xl">
+                <table className="min-w-full divide-y divide-slate-100 text-left">
+                  <thead className="bg-slate-50/80">
+                    <tr>
+                      <th className="px-5 py-3.5 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Merchant Business</th>
+                      <th className="px-5 py-3.5 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Receiving UPI ID</th>
+                      <th className="px-5 py-3.5 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Current Status</th>
+                      <th className="px-5 py-3.5 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Activated At</th>
+                      <th className="px-5 py-3.5 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Expiry / Countdown</th>
+                      <th className="px-5 py-3.5 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 bg-white">
+                    {subsLoading ? (
+                      <tr>
+                        <td colSpan="6" className="px-5 py-8 text-center text-xs text-slate-400 font-semibold">
+                          <RefreshCw className="w-5 h-5 animate-spin mx-auto text-blue-600 mb-2" />
+                          Loading subscription records...
+                        </td>
+                      </tr>
+                    ) : subscriptionsList.filter(m => {
+                      if (subsStatusFilter !== 'all' && m.subscription_status !== subsStatusFilter) return false;
+                      if (subsSearchQuery) {
+                        const q = subsSearchQuery.toLowerCase();
+                        const bName = (m.business_name || '').toLowerCase();
+                        const upi = (m.upi_id || '').toLowerCase();
+                        const email = (m.email || '').toLowerCase();
+                        if (!bName.includes(q) && !upi.includes(q) && !email.includes(q)) return false;
+                      }
+                      return true;
+                    }).length === 0 ? (
+                      <tr>
+                        <td colSpan="6" className="px-5 py-8 text-center text-xs text-slate-400 font-semibold">
+                          No merchants match the selected filters.
+                        </td>
+                      </tr>
+                    ) : (
+                      subscriptionsList
+                        .filter(m => {
+                          if (subsStatusFilter !== 'all' && m.subscription_status !== subsStatusFilter) return false;
+                          if (subsSearchQuery) {
+                            const q = subsSearchQuery.toLowerCase();
+                            const bName = (m.business_name || '').toLowerCase();
+                            const upi = (m.upi_id || '').toLowerCase();
+                            const email = (m.email || '').toLowerCase();
+                            if (!bName.includes(q) && !upi.includes(q) && !email.includes(q)) return false;
+                          }
+                          return true;
+                        })
+                        .map((m) => {
+                          const status = m.subscription_status || 'inactive';
+                          const statusColors = {
+                            active: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                            trial: 'bg-blue-50 text-blue-700 border-blue-200',
+                            expired: 'bg-amber-50 text-amber-700 border-amber-200',
+                            inactive: 'bg-red-50 text-red-700 border-red-200'
+                          };
+                          const colorCls = statusColors[status] || statusColors.inactive;
+
+                          let countdownText = 'No expiry date';
+                          if (m.subscription_expires_at) {
+                            const exp = new Date(m.subscription_expires_at);
+                            const now = new Date();
+                            const diffDays = Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
+                            if (diffDays > 0) {
+                              countdownText = `${diffDays} days remaining`;
+                            } else {
+                              countdownText = `Expired ${Math.abs(diffDays)} days ago`;
+                            }
+                          }
+
+                          return (
+                            <tr key={m.id} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="px-5 py-4 whitespace-nowrap">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 font-extrabold flex items-center justify-center text-xs border border-blue-100">
+                                    {m.business_name ? m.business_name.charAt(0).toUpperCase() : 'M'}
+                                  </div>
+                                  <div>
+                                    <p className="text-xs font-extrabold text-slate-900">{m.business_name || 'Unnamed Merchant'}</p>
+                                    <p className="text-[10px] text-slate-400 font-medium">{m.email || m.id.substring(0, 8)}</p>
+                                  </div>
+                                </div>
+                              </td>
+
+                              <td className="px-5 py-4 whitespace-nowrap font-mono text-xs font-bold text-slate-700">
+                                {m.upi_id || <span className="text-slate-400 italic">Not set</span>}
+                              </td>
+
+                              <td className="px-5 py-4 whitespace-nowrap">
+                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${colorCls}`}>
+                                  {status}
+                                </span>
+                              </td>
+
+                              <td className="px-5 py-4 whitespace-nowrap text-xs text-slate-500 font-medium">
+                                {m.subscription_activated_at ? new Date(m.subscription_activated_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Never'}
+                              </td>
+
+                              <td className="px-5 py-4 whitespace-nowrap">
+                                <div>
+                                  <p className="text-xs font-bold text-slate-800">
+                                    {m.subscription_expires_at ? new Date(m.subscription_expires_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                                  </p>
+                                  <p className={`text-[10px] font-bold mt-0.5 ${m.subscription_expires_at && new Date(m.subscription_expires_at) > new Date() ? 'text-emerald-600' : 'text-slate-400'}`}>
+                                    {countdownText}
+                                  </p>
+                                </div>
+                              </td>
+
+                              <td className="px-5 py-4 whitespace-nowrap text-right space-x-2">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedMerchantForEdit(m);
+                                    setExtendDays(30);
+                                    setExtendStatus('active');
+                                    setIsExtendModalOpen(true);
+                                  }}
+                                  className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-700 text-xs font-bold transition-all border border-blue-200 shadow-sm"
+                                >
+                                  Extend / Grant
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const nextStatus = status === 'active' ? 'inactive' : 'active';
+                                    if (confirm(`Change subscription status to ${nextStatus.toUpperCase()} for ${m.business_name}?`)) {
+                                      handleToggleSubscription(m.id, status);
+                                    }
+                                  }}
+                                  className={`px-2.5 py-1.5 rounded-xl text-[10px] font-extrabold border transition-all ${status === 'active' ? 'bg-red-50 border-red-200 text-red-600 hover:bg-red-600 hover:text-white' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-800 hover:text-white'}`}
+                                >
+                                  {status === 'active' ? 'SUSPEND' : 'ACTIVATE'}
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+            </div>
+
+          </div>
+        )}
+
+        {/* ═══════════════════════════════════════════════════════════
+           MODAL: EXTEND OR GRANT SUBSCRIPTION
+           ═══════════════════════════════════════════════════════════ */}
+        {isExtendModalOpen && selectedMerchantForEdit && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 animate-fadeIn">
+            <div className="bg-white border border-slate-200 rounded-[2rem] p-6 sm:p-8 w-full max-w-md shadow-2xl space-y-6 animate-scale-up relative">
+              <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-blue-50 text-blue-600 border border-blue-100">
+                    <Gift className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-slate-900">Extend / Grant Subscription</h3>
+                    <p className="text-[11px] text-slate-400 font-medium">For {selectedMerchantForEdit.business_name}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsExtendModalOpen(false)}
+                  className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleExtendSubscription} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Duration Preset</label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[7, 30, 90, 365].map((d) => (
+                      <button
+                        type="button"
+                        key={d}
+                        onClick={() => setExtendDays(d)}
+                        className={`py-2 rounded-xl text-xs font-bold border transition-all ${extendDays === d ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'}`}
+                      >
+                        +{d} Days
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Custom Days to Add</label>
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    value={extendDays}
+                    onChange={(e) => setExtendDays(Number(e.target.value) || 1)}
+                    className="w-full bg-slate-50 border border-slate-250 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:bg-white focus:border-blue-500 outline-none transition-all"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Target Status</label>
+                  <select
+                    value={extendStatus}
+                    onChange={(e) => setExtendStatus(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-250 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-800 focus:bg-white focus:border-blue-500 outline-none transition-all"
+                  >
+                    <option value="active">Active (Paid / Granted)</option>
+                    <option value="trial">Trial (Free 3-Day or Extended Trial)</option>
+                  </select>
+                </div>
+
+                <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-100 text-[11px] text-blue-700 font-medium">
+                  {selectedMerchantForEdit.subscription_expires_at && new Date(selectedMerchantForEdit.subscription_expires_at) > new Date() ? (
+                    <span>Will extend current expiry by <strong>{extendDays} days</strong> from {new Date(selectedMerchantForEdit.subscription_expires_at).toLocaleDateString('en-IN')}.</span>
+                  ) : (
+                    <span>Will activate <strong>{extendDays} days</strong> starting from today.</span>
+                  )}
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsExtendModalOpen(false)}
+                    className="flex-1 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-500 font-bold rounded-xl text-xs transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={subsActionLoading}
+                    className="flex-grow py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl text-xs transition-all shadow-md shadow-blue-600/20"
+                  >
+                    {subsActionLoading ? 'Saving...' : 'Apply Subscription'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         )}
 
         {/* ═══════════════════════════════════════════════════════════

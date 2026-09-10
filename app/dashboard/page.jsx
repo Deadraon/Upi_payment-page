@@ -188,6 +188,8 @@ export default function DashboardPage() {
 
 
   const [showManageSection, setShowManageSection] = useState(false);
+  const [copiedGuideUrl, setCopiedGuideUrl] = useState(false);
+  const [copiedGuideKey, setCopiedGuideKey] = useState(false);
 
 
 
@@ -10636,6 +10638,7 @@ echo "Order Created: " . $data['orderId'];
 
 
                 { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+                { id: 'setup-guide', label: '0 to 100 Setup Guide', icon: Compass },
 
 
 
@@ -11488,13 +11491,15 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-                <h2 className="text-3xl font-black text-slate-900 capitalize">{activeTab === 'playground' ? 'Sandbox Playground' : activeTab === 'api' ? 'API Credentials' : activeTab === 'developer' ? 'Developer Portal' : activeTab === 'subscription' ? 'Subscription Console' : activeTab === 'connections' ? 'Connections' : activeTab === 'payment-links' ? 'Payment Links' : activeTab}</h2>
+                <h2 className="text-3xl font-black text-slate-900 capitalize">{activeTab === 'setup-guide' ? '0 to 100 Setup Guide' : activeTab === 'playground' ? 'Sandbox Playground' : activeTab === 'api' ? 'API Credentials' : activeTab === 'developer' ? 'Developer Portal' : activeTab === 'subscription' ? 'Subscription Console' : activeTab === 'connections' ? 'Connections' : activeTab === 'payment-links' ? 'Payment Links' : activeTab}</h2>
 
 
 
                 <p className="text-sm text-slate-500 font-medium mt-1">
 
 
+
+                  {activeTab === 'setup-guide' && 'Follow the 5-phase master blueprint to configure direct settlement, notification listeners, and webhooks for 100% automated payment receiving.'}
 
                   {activeTab === 'overview' && 'Real-time overview of business revenue and platform subscription details.'}
 
@@ -11787,6 +11792,8 @@ echo "Order Created: " . $data['orderId'];
                ═══════════════════════════════════════════════════════════ */}
 
 
+
+            {activeTab === 'setup-guide' && renderSetupGuidePanel()}
 
             {activeTab === 'payment-links' && renderPaymentLinksPanel()}
 

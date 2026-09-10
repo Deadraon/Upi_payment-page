@@ -10,6 +10,7 @@ import {
   Copy, CheckCircle, Loader2, ShieldCheck,
   IndianRupee, Lock, ArrowRight, AlertCircle,
   Zap, QrCode, Smartphone, ExternalLink,
+  Tag, Sparkles, Gift
 } from 'lucide-react';
 
 /* ═══════════════════════════════════════════════════════════════
@@ -260,7 +261,86 @@ function PayPageContent() {
   const [copied, setCopied]         = useState(false);
   const [copiedAmt, setCopiedAmt]   = useState(false);
 
+  // Promo / Gift Code States
+  const [showCouponInput, setShowCouponInput] = useState(false);
+  const [couponInput, setCouponInput]         = useState('');
+  const [couponLoading, setCouponLoading]     = useState(false);
+  const [couponError, setCouponError]         = useState('');
+  const [couponSuccess, setCouponSuccess]     = useState('');
+  const [appliedCoupon, setAppliedCoupon]     = useState(null);
+  const [isFreeGift, setIsFreeGift]           = useState(false);
+  const [claimLoading, setClaimLoading]       = useState(false);
+
   const autoCreated = useRef(false);
+
+  const handleApplyCoupon = async (e) => {
+    if (e) e.preventDefault();
+    if (!couponInput.trim()) return;
+    setCouponLoading(true);
+    setCouponError('');
+    setCouponSuccess('');
+
+    try {
+      const res = await fetch('/api/coupons/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: couponInput.trim(),
+          amount: parseFloat(orderAmount || amount || '499')
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to apply code');
+
+      setAppliedCoupon(data);
+      if (data.isFree) {
+        setIsFreeGift(true);
+        setOrderAmount(0);
+        setCouponSuccess(data.message || '100% Free Gift Code Applied! No payment needed.');
+      } else {
+        setOrderAmount(data.discountedAmount);
+        setCouponSuccess(data.message || `₹${data.discount} discount applied!`);
+      }
+    } catch (err) {
+      setCouponError(err.message || 'Invalid coupon code');
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const handleClaimFreeGift = async () => {
+    if (!appliedCoupon) return;
+    setClaimLoading(true);
+    setCouponError('');
+
+    try {
+      const targetMerchantId = paramRef || (paramLid ? paramLid.split(':')[0] : null) || (merchant?.id || null);
+
+      const res = await fetch('/api/coupons/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: appliedCoupon.code || couponInput.trim(),
+          merchantId: targetMerchantId,
+          orderId: orderId,
+          amount: 0
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to activate gift');
+
+      setConfirmed(true);
+      setTimeout(() => {
+        router.push(paramCallback ? `${paramCallback}?status=success&gift=true` : `/status/${orderId}`);
+      }, 800);
+    } catch (err) {
+      setCouponError(err.message || 'Failed to activate gift subscription');
+    } finally {
+      setClaimLoading(false);
+    }
+  };
 
   useEffect(() => {
     async function loadPageData() {
@@ -609,153 +689,235 @@ function PayPageContent() {
                 </div>
               )}
 
-              {/* ── UPI LIVE FLOW ── */}
-              {/* Apps / QR toggle */}
-                  <div className="flex p-1 bg-slate-50 rounded-xl mb-5 border border-slate-100">
-                    {[
-                      { id: 'apps', icon: <Smartphone className="w-3.5 h-3.5" />, label: 'UPI Apps' },
-                      { id: 'qr',   icon: <QrCode className="w-3.5 h-3.5" />,   label: 'Scan QR'  },
-                    ].map(tab => (
-                      <button key={tab.id} onClick={() => { setPayView(tab.id); setSelectedApp(null); }}
-                        className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[11px] font-bold transition-all ${
-                          payView === tab.id
-                            ? 'text-white shadow-md'
-                            : 'text-slate-500 hover:text-slate-700'
-                        }`}
-                        style={payView === tab.id ? { backgroundColor: merchant?.theme_color || '#3B82F6' } : {}}
-                      >
-                        {tab.icon} {tab.label}
-                      </button>
-                    ))}
+              {/* ── PROMO / GIFT CODE SECTION ── */}
+              <div className="mb-5 p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                <div className="flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => setShowCouponInput(!showCouponInput)}
+                    className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Gift className="w-3.5 h-3.5 text-blue-600" />
+                    <span>{appliedCoupon ? 'Promo/Gift Code Applied' : 'Have a Promo or Gift Code?'}</span>
+                  </button>
+                  {appliedCoupon && (
+                    <span className="text-[10px] bg-emerald-100 text-emerald-800 font-black px-2.5 py-0.5 rounded-full uppercase border border-emerald-200">
+                      {appliedCoupon.code}
+                    </span>
+                  )}
+                </div>
+
+                {showCouponInput && !appliedCoupon && (
+                  <form onSubmit={handleApplyCoupon} className="flex gap-2 pt-1">
+                    <input
+                      type="text"
+                      placeholder="Enter code (e.g. VIPGIFT30)"
+                      value={couponInput}
+                      onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                      className="flex-1 bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 uppercase"
+                    />
+                    <button
+                      type="submit"
+                      disabled={couponLoading || !couponInput.trim()}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition-all disabled:opacity-50 flex items-center gap-1.5 shrink-0 shadow-sm cursor-pointer"
+                    >
+                      {couponLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Apply'}
+                    </button>
+                  </form>
+                )}
+
+                {couponError && (
+                  <p className="text-[11px] text-red-500 font-semibold flex items-center gap-1 mt-1">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>{couponError}</span>
+                  </p>
+                )}
+
+                {couponSuccess && (
+                  <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-semibold flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>{couponSuccess}</span>
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* ── 100% FREE GIFT CELEBRATION BOX ── */}
+              {isFreeGift ? (
+                <div className="p-6 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/30 rounded-3xl text-center space-y-4 animate-scale-up mb-5">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20">
+                    <Sparkles className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-200">
+                      Gift Code Applied
+                    </span>
+                    <h3 className="text-lg font-black text-slate-900 mt-2">100% Free Subscription</h3>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Your code <strong className="text-emerald-700 font-mono">{appliedCoupon?.code}</strong> covers the full amount. Zero payment required.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleClaimFreeGift}
+                    disabled={claimLoading}
+                    className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-extrabold text-sm shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+                  >
+                    {claimLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <span>Activate Subscription Now</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {/* ── DESKTOP VIEW: EXCLUSIVE DYNAMIC QR CODE SCANNER (No App Buttons on Desktop) ── */}
+                  <div className="hidden md:flex flex-col items-center space-y-4 animate-fade-up">
+                    <div className="text-center space-y-1">
+                      <p className="text-xs text-slate-900 uppercase tracking-wider font-extrabold flex items-center justify-center gap-1.5">
+                        <QrCode className="w-4 h-4 text-blue-600" />
+                        <span>Scan with Any UPI App to Pay</span>
+                      </p>
+                      <p className="text-[11px] text-slate-500 font-medium">
+                        Open Google Pay, PhonePe, Paytm, BHIM, or any banking app on your phone to scan
+                      </p>
+                    </div>
+
+                    {upiQrValue ? (
+                      <div className="bg-white rounded-2xl p-5 shadow-xl border border-slate-100 flex flex-col items-center">
+                        <QRCode value={upiQrValue} size={200} level="H" fgColor="#0f172a" bgColor="#FFFFFF" />
+                        <div className="mt-3 pt-3 border-t border-gray-100 text-center w-full">
+                          <p className="text-[11px] text-slate-700 font-bold tracking-wider">
+                            Scan &amp; Pay ₹{orderAmount ? parseFloat(orderAmount).toFixed(2) : (displayAmt ? parseFloat(displayAmt).toFixed(2) : '')}
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="h-[220px] flex items-center justify-center">
+                        <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
+                      </div>
+                    )}
+
+                    {/* Copy row */}
+                    <div className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
+                      <div>
+                        <p className="text-[9px] text-slate-500 uppercase tracking-wider mb-0.5">Pay to UPI ID</p>
+                        <p className="text-[11px] font-mono font-bold text-slate-700">{merchant?.upi_id || CONFIG.upiId}</p>
+                      </div>
+                      <div className="flex gap-1.5">
+                        <button onClick={copyUPI}
+                          className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-semibold border transition-all cursor-pointer ${
+                            copied ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600' : 'bg-white border-slate-200 text-slate-500 hover:border-slate-400 hover:text-slate-700'
+                          }`}>
+                          {copied ? <CheckCircle className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                          {copied ? 'Copied' : 'Copy ID'}
+                        </button>
+                        <button onClick={copyAmt}
+                          className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-semibold border transition-all cursor-pointer ${
+                            copiedAmt ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600' : 'bg-white border-slate-200 text-slate-500 hover:border-slate-400 hover:text-slate-700'
+                          }`}>
+                          {copiedAmt ? <CheckCircle className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                          {copiedAmt ? 'Copied' : 'Copy ₹'}
+                        </button>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* ── APPS VIEW ── */}
-                  {payView === 'apps' && (
-                    <div className="space-y-3 animate-fade-up">
-                      <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Select your UPI app</p>
-
-                      {/* App grid */}
-                      <div className="grid grid-cols-2 gap-2.5">
-                        {UPI_APPS.map(app => {
-                          const isSelected = selectedApp?.id === app.id;
-                          return (
-                            <button
-                              key={app.id}
-                              type="button"
-                              onClick={() => setSelectedApp(isSelected ? null : app)}
-                              className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all active:scale-95 ${
-                                isSelected
-                                  ? 'bg-blue-50 border-blue-500 shadow-sm shadow-blue-500/10'
-                                  : 'bg-white border-slate-200 hover:border-blue-500/50 hover:bg-slate-50/50'
-                              }`}
-                            >
-                              <div className="flex-shrink-0">{app.logo}</div>
-                              <div>
-                                <p className={`text-[12px] font-bold leading-tight transition-colors ${isSelected ? 'text-slate-900' : 'text-slate-500'}`}>
-                                  {app.label}
-                                </p>
-                                <p className={`text-[9px] mt-0.5 ${isSelected ? 'text-blue-500' : 'text-slate-400'}`}>
-                                  {isSelected ? '✓ Selected' : 'Tap to select'}
-                                </p>
-                              </div>
-                              {isSelected && (
-                                <div className="ml-auto w-4 h-4 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
-                                  <CheckCircle className="w-3 h-3 text-white" />
-                                </div>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-
-                      {/* Open selected app button */}
-                      {selectedApp && (
-                        <button
-                          type="button"
-                          onClick={() => openApp(selectedApp)}
-                          disabled={!orderId}
-                          className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 text-white-pure"
-                          style={{ background: selectedApp.accent }}
+                  {/* ── MOBILE VIEW: DUAL APPS / QR TOGGLE ── */}
+                  <div className="md:hidden space-y-4">
+                    {/* Apps / QR toggle */}
+                    <div className="flex p-1 bg-slate-50 rounded-xl mb-4 border border-slate-100">
+                      {[
+                        { id: 'apps', icon: <Smartphone className="w-3.5 h-3.5" />, label: 'UPI Apps' },
+                        { id: 'qr',   icon: <QrCode className="w-3.5 h-3.5" />,   label: 'Scan QR'  },
+                      ].map(tab => (
+                        <button key={tab.id} onClick={() => { setPayView(tab.id); setSelectedApp(null); }}
+                          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[11px] font-bold transition-all ${
+                            payView === tab.id
+                              ? 'text-white shadow-md'
+                              : 'text-slate-500 hover:text-slate-700'
+                          }`}
+                          style={payView === tab.id ? { backgroundColor: merchant?.theme_color || '#3B82F6' } : {}}
                         >
-                          <ExternalLink className="w-4 h-4" />
-                          Open {selectedApp.label}
+                          {tab.icon} {tab.label}
                         </button>
-                      )}
-
-                      {/* OR divider */}
-                      <div className="flex items-center gap-3">
-                        <div className="flex-1 h-px bg-slate-100" />
-                        <span className="text-[10px] text-[#484F58] font-medium">OR</span>
-                        <div className="flex-1 h-px bg-slate-100" />
-                      </div>
-
-                      {/* Copy row */}
-                      <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
-                        <div>
-                          <p className="text-[9px] text-slate-500 uppercase tracking-wider mb-0.5">Pay to UPI ID</p>
-                          <p className="text-[11px] font-mono font-bold text-slate-700">{merchant?.upi_id || CONFIG.upiId}</p>
-                        </div>
-                        <div className="flex gap-1.5">
-                          <button onClick={copyUPI}
-                            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-semibold border transition-all ${
-                              copied ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600' : 'bg-white border-slate-200 text-slate-500 hover:border-slate-400 hover:text-slate-700'
-                            }`}>
-                            {copied ? <CheckCircle className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                            {copied ? 'Copied' : 'Copy ID'}
-                          </button>
-                          <button onClick={copyAmt}
-                            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-semibold border transition-all ${
-                              copiedAmt ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600' : 'bg-white border-slate-200 text-slate-500 hover:border-slate-400 hover:text-slate-700'
-                            }`}>
-                            {copiedAmt ? <CheckCircle className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                            {copiedAmt ? 'Copied' : 'Copy ₹'}
-                          </button>
-                        </div>
-                      </div>
+                      ))}
                     </div>
-                  )}
 
-                  {/* ── QR VIEW ── */}
-                  {payView === 'qr' && (
-                    <div className="flex flex-col items-center space-y-4 animate-fade-up">
-                      {isMandate ? (
-                        <div className="text-center space-y-3.5 max-w-[280px]">
-                          <div className="mx-auto w-12 h-12 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-full flex items-center justify-center animate-pulse">
-                            <AlertCircle className="w-6 h-6" />
-                          </div>
-                          <div>
-                            <h4 className="text-xs font-black text-slate-900 uppercase tracking-wide">Autopay Scan Restriction</h4>
-                            <p className="text-[10px] text-slate-500 mt-1 leading-relaxed font-semibold">
-                              NPCI regulations strictly require UPI Autopay scan-to-pay QR codes to be cryptographically signed by an official banking partner. Unsigned QR codes will be rejected by UPI applications as <strong>&quot;Invalid QR&quot;</strong>.
-                            </p>
-                          </div>
-                          <div className="p-3 bg-violet-50 border border-violet-200/60 rounded-xl text-left">
-                            <h5 className="text-[9px] font-black text-violet-850 uppercase tracking-wider">How to complete setup:</h5>
-                            <ul className="text-[9px] text-slate-600 font-semibold list-disc pl-3.5 space-y-1 mt-1">
-                              <li>Open this checkout link directly on a <strong>mobile device</strong> and use the <strong>&quot;UPI Apps&quot;</strong> tab to trigger direct, secure app deep-links.</li>
-                              <li>Or use instant manual verification once completed in your bank app.</li>
-                            </ul>
-                          </div>
+                    {/* Mobile Apps View */}
+                    {payView === 'apps' && (
+                      <div className="space-y-3 animate-fade-up">
+                        <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Select your UPI app</p>
+                        <div className="grid grid-cols-2 gap-2.5">
+                          {UPI_APPS.map(app => {
+                            const isSelected = selectedApp?.id === app.id;
+                            return (
+                              <button
+                                key={app.id}
+                                type="button"
+                                onClick={() => setSelectedApp(isSelected ? null : app)}
+                                className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all active:scale-95 ${
+                                  isSelected
+                                    ? 'bg-blue-50 border-blue-500 shadow-sm shadow-blue-500/10'
+                                    : 'bg-white border-slate-200 hover:border-blue-500/50 hover:bg-slate-50/50'
+                                }`}
+                              >
+                                <div className="flex-shrink-0">{app.logo}</div>
+                                <div>
+                                  <p className={`text-[12px] font-bold leading-tight transition-colors ${isSelected ? 'text-slate-900' : 'text-slate-500'}`}>
+                                    {app.label}
+                                  </p>
+                                  <p className={`text-[9px] mt-0.5 ${isSelected ? 'text-blue-500' : 'text-slate-400'}`}>
+                                    {isSelected ? '✓ Selected' : 'Tap to select'}
+                                  </p>
+                                </div>
+                                {isSelected && (
+                                  <div className="ml-auto w-4 h-4 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+                                    <CheckCircle className="w-3 h-3 text-white" />
+                                  </div>
+                                )}
+                              </button>
+                            );
+                          })}
                         </div>
-                      ) : upiQrValue ? (
-                        <>
-                          <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Scan with any UPI app</p>
-                          <div className="bg-white-pure rounded-2xl p-5 shadow-xl">
-                            <QRCode value={upiQrValue} size={185} level="H" fgColor="#0f172a" bgColor="#FFFFFF" />
-                            <div className="mt-3 pt-3 border-t border-gray-100 text-center">
-                              <p className="text-[9px] text-gray-500 font-medium uppercase tracking-wider">
-                                Open UPI app → Scan → Pay ₹{displayAmt ? parseFloat(displayAmt).toFixed(2) : ''}
-                              </p>
-                            </div>
+
+                        {selectedApp && (
+                          <button
+                            type="button"
+                            onClick={() => openApp(selectedApp)}
+                            disabled={!orderId}
+                            className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 text-white shadow-md cursor-pointer"
+                            style={{ background: selectedApp.accent }}
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                            Open {selectedApp.label}
+                          </button>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Mobile QR View */}
+                    {payView === 'qr' && (
+                      <div className="flex flex-col items-center space-y-4 animate-fade-up">
+                        {upiQrValue ? (
+                          <div className="bg-white rounded-2xl p-4 shadow-xl border border-slate-100">
+                            <QRCode value={upiQrValue} size={180} level="H" fgColor="#0f172a" bgColor="#FFFFFF" />
                           </div>
-                        </>
-                      ) : (
-                        <div className="h-[220px] flex items-center justify-center">
-                          <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
-                        </div>
-                      )}
-                    </div>
-                  )}
+                        ) : (
+                          <div className="h-[200px] flex items-center justify-center">
+                            <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
 
                   {/* ── CONFIRM BUTTON ── */}
                   <div className="mt-5 pt-4 border-t border-slate-100 space-y-2">
