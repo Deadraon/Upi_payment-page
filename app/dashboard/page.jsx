@@ -131,10 +131,17 @@ export default function DashboardPage() {
 
 
   const [user, setUser] = useState(null);
-
-
-
   const [profile, setProfile] = useState(null);
+
+  // Detect if logged-in user is an authorized platform administrator
+  const isAdminUser = useMemo(() => {
+    if (!user && !profile) return false;
+    const adminEmails = ['chauhankunal695@gmail.com', 'deadraon@gmail.com', 'deadraon1@gmail.com'];
+    const email = user?.email?.toLowerCase().trim();
+    const isPlatformAdminId = user?.id === 'dd45279e-7a2c-413c-9e24-24d88011b680' || profile?.id === 'dd45279e-7a2c-413c-9e24-24d88011b680';
+    const isPlatformKey = profile?.api_key === '677d9312-a53f-4b96-815f-53e0eee1b292';
+    return Boolean(isPlatformAdminId || isPlatformKey || (email && adminEmails.includes(email)));
+  }, [user, profile]);
 
 
 
@@ -9889,11 +9896,17 @@ echo "Order Created: " . $data['orderId'];
 
           </button>
 
-
-
-
-
-
+          {isAdminUser && (
+            <a
+              href="/admin"
+              className="w-full flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-xs transition-all border font-bold bg-gradient-to-r from-blue-600/25 to-indigo-600/25 hover:from-blue-600/35 hover:to-indigo-600/35 text-blue-300 border-blue-500/40 shadow-sm mt-1.5"
+              title="Access SaaS Super Admin Console"
+            >
+              <Shield className="w-3.5 h-3.5 shrink-0 text-blue-400 animate-pulse" />
+              <span className="flex-1 text-left font-black tracking-wide text-[11px]">Admin Console</span>
+              <span className="text-[8px] bg-blue-500/30 text-blue-200 px-1.5 py-0.5 rounded font-black uppercase">Root</span>
+            </a>
+          )}
 
           <div className="rp-nav-divider" />
 
@@ -10400,64 +10413,47 @@ echo "Order Created: " . $data['orderId'];
 
 
               )}
-
-
-
             </button>
 
-
+            {/* Mobile Admin Console Access Button */}
+            {isAdminUser && (
+              <a
+                href="/admin"
+                className="flex items-center gap-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-2.5 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-sm mr-1 shrink-0"
+                title="SaaS Admin Console"
+              >
+                <Shield className="w-3 h-3 text-blue-200" />
+                <span>Admin</span>
+              </a>
+            )}
 
             <button
-
-
-
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-
-
-
               className="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-colors"
-
-
-
               title="Menu"
-
-
-
             >
-
-
-
               {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-
-
-
             </button>
-
-
-
           </div>
-
-
-
         </header>
 
-
-
-
-
-
-
         {/* Mobile Navigation Drawer (Razorpay Style) */}
-
-
-
         {isMobileMenuOpen && (
-
-
-
           <div className="md:hidden fixed inset-x-0 bottom-0 top-[64px] z-30 bg-white/70 backdrop-blur-lg flex flex-col pt-6 px-6 pb-6 animate-fadeIn overflow-y-auto">
-
-
+            {/* Mobile Admin Banner */}
+            {isAdminUser && (
+              <a
+                href="/admin"
+                className="flex items-center justify-between p-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl shadow-md mb-4 border border-blue-400/30 shrink-0"
+                title="Open SaaS Super Admin Console"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Shield className="w-4 h-4 text-blue-200" />
+                  <span className="text-xs font-black uppercase tracking-wider">Super Admin Console</span>
+                </div>
+                <span className="text-[9px] bg-white/20 px-2 py-0.5 rounded font-black">ROOT</span>
+              </a>
+            )}
 
             {/* Drawer Header Info */}
 
@@ -11125,13 +11121,18 @@ echo "Order Created: " . $data['orderId'];
 
             </div>
 
-
-
-
-
-
-
-            
+            {/* Super Admin Console Access Button */}
+            {isAdminUser && (
+              <a
+                href="/admin"
+                className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-3.5 py-2 rounded-2xl transition-all shadow-md shadow-blue-500/20 text-xs font-extrabold uppercase tracking-wider cursor-pointer border border-blue-400/30 shrink-0"
+                title="Access SaaS Super Admin Console"
+              >
+                <Shield className="w-3.5 h-3.5 text-blue-200" />
+                <span>Admin Console</span>
+                <span className="text-[9px] bg-white/20 px-1.5 py-0.5 rounded font-black">SUPER</span>
+              </a>
+            )}            
 
 
 

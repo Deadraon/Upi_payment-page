@@ -198,15 +198,8 @@ export default function AdminPage() {
     }
   }, []);
 
-  // Sync auth state from session storage / Google OAuth on mount and on auth change
+  // Sync auth state from Google OAuth session on mount and on auth change
   useEffect(() => {
-    // 1. Check if we have password login in session
-    const savedPassword = sessionStorage.getItem('admin_pwd');
-    if (savedPassword) {
-      setPassword(savedPassword);
-      setIsLoggedIn(true);
-      return;
-    }
 
     // 2. Check for error parameters in URL (e.g. user cancelled Google OAuth)
     if (typeof window !== 'undefined') {
@@ -710,106 +703,31 @@ export default function AdminPage() {
             </div>
           )}
 
-          {require2fa ? (
-            <form onSubmit={handleLoginSubmit} className="space-y-5 font-semibold text-xs text-slate-700">
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Two-Factor Verification Code</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                    <Shield className="w-4.5 h-4.5 text-slate-400" />
-                  </div>
-                  <input
-                    type="text"
-                    pattern="[0-9]*"
-                    inputMode="numeric"
-                    maxLength="6"
-                    placeholder="Enter 6-digit code"
-                    required
-                    autoFocus
-                    value={totpCode}
-                    onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ''))}
-                    className="w-full bg-white border border-slate-300 rounded-xl py-3.5 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-455 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/40 transition-all font-bold tracking-[0.2em] text-center"
-                  />
-                </div>
-                <p className="text-[9px] text-slate-400 font-semibold text-center mt-1">Open Google Authenticator and enter the current 6-digit code.</p>
-              </div>
+          {/* Security Protocol Information Box */}
+          <div className="p-4 bg-blue-50/70 border border-blue-100 rounded-2xl text-center space-y-1.5">
+            <div className="flex items-center justify-center gap-1.5 text-blue-600 font-extrabold text-[11px] uppercase tracking-wider">
+              <Shield className="w-4 h-4" />
+              <span>Admin Authentication Protocol</span>
+            </div>
+            <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+              Access to this console is strictly restricted to verified Google Administrator accounts. Please continue with your admin Google ID.
+            </p>
+          </div>
 
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setRequire2fa(false);
-                    setTotpCode('');
-                  }}
-                  className="w-1/3 py-3 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-500 font-bold transition-all text-xs"
-                >
-                  Back
-                </button>
-                <button
-                  type="submit"
-                  disabled={authLoading || totpCode.length !== 6}
-                  className="flex-1 py-3 rounded-xl text-white font-bold text-sm tracking-wide bg-blue-600 hover:bg-blue-700 flex items-center justify-center gap-2.5 transition-transform active:scale-[0.99] disabled:opacity-50 shadow-sm shadow-blue-500/20"
-                >
-                  {authLoading ? (
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <>
-                      <span>Verify Code</span>
-                      <CheckCircle className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
+          {authLoading ? (
+            <div className="py-6 flex flex-col items-center justify-center space-y-3">
+              <RefreshCw className="w-7 h-7 animate-spin text-blue-600" />
+              <p className="text-xs font-bold text-slate-600">Verifying administrator authorization...</p>
+            </div>
           ) : (
-            <>
-              <form onSubmit={handleLoginSubmit} className="space-y-5 font-semibold text-xs text-slate-700">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Access Password</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                      <Lock className="w-4 h-4 text-slate-400" />
-                    </div>
-                    <input
-                      type="password"
-                      placeholder="••••••••••••"
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full bg-white border border-slate-300 rounded-xl py-3.5 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/40 transition-all font-semibold"
-                    />
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={authLoading}
-                  className="w-full py-3.5 rounded-xl text-white font-bold text-sm tracking-wide bg-blue-600 hover:bg-blue-700 flex items-center justify-center gap-2.5 transition-transform active:scale-[0.99] disabled:opacity-50 shadow-sm shadow-blue-500/20"
-                >
-                  {authLoading ? (
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <>
-                      <span>Unlock SaaS Console</span>
-                      <Unlock className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
-              </form>
-
-              <div className="relative my-3 flex items-center">
-                <div className="flex-grow border-t border-slate-200"></div>
-                <span className="flex-shrink mx-4 text-slate-400 text-[8px] font-extrabold uppercase tracking-widest">or double security</span>
-                <div className="flex-grow border-t border-slate-200"></div>
-              </div>
-
-              {/* Google OAuth Login */}
+            <div className="space-y-3">
+              {/* Google OAuth Login - Exclusive Access Protocol */}
               <button
                 onClick={handleGoogleLogin}
                 disabled={authLoading}
-                className="w-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold py-3.5 px-4 rounded-xl transition-all disabled:opacity-55 flex items-center justify-center gap-2.5 shadow-sm text-xs"
+                className="w-full bg-white hover:bg-slate-50 border border-slate-300 hover:border-blue-400 text-slate-800 font-extrabold py-3.5 px-4 rounded-2xl transition-all disabled:opacity-55 flex items-center justify-center gap-3 shadow-sm text-xs cursor-pointer active:scale-[0.99]"
               >
-                <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+                <svg className="w-4.5 h-4.5 flex-shrink-0" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
                   <g transform="matrix(1, 0, 0, 1, 0, 0)">
                     <path d="M21.35,11.1H12v2.7h5.38c-0.24,1.28 -0.96,2.37 -2.05,3.1v2.57h3.32c1.94,-1.78 3.05,-4.4 3.05,-7.47c0,-0.3 -0.03,-0.6 -0.08,-0.9Z" fill="#4285F4" />
                     <path d="M12,20.7c2.35,0 4.32,-0.78 5.76,-2.13l-3.32,-2.57c-0.92,0.62 -2.1,0.98 -3.44,0.98c-2.28,0 -4.21,-1.54 -4.9,-3.61H2.68v2.66c1.47,2.92 4.5,4.67 7.92,4.67Z" fill="#34A853" />
@@ -817,10 +735,21 @@ export default function AdminPage() {
                     <path d="M12,5.68c1.28,0 2.43,0.44 3.34,1.3l2.5,-2.5C16.31,3.07 14.34,2.7 12,2.7c-3.42,0 -6.45,1.75 -7.92,4.67l4.4,3.38C9.17,7.22 10.1,5.68 12,5.68Z" fill="#EA4335" />
                   </g>
                 </svg>
-                <span>SaaS Admin Google Login</span>
+                <span>Sign in with Admin Google ID</span>
               </button>
-            </>
+
+              <a
+                href="/dashboard"
+                className="w-full py-3 rounded-2xl border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-slate-800 font-bold transition-all text-xs flex items-center justify-center gap-1.5"
+              >
+                <span>Go to Merchant Dashboard</span>
+              </a>
+            </div>
           )}
+
+          <p className="text-[10px] text-slate-400 font-semibold text-center mt-2">
+            Secure Platform Gateway • Restricted Access Only
+          </p>
         </div>
       </div>
     );
