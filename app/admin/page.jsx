@@ -158,48 +158,90 @@ export default function AdminPage() {
     }
   }, [isLoggedIn, getAuthHeaders]);
 
-  // Sync auth state from session storage / Google OAuth on mount
-  useEffect(() => {
-    async function checkAuth() {
-      // 1. Check if we have password login in session
-      const savedPassword = sessionStorage.getItem('admin_pwd');
-      if (savedPassword) {
-        setPassword(savedPassword);
-        setIsLoggedIn(true);
-        return;
-      }
-
-      // 2. Check if we have Google OAuth session active
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session && session.user) {
+  // Verify a Supabase Google session against backend admin authorization
+  const verifyGoogleSession = useCallback(async (session) => {
+    if (!session?.access_token) return;
+    setAuthLoading(true);
+    setAuthError('');
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          provider: 'google', 
+          token: session.access_token 
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        sessionStorage.setItem('admin_google_logged_in', 'true');
         setGoogleUser(session.user);
-        
-        try {
-          const res = await fetch('/api/admin/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              provider: 'google', 
-              token: session.access_token 
-            })
-          });
-          const data = await res.json();
-          if (res.ok && data.success) {
-            sessionStorage.setItem('admin_google_logged_in', 'true');
-            setIsLoggedIn(true);
-          } else {
-            await supabase.auth.signOut();
-            setGoogleUser(null);
-            sessionStorage.removeItem('admin_google_logged_in');
-          }
-        } catch (e) {
-          console.error('Google verification error on mount:', e);
+        setIsLoggedIn(true);
+        setAuthError('');
+        // Clean URL hash fragment if present from OAuth redirect
+        if (typeof window !== 'undefined' && window.location.hash) {
+          window.history.replaceState(null, '', window.location.pathname + window.location.search);
         }
+      } else {
+        const errorMsg = data.error || 'Google account is not authorized as an administrator.';
+        setAuthError(errorMsg);
+        sessionStorage.removeItem('admin_google_logged_in');
+        setGoogleUser(null);
+        setIsLoggedIn(false);
+        await supabase.auth.signOut();
+      }
+    } catch (e) {
+      console.error('Google verification error on mount:', e);
+      setAuthError('Connection error during Google administrator verification.');
+    } finally {
+      setAuthLoading(false);
+    }
+  }, []);
+
+  // Sync auth state from session storage / Google OAuth on mount and on auth change
+  useEffect(() => {
+    // 1. Check if we have password login in session
+    const savedPassword = sessionStorage.getItem('admin_pwd');
+    if (savedPassword) {
+      setPassword(savedPassword);
+      setIsLoggedIn(true);
+      return;
+    }
+
+    // 2. Check for error parameters in URL (e.g. user cancelled Google OAuth)
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+      const errorMsg = urlParams.get('error_description') || urlParams.get('error') || hashParams.get('error_description') || hashParams.get('error');
+      if (errorMsg) {
+        setAuthError(decodeURIComponent(errorMsg));
       }
     }
-    
-    checkAuth();
-  }, []);
+
+    // 3. Check if we have an active Google OAuth session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session && session.user) {
+        verifyGoogleSession(session);
+      }
+    });
+
+    // 4. Subscribe to auth state changes for seamless OAuth redirect handling
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session && session.user) {
+        verifyGoogleSession(session);
+      } else if (event === 'SIGNED_OUT') {
+        if (sessionStorage.getItem('admin_google_logged_in')) {
+          sessionStorage.removeItem('admin_google_logged_in');
+          setIsLoggedIn(false);
+          setGoogleUser(null);
+        }
+      }
+    });
+
+    return () => {
+      subscription?.unsubscribe();
+    };
+  }, [verifyGoogleSession]);
 
   // Lock scroll when mobile menu is open
   useEffect(() => {
@@ -795,7 +837,9 @@ export default function AdminPage() {
             <div>
               <div className="flex items-center gap-2">
                 <MyMobPayLogo className="w-32 h-auto" />
-                <span className="px-2 py-0.5 text-[9px] rounded bg-blue-50 text-blue-600 border border-blue-100 font-bold uppercase">SaaS OWNER</span>
+                <span className="px-2 py-0.5 text-[9px] rounded bg-blue-50 text-blue-600 border border-blue-100 font-bold uppercase truncate max-w-[220px]">
+                  {googleUser?.email ? `ADMIN (${googleUser.email})` : 'SaaS OWNER'}
+                </span>
               </div>
               <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Gateway Platform Admin</p>
             </div>
@@ -1992,21 +2036,27 @@ export default function AdminPage() {
               </div>
               
               <p className="text-xs text-slate-500 font-semibold leading-relaxed">
-                You are modifying sensitive platform-wide payment or credentials settings. Please re-enter the admin access password to authorize this action.
+                {googleUser ? (
+                  <>You are authenticated as <span className="font-bold text-slate-800">{googleUser.email}</span>. Click confirm to authorize this platform update.</>
+                ) : (
+                  <>You are modifying sensitive platform-wide payment or credentials settings. Please re-enter the admin access password to authorize this action.</>
+                )}
               </p>
               
               <form onSubmit={handleVerifyAndConfirm} className="space-y-5 font-semibold text-xs text-slate-700">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Admin Password</label>
-                  <input
-                    type="password"
-                    placeholder="••••••••••••"
-                    required
-                    value={verificationPassword}
-                    onChange={(e) => setVerificationPassword(e.target.value)}
-                    className="w-full bg-white border border-slate-350 rounded-xl py-3 px-4 text-slate-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/40 transition-all font-semibold"
-                  />
-                </div>
+                {!googleUser && (
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Admin Password</label>
+                    <input
+                      type="password"
+                      placeholder="••••••••••••"
+                      required
+                      value={verificationPassword}
+                      onChange={(e) => setVerificationPassword(e.target.value)}
+                      className="w-full bg-white border border-slate-350 rounded-xl py-3 px-4 text-slate-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/40 transition-all font-semibold"
+                    />
+                  </div>
+                )}
                 
                 <div className="flex gap-3 pt-2">
                   <button

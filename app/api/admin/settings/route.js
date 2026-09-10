@@ -51,8 +51,9 @@ export async function POST(request) {
     const { password, action } = body;
     const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
 
-    // Verification check for sensitive actions
-    if (!password || password !== adminPassword) {
+    // Verification check for sensitive actions: valid bearer token or admin password
+    const isAuthorized = (await verifyAdminAuth(request)) || (password && password === adminPassword);
+    if (!isAuthorized) {
       return NextResponse.json({ error: 'Unauthorized: Invalid credentials' }, { status: 401 });
     }
 
