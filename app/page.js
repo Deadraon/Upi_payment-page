@@ -8,7 +8,8 @@ import { CONFIG } from '@/lib/config';
 import { 
   ArrowRight, CheckCircle2, ChevronRight, Menu, X, 
   ArrowUpRight, ShieldCheck, Zap, Layers, RefreshCw, 
-  Key, Landmark, Code, Play, Star, Plus, Minus, Info, Lock, Sparkles, QrCode
+  Key, Landmark, Code, Play, Star, Plus, Minus, Info, Lock, Sparkles, QrCode,
+  Copy, Check, Smartphone, Building2, Bell, Terminal
 } from 'lucide-react';
 import InteractiveBackground from '@/components/InteractiveBackground';
 
@@ -48,6 +49,19 @@ export default function HomePage() {
   // Interactive Live Invoice demo states
   const [demoAmount, setDemoAmount] = useState('500');
   const [demoNote, setDemoNote] = useState('Payment_Note');
+
+  // Interactive 3-Step Showcase states
+  const [step1Tab, setStep1Tab] = useState('upi'); // 'upi' | 'bank'
+  const [step3Tab, setStep3Tab] = useState('sms'); // 'sms' | 'webhook'
+  const [step1Copied, setStep1Copied] = useState(false);
+
+  const handleCopyStep1Vpa = (text) => {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+      setStep1Copied(true);
+      setTimeout(() => setStep1Copied(false), 2500);
+    }
+  };
 
   // Dynamic Typewriter visual states
   const words = useMemo(() => ['founders', 'indie hackers', 'SaaS startups', 'creators', 'businesses'], []);
@@ -841,250 +855,541 @@ export default function HomePage() {
       </section>
 
       {/* ────────────────────────────────────────────────────────
-         HOW IT WORKS — PREMIUM FINTECH ARCHITECTURE FLOW
+         HOW IT WORKS — REDESIGNED ULTRA-PREMIUM 3-STEP FLOW
          ──────────────────────────────────────────────────────── */}
-      <section className="relative z-10 py-24 bg-transparent border-b border-slate-200/60 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 space-y-16">
+      <section className="relative z-10 py-28 bg-transparent border-b border-slate-200/60 overflow-hidden">
+        {/* Soft Ambient Radial Lights */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1100px] h-[550px] bg-gradient-to-r from-blue-500/5 via-indigo-500/5 to-emerald-500/5 blur-3xl pointer-events-none -z-10 rounded-full" />
+
+        <div className="max-w-7xl mx-auto px-6 space-y-14">
           
           {/* Section Header */}
-          <div className="text-center space-y-3">
-            <span className="text-[10px] font-extrabold uppercase text-blue-600 tracking-widest bg-blue-50 border border-blue-200 px-3.5 py-1.5 rounded-full inline-flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-blue-500" />
-              <span>Direct P2P Architecture</span>
-            </span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight">
-              3 steps. Zero middlemen. Real-time bank credit.
+          <div className="text-center space-y-4 max-w-3xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-blue-200/80 shadow-xs">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+              </span>
+              <span className="text-[11px] font-black uppercase tracking-wider text-slate-800">
+                Direct P2P Banking Engine
+              </span>
+              <span className="text-[10px] font-extrabold text-blue-600 bg-blue-50 border border-blue-200/60 px-2 py-0.5 rounded-full">
+                Zero Escrow · 0% MDR
+              </span>
+            </div>
+
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-[1.12]">
+              3 steps. Zero middlemen. <br className="hidden sm:inline" />
+              <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-600 bg-clip-text text-transparent">
+                Real-time bank credit.
+              </span>
             </h2>
-            <p className="text-sm sm:text-base text-slate-500 font-medium max-w-xl mx-auto leading-relaxed">
-              Eliminate payment gateway holding periods and 2% transaction taxes. Customer scans, funds route directly to your bank, webhooks fire instantly.
+
+            <p className="text-sm sm:text-base text-slate-500 font-medium max-w-2xl mx-auto leading-relaxed">
+              Eliminate payment gateway holding periods and 2% transaction taxes. Customer scans or transfers, funds route directly to your bank account, and cryptographically verified webhooks fire instantly.
             </p>
           </div>
 
-          {/* Visual 3-Step Premium Flow */}
+          {/* Desktop Connected Progress Track */}
+          <div className="hidden lg:grid grid-cols-3 gap-6 relative px-2 max-w-5xl mx-auto">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-blue-600 text-white font-black text-xs flex items-center justify-center shadow-md shadow-blue-500/25 flex-shrink-0">
+                01
+              </div>
+              <div className="space-y-0.5 min-w-0">
+                <p className="text-xs font-black text-slate-800 truncate">Scan or Direct Transfer</p>
+                <p className="text-[10px] font-semibold text-slate-400 truncate">UPI QR &amp; Bank IMPS/NEFT</p>
+              </div>
+              <div className="flex-1 h-px bg-gradient-to-r from-blue-200 to-indigo-200 ml-2" />
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white font-black text-xs flex items-center justify-center shadow-md shadow-indigo-500/25 flex-shrink-0">
+                02
+              </div>
+              <div className="space-y-0.5 min-w-0">
+                <p className="text-xs font-black text-slate-800 truncate">P2P Banking Tunnel</p>
+                <p className="text-[10px] font-semibold text-slate-400 truncate">Direct Route · 0% Escrow</p>
+              </div>
+              <div className="flex-1 h-px bg-gradient-to-r from-indigo-200 to-emerald-200 ml-2" />
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white font-black text-xs flex items-center justify-center shadow-md shadow-emerald-500/25 flex-shrink-0">
+                03
+              </div>
+              <div className="space-y-0.5 min-w-0">
+                <p className="text-xs font-black text-slate-800 truncate">Instant Bank Credit</p>
+                <p className="text-[10px] font-semibold text-slate-400 truncate">Live Credit &amp; Webhook &lt;200ms</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Visual 3-Step Premium Flow Cards */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 relative">
 
-            {/* STEP 1: Universal 1-Click Scan */}
-            <div className="bg-white border border-slate-200 rounded-3xl p-7 shadow-[0_10px_30px_rgba(15,23,42,0.05)] hover:shadow-[0_20px_50px_rgba(37,99,235,0.12)] hover:-translate-y-1.5 transition-all duration-300 group flex flex-col justify-between relative overflow-hidden">
-              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-500 to-sky-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+            {/* STEP 1: Universal Scan or Transfer */}
+            <div className="bg-white/95 backdrop-blur-sm border border-slate-200/90 hover:border-blue-400/70 rounded-3xl p-6 sm:p-7 shadow-[0_10px_35px_rgba(15,23,42,0.05)] hover:shadow-[0_22px_50px_rgba(37,99,235,0.12)] hover:-translate-y-1.5 transition-all duration-300 group flex flex-col justify-between relative overflow-hidden">
+              <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-blue-500 via-sky-400 to-blue-600" />
+              <div className="absolute -top-3 -right-1 text-8xl font-black text-slate-100/70 select-none pointer-events-none group-hover:text-blue-50/80 transition-colors">01</div>
               
-              <div className="space-y-6">
+              <div className="space-y-5 relative z-10">
                 {/* Step Pill */}
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-black tracking-widest uppercase bg-blue-50 text-blue-600 border border-blue-200 px-2.5 py-1 rounded-full">
-                    Step 01 · Scan or Transfer
+                  <span className="text-[10px] font-black tracking-widest uppercase bg-blue-50 text-blue-600 border border-blue-200 px-2.5 py-1 rounded-full flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
+                    Step 01 · Scan / Transfer
                   </span>
-                  <span className="text-[11px] font-bold text-slate-400">UPI + IMPS Rail</span>
+                  <span className="text-[11px] font-bold text-slate-400 bg-slate-100/70 px-2 py-0.5 rounded-md border border-slate-200/60">
+                    Dual Rail
+                  </span>
                 </div>
 
-                {/* Sleek Light Mobile Checkout Visual */}
-                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3 relative overflow-hidden">
-                  <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
-                    <div className="flex items-center gap-1.5">
-                      <Lock className="w-3 h-3 text-emerald-500" />
-                      <span className="text-[10px] font-black text-slate-700">Checkout · ₹500</span>
-                    </div>
-                    <span className="text-[8px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">Live Rails</span>
-                  </div>
+                {/* Interactive Mode Switcher for Demo */}
+                <div className="bg-slate-100/90 p-1 rounded-xl flex items-center gap-1 border border-slate-200/80">
+                  <button
+                    type="button"
+                    onClick={() => setStep1Tab('upi')}
+                    className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-black transition-all flex items-center justify-center gap-1.5 ${
+                      step1Tab === 'upi'
+                        ? 'bg-white text-blue-600 shadow-xs border border-slate-200/80'
+                        : 'text-slate-500 hover:text-slate-900'
+                    }`}
+                  >
+                    <QrCode className="w-3 h-3 text-blue-500" />
+                    <span>UPI Scan</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStep1Tab('bank')}
+                    className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-black transition-all flex items-center justify-center gap-1.5 ${
+                      step1Tab === 'bank'
+                        ? 'bg-white text-indigo-600 shadow-xs border border-slate-200/80'
+                        : 'text-slate-500 hover:text-slate-900'
+                    }`}
+                  >
+                    <Building2 className="w-3 h-3 text-indigo-500" />
+                    <span>Direct IMPS / NEFT</span>
+                  </button>
+                </div>
 
-                  {/* QR Box with animated scanning laser line */}
-                  <div className="bg-white border border-slate-200 rounded-xl p-3 flex flex-col items-center justify-center relative overflow-hidden group/qr shadow-xs">
-                    <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent top-0 animate-laser" />
-                    
-                    <svg viewBox="0 0 100 100" className="w-24 h-24 text-slate-800" fill="currentColor">
-                      <rect x="5" y="5" width="26" height="26" fill="#0F172A" rx="4" />
-                      <rect x="9" y="9" width="18" height="18" fill="#FFFFFF" rx="2" />
-                      <rect x="13" y="13" width="10" height="10" fill="#3B82F6" rx="1.5" />
-
-                      <rect x="69" y="5" width="26" height="26" fill="#0F172A" rx="4" />
-                      <rect x="73" y="9" width="18" height="18" fill="#FFFFFF" rx="2" />
-                      <rect x="77" y="13" width="10" height="10" fill="#3B82F6" rx="1.5" />
-
-                      <rect x="5" y="69" width="26" height="26" fill="#0F172A" rx="4" />
-                      <rect x="9" y="73" width="18" height="18" fill="#FFFFFF" rx="2" />
-                      <rect x="13" y="77" width="10" height="10" fill="#3B82F6" rx="1.5" />
-
-                      <circle cx="45" cy="20" r="3" fill="#0F172A" />
-                      <circle cx="55" cy="20" r="3" fill="#0F172A" />
-                      <circle cx="50" cy="35" r="3.5" fill="#0F172A" />
-                      <circle cx="35" cy="50" r="3" fill="#0F172A" />
-                      <circle cx="65" cy="50" r="3" fill="#0F172A" />
-                      <circle cx="50" cy="65" r="3" fill="#0F172A" />
-                      <circle cx="40" cy="80" r="3" fill="#0F172A" />
-                      <circle cx="60" cy="80" r="3" fill="#0F172A" />
-                      <rect x="42" y="42" width="16" height="16" fill="#3B82F6" rx="3" />
-                      <text x="50" y="53" fontFamily="'Orbitron', sans-serif" fontWeight="950" fontSize="10" fill="#FFFFFF" textAnchor="middle">M</text>
-                    </svg>
-
-                    <p className="text-[8px] font-extrabold uppercase tracking-wider text-slate-400 mt-2">Scan UPI or Transfer IMPS</p>
-                  </div>
-
-                  {/* Universal UPI Indicators */}
-                  <div className="grid grid-cols-4 gap-1.5 pt-1">
-                    {[
-                      { name: 'UPI QR', color: 'text-blue-600 bg-blue-50 border-blue-200' },
-                      { name: 'IMPS Bank', color: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
-                      { name: 'Instant Rail', color: 'text-indigo-600 bg-indigo-50 border-indigo-200' },
-                      { name: 'Auto-Match', color: 'text-sky-600 bg-sky-50 border-sky-200' },
-                    ].map(app => (
-                      <div key={app.name} className={`${app.color} border rounded-lg py-1 text-center font-black text-[9px]`}>
-                        {app.name}
+                {/* Checkout Interface Mock */}
+                {step1Tab === 'upi' ? (
+                  <div className="bg-slate-50/90 border border-slate-200 rounded-2xl p-4 space-y-3 relative overflow-hidden transition-all">
+                    <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
+                      <div className="flex items-center gap-1.5">
+                        <Lock className="w-3 h-3 text-emerald-500" />
+                        <span className="text-[10px] font-black text-slate-800">Checkout · ₹500.00</span>
                       </div>
-                    ))}
+                      <span className="text-[8px] font-extrabold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        Instant UPI
+                      </span>
+                    </div>
+
+                    {/* QR Box with animated scanning laser line */}
+                    <div className="bg-white border border-slate-200/90 rounded-xl p-3 flex flex-col items-center justify-center relative overflow-hidden group/qr shadow-xs">
+                      <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent top-0 animate-laser" />
+                      
+                      {/* Corner Targeting Marks */}
+                      <div className="relative p-1">
+                        <div className="absolute -top-1 -left-1 w-3 h-3 border-t-2 border-l-2 border-blue-500" />
+                        <div className="absolute -top-1 -right-1 w-3 h-3 border-t-2 border-r-2 border-blue-500" />
+                        <div className="absolute -bottom-1 -left-1 w-3 h-3 border-b-2 border-l-2 border-blue-500" />
+                        <div className="absolute -bottom-1 -right-1 w-3 h-3 border-b-2 border-r-2 border-blue-500" />
+
+                        <svg viewBox="0 0 100 100" className="w-20 h-20 text-slate-800" fill="currentColor">
+                          <rect x="5" y="5" width="26" height="26" fill="#0F172A" rx="4" />
+                          <rect x="9" y="9" width="18" height="18" fill="#FFFFFF" rx="2" />
+                          <rect x="13" y="13" width="10" height="10" fill="#3B82F6" rx="1.5" />
+
+                          <rect x="69" y="5" width="26" height="26" fill="#0F172A" rx="4" />
+                          <rect x="73" y="9" width="18" height="18" fill="#FFFFFF" rx="2" />
+                          <rect x="77" y="13" width="10" height="10" fill="#3B82F6" rx="1.5" />
+
+                          <rect x="5" y="69" width="26" height="26" fill="#0F172A" rx="4" />
+                          <rect x="9" y="73" width="18" height="18" fill="#FFFFFF" rx="2" />
+                          <rect x="13" y="77" width="10" height="10" fill="#3B82F6" rx="1.5" />
+
+                          <circle cx="45" cy="20" r="3" fill="#0F172A" />
+                          <circle cx="55" cy="20" r="3" fill="#0F172A" />
+                          <circle cx="50" cy="35" r="3.5" fill="#0F172A" />
+                          <circle cx="35" cy="50" r="3" fill="#0F172A" />
+                          <circle cx="65" cy="50" r="3" fill="#0F172A" />
+                          <circle cx="50" cy="65" r="3" fill="#0F172A" />
+                          <circle cx="40" cy="80" r="3" fill="#0F172A" />
+                          <circle cx="60" cy="80" r="3" fill="#0F172A" />
+                          <rect x="42" y="42" width="16" height="16" fill="#3B82F6" rx="3" />
+                          <text x="50" y="53" fontFamily="'Orbitron', sans-serif" fontWeight="950" fontSize="10" fill="#FFFFFF" textAnchor="middle">M</text>
+                        </svg>
+                      </div>
+
+                      <p className="text-[8px] font-extrabold uppercase tracking-wider text-slate-400 mt-2">Scan with any UPI app</p>
+                    </div>
+
+                    {/* VPA Copy Pill */}
+                    <div 
+                      onClick={() => handleCopyStep1Vpa('pay.mymob@yesbank')}
+                      className="bg-white border border-slate-200/90 rounded-xl px-2.5 py-1.5 flex items-center justify-between cursor-pointer hover:border-blue-300 transition-all text-[9px]"
+                    >
+                      <div className="flex items-center gap-1.5 truncate">
+                        <span className="text-slate-400 font-bold uppercase text-[8px]">VPA:</span>
+                        <span className="font-mono font-bold text-slate-800 truncate">pay.mymob@yesbank</span>
+                      </div>
+                      <span className={`text-[9px] font-bold flex items-center gap-1 flex-shrink-0 ${step1Copied ? 'text-emerald-600' : 'text-blue-600'}`}>
+                        {step1Copied ? (
+                          <>
+                            <Check className="w-2.5 h-2.5" />
+                            <span>Copied</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-2.5 h-2.5" />
+                            <span>Copy</span>
+                          </>
+                        )}
+                      </span>
+                    </div>
+
+                    {/* Universal UPI Indicators */}
+                    <div className="grid grid-cols-4 gap-1 pt-0.5">
+                      {[
+                        { name: 'GPay', dot: 'bg-blue-500' },
+                        { name: 'PhonePe', dot: 'bg-purple-600' },
+                        { name: 'Paytm', dot: 'bg-sky-500' },
+                        { name: 'BHIM', dot: 'bg-emerald-600' },
+                      ].map(app => (
+                        <div key={app.name} className="bg-white border border-slate-200/80 rounded-lg py-1 px-1 flex items-center justify-center gap-1 font-bold text-[8px] text-slate-700">
+                          <span className={`w-1.5 h-1.5 rounded-full ${app.dot}`} />
+                          <span>{app.name}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="bg-slate-50/90 border border-slate-200 rounded-2xl p-4 space-y-3 relative overflow-hidden transition-all">
+                    <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
+                      <div className="flex items-center gap-1.5">
+                        <Building2 className="w-3 h-3 text-indigo-500" />
+                        <span className="text-[10px] font-black text-slate-800">Direct Bank Transfer</span>
+                      </div>
+                      <span className="text-[8px] font-extrabold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-200">
+                        0% MDR Rail
+                      </span>
+                    </div>
+
+                    {/* Bank Account Details Card */}
+                    <div className="bg-white border border-slate-200/90 rounded-xl p-2.5 space-y-1.5 text-[9px]">
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-400 font-bold">Bank Name:</span>
+                        <span className="font-bold text-slate-800">HDFC Bank (Current A/c)</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-400 font-bold">A/c Number:</span>
+                        <span className="font-mono font-bold text-slate-900 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200/60">50200034928190</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-400 font-bold">IFSC Code:</span>
+                        <span className="font-mono font-bold text-indigo-600">HDFC0001234</span>
+                      </div>
+                    </div>
+
+                    {/* UTR Input Mock */}
+                    <div className="bg-white border border-slate-200/90 rounded-xl p-2 flex items-center justify-between text-[9px]">
+                      <span className="text-slate-400 font-bold">Enter 12-digit UTR:</span>
+                      <span className="font-mono font-bold text-slate-700">4291084920</span>
+                    </div>
+
+                    <div className="bg-emerald-50 border border-emerald-200 rounded-lg py-1 px-2 flex items-center justify-between text-[8px] font-bold text-emerald-800">
+                      <span>✓ High-Value Orders (&gt; ₹2,000)</span>
+                      <span className="text-emerald-600">100% Free</span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Text Content */}
-                <div className="space-y-2">
-                  <h3 className="text-xl font-black text-slate-900">Customer Pays via UPI or IMPS</h3>
+                <div className="space-y-1.5">
+                  <h3 className="text-lg font-black text-slate-900">Customer Pays via UPI or IMPS</h3>
                   <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                    Customer opens any installed UPI application to scan and pay, or transfers directly via IMPS / NEFT for zero-fee high-value orders.
+                    Buyers scan dynamic UPI QR from any app or transfer directly via IMPS / NEFT for zero-fee high-value orders, completely bypassing the 2026 MDR fees.
                   </p>
                 </div>
               </div>
 
-              <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-400">
-                <span>Speed: Instant</span>
+              <div className="mt-6 pt-3.5 border-t border-slate-100 flex items-center justify-between text-[10px] font-bold text-slate-400 relative z-10">
+                <span>Speed: Instant (&lt;3s)</span>
                 <span className="text-blue-600 flex items-center gap-1">Dual Rails Active <CheckCircle2 className="w-3.5 h-3.5 text-blue-500" /></span>
               </div>
             </div>
 
             {/* STEP 2: P2P Direct Banking Pipeline */}
-            <div className="bg-white border border-slate-200 rounded-3xl p-7 shadow-[0_10px_30px_rgba(15,23,42,0.05)] hover:shadow-[0_20px_50px_rgba(99,102,241,0.12)] hover:-translate-y-1.5 transition-all duration-300 group flex flex-col justify-between relative overflow-hidden">
-              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="bg-white/95 backdrop-blur-sm border border-slate-200/90 hover:border-indigo-400/70 rounded-3xl p-6 sm:p-7 shadow-[0_10px_35px_rgba(15,23,42,0.05)] hover:shadow-[0_22px_50px_rgba(99,102,241,0.12)] hover:-translate-y-1.5 transition-all duration-300 group flex flex-col justify-between relative overflow-hidden">
+              <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600" />
+              <div className="absolute -top-3 -right-1 text-8xl font-black text-slate-100/70 select-none pointer-events-none group-hover:text-indigo-50/80 transition-colors">02</div>
               
-              <div className="space-y-6">
+              <div className="space-y-5 relative z-10">
                 {/* Step Pill */}
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-black tracking-widest uppercase bg-indigo-50 text-indigo-600 border border-indigo-200 px-2.5 py-1 rounded-full">
-                    Step 02 · Route
+                  <span className="text-[10px] font-black tracking-widest uppercase bg-indigo-50 text-indigo-600 border border-indigo-200 px-2.5 py-1 rounded-full flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-600" />
+                    Step 02 · Direct Route
                   </span>
-                  <span className="text-[11px] font-bold text-slate-400">0% Intermediary Fee</span>
+                  <span className="text-[11px] font-bold text-slate-400 bg-slate-100/70 px-2 py-0.5 rounded-md border border-slate-200/60">
+                    0% Escrow
+                  </span>
                 </div>
 
                 {/* Fintech Network Pipeline Visual */}
-                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-4 relative">
-                  <div className="flex items-center justify-between relative">
+                <div className="bg-slate-50/90 border border-slate-200 rounded-2xl p-4 space-y-3.5 relative">
+                  
+                  <div className="flex items-center justify-between relative pt-1">
                     {/* Buyer Bank Node */}
-                    <div className="flex flex-col items-center gap-1.5 z-10">
-                      <div className="w-12 h-12 rounded-2xl bg-white border-2 border-blue-500 shadow-sm flex items-center justify-center">
+                    <div className="flex flex-col items-center gap-1 z-10">
+                      <div className="w-11 h-11 rounded-2xl bg-white border-2 border-blue-500 shadow-sm flex items-center justify-center">
                         <Landmark className="w-5 h-5 text-blue-600" />
                       </div>
                       <span className="text-[9px] font-black text-slate-800">Buyer Bank</span>
-                      <span className="text-[8px] font-bold text-slate-400">HDFC / ICICI</span>
+                      <span className="text-[8px] font-extrabold text-blue-600 bg-blue-50 px-1.5 py-0.2 rounded border border-blue-200/60">Debited ₹500</span>
                     </div>
 
-                    {/* Animated Connecting Track */}
-                    <div className="flex-1 mx-2 relative h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                      <div className="absolute inset-y-0 w-8 bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-500 rounded-full animate-progress" />
+                    {/* Animated Flow Track 1 */}
+                    <div className="flex-1 mx-1.5 relative h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                      <div className="absolute inset-y-0 w-8 bg-gradient-to-r from-blue-500 via-indigo-500 to-indigo-600 rounded-full animate-progress" />
                     </div>
 
                     {/* Central Protocol Shield */}
-                    <div className="flex flex-col items-center gap-1.5 z-10">
-                      <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white shadow-md shadow-indigo-500/25 flex items-center justify-center">
+                    <div className="flex flex-col items-center gap-1 z-10">
+                      <div className="w-11 h-11 rounded-2xl bg-indigo-600 text-white shadow-md shadow-indigo-500/25 flex items-center justify-center relative">
                         <Zap className="w-5 h-5 text-amber-300" />
+                        <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-400"></span>
+                        </span>
                       </div>
                       <span className="text-[9px] font-black text-indigo-700">MyMobPay</span>
-                      <span className="text-[8px] font-bold text-slate-400">P2P Engine</span>
+                      <span className="text-[8px] font-extrabold text-indigo-600 bg-indigo-50 px-1.5 py-0.2 rounded border border-indigo-200/60">Direct Tunnel</span>
                     </div>
 
-                    {/* Animated Connecting Track */}
-                    <div className="flex-1 mx-2 relative h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                    {/* Animated Flow Track 2 */}
+                    <div className="flex-1 mx-1.5 relative h-1.5 bg-slate-200 rounded-full overflow-hidden">
                       <div className="absolute inset-y-0 w-8 bg-gradient-to-r from-indigo-500 via-emerald-400 to-emerald-500 rounded-full animate-progress" />
                     </div>
 
                     {/* Merchant Bank Node */}
-                    <div className="flex flex-col items-center gap-1.5 z-10">
-                      <div className="w-12 h-12 rounded-2xl bg-white border-2 border-emerald-500 shadow-sm flex items-center justify-center">
+                    <div className="flex flex-col items-center gap-1 z-10">
+                      <div className="w-11 h-11 rounded-2xl bg-white border-2 border-emerald-500 shadow-sm flex items-center justify-center">
                         <ShieldCheck className="w-5 h-5 text-emerald-600" />
                       </div>
                       <span className="text-[9px] font-black text-slate-800">Your Bank</span>
-                      <span className="text-[8px] font-bold text-emerald-600">0% Escrow</span>
+                      <span className="text-[8px] font-extrabold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200/60">+ ₹500.00</span>
+                    </div>
+                  </div>
+
+                  {/* Architecture Badges Grid */}
+                  <div className="grid grid-cols-3 gap-1.5 pt-1">
+                    <div className="bg-white border border-slate-200/80 rounded-xl p-1.5 text-center">
+                      <p className="text-[7.5px] font-extrabold uppercase text-slate-400">Intermediary</p>
+                      <p className="text-[9px] font-black text-slate-800">Zero (0%)</p>
+                    </div>
+                    <div className="bg-white border border-slate-200/80 rounded-xl p-1.5 text-center">
+                      <p className="text-[7.5px] font-extrabold uppercase text-slate-400">Escrow Hold</p>
+                      <p className="text-[9px] font-black text-emerald-600">0.00s Delay</p>
+                    </div>
+                    <div className="bg-white border border-slate-200/80 rounded-xl p-1.5 text-center">
+                      <p className="text-[7.5px] font-extrabold uppercase text-slate-400">Banking Rails</p>
+                      <p className="text-[9px] font-black text-indigo-600">NPCI / IMPS</p>
                     </div>
                   </div>
 
                   {/* Feature Chip below pipeline */}
-                  <div className="bg-white border border-slate-200/90 rounded-xl p-2.5 flex items-center justify-between text-[10px] font-bold text-slate-600 shadow-xs">
+                  <div className="bg-white border border-slate-200/90 rounded-xl p-2 flex items-center justify-between text-[9px] font-bold text-slate-600 shadow-xs">
                     <span className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                      NPCI Protocol Route
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                      Encrypted Rail Dispatch
                     </span>
-                    <span className="text-indigo-600 font-black">Direct VPA Deposit</span>
+                    <span className="text-indigo-600 font-black">Direct Account Credit</span>
                   </div>
                 </div>
 
                 {/* Text Content */}
-                <div className="space-y-2">
-                  <h3 className="text-xl font-black text-slate-900">Direct Account-to-Account Route</h3>
+                <div className="space-y-1.5">
+                  <h3 className="text-lg font-black text-slate-900">Direct Account-to-Account Route</h3>
                   <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                    Transactions route directly through bank UPI rail parameters into your own merchant account. Zero escrow holding accounts.
+                    Transactions route directly through bank UPI and IMPS rail parameters into your own merchant account. Zero escrow pools, no 2-day holding jail.
                   </p>
                 </div>
               </div>
 
-              <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-400">
+              <div className="mt-6 pt-3.5 border-t border-slate-100 flex items-center justify-between text-[10px] font-bold text-slate-400 relative z-10">
                 <span>Intermediaries: Zero</span>
-                <span className="text-indigo-600 flex items-center gap-1">Encrypted Rail <CheckCircle2 className="w-3.5 h-3.5 text-indigo-500" /></span>
+                <span className="text-indigo-600 flex items-center gap-1">Encrypted Tunnel <CheckCircle2 className="w-3.5 h-3.5 text-indigo-500" /></span>
               </div>
             </div>
 
             {/* STEP 3: Real-Time Verified Settlement & Webhook */}
-            <div className="bg-white border border-slate-200 rounded-3xl p-7 shadow-[0_10px_30px_rgba(15,23,42,0.05)] hover:shadow-[0_20px_50px_rgba(16,185,129,0.12)] hover:-translate-y-1.5 transition-all duration-300 group flex flex-col justify-between relative overflow-hidden">
-              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="bg-white/95 backdrop-blur-sm border border-slate-200/90 hover:border-emerald-400/70 rounded-3xl p-6 sm:p-7 shadow-[0_10px_35px_rgba(15,23,42,0.05)] hover:shadow-[0_22px_50px_rgba(16,185,129,0.12)] hover:-translate-y-1.5 transition-all duration-300 group flex flex-col justify-between relative overflow-hidden">
+              <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-600" />
+              <div className="absolute -top-3 -right-1 text-8xl font-black text-slate-100/70 select-none pointer-events-none group-hover:text-emerald-50/80 transition-colors">03</div>
               
-              <div className="space-y-6">
+              <div className="space-y-5 relative z-10">
                 {/* Step Pill */}
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-black tracking-widest uppercase bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full">
-                    Step 03 · Settle
+                  <span className="text-[10px] font-black tracking-widest uppercase bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                    Step 03 · Instant Settle
                   </span>
-                  <span className="text-[11px] font-bold text-slate-400">Instant Liquidity</span>
+                  <span className="text-[11px] font-bold text-slate-400 bg-slate-100/70 px-2 py-0.5 rounded-md border border-slate-200/60">
+                    T+0 Liquidity
+                  </span>
                 </div>
 
-                {/* Light Instant Settlement Confirmation Panel */}
-                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
-                  <div className="bg-white border border-slate-200 rounded-xl p-3.5 space-y-2 shadow-xs">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Settlement Alert</span>
-                      <span className="text-[8px] font-black uppercase text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-                        ✓ Confirmed
-                      </span>
-                    </div>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-sm font-bold text-slate-400">₹</span>
-                      <span className="text-2xl font-black text-slate-900 tracking-tight">500.00</span>
-                      <span className="text-[10px] font-bold text-emerald-600 ml-1">in your bank</span>
-                    </div>
-                    <div className="pt-2 border-t border-slate-100 grid grid-cols-2 gap-2 text-[9px] font-semibold text-slate-500">
-                      <div>UTR: <span className="font-mono text-slate-900 font-bold">4291084920</span></div>
-                      <div className="text-right">Speed: <span className="text-emerald-600 font-bold">0.0s (Live)</span></div>
-                    </div>
-                  </div>
-
-                  {/* Webhook Response Badge */}
-                  <div className="bg-emerald-50/80 border border-emerald-200 rounded-xl px-3 py-2 flex items-center justify-between text-[9px]">
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                      <span className="font-mono font-bold text-emerald-900">POST /webhook 200 OK</span>
-                    </div>
-                    <span className="font-bold text-emerald-700">138ms</span>
-                  </div>
+                {/* Interactive Mode Switcher for Demo */}
+                <div className="bg-slate-100/90 p-1 rounded-xl flex items-center gap-1 border border-slate-200/80">
+                  <button
+                    type="button"
+                    onClick={() => setStep3Tab('sms')}
+                    className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-black transition-all flex items-center justify-center gap-1.5 ${
+                      step3Tab === 'sms'
+                        ? 'bg-white text-emerald-700 shadow-xs border border-slate-200/80'
+                        : 'text-slate-500 hover:text-slate-900'
+                    }`}
+                  >
+                    <Bell className="w-3 h-3 text-emerald-600" />
+                    <span>Bank SMS Alert</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStep3Tab('webhook')}
+                    className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-black transition-all flex items-center justify-center gap-1.5 ${
+                      step3Tab === 'webhook'
+                        ? 'bg-white text-slate-900 shadow-xs border border-slate-200/80'
+                        : 'text-slate-500 hover:text-slate-900'
+                    }`}
+                  >
+                    <Terminal className="w-3 h-3 text-slate-700" />
+                    <span>Webhook Payload</span>
+                  </button>
                 </div>
+
+                {/* Visual View */}
+                {step3Tab === 'sms' ? (
+                  <div className="bg-slate-50/90 border border-slate-200 rounded-2xl p-4 space-y-3 relative overflow-hidden transition-all">
+                    {/* Bank Notification Header */}
+                    <div className="bg-white border border-slate-200/90 rounded-xl p-3 space-y-2 shadow-xs">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-5 h-5 rounded-lg bg-blue-600 text-white flex items-center justify-center font-black text-[9px]">
+                            H
+                          </div>
+                          <div>
+                            <p className="text-[9px] font-black text-slate-800 leading-tight">HDFC Bank Alert</p>
+                            <p className="text-[7.5px] font-bold text-slate-400">Just now · Verified</p>
+                          </div>
+                        </div>
+                        <span className="text-[8px] font-black uppercase text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                          ✓ Settled
+                        </span>
+                      </div>
+
+                      <div className="bg-slate-50 rounded-lg p-2 border border-slate-200/60">
+                        <p className="text-[9px] font-semibold text-slate-700 leading-relaxed">
+                          A/c **4920 credited with <strong className="text-slate-950 font-black">INR 500.00</strong> on 17-Sep-26 via UPI/IMPS Ref: <span className="font-mono text-blue-600 font-bold">4291084920</span>. Net Bal: INR 4,82,100.00
+                        </p>
+                      </div>
+
+                      <div className="pt-1.5 grid grid-cols-2 gap-2 text-[9px] font-semibold text-slate-500">
+                        <div>UTR: <span className="font-mono text-slate-900 font-bold">4291084920</span></div>
+                        <div className="text-right">Speed: <span className="text-emerald-600 font-bold">0.0s (Live)</span></div>
+                      </div>
+                    </div>
+
+                    {/* Webhook Response Bar */}
+                    <div className="bg-emerald-50/90 border border-emerald-200 rounded-xl px-3 py-2 flex items-center justify-between text-[9px]">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                        <span className="font-mono font-bold text-emerald-950">POST /webhook 200 OK</span>
+                      </div>
+                      <span className="font-bold text-emerald-700">138ms</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 space-y-2.5 text-white transition-all font-mono">
+                    <div className="flex items-center justify-between border-b border-slate-800 pb-2 text-[9px]">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-2 h-2 rounded-full bg-rose-500" />
+                        <div className="w-2 h-2 rounded-full bg-amber-500" />
+                        <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                        <span className="text-slate-400 ml-1">POST /api/webhook</span>
+                      </div>
+                      <span className="text-emerald-400 font-bold">200 OK · 138ms</span>
+                    </div>
+
+                    <div className="text-[9px] text-slate-300 space-y-0.5 leading-tight">
+                      <p><span className="text-blue-400">&quot;event&quot;</span>: <span className="text-emerald-300">&quot;payment.succeeded&quot;</span>,</p>
+                      <p><span className="text-blue-400">&quot;amount&quot;</span>: <span className="text-amber-300">500.00</span>,</p>
+                      <p><span className="text-blue-400">&quot;fee_deducted&quot;</span>: <span className="text-emerald-300">0.00</span>,</p>
+                      <p><span className="text-blue-400">&quot;utr&quot;</span>: <span className="text-slate-100">&quot;4291084920&quot;</span>,</p>
+                      <p><span className="text-blue-400">&quot;signature&quot;</span>: <span className="text-slate-400">&quot;sha256_verified&quot;</span></p>
+                    </div>
+
+                    <div className="pt-1 border-t border-slate-800 flex items-center justify-between text-[8px] text-slate-400">
+                      <span>HMAC-SHA256 Signed</span>
+                      <span className="text-emerald-400 font-bold">Zero Latency</span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Text Content */}
-                <div className="space-y-2">
-                  <h3 className="text-xl font-black text-slate-900">0-Second Settlement & Webhook</h3>
-                  <p className="text-xs text-slate-550 font-medium leading-relaxed">
+                <div className="space-y-1.5">
+                  <h3 className="text-lg font-black text-slate-900">0-Second Settlement &amp; Webhook</h3>
+                  <p className="text-xs text-slate-500 font-medium leading-relaxed">
                     Funds hit your private bank account instantly. An HMAC SHA-256 cryptographically signed webhook notifies your servers in under 200ms.
                   </p>
                 </div>
               </div>
 
-              <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-400">
+              <div className="mt-6 pt-3.5 border-t border-slate-100 flex items-center justify-between text-[10px] font-bold text-slate-400 relative z-10">
                 <span>Hold Time: 0 Days</span>
                 <span className="text-emerald-600 flex items-center gap-1">Auto-Matched <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /></span>
               </div>
             </div>
 
+          </div>
+
+          {/* Bottom High-Converting Liquidity Banner */}
+          <div className="bg-gradient-to-r from-slate-900 via-slate-950 to-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+            <div className="absolute -top-24 -right-24 w-72 h-72 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+              <div className="lg:col-span-7 space-y-2 text-center lg:text-left">
+                <div className="inline-flex items-center gap-2 text-blue-400 text-xs font-black uppercase tracking-wider">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>The MyMobPay Zero-Escrow Guarantee</span>
+                </div>
+                <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                  Stop losing 2% fees and waiting days for your own money
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-400 font-medium leading-relaxed">
+                  Traditional payment gateways lock your revenue in escrow holding pools for 48 to 72 hours while charging you 2% + 18% GST. With MyMobPay, 100% of customer funds settle directly into your private bank account at 0 seconds delay.
+                </p>
+              </div>
+
+              <div className="lg:col-span-5 grid grid-cols-3 gap-3 border-t lg:border-t-0 lg:border-l border-slate-800 pt-4 lg:pt-0 lg:pl-6 text-center">
+                <div className="space-y-1">
+                  <p className="text-2xl sm:text-3xl font-black text-emerald-400 tracking-tight">0.0s</p>
+                  <p className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">Settlement Delay</p>
+                </div>
+                <div className="space-y-1 border-x border-slate-800 px-2">
+                  <p className="text-2xl sm:text-3xl font-black text-blue-400 tracking-tight">0.0%</p>
+                  <p className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">MDR Gateway Tax</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-2xl sm:text-3xl font-black text-amber-400 tracking-tight">100%</p>
+                  <p className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">Direct Custody</p>
+                </div>
+              </div>
+            </div>
           </div>
 
         </div>
