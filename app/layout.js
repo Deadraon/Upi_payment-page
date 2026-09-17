@@ -1,4 +1,11 @@
 import "./globals.css";
+import { Inter } from "next/font/google";
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+});
 
 // ── Next.js 14: viewport config must be a separate export ─────
 export const viewport = {
@@ -153,14 +160,6 @@ export default function RootLayout({ children }) {
             `
           }}
         />
-        {/* Fonts */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cinzel:wght@700;800&family=Orbitron:wght@700;800;900&family=Outfit:wght@500;700;800&family=Space+Grotesk:wght@500;700&family=Syne:wght@700;800&display=swap"
-          rel="stylesheet"
-        />
-
         {/* Preload OG banner so it's cached fast */}
         <link rel="preload" as="image" href="/og-banner.png" />
 
@@ -273,8 +272,7 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body
-        className="antialiased bg-slate-50 text-slate-900 selection:bg-blue-500/30 selection:text-white"
-        style={{ fontFamily: "'Inter', sans-serif" }}
+        className={`${inter.variable} ${inter.className} font-sans antialiased bg-slate-50 text-slate-900 selection:bg-blue-500/30 selection:text-white`}
       >
         {children}
       </body>
