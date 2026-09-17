@@ -861,13 +861,24 @@ export default function HomePage() {
             </p>
           </div>
 
-          {/* 3 Clean & Minimal Cards */}
+          {/* 3 Clean & Minimal Cards with Real Images */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
 
             {/* STEP 1: Scan or Transfer */}
-            <div className="bg-white border border-slate-200 rounded-3xl p-7 shadow-xs hover:shadow-md transition-all flex flex-col justify-between">
+            <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-7 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group">
               <div className="space-y-5">
-                <div className="flex items-center justify-between">
+                {/* 3D Step Image */}
+                <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 shadow-inner">
+                  <Image
+                    src="/images/step_1_scan.jpg"
+                    alt="Customer scans UPI QR code"
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between pt-1">
                   <div className="flex items-center gap-2">
                     <span className="w-7 h-7 rounded-full bg-blue-50 text-blue-600 font-black text-xs flex items-center justify-center border border-blue-200/80">
                       01
@@ -879,22 +890,10 @@ export default function HomePage() {
                   </span>
                 </div>
 
-                {/* Minimal QR Display */}
-                <div className="bg-slate-50 border border-slate-200/70 rounded-2xl p-5 flex flex-col items-center justify-center space-y-3">
-                  <div className="p-3.5 bg-white border border-slate-200/80 rounded-xl shadow-xs">
-                    <QrCode className="w-20 h-20 text-slate-800" />
-                  </div>
-                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500">
-                    <span>UPI QR</span>
-                    <span>•</span>
-                    <span>IMPS Bank Transfer</span>
-                  </div>
-                </div>
-
                 <div className="space-y-1.5">
-                  <h3 className="text-lg font-black text-slate-900">Customer Pays via UPI or IMPS</h3>
+                  <h3 className="text-lg font-black text-slate-900">Customer Scans &amp; Pays</h3>
                   <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                    Customer opens any installed UPI app to scan and pay, or transfers directly via IMPS / NEFT for zero-fee high-value orders.
+                    Customer opens any installed UPI application to scan and pay, or transfers directly via IMPS / NEFT for zero-fee high-value orders.
                   </p>
                 </div>
               </div>
@@ -906,9 +905,20 @@ export default function HomePage() {
             </div>
 
             {/* STEP 2: Direct Route */}
-            <div className="bg-white border border-slate-200 rounded-3xl p-7 shadow-xs hover:shadow-md transition-all flex flex-col justify-between">
+            <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-7 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group">
               <div className="space-y-5">
-                <div className="flex items-center justify-between">
+                {/* 3D Step Image */}
+                <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 shadow-inner">
+                  <Image
+                    src="/images/step_2_route.jpg"
+                    alt="Direct bank-to-bank transfer routing with zero middleman"
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between pt-1">
                   <div className="flex items-center gap-2">
                     <span className="w-7 h-7 rounded-full bg-indigo-50 text-indigo-600 font-black text-xs flex items-center justify-center border border-indigo-200/80">
                       02
@@ -918,33 +928,6 @@ export default function HomePage() {
                   <span className="text-[10px] font-extrabold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200/60">
                     0% Escrow
                   </span>
-                </div>
-
-                {/* Minimal Route Diagram */}
-                <div className="bg-slate-50 border border-slate-200/70 rounded-2xl p-5 flex flex-col items-center justify-center min-h-[158px]">
-                  <div className="flex items-center justify-between w-full px-1">
-                    <div className="flex flex-col items-center gap-1.5">
-                      <div className="w-11 h-11 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center justify-center text-blue-600">
-                        <Smartphone className="w-5 h-5" />
-                      </div>
-                      <span className="text-[10px] font-bold text-slate-700">Buyer</span>
-                    </div>
-
-                    <div className="flex-1 mx-3 flex flex-col items-center">
-                      <span className="text-[9px] font-bold text-emerald-600 mb-1">Direct Deposit</span>
-                      <div className="w-full h-0.5 bg-slate-200 relative flex items-center justify-center">
-                        <ArrowRight className="w-3.5 h-3.5 text-slate-400 absolute" />
-                      </div>
-                      <span className="text-[8px] font-semibold text-slate-400 mt-1">No Escrow Pool</span>
-                    </div>
-
-                    <div className="flex flex-col items-center gap-1.5">
-                      <div className="w-11 h-11 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center justify-center text-emerald-600">
-                        <Landmark className="w-5 h-5" />
-                      </div>
-                      <span className="text-[10px] font-bold text-slate-700">Your Bank</span>
-                    </div>
-                  </div>
                 </div>
 
                 <div className="space-y-1.5">
@@ -962,9 +945,20 @@ export default function HomePage() {
             </div>
 
             {/* STEP 3: Instant Settlement */}
-            <div className="bg-white border border-slate-200 rounded-3xl p-7 shadow-xs hover:shadow-md transition-all flex flex-col justify-between">
+            <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-7 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group">
               <div className="space-y-5">
-                <div className="flex items-center justify-between">
+                {/* 3D Step Image */}
+                <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 shadow-inner">
+                  <Image
+                    src="/images/step_3_settle.jpg"
+                    alt="Instant bank credit and liquidity settlement"
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between pt-1">
                   <div className="flex items-center gap-2">
                     <span className="w-7 h-7 rounded-full bg-emerald-50 text-emerald-600 font-black text-xs flex items-center justify-center border border-emerald-200/80">
                       03
@@ -974,29 +968,6 @@ export default function HomePage() {
                   <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
                     Live Webhook
                   </span>
-                </div>
-
-                {/* Minimal Settlement Alert */}
-                <div className="bg-slate-50 border border-slate-200/70 rounded-2xl p-5 flex flex-col items-center justify-center min-h-[158px] space-y-2.5">
-                  <div className="bg-white border border-slate-200/80 rounded-xl px-3.5 py-2.5 flex items-center justify-between w-full shadow-xs">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0">
-                        <CheckCircle2 className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-black text-slate-900">₹500.00 in your bank</p>
-                        <p className="text-[9px] font-bold text-slate-400">Instant T+0 Settlement</p>
-                      </div>
-                    </div>
-                    <span className="text-[8px] font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-                      ✓ Settled
-                    </span>
-                  </div>
-
-                  <div className="bg-white/80 border border-slate-200/60 rounded-xl px-3 py-1.5 flex items-center justify-between w-full text-[10px] font-mono text-slate-500">
-                    <span>POST /webhook</span>
-                    <span className="text-emerald-600 font-bold">200 OK (138ms)</span>
-                  </div>
                 </div>
 
                 <div className="space-y-1.5">
