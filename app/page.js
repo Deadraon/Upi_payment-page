@@ -467,215 +467,142 @@ export default function HomePage() {
 
           </div>
 
-          {/* Right Column: Razorpay-Grade Interactive Fintech Showcase */}
+          {/* Right Column Custom Render Mockup Graphic (Old Style Phone Scanner) */}
           <div className="lg:col-span-5 relative flex items-center justify-center lg:justify-end animate-scale-up">
             
-            {/* Soft Ambient Glow */}
-            <div className="absolute -inset-4 bg-gradient-to-tr from-blue-500/10 via-indigo-500/5 to-emerald-500/10 rounded-[36px] blur-2xl -z-10" />
-
-            {/* Showcase Card */}
-            <div className="w-full max-w-[430px] bg-white border border-slate-200/90 rounded-3xl shadow-[0_20px_50px_rgba(15,23,42,0.08),0_4px_12px_rgba(15,23,42,0.04)] overflow-hidden transition-all">
+            {/* Premium Interactive Phone Glow Container */}
+            <div className="phone-glow-container w-full max-w-[340px]">
               
-              {/* Top Interactive Tabs Header */}
-              <div className="bg-slate-50/90 border-b border-slate-200/80 px-4 py-2.5 flex items-center justify-between">
-                <div className="flex items-center gap-1.5 bg-slate-200/60 p-1 rounded-xl">
-                  <button
-                    type="button"
-                    onClick={() => setHeroTab('checkout')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
-                      heroTab === 'checkout'
-                        ? 'bg-white text-slate-900 shadow-xs'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    <Smartphone className="w-3.5 h-3.5 text-blue-600" />
-                    <span>Instant UPI</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setHeroTab('console')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
-                      heroTab === 'console'
-                        ? 'bg-white text-slate-900 shadow-xs'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    <Landmark className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Live console</span>
-                  </button>
-                </div>
+              {/* Dynamic breathing glowing background backdrop */}
+              <div className="phone-glow-backdrop animate-aurora-breathe" />
 
-                <div className="flex items-center gap-1.5 text-[11px] font-medium text-emerald-600 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-full">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>Live rail</span>
-                </div>
+              {/* Premium Phone Frame displaying Actual MyMobPay checkout screen */}
+              <div className="relative w-full bg-slate-900 border-8 border-slate-800 rounded-[44px] premium-phone-shadow overflow-hidden aspect-[9/18.5] flex flex-col">
+              
+              {/* Speaker / Camera Notch (Dynamic Island) */}
+              <div className="absolute top-0 inset-x-0 h-6 flex justify-center z-30">
+                <div className="bg-slate-800 w-28 h-4 rounded-b-2xl" />
               </div>
 
-              {heroTab === 'checkout' ? (
-                /* TAB 1: Instant UPI Checkout Experience */
-                <div className="p-6 space-y-5">
-                  {/* Merchant & Order Header */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm">
-                        M
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-1">
-                          <span className="text-xs font-bold text-slate-900">Acme Cloud Store</span>
-                          <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 fill-blue-50" />
-                        </div>
-                        <span className="text-[11px] text-slate-500 font-normal">Order #ORD-2026-9812</span>
+              {/* Internal Screen Content */}
+              <div className="flex-1 bg-[#0B192C] pt-8 px-5 pb-5 flex flex-col justify-between font-sans select-none text-white">
+                
+                {/* Header Info */}
+                <div className="space-y-4">
+                  
+                  {/* Status Bar */}
+                  <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 px-1">
+                    <span>10:42 AM</span>
+                    <div className="flex items-center gap-1">
+                      <span>LTE</span>
+                      <div className="w-4 h-2 border border-slate-350 rounded-sm p-0.5 flex items-center">
+                        <div className="bg-slate-400 w-full h-full rounded-xs" />
                       </div>
                     </div>
+                  </div>
 
-                    <div className="text-right">
-                      <span className="text-[10px] text-slate-500 font-medium block">Total due</span>
-                      <span className="text-xl font-bold text-slate-900">₹1,499.00</span>
+                  {/* Logo */}
+                  <div className="flex flex-col items-center justify-center pt-2">
+                    <MyMobPayLogo className="w-36 h-auto" textColor="#FFFFFF" />
+                    <p className="text-[10px] text-slate-400 font-medium tracking-wide mt-1">Direct bank checkout</p>
+                  </div>
+
+                  {/* Due amount card */}
+                  <div className="bg-[#0F1E36] border border-[#1D2D44] rounded-2xl p-4 shadow-sm space-y-2">
+                    <div className="flex justify-between items-center text-[10px] text-slate-400 font-semibold">
+                      <span>Total due</span>
+                      <span className="text-[#3395FF] font-semibold bg-[#0B2447] px-2 py-0.5 rounded text-[9px]">Direct bank rail</span>
+                    </div>
+                    <div className="flex items-baseline">
+                      <span className="text-sm font-bold text-slate-400 mr-0.5">₹</span>
+                      <span className="text-3xl font-bold text-white tracking-tight leading-none">
+                        {parseFloat(demoAmount || '500').toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                    <div className="pt-2 border-t border-[#1D2D44] flex justify-between text-[10px] font-medium text-slate-400">
+                      <span>Paying to:</span>
+                      <span className="font-semibold text-slate-200">Demo Store</span>
                     </div>
                   </div>
 
                   {/* QR Code Container */}
-                  <div className="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-5 flex flex-col items-center justify-center space-y-3 relative overflow-hidden">
-                    {/* Scanning highlight animation */}
-                    <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent animate-laser" />
+                  <div className="bg-white-pure border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col items-center justify-center space-y-3 relative overflow-hidden group">
+                    
+                    {/* Futuristic Scanning Laser line */}
+                    <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-[#3395FF] to-transparent top-0 animate-laser" />
 
-                    {/* Crisp Vector QR */}
-                    <div className="bg-white p-3 rounded-xl border border-slate-200/80 shadow-xs">
-                      <svg viewBox="0 0 100 100" className="w-32 h-32 text-slate-900" fill="currentColor">
-                        <rect x="0" y="0" width="100" height="100" fill="#ffffff" />
-                        <rect x="10" y="10" width="22" height="22" fill="#0F172A" rx="2" />
-                        <rect x="14" y="14" width="14" height="14" fill="#FFFFFF" rx="1" />
-                        <rect x="18" y="18" width="6" height="6" fill="#2563EB" />
+                    {/* Highly stylized SVG vector QR Code */}
+                    <svg viewBox="0 0 100 100" className="w-32 h-32 text-slate-800" fill="currentColor">
+                      {/* Quiet Zone borders */}
+                      <path d="M0,0 h28 v8 h-20 v20 h-8 z M72,0 h28 v28 h-8 v-20 h-20 z M0,72 h8 v20 h-20 v-28 h8 z M72,100 h28 v-28 h-8 v20 h-20 z" fill="#00529B" opacity="0.15" />
+                      
+                      {/* Dynamic Modules - Grid mock points */}
+                      <rect x="10" y="10" width="20" height="20" fill="#0F172A" rx="2" />
+                      <rect x="14" y="14" width="12" height="12" fill="#FFFFFF" rx="1.5" />
+                      <rect x="17" y="17" width="6" height="6" fill="#3B82F6" />
 
-                        <rect x="68" y="10" width="22" height="22" fill="#0F172A" rx="2" />
-                        <rect x="72" y="14" width="14" height="14" fill="#FFFFFF" rx="1" />
-                        <rect x="76" y="18" width="6" height="6" fill="#2563EB" />
+                      <rect x="70" y="10" width="20" height="20" fill="#0F172A" rx="2" />
+                      <rect x="74" y="14" width="12" height="12" fill="#FFFFFF" rx="1.5" />
+                      <rect x="77" y="17" width="6" height="6" fill="#3B82F6" />
 
-                        <rect x="10" y="68" width="22" height="22" fill="#0F172A" rx="2" />
-                        <rect x="14" y="72" width="14" height="14" fill="#FFFFFF" rx="1" />
-                        <rect x="18" y="76" width="6" height="6" fill="#2563EB" />
+                      <rect x="10" y="70" width="20" height="20" fill="#0F172A" rx="2" />
+                      <rect x="14" y="74" width="12" height="12" fill="#FFFFFF" rx="1.5" />
+                      <rect x="17" y="77" width="6" height="6" fill="#3B82F6" />
 
-                        {/* Data points */}
-                        <path d="M38,10 h6 v6 h-6 z M48,12 h6 v4 h-6 z M42,22 h8 v4 h-8 z M34,34 h8 v8 h-8 z M52,32 h10 v4 h-12 z M36,48 h12 v4 h-12 z M50,48 h6 v6 h-6 z M10,40 h6 v6 h-6 z M22,42 h8 v4 h-8 z M68,38 h6 v6 h-6 z M80,42 h8 v4 h-8 z M68,52 h12 v4 h-12 z M10,54 h6 v6 h-6 z M78,68 h10 v8 h-10 z M78,82 h8 v8 h-8 z M38,68 h6 v8 h-6 z M50,72 h8 v4 h-8 z M42,82 h12 v4 h-12 z" fill="#0F172A" />
+                      {/* Random mock QR dots */}
+                      <path d="M40,10 h6 v6 h-6 z M50,15 h8 v4 h-8 z M45,25 h10 v4 h-10 z M35,35 h8 v8 h-8 z M55,35 h12 v4 h-12 z M35,50 h12 v4 h-12 z M50,50 h6 v6 h-6 z M10,40 h8 v8 h-8 z M25,45 h10 v4 h-10 z M70,40 h8 v6 h-8 z M82,45 h8 v4 h-8 z M70,55 h12 v4 h-12 z M10,55 h6 v6 h-6 z M80,70 h10 v8 h-10 z M80,85 h8 v8 h-8 z M40,70 h6 v10 h-6 z M52,75 h8 v4 h-8 z M45,85 h12 v4 h-12 z" fill="#0F172A" />
+                      
+                      {/* Custom Center Logo */}
+                      <rect x="40" y="40" width="20" height="20" fill="#3B82F6" rx="4" />
+                      <text x="50" y="54" fontFamily="'Orbitron', sans-serif" fontWeight="950" fontSize="14" fill="#FFFFFF" textAnchor="middle">M</text>
+                    </svg>
 
-                        {/* Center Brand Badge */}
-                        <rect x="39" y="39" width="22" height="22" fill="#2563EB" rx="4" />
-                        <text x="50" y="55" fontFamily="'Inter', sans-serif" fontWeight="800" fontSize="13" fill="#FFFFFF" textAnchor="middle">M</text>
-                      </svg>
-                    </div>
+                    <span className="text-[9px] text-slate-400 font-semibold flex items-center gap-1">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> Auto-verify active
+                    </span>
 
-                    <div className="text-center space-y-0.5">
-                      <p className="text-xs font-semibold text-slate-800">Scan with any UPI app</p>
-                      <p className="text-[11px] text-slate-500 font-normal">GPay, PhonePe, Paytm, BHIM or Mobile Banking</p>
-                    </div>
                   </div>
 
-                  {/* Fast 1-Click Apps Selector */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium">
-                      <span>Or open installed UPI app</span>
-                      <span className="text-blue-600 font-semibold">1-click launch</span>
-                    </div>
-                    <div className="grid grid-cols-4 gap-2">
-                      {[
-                        { id: 'gpay', label: 'Google Pay' },
-                        { id: 'phonepe', label: 'PhonePe' },
-                        { id: 'paytm', label: 'Paytm' },
-                        { id: 'bhim', label: 'BHIM UPI' },
-                      ].map((app) => (
-                        <button
-                          key={app.id}
-                          type="button"
-                          onClick={() => setSelectedUpiApp(app.id)}
-                          className={`py-2 px-1 rounded-xl text-[11px] font-semibold border transition-all text-center ${
-                            selectedUpiApp === app.id
-                              ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                              : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
-                          }`}
-                        >
-                          {app.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Simulated Instant Settlement Alert */}
-                  <div className="p-3 bg-emerald-50/80 border border-emerald-200/80 rounded-xl flex items-start gap-2.5">
-                    <ShieldCheck className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
-                    <div className="text-[11px] text-emerald-900 leading-tight">
-                      <span className="font-semibold">Instant T+0 deposit:</span> ₹1,499 credited to your bank account with zero escrow delay & 0% gateway fee.
-                    </div>
-                  </div>
                 </div>
-              ) : (
-                /* TAB 2: Merchant Live Settlement Console */
-                <div className="p-6 space-y-5">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-slate-50 border border-slate-200/80 p-3.5 rounded-2xl">
-                      <span className="text-[10px] text-slate-500 font-medium block">Today&apos;s volume</span>
-                      <span className="text-xl font-bold text-slate-900">₹1,84,520</span>
-                      <span className="text-[10px] font-semibold text-emerald-600 block mt-0.5">+24.8% growth</span>
-                    </div>
-                    <div className="bg-blue-50/60 border border-blue-200/80 p-3.5 rounded-2xl">
-                      <span className="text-[10px] text-blue-700 font-medium block">Gateway savings</span>
-                      <span className="text-xl font-bold text-blue-900">₹3,690.40</span>
-                      <span className="text-[10px] font-semibold text-blue-700 block mt-0.5">0% MDR saved</span>
-                    </div>
-                  </div>
 
-                  {/* Live Stream of Orders */}
+                {/* Footer Section */}
+                <div className="space-y-4 pt-4 border-t border-slate-200">
+                  
+                  {/* Universal UPI Indicators */}
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium">
-                      <span>Recent transactions</span>
-                      <span className="text-emerald-600 font-semibold">Live feed</span>
-                    </div>
-
-                    <div className="space-y-2">
-                      {[
-                        { id: 'ORD-9821', amount: '₹2,500.00', method: 'UPI (PhonePe)', time: 'Just now' },
-                        { id: 'ORD-9820', amount: '₹1,499.00', method: 'Direct IMPS', time: '1m ago' },
-                        { id: 'ORD-9819', amount: '₹799.00', method: 'UPI (GPay)', time: '4m ago' },
-                      ].map((tx) => (
-                        <div key={tx.id} className="p-2.5 bg-slate-50 hover:bg-slate-100/80 border border-slate-200/70 rounded-xl flex items-center justify-between text-xs transition-colors">
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                            <div>
-                              <p className="font-semibold text-slate-900">{tx.id}</p>
-                              <p className="text-[10px] text-slate-500">{tx.method} · {tx.time}</p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-bold text-slate-900">{tx.amount}</p>
-                            <p className="text-[10px] text-emerald-600 font-semibold">T+0 Settled</p>
-                          </div>
-                        </div>
-                      ))}
+                    <p className="text-[9px] text-slate-400 font-medium text-center">Scan with any UPI app</p>
+                    <div className="grid grid-cols-4 gap-1.5">
+                      <span className="bg-[#0F1E36] border border-[#1D2D44] text-blue-400 text-[8px] font-semibold py-1 px-1 rounded-lg text-center">UPI QR</span>
+                      <span className="bg-[#0F1E36] border border-[#1D2D44] text-emerald-400 text-[8px] font-semibold py-1 px-1 rounded-lg text-center">Direct pay</span>
+                      <span className="bg-[#0F1E36] border border-[#1D2D44] text-indigo-400 text-[8px] font-semibold py-1 px-1 rounded-lg text-center">Instant rail</span>
+                      <span className="bg-[#0F1E36] border border-[#1D2D44] text-sky-400 text-[8px] font-semibold py-1 px-1 rounded-lg text-center">Auto-match</span>
                     </div>
                   </div>
 
-                  {/* Webhook Status */}
-                  <div className="p-3 bg-slate-900 text-white rounded-xl flex items-center justify-between text-xs font-mono">
-                    <div className="flex items-center gap-2">
-                      <span className="text-emerald-400 font-bold">200 OK</span>
-                      <span className="text-slate-300 text-[11px]">POST /api/webhook</span>
-                    </div>
-                    <span className="text-slate-400 text-[11px]">118ms</span>
+                  {/* Security copy */}
+                  <div className="flex items-center justify-center gap-1.5 text-[9px] font-medium text-slate-400 text-center">
+                    <Lock className="w-3 h-3 text-slate-400" /> Secure checkout by MyMobPay
                   </div>
+
                 </div>
-              )}
+
+              </div>
 
             </div>
 
-            {/* Floating Trust Chips */}
-            <div className="hidden sm:flex absolute -left-6 bottom-8 bg-white border border-slate-200/90 py-2 px-3.5 rounded-xl shadow-lg items-center gap-2 -rotate-2 animate-float">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span className="text-xs font-bold text-slate-800">HMAC SHA-256 verified</span>
+            </div> {/* closes phone-glow-container */}
+
+            {/* Metric float chips */}
+            <div className="absolute -left-6 top-1/4 bg-white border border-slate-200 p-4 rounded-2xl shadow-xl flex flex-col gap-1 -rotate-6 animate-float">
+              <span className="text-[10px] font-semibold text-blue-600 leading-none">Platform average</span>
+              <span className="text-[10px] font-medium text-slate-500 leading-none mt-0.5">Success rate</span>
+              <span className="text-xl font-bold text-slate-900 leading-none mt-1">99.98%</span>
             </div>
 
-            <div className="hidden sm:flex absolute -right-6 top-10 bg-white border border-slate-200/90 py-2 px-3.5 rounded-xl shadow-lg items-center gap-2 rotate-2 animate-float delay-500">
-              <Zap className="w-4 h-4 text-blue-600" />
-              <span className="text-xs font-bold text-slate-800">0s settlement delay</span>
+            <div className="absolute -right-6 bottom-1/4 bg-white border border-slate-200 p-4 rounded-2xl shadow-xl flex flex-col gap-1 rotate-6 animate-float delay-500">
+              <span className="text-[10px] font-semibold text-blue-600 leading-none">Real-time routing</span>
+              <span className="text-[10px] font-medium text-slate-500 leading-none mt-0.5">Settlement</span>
+              <span className="text-xl font-bold text-emerald-600 leading-none mt-1">0 seconds</span>
             </div>
 
           </div>
