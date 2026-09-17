@@ -116,6 +116,19 @@ export default function HomePage() {
          ORIGINAL FULL-WIDTH STATIC HEADER WITH MULTI-LAYERED SHADOWS
          ──────────────────────────────────────────────────────── */}
       <header className="fixed top-0 left-0 right-0 z-50 w-full bg-white border-b border-slate-200 shadow-[0_2px_8px_rgba(0,0,0,0.02),0_6px_20px_rgba(0,0,0,0.04)] transition-all">
+        {/* ── TOP ANNOUNCEMENT BANNER ── */}
+        <div className="w-full bg-gradient-to-r from-blue-700 via-indigo-700 to-emerald-700 text-white text-[11px] sm:text-xs font-semibold py-1.5 px-4 flex items-center justify-center gap-2 select-none border-b border-white/10 shadow-xs">
+          <span className="bg-emerald-400/25 text-emerald-200 font-black px-2 py-0.5 rounded-full text-[9px] uppercase tracking-wider border border-emerald-400/30">
+            ✨ Oct 2026 Ready
+          </span>
+          <span className="truncate">
+            <strong>Direct Bank Transfer (IMPS / NEFT)</strong> is live · Beat 2% gateway fees with <strong>100% 0% MDR</strong>!
+          </span>
+          <a href="#pricing-section" className="underline hover:text-emerald-200 font-bold hidden sm:inline ml-1">
+            Compare Savings →
+          </a>
+        </div>
+
         <div className="w-full px-6 md:px-10 h-20 flex items-center justify-between relative">
           
           {/* Logo */}
@@ -224,6 +237,25 @@ export default function HomePage() {
                         UPI QR Codes
                       </h5>
                       <p className="text-[12px] text-slate-500 font-medium leading-relaxed mt-0.5">Clean visual scan widgets built with react-qr.</p>
+                    </div>
+                  </div>
+
+                  <div 
+                    onClick={() => {
+                      setShowPaymentsMenu(false);
+                      document.getElementById('products-section')?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="flex items-start gap-4 p-2.5 hover:bg-emerald-50/50 rounded-2xl transition-all duration-300 group cursor-pointer"
+                  >
+                    <div className="w-10 h-10 bg-emerald-50 border border-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white group-hover:border-emerald-200 transition-colors shadow-sm">
+                      <Landmark className="w-5 h-5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <h5 className="text-[14.5px] font-extrabold text-slate-900 flex items-center gap-2 group-hover:text-emerald-700 transition-colors">
+                        Bank Transfer (IMPS)
+                        <span className="bg-emerald-100 text-emerald-800 text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider">0% MDR</span>
+                      </h5>
+                      <p className="text-[12px] text-slate-500 font-medium leading-relaxed mt-0.5">Auto-matched high-ticket transfers via bank email.</p>
                     </div>
                   </div>
                 </div>
@@ -431,7 +463,7 @@ export default function HomePage() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
-              <span>Direct P2P Settlement Active</span>
+              <span>⚡ UPI + Direct Bank Transfer (IMPS) Active · 100% Zero MDR</span>
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.08] animate-fade-up delay-100">
@@ -444,7 +476,7 @@ export default function HomePage() {
             </h1>
 
             <p className="text-base sm:text-lg text-slate-550 max-w-xl mx-auto lg:mx-0 font-medium leading-relaxed animate-fade-up delay-150">
-              Accept direct-to-bank UPI scans, sandbox payments, and instant automated bank matching on your SaaS with <strong>0% transaction fees</strong>.
+              Accept direct-to-bank UPI scans and <strong>Direct Bank Transfers (IMPS / NEFT)</strong> for high-ticket orders with <strong>0% transaction fees</strong> and real-time automated bank email matching.
             </p>
 
             {/* CTAs */}
@@ -463,8 +495,6 @@ export default function HomePage() {
               </Link>
             </div>
 
-
-
             {/* Micro proof counts */}
             <div className="pt-2 grid grid-cols-3 gap-2 sm:gap-6 max-w-md mx-auto lg:mx-0 text-slate-400 font-bold tracking-wider text-[8px] sm:text-[10px] animate-fade-up delay-300">
               <div>
@@ -472,12 +502,12 @@ export default function HomePage() {
                 <p className="mt-0.5 whitespace-nowrap">TRANSACTION FEES</p>
               </div>
               <div>
-                <p className="text-slate-900 text-xl sm:text-2xl font-black tracking-tight">100%</p>
-                <p className="mt-0.5 whitespace-nowrap">DIRECT BANK P2P</p>
+                <p className="text-slate-900 text-xl sm:text-2xl font-black tracking-tight">UPI + IMPS</p>
+                <p className="mt-0.5 whitespace-nowrap">DUAL PAYMENT RAILS</p>
               </div>
               <div>
-                <p className="text-slate-900 text-xl sm:text-2xl font-black tracking-tight">&lt; 200ms</p>
-                <p className="mt-0.5 whitespace-nowrap">WEBHOOK CALLBACK</p>
+                <p className="text-slate-900 text-xl sm:text-2xl font-black tracking-tight">&lt; 30s</p>
+                <p className="mt-0.5 whitespace-nowrap">AUTO-EMAIL SYNC</p>
               </div>
             </div>
 
@@ -841,9 +871,9 @@ export default function HomePage() {
                 {/* Step Pill */}
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-black tracking-widest uppercase bg-blue-50 text-blue-600 border border-blue-200 px-2.5 py-1 rounded-full">
-                    Step 01 · Scan
+                    Step 01 · Scan or Transfer
                   </span>
-                  <span className="text-[11px] font-bold text-slate-400">Universal UPI</span>
+                  <span className="text-[11px] font-bold text-slate-400">UPI + IMPS Rail</span>
                 </div>
 
                 {/* Sleek Light Mobile Checkout Visual */}
@@ -853,7 +883,7 @@ export default function HomePage() {
                       <Lock className="w-3 h-3 text-emerald-500" />
                       <span className="text-[10px] font-black text-slate-700">Checkout · ₹500</span>
                     </div>
-                    <span className="text-[8px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">Live QR</span>
+                    <span className="text-[8px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">Live Rails</span>
                   </div>
 
                   {/* QR Box with animated scanning laser line */}
@@ -885,14 +915,14 @@ export default function HomePage() {
                       <text x="50" y="53" fontFamily="'Orbitron', sans-serif" fontWeight="950" fontSize="10" fill="#FFFFFF" textAnchor="middle">M</text>
                     </svg>
 
-                    <p className="text-[8px] font-extrabold uppercase tracking-wider text-slate-400 mt-2">Scan with any UPI app</p>
+                    <p className="text-[8px] font-extrabold uppercase tracking-wider text-slate-400 mt-2">Scan UPI or Transfer IMPS</p>
                   </div>
 
                   {/* Universal UPI Indicators */}
                   <div className="grid grid-cols-4 gap-1.5 pt-1">
                     {[
                       { name: 'UPI QR', color: 'text-blue-600 bg-blue-50 border-blue-200' },
-                      { name: 'Direct Pay', color: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
+                      { name: 'IMPS Bank', color: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
                       { name: 'Instant Rail', color: 'text-indigo-600 bg-indigo-50 border-indigo-200' },
                       { name: 'Auto-Match', color: 'text-sky-600 bg-sky-50 border-sky-200' },
                     ].map(app => (
@@ -905,16 +935,16 @@ export default function HomePage() {
 
                 {/* Text Content */}
                 <div className="space-y-2">
-                  <h3 className="text-xl font-black text-slate-900">Customer Scans Any UPI App</h3>
+                  <h3 className="text-xl font-black text-slate-900">Customer Pays via UPI or IMPS</h3>
                   <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                    Customer opens any installed UPI application on their phone and scans the payment QR code or clicks your direct payment link.
+                    Customer opens any installed UPI application to scan and pay, or transfers directly via IMPS / NEFT for zero-fee high-value orders.
                   </p>
                 </div>
               </div>
 
               <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-400">
                 <span>Speed: Instant</span>
-                <span className="text-blue-600 flex items-center gap-1">100% App Coverage <CheckCircle2 className="w-3.5 h-3.5 text-blue-500" /></span>
+                <span className="text-blue-600 flex items-center gap-1">Dual Rails Active <CheckCircle2 className="w-3.5 h-3.5 text-blue-500" /></span>
               </div>
             </div>
 
@@ -1184,6 +1214,28 @@ export default function HomePage() {
               </div>
               <div className="font-mono text-xs text-slate-600 bg-white border border-slate-200/60 px-3 py-1.5 rounded-xl text-center sm:text-left">
                 (₹{monthlyVolume.toLocaleString('en-IN')} × 2% × 12) − (₹{subscriptionFee.toLocaleString('en-IN')} × 12) = <span className="font-bold text-emerald-600">₹{savings.annual.toLocaleString('en-IN')}</span>
+              </div>
+            </div>
+
+            {/* October 2026 MDR Protection Banner */}
+            <div className="p-5 bg-gradient-to-r from-blue-50 via-indigo-50/50 to-emerald-50 border border-emerald-200/90 rounded-2xl flex flex-col sm:flex-row items-start gap-4 shadow-xs">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <div className="space-y-1.5 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h4 className="text-sm font-black text-slate-900 uppercase tracking-wider">
+                    October 2026 MDR Protection Guarantee
+                  </h4>
+                  <span className="text-[9px] font-black uppercase bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full border border-emerald-300/60">
+                    100% 0% MDR Protected
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 font-medium leading-relaxed">
+                  While traditional payment gateways take <strong>2% to 2.36%</strong> on every transaction, MyMobPay keeps your profits intact. 
+                  All UPI payments under ₹2,000 remain <strong>0% MDR</strong>, and for high-ticket orders (₹5,000, ₹10,000, ₹50,000+), 
+                  our automated <strong>Direct Bank Transfer (IMPS / NEFT)</strong> rail enables buyers to transfer directly into your bank account with zero fees and instant email reconciliation.
+                </p>
               </div>
             </div>
 

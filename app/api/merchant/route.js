@@ -13,7 +13,7 @@ export async function GET(req) {
   try {
     const { data, error } = await supabaseAdmin
       .from('merchants')
-      .select('id, business_name, upi_id, theme_color, subscription_status, subscription_expires_at')
+      .select('id, business_name, upi_id, theme_color, subscription_status, subscription_expires_at, bank_account_number, bank_ifsc, bank_account_name, bank_name, enable_bank_transfer')
       .eq('api_key', key)
       .single();
 
@@ -38,7 +38,12 @@ export async function GET(req) {
     return NextResponse.json({
       business_name: data.business_name,
       upi_id: data.upi_id,
-      theme_color: data.theme_color
+      theme_color: data.theme_color,
+      bank_account_number: data.bank_account_number,
+      bank_ifsc: data.bank_ifsc,
+      bank_account_name: data.bank_account_name,
+      bank_name: data.bank_name,
+      enable_bank_transfer: data.enable_bank_transfer !== false
     });
 
   } catch (err) {

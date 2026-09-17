@@ -10,7 +10,7 @@ import {
   Copy, CheckCircle, Loader2, ShieldCheck,
   IndianRupee, Lock, ArrowRight, AlertCircle,
   Zap, QrCode, Smartphone, ExternalLink,
-  Tag, Sparkles, Gift
+  Tag, Sparkles, Gift, Landmark, Building2, Check
 } from 'lucide-react';
 
 /* ═══════════════════════════════════════════════════════════════
@@ -256,10 +256,53 @@ function PayPageContent() {
   }
 
   // Right panel state
-  const [payView, setPayView]       = useState('apps');
-  const [selectedApp, setSelectedApp] = useState(null); // selected UPI app
-  const [copied, setCopied]         = useState(false);
-  const [copiedAmt, setCopiedAmt]   = useState(false);
+  const [activeTab, setActiveTab]             = useState('upi'); // 'upi' | 'bank_transfer'
+  const [payView, setPayView]                 = useState('apps');
+  const [selectedApp, setSelectedApp]         = useState(null); // selected UPI app
+  const [copied, setCopied]                   = useState(false);
+  const [copiedAmt, setCopiedAmt]             = useState(false);
+
+  // Bank Transfer copy states
+  const [copiedBankAcc, setCopiedBankAcc]     = useState(false);
+  const [copiedIfsc, setCopiedIfsc]           = useState(false);
+  const [copiedBene, setCopiedBene]           = useState(false);
+  const [copiedBankAmt, setCopiedBankAmt]     = useState(false);
+
+  // Manual UTR submission states
+  const [inputUtr, setInputUtr]               = useState('');
+  const [utrSubmitting, setUtrSubmitting]     = useState(false);
+  const [utrStatus, setUtrStatus]             = useState(null);
+
+  const copyBankAcc = (val) => { if (!val) return; navigator.clipboard.writeText(val); setCopiedBankAcc(true); setTimeout(() => setCopiedBankAcc(false), 2000); };
+  const copyIfsc = (val) => { if (!val) return; navigator.clipboard.writeText(val); setCopiedIfsc(true); setTimeout(() => setCopiedIfsc(false), 2000); };
+  const copyBene = (val) => { if (!val) return; navigator.clipboard.writeText(val); setCopiedBene(true); setTimeout(() => setCopiedBene(false), 2000); };
+  const copyBankAmt = (val) => { if (!val) return; navigator.clipboard.writeText(String(val)); setCopiedBankAmt(true); setTimeout(() => setCopiedBankAmt(false), 2000); };
+
+  const handleManualUtrSubmit = async (e) => {
+    if (e) e.preventDefault();
+    if (!inputUtr.trim() || !orderId) return;
+    setUtrSubmitting(true);
+    setUtrStatus(null);
+    try {
+      const res = await fetch('/api/orders/verify-utr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order_id: orderId, utr: inputUtr.trim() })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to submit UTR');
+      if (data.verified) {
+        setUtrStatus({ type: 'success', message: 'Payment verified successfully! Redirecting...' });
+        setTimeout(() => router.push(`/status/${orderId}`), 600);
+      } else {
+        setUtrStatus({ type: 'info', message: data.message || 'UTR recorded! Checking incoming bank emails...' });
+      }
+    } catch (err) {
+      setUtrStatus({ type: 'error', message: err.message || 'Failed to verify UTR' });
+    } finally {
+      setUtrSubmitting(false);
+    }
+  };
 
   // Promo / Gift Code States
   const [showCouponInput, setShowCouponInput] = useState(false);
@@ -651,17 +694,52 @@ function PayPageContent() {
 
           {/* ── RIGHT PANEL (payment methods) ── */}
           <div className="flex-1 bg-white">
-            <div className="flex items-center gap-3 px-8 pt-6 pb-4 border-b border-slate-100">
-              <div 
-                className="px-3 py-1 rounded-md border"
-                style={{
-                  backgroundColor: `${merchant?.theme_color || '#3B82F6'}10`,
-                  borderColor: `${merchant?.theme_color || '#3B82F6'}30`
-                }}
-              >
-                <span className="text-xs font-bold uppercase tracking-wider" style={{ color: merchant?.theme_color || '#3B82F6' }}>UPI</span>
+            {/* ── PAYMENT METHOD SELECTOR TABS ── */}
+            <div className="flex flex-wrap items-center justify-between gap-2 px-6 sm:px-8 pt-5 pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('upi')}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                    activeTab === 'upi'
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  }`}
+                  style={activeTab === 'upi' ? { backgroundColor: merchant?.theme_color || '#3B82F6' } : {}}
+                >
+                  <Zap className="w-3.5 h-3.5" />
+                  <span>UPI Instant</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('bank_transfer')}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer relative ${
+                    activeTab === 'bank_transfer'
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  }`}
+                >
+                  <Landmark className="w-3.5 h-3.5" />
+                  <span>Direct Bank Transfer</span>
+                  <span className={`text-[9px] font-black px-1.5 py-0.2 rounded-full uppercase tracking-wider ${
+                    activeTab === 'bank_transfer' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800'
+                  }`}>
+                    0% Fee
+                  </span>
+                </button>
               </div>
-              <span className="text-xs text-slate-400 font-medium">Other methods coming soon</span>
+
+              {displayAmt > 2000 && activeTab === 'upi' && (
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('bank_transfer')}
+                  className="hidden sm:flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/60 hover:bg-emerald-100 transition-colors cursor-pointer"
+                >
+                  <Sparkles className="w-3 h-3" />
+                  <span>Tip: Pay via Bank Transfer for 0% MDR</span>
+                </button>
+              )}
             </div>
 
             <div className="px-6 py-5">
@@ -773,6 +851,148 @@ function PayPageContent() {
                       </>
                     )}
                   </button>
+                </div>
+              ) : activeTab === 'bank_transfer' ? (
+                /* ── DIRECT BANK TRANSFER VIEW ── */
+                <div className="space-y-4 animate-fade-up">
+                  <div className="p-3.5 bg-emerald-50/70 border border-emerald-200/80 rounded-2xl flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+                      <Landmark className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs font-black text-emerald-950 uppercase tracking-wider">Direct Bank Transfer (IMPS / NEFT)</p>
+                        <span className="text-[9px] bg-emerald-600 text-white font-extrabold px-1.5 py-0.2 rounded-md">0% MDR</span>
+                      </div>
+                      <p className="text-[11px] font-medium text-emerald-800 mt-0.5 leading-relaxed">
+                        Transfer from any banking app. As soon as your transfer completes, our <strong>automated bank email listener</strong> verifies your order automatically.
+                      </p>
+                    </div>
+                  </div>
+
+                  {merchant?.bank_account_number ? (
+                    <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+                      {/* Beneficiary Name */}
+                      <div className="flex items-center justify-between py-1.5 border-b border-slate-200/70">
+                        <div>
+                          <p className="text-[9px] text-slate-500 uppercase tracking-wider font-bold">Beneficiary Name</p>
+                          <p className="text-xs font-bold text-slate-900">{merchant.bank_account_name || merchant.business_name}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => copyBene(merchant.bank_account_name || merchant.business_name)}
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-white border border-slate-200 hover:border-slate-300 text-slate-700 cursor-pointer shadow-2xs"
+                        >
+                          {copiedBene ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                          <span>{copiedBene ? 'Copied' : 'Copy'}</span>
+                        </button>
+                      </div>
+
+                      {/* Account Number */}
+                      <div className="flex items-center justify-between py-1.5 border-b border-slate-200/70">
+                        <div>
+                          <p className="text-[9px] text-slate-500 uppercase tracking-wider font-bold">Account Number</p>
+                          <p className="text-sm font-mono font-black text-slate-900 tracking-wider">{merchant.bank_account_number}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => copyBankAcc(merchant.bank_account_number)}
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-white border border-slate-200 hover:border-slate-300 text-slate-700 cursor-pointer shadow-2xs"
+                        >
+                          {copiedBankAcc ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                          <span>{copiedBankAcc ? 'Copied' : 'Copy'}</span>
+                        </button>
+                      </div>
+
+                      {/* IFSC Code */}
+                      <div className="flex items-center justify-between py-1.5 border-b border-slate-200/70">
+                        <div>
+                          <p className="text-[9px] text-slate-500 uppercase tracking-wider font-bold">IFSC Code {merchant.bank_name ? `(${merchant.bank_name})` : ''}</p>
+                          <p className="text-sm font-mono font-black text-slate-900 tracking-wider">{merchant.bank_ifsc}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => copyIfsc(merchant.bank_ifsc)}
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-white border border-slate-200 hover:border-slate-300 text-slate-700 cursor-pointer shadow-2xs"
+                        >
+                          {copiedIfsc ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                          <span>{copiedIfsc ? 'Copied' : 'Copy'}</span>
+                        </button>
+                      </div>
+
+                      {/* Exact Amount */}
+                      <div className="flex items-center justify-between pt-1">
+                        <div>
+                          <p className="text-[9px] text-slate-500 uppercase tracking-wider font-bold">Exact Transfer Amount</p>
+                          <p className="text-base font-black text-emerald-600">
+                            ₹{displayAmt ? parseFloat(displayAmt).toFixed(2) : '0.00'}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => copyBankAmt(displayAmt ? parseFloat(displayAmt).toFixed(2) : '')}
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-white border border-slate-200 hover:border-slate-300 text-slate-700 cursor-pointer shadow-2xs"
+                        >
+                          {copiedBankAmt ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                          <span>{copiedBankAmt ? 'Copied' : 'Copy ₹'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-4 bg-amber-50/70 border border-amber-200 rounded-2xl text-center space-y-2">
+                      <Building2 className="w-8 h-8 text-amber-600 mx-auto" />
+                      <p className="text-xs font-bold text-amber-900">Direct Bank Transfer</p>
+                      <p className="text-[11px] text-amber-700">
+                        The merchant hasn&apos;t configured custom bank account details yet. Please pay instantly using the UPI Instant tab.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('upi')}
+                        className="mt-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition-all cursor-pointer inline-flex items-center gap-1.5"
+                      >
+                        <Zap className="w-3.5 h-3.5" />
+                        <span>Switch to UPI Instant</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Manual UTR fast-track input */}
+                  <div className="p-3.5 bg-white border border-slate-200 rounded-2xl space-y-2 shadow-2xs">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] text-slate-500 uppercase tracking-wider font-bold flex items-center gap-1">
+                        <span>Transferred already? Enter UTR for Instant Confirmation</span>
+                      </label>
+                      <span className="text-[9px] text-slate-400 font-medium">Fast-track</span>
+                    </div>
+                    <form onSubmit={handleManualUtrSubmit} className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="12-digit UTR / Ref No (e.g. 426123456789)"
+                        value={inputUtr}
+                        onChange={(e) => setInputUtr(e.target.value)}
+                        className="flex-1 bg-slate-50 border border-slate-300 focus:bg-white focus:border-emerald-500 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-900 placeholder-slate-400 outline-none transition-all"
+                      />
+                      <button
+                        type="submit"
+                        disabled={utrSubmitting || !inputUtr.trim()}
+                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 shrink-0 shadow-sm cursor-pointer"
+                      >
+                        {utrSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Verify'}
+                      </button>
+                    </form>
+                    {utrStatus && (
+                      <div className={`p-2 rounded-xl text-[11px] font-semibold flex items-center gap-1.5 ${
+                        utrStatus.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' :
+                        utrStatus.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' :
+                        'bg-blue-50 text-blue-800 border border-blue-200'
+                      }`}>
+                        {utrStatus.type === 'success' ? <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" /> :
+                         utrStatus.type === 'error' ? <AlertCircle className="w-3.5 h-3.5 text-red-500 shrink-0" /> :
+                         <Loader2 className="w-3.5 h-3.5 text-blue-600 animate-spin shrink-0" />}
+                        <span>{utrStatus.message}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <>

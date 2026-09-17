@@ -168,7 +168,7 @@ export async function GET(request) {
     // Fetch matching merchant branding settings and UPI ID
     const { data: merchant } = await supabaseAdmin
       .from('merchants')
-      .select('business_name, upi_id, theme_color')
+      .select('business_name, upi_id, theme_color, bank_account_number, bank_ifsc, bank_account_name, bank_name, enable_bank_transfer')
       .eq('id', order.merchant_id)
       .single();
 

@@ -559,6 +559,13 @@ export default function DashboardPage() {
 
   const [editBusinessCategory, setEditBusinessCategory] = useState('');
 
+  // Bank Transfer (IMPS/NEFT) Settings States
+  const [editBankAccountNumber, setEditBankAccountNumber] = useState('');
+  const [editBankIfsc, setEditBankIfsc] = useState('');
+  const [editBankAccountName, setEditBankAccountName] = useState('');
+  const [editBankName, setEditBankName] = useState('');
+  const [editEnableBankTransfer, setEditEnableBankTransfer] = useState(true);
+
 
 
 
@@ -1063,7 +1070,11 @@ export default function DashboardPage() {
 
       setEditBusinessCategory(profile.business_category || '');
 
-
+      setEditBankAccountNumber(profile.bank_account_number || '');
+      setEditBankIfsc(profile.bank_ifsc || '');
+      setEditBankAccountName(profile.bank_account_name || '');
+      setEditBankName(profile.bank_name || '');
+      setEditEnableBankTransfer(profile.enable_bank_transfer !== false);
 
     }
 
@@ -3165,7 +3176,27 @@ export default function DashboardPage() {
 
 
 
-          business_category: editBusinessCategory
+          business_category: editBusinessCategory,
+
+
+
+          bank_account_number: editBankAccountNumber.trim(),
+
+
+
+          bank_ifsc: editBankIfsc.trim().toUpperCase(),
+
+
+
+          bank_account_name: editBankAccountName.trim(),
+
+
+
+          bank_name: editBankName.trim(),
+
+
+
+          enable_bank_transfer: editEnableBankTransfer
 
 
 
@@ -3233,7 +3264,27 @@ export default function DashboardPage() {
 
 
 
-        business_category: editBusinessCategory
+        business_category: editBusinessCategory,
+
+
+
+        bank_account_number: editBankAccountNumber.trim(),
+
+
+
+        bank_ifsc: editBankIfsc.trim().toUpperCase(),
+
+
+
+        bank_account_name: editBankAccountName.trim(),
+
+
+
+        bank_name: editBankName.trim(),
+
+
+
+        enable_bank_transfer: editEnableBankTransfer
 
 
 
@@ -24786,6 +24837,73 @@ async function checkOrderStatus(orderId) {
                         </div>
                       </div>
                       <p className="text-[10px] text-slate-400 mt-1.5 font-medium">This brand accent color is active across your scanning checkout UI.</p>
+                    </div>
+
+                    {/* Direct Bank Transfer (IMPS/NEFT) Section */}
+                    <div className="pt-4 border-t border-slate-200/80 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <label className="block text-xs font-black text-slate-900 flex items-center gap-1.5">
+                            <span className="text-emerald-600 font-bold">🏛️</span> Direct Bank Transfer (IMPS / NEFT)
+                            <span className="text-[9px] bg-emerald-100 text-emerald-800 font-black px-1.5 py-0.2 rounded-md uppercase">0% MDR</span>
+                          </label>
+                          <p className="text-[10px] text-slate-400 font-medium mt-0.5">Enable buyers to pay via high-value bank transfers verified automatically via bank email.</p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            checked={editEnableBankTransfer} 
+                            onChange={(e) => setEditEnableBankTransfer(e.target.checked)}
+                            className="sr-only peer"
+                          />
+                          <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                        </label>
+                      </div>
+
+                      {editEnableBankTransfer && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 animate-fadeIn">
+                          <div>
+                            <label className="block mb-1 text-[11px]">Bank Name</label>
+                            <input
+                              type="text"
+                              value={editBankName}
+                              onChange={(e) => setEditBankName(e.target.value)}
+                              className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:bg-white focus:outline-none transition-all py-2.5 px-3 rounded-xl text-xs font-semibold text-slate-900 placeholder-slate-400"
+                              placeholder="e.g. HDFC Bank, SBI, ICICI Bank"
+                            />
+                          </div>
+                          <div>
+                            <label className="block mb-1 text-[11px]">Beneficiary / Account Name</label>
+                            <input
+                              type="text"
+                              value={editBankAccountName}
+                              onChange={(e) => setEditBankAccountName(e.target.value)}
+                              className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:bg-white focus:outline-none transition-all py-2.5 px-3 rounded-xl text-xs font-semibold text-slate-900 placeholder-slate-400"
+                              placeholder="e.g. Acme Enterprises"
+                            />
+                          </div>
+                          <div>
+                            <label className="block mb-1 text-[11px]">Bank Account Number</label>
+                            <input
+                              type="text"
+                              value={editBankAccountNumber}
+                              onChange={(e) => setEditBankAccountNumber(e.target.value)}
+                              className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:bg-white focus:outline-none transition-all py-2.5 px-3 rounded-xl text-xs font-mono font-semibold text-slate-900 placeholder-slate-400"
+                              placeholder="e.g. 50100234567890"
+                            />
+                          </div>
+                          <div>
+                            <label className="block mb-1 text-[11px]">IFSC Code</label>
+                            <input
+                              type="text"
+                              value={editBankIfsc}
+                              onChange={(e) => setEditBankIfsc(e.target.value.toUpperCase())}
+                              className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:bg-white focus:outline-none transition-all py-2.5 px-3 rounded-xl text-xs font-mono font-semibold text-slate-900 placeholder-slate-400 uppercase"
+                              placeholder="e.g. HDFC0001234"
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

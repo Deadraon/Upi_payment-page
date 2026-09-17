@@ -78,22 +78,46 @@ export async function POST(request) {
 
     const { amount, utr } = parsed;
 
-    // 3. Find the most recent pending order matching the amount FOR THIS MERCHANT
-    const { data: order, error: findError } = await supabaseAdmin
-      .from('orders')
-      .select('*')
-      .eq('status', 'pending')
-      .eq('amount', amount)
-      .eq('merchant_id', merchant.id)
-      .order('created_at', { ascending: false })
-      .limit(1);
+    // 3. Find matching pending order FOR THIS MERCHANT
+    let matchedOrder = null;
 
-    if (findError) {
-      console.error('Error searching for matching order:', findError);
-      return NextResponse.json({ error: findError.message }, { status: 500 });
+    // 3a. Prioritize exact Customer-submitted UTR match if available
+    if (utr && utr !== 'UNKNOWN_REF') {
+      const { data: utrOrder } = await supabaseAdmin
+        .from('orders')
+        .select('*')
+        .eq('status', 'pending')
+        .eq('customer_utr', utr)
+        .eq('merchant_id', merchant.id)
+        .limit(1);
+
+      if (utrOrder && utrOrder.length > 0) {
+        matchedOrder = utrOrder[0];
+      }
     }
 
-    if (!order || order.length === 0) {
+    // 3b. Fallback: match by exact amount (supported by unique paise offset)
+    if (!matchedOrder) {
+      const { data: order, error: findError } = await supabaseAdmin
+        .from('orders')
+        .select('*')
+        .eq('status', 'pending')
+        .eq('amount', amount)
+        .eq('merchant_id', merchant.id)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (findError) {
+        console.error('Error searching for matching order:', findError);
+        return NextResponse.json({ error: findError.message }, { status: 500 });
+      }
+
+      if (order && order.length > 0) {
+        matchedOrder = order[0];
+      }
+    }
+
+    if (!matchedOrder) {
       await logEmail('parsed'); // It was parsed, but no matching order found
       return NextResponse.json({
         success: false,
@@ -102,8 +126,6 @@ export async function POST(request) {
         parsed: { amount, utr }
       }, { status: 200 });
     }
-
-    const matchedOrder = order[0];
 
     // 4. Check for duplicate UTR fraud
     const { data: duplicateUtr, error: dupError } = await supabaseAdmin
