@@ -86,15 +86,17 @@ export default function HomePage() {
          ──────────────────────────────────────────────────────── */}
       <header className="fixed top-0 left-0 right-0 z-50 w-full bg-white border-b border-slate-200 shadow-[0_2px_8px_rgba(0,0,0,0.02),0_6px_20px_rgba(0,0,0,0.04)] transition-all">
         {/* ── TOP ANNOUNCEMENT BANNER ── */}
-        <div className="w-full bg-gradient-to-r from-blue-700 via-indigo-700 to-emerald-700 text-white text-[11px] sm:text-xs font-medium py-1.5 px-4 flex items-center justify-center gap-2 select-none border-b border-white/10 shadow-xs">
-          <span className="bg-emerald-400/25 text-emerald-200 font-semibold px-2 py-0.5 rounded-full text-[9px] border border-emerald-400/30">
-            October 2026 update
+        <div className="w-full bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-950 text-white text-[11px] sm:text-xs font-medium py-2 px-4 flex items-center justify-center gap-2.5 select-none border-b border-white/10 shadow-xs">
+          <span className="inline-flex items-center gap-1.5 bg-emerald-400/20 text-emerald-300 font-semibold px-2.5 py-0.5 rounded-full text-[10px] border border-emerald-400/30 tracking-wide uppercase">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            Live
           </span>
-          <span className="truncate">
-            Direct bank transfer (IMPS / NEFT) is live with 0% MDR.
+          <span className="text-slate-100 font-normal truncate">
+            Direct bank transfer (IMPS / NEFT) with <strong className="text-white font-semibold">0% gateway fees</strong>.
           </span>
-          <a href="#pricing-section" className="underline hover:text-emerald-200 font-medium hidden sm:inline ml-1">
-            Compare savings →
+          <a href="#pricing-section" className="inline-flex items-center gap-1 text-sky-300 hover:text-white font-medium text-[11px] sm:text-xs transition-colors group ml-1 shrink-0">
+            <span className="underline underline-offset-2">Compare savings</span>
+            <span className="transition-transform duration-200 group-hover:translate-x-0.5">→</span>
           </a>
         </div>
 
@@ -1404,7 +1406,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* October 2026 MDR Protection Banner */}
+            {/* Direct Settlement MDR Protection Banner */}
             <div className="p-5 bg-gradient-to-r from-blue-50 via-indigo-50/50 to-emerald-50 border border-emerald-200/90 rounded-2xl flex flex-col sm:flex-row items-start gap-4 shadow-xs">
               <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
                 <ShieldCheck className="w-5 h-5" />
@@ -1412,7 +1414,7 @@ export default function HomePage() {
               <div className="space-y-1.5 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <h4 className="text-sm font-semibold text-slate-900">
-                    October 2026 MDR protection guarantee
+                    Direct settlement 0% MDR guarantee
                   </h4>
                   <span className="text-[10px] font-semibold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-300/60">
                     0% MDR guaranteed
