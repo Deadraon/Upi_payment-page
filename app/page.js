@@ -11,7 +11,6 @@ import {
   Key, Landmark, Code, Play, Star, Plus, Minus, Info, Lock, Sparkles, QrCode,
   Copy, Check, Smartphone, Building2, Bell, Terminal, Globe
 } from 'lucide-react';
-import InteractiveBackground from '@/components/InteractiveBackground';
 
 const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = 'var(--text-primary)' }) => (
   <svg viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
@@ -79,7 +78,6 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 overflow-x-hidden selection:bg-blue-500/10 selection:text-blue-600 relative">
-      <InteractiveBackground />
       
       {/* ────────────────────────────────────────────────────────
          ORIGINAL FULL-WIDTH STATIC HEADER WITH MULTI-LAYERED SHADOWS
@@ -400,9 +398,6 @@ export default function HomePage() {
          ──────────────────────────────────────────────────────── */}
       <section className="relative mt-20 pt-16 pb-20 md:pt-24 md:pb-28 overflow-hidden bg-gradient-to-b from-white via-slate-50/50 to-white">
         
-        {/* Subtle modern fintech ambient mesh */}
-        <div className="absolute top-0 right-[15%] w-[500px] h-[500px] bg-blue-100/40 rounded-full blur-3xl pointer-events-none -z-10" />
-        <div className="absolute top-[200px] left-[5%] w-[400px] h-[400px] bg-indigo-50/60 rounded-full blur-3xl pointer-events-none -z-10" />
         <div className="absolute inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:28px_28px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_20%,#000_70%,transparent_100%)] opacity-50 -z-20" />
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
@@ -472,9 +467,6 @@ export default function HomePage() {
             
             {/* Premium Interactive Phone Glow Container */}
             <div className="phone-glow-container w-full max-w-[340px]">
-              
-              {/* Dynamic breathing glowing background backdrop */}
-              <div className="phone-glow-backdrop animate-aurora-breathe" />
 
               {/* Premium Phone Frame displaying Actual MyMobPay checkout screen */}
               <div className="relative w-full bg-slate-900 border-8 border-slate-800 rounded-[44px] premium-phone-shadow overflow-hidden aspect-[9/18.5] flex flex-col">
@@ -657,9 +649,6 @@ export default function HomePage() {
          CODED DASHBOARD SHOWCASE (Clean Light Theme)
          ──────────────────────────────────────────────────────── */}
       <section className="relative z-10 py-24 bg-transparent border-y border-slate-200/60 overflow-hidden">
-        {/* Ambient soft glow */}
-        <div className="absolute top-0 left-1/4 w-[600px] h-[300px] bg-blue-200/30 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute bottom-0 right-1/4 w-[400px] h-[300px] bg-indigo-200/30 rounded-full blur-[120px] pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-6 space-y-14">
           <div className="text-center space-y-3">
@@ -676,8 +665,6 @@ export default function HomePage() {
 
           {/* === CODED DASHBOARD MOCKUP (LIGHT THEME) === */}
           <div className="relative">
-            {/* Glow */}
-            <div className="absolute -inset-px bg-gradient-to-r from-blue-500/15 via-indigo-500/10 to-blue-500/15 rounded-2xl blur-md" />
 
             {/* Browser frame */}
             <div className="relative bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
@@ -1445,8 +1432,6 @@ export default function HomePage() {
          SEE MYMOBPAY IN ACTION — HUMAN & MERCHANT SHOWCASE
          ──────────────────────────────────────────────────────── */}
       <section className="py-24 bg-transparent border-b border-slate-200/60 overflow-hidden relative">
-        {/* Glow */}
-        <div className="absolute top-1/2 left-1/3 -translate-y-1/2 w-[500px] h-[500px] bg-blue-100/20 rounded-full blur-[130px] pointer-events-none -z-10" />
 
         <div className="max-w-7xl mx-auto px-6 space-y-16">
           
@@ -1631,8 +1616,6 @@ export default function HomePage() {
          PRICING SUBSCRIPTION CALLOUT
          ──────────────────────────────────────────────────────── */}
       <section className="py-24 bg-transparent relative overflow-hidden">
-        {/* Glow background filter */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-100/30 rounded-full filter blur-[130px] pointer-events-none -z-10 animate-mesh-rotate" />
 
         <div className="max-w-6xl mx-auto px-6 text-center space-y-12">
           
