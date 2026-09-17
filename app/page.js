@@ -9,7 +9,7 @@ import {
   ArrowRight, CheckCircle2, ChevronRight, Menu, X, 
   ArrowUpRight, ShieldCheck, Zap, Layers, RefreshCw, 
   Key, Landmark, Code, Play, Star, Plus, Minus, Info, Lock, Sparkles, QrCode,
-  Copy, Check, Smartphone, Building2, Bell, Terminal
+  Copy, Check, Smartphone, Building2, Bell, Terminal, Globe
 } from 'lucide-react';
 import InteractiveBackground from '@/components/InteractiveBackground';
 
@@ -28,6 +28,8 @@ export default function HomePage() {
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [monthlyVolume, setMonthlyVolume] = useState(500000); // 5 Lakhs default
+  const [productCategory, setProductCategory] = useState('accept');
+  const [productSubFilter, setProductSubFilter] = useState('top');
   const [activeWorkflowStep, setActiveWorkflowStep] = useState(0);
   const [copiedLink, setCopiedLink] = useState(false);
   const [showPaymentsMenu, setShowPaymentsMenu] = useState(false);
@@ -144,7 +146,7 @@ export default function HomePage() {
               className="relative py-4"
             >
               <Link 
-                href="#how-it-works"
+                href="#products-showcase"
                 className="text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors flex items-center gap-1"
               >
                 Payments
@@ -188,7 +190,8 @@ export default function HomePage() {
                   <div 
                     onClick={() => {
                       setShowPaymentsMenu(false);
-                      document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
+                      setProductCategory('accept');
+                      document.getElementById('products-showcase')?.scrollIntoView({ behavior: 'smooth' });
                     }}
                     className="flex items-start gap-4 p-2.5 hover:bg-blue-50/50 rounded-2xl transition-all duration-300 group cursor-pointer"
                   >
@@ -243,7 +246,8 @@ export default function HomePage() {
                   <div 
                     onClick={() => {
                       setShowPaymentsMenu(false);
-                      document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
+                      setProductCategory('imps');
+                      document.getElementById('products-showcase')?.scrollIntoView({ behavior: 'smooth' });
                     }}
                     className="flex items-start gap-4 p-2.5 hover:bg-emerald-50/50 rounded-2xl transition-all duration-300 group cursor-pointer"
                   >
@@ -269,7 +273,8 @@ export default function HomePage() {
                   <div 
                     onClick={() => {
                       setShowPaymentsMenu(false);
-                      document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
+                      setProductCategory('accept');
+                      document.getElementById('products-showcase')?.scrollIntoView({ behavior: 'smooth' });
                     }}
                     className="flex items-start gap-4 p-2.5 hover:bg-blue-50/50 rounded-2xl transition-all duration-300 group cursor-pointer"
                   >
@@ -979,6 +984,326 @@ export default function HomePage() {
               <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-400">
                 <span>Hold Time: 0 Days</span>
                 <span className="text-emerald-600 flex items-center gap-1">Auto-Matched <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /></span>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* ────────────────────────────────────────────────────────
+         DISRUPTION & INNOVATION SHOWCASE (RAZORPAY STYLE)
+         ──────────────────────────────────────────────────────── */}
+      <section className="relative z-10 py-20 bg-transparent border-b border-slate-200/60">
+        <div className="max-w-6xl mx-auto px-6 space-y-12">
+          
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight max-w-3xl leading-[1.15]">
+            We have eliminated gateway middlemen, creating a disruption.
+          </h2>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+            {/* Left Card: Wide 8 cols */}
+            <div className="lg:col-span-8 bg-slate-50/80 border border-slate-200/90 rounded-3xl p-8 sm:p-12 flex flex-col justify-between hover:border-slate-300 transition-all shadow-xs">
+              <div>
+                <div className="flex items-center justify-between pb-6">
+                  <span className="text-xs sm:text-sm font-bold text-slate-600 tracking-tight">
+                    Direct Bank Settlement Rail
+                  </span>
+                  <div className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-slate-400 bg-white shadow-xs">
+                    <Globe className="w-4 h-4 text-slate-500" />
+                  </div>
+                </div>
+                <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 leading-snug tracking-tight my-4 sm:my-8">
+                  <span className="text-blue-600">Route payments directly to your bank account,</span> save up to 100% on intermediary transaction charges. Receive instant UPI &amp; IMPS payments.
+                </h3>
+              </div>
+              <p className="text-xs sm:text-sm font-medium text-slate-500 pt-4 border-t border-slate-200/60">
+                Receive direct account transfers with zero escrow delays via automated bank email reconciliation.
+              </p>
+            </div>
+
+            {/* Right Card: 4 cols */}
+            <div className="lg:col-span-4 bg-slate-50/80 border border-slate-200/90 rounded-3xl p-8 sm:p-10 flex flex-col justify-between hover:border-slate-300 transition-all shadow-xs">
+              <div>
+                <h3 className="text-lg sm:text-xl font-bold text-slate-900 leading-relaxed">
+                  <span className="text-blue-600 font-black">Experience 0s settlement delay,</span> achieve a 99.99% payment success boost, all without any escrow holds or 2% gateway deductions.
+                </h3>
+                <div className="my-8 sm:my-12 flex justify-end">
+                  <Link 
+                    href="/login"
+                    className="w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-all shadow-md shadow-blue-500/20 group"
+                  >
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
+                  </Link>
+                </div>
+              </div>
+              <p className="text-xs sm:text-sm font-medium text-slate-500 pt-4 border-t border-slate-200/60">
+                Get India&apos;s fastest zero-commission direct UPI &amp; IMPS payment solution for businesses.
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ────────────────────────────────────────────────────────
+         PRODUCT SUITE WITH TABS & 4-CARD GRID (RAZORPAY STYLE)
+         ──────────────────────────────────────────────────────── */}
+      <section id="products-showcase" className="relative z-10 py-20 bg-transparent border-b border-slate-200/60">
+        <div className="max-w-6xl mx-auto px-6 space-y-10">
+          
+          {/* Top Category Tabs with Underline Indicator */}
+          <div className="flex items-center justify-between border-b border-slate-200/80 pb-px overflow-x-auto gap-8">
+            <div className="flex items-center gap-8 text-sm">
+              {[
+                { id: 'accept', label: 'Accept Payments' },
+                { id: 'imps', label: 'Direct Bank Transfer (IMPS)' },
+                { id: 'developer', label: 'Developer Suite' },
+                { id: 'reconcile', label: 'Zero-Escrow Settlements' },
+              ].map(cat => (
+                <button
+                  key={cat.id}
+                  onClick={() => setProductCategory(cat.id)}
+                  className={`pb-4 whitespace-nowrap text-sm transition-all relative ${
+                    productCategory === cat.id
+                      ? 'text-slate-950 font-black border-b-2 border-emerald-500 -mb-px'
+                      : 'text-slate-500 hover:text-slate-900 font-semibold'
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+
+            <Link 
+              href="/login"
+              className="hidden md:inline-flex items-center gap-1.5 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black rounded-xl transition-all shadow-sm shadow-blue-500/20 whitespace-nowrap mb-2"
+            >
+              <span>Get Started Now</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          {/* Category Heading & Sub-Filter Pills */}
+          <div className="space-y-5">
+            <h3 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+              {productCategory === 'accept' && 'Accept Payments'}
+              {productCategory === 'imps' && 'Direct Bank Transfer (IMPS)'}
+              {productCategory === 'developer' && 'Developer Suite & Webhooks'}
+              {productCategory === 'reconcile' && 'Zero-Escrow Direct Settlements'}
+            </h3>
+
+            {/* Sub-tabs / filter row */}
+            <div className="flex items-center gap-6 overflow-x-auto text-xs font-bold text-slate-500 border-b border-slate-100 pb-3">
+              {[
+                { id: 'top', label: 'Top Products' },
+                { id: 'web', label: 'On Website/App' },
+                { id: 'links', label: 'Payment Links' },
+                { id: 'highticket', label: 'High-Ticket IMPS' },
+                { id: 'pos', label: 'In-Store / QR' }
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setProductSubFilter(tab.id)}
+                  className={`pb-1 whitespace-nowrap transition-colors relative ${
+                    productSubFilter === tab.id
+                      ? 'text-slate-950 font-black border-b-2 border-slate-950'
+                      : 'hover:text-slate-900'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 4 Modern Product Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
+            
+            {/* Card 1: Payment Gateway */}
+            <div className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden flex flex-col justify-between hover:shadow-xl hover:border-slate-300 transition-all duration-300 group shadow-xs">
+              <div>
+                {/* Visual Area */}
+                <div className="h-48 sm:h-52 bg-gradient-to-b from-slate-50 to-blue-50/20 p-4 flex flex-col justify-center border-b border-slate-100 relative overflow-hidden">
+                  <div className="bg-white rounded-xl border border-slate-200/90 shadow-sm p-3 space-y-2 max-w-[210px] mx-auto w-full group-hover:scale-[1.02] transition-transform">
+                    <div className="flex items-center justify-between text-[11px] font-bold text-slate-700 pb-1.5 border-b border-slate-100">
+                      <span>Pay using card</span>
+                      <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                    </div>
+                    <div className="flex items-center justify-between text-[11px] font-black text-blue-600 bg-blue-50/80 px-2 py-1 rounded-lg">
+                      <span className="flex items-center gap-1.5"><Sparkles className="w-3 h-3 text-blue-500" /> UPI ID / Apps</span>
+                      <span className="text-[9px] bg-emerald-100 text-emerald-800 px-1 py-0.2 rounded font-black">0% MDR</span>
+                    </div>
+                    <div className="flex items-center justify-between text-[11px] font-bold text-slate-700 pt-0.5">
+                      <span>Net banking / IMPS</span>
+                      <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                    </div>
+                    <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 pt-0.5">
+                      <span>Wallet &amp; QR</span>
+                      <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Content Area */}
+                <div className="p-6 space-y-2">
+                  <h4 className="text-base sm:text-lg font-black text-slate-900 group-hover:text-blue-600 transition-colors">
+                    Payment Gateway
+                  </h4>
+                  <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                    Offer a seamless direct UPI &amp; netbanking payment experience on your website or mobile app.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-6 pt-0">
+                <Link 
+                  href="/login"
+                  className="text-xs font-black text-blue-600 hover:text-blue-700 inline-flex items-center gap-1"
+                >
+                  <span>Know More</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
+
+            {/* Card 2: Payment Button */}
+            <div className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden flex flex-col justify-between hover:shadow-xl hover:border-slate-300 transition-all duration-300 group shadow-xs">
+              <div>
+                {/* Visual Area */}
+                <div className="h-48 sm:h-52 bg-gradient-to-b from-slate-50 to-emerald-50/30 p-4 flex flex-col justify-center items-center border-b border-slate-100 relative">
+                  <span className="absolute top-3 right-3 bg-slate-200/80 text-slate-600 text-[9px] font-black px-2 py-0.5 rounded tracking-wider uppercase">
+                    NO CODE
+                  </span>
+                  <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-4 w-40 text-center space-y-2.5 group-hover:scale-[1.02] transition-transform">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto border border-emerald-100">
+                      <Zap className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-black text-slate-800">Pro Plan License</p>
+                      <p className="text-[10px] font-bold text-slate-400">₹499.00</p>
+                    </div>
+                    <button className="w-full py-1.5 bg-blue-600 text-white rounded-lg text-[10px] font-black shadow-xs">
+                      Pay with UPI
+                    </button>
+                  </div>
+                </div>
+
+                {/* Content Area */}
+                <div className="p-6 space-y-2">
+                  <h4 className="text-base sm:text-lg font-black text-slate-900 group-hover:text-blue-600 transition-colors">
+                    Payment Button
+                  </h4>
+                  <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                    Effortlessly add a direct UPI Pay Now button to your landing page without any coding required.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-6 pt-0">
+                <Link 
+                  href="/login"
+                  className="text-xs font-black text-blue-600 hover:text-blue-700 inline-flex items-center gap-1"
+                >
+                  <span>Know More</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
+
+            {/* Card 3: Payment Links (With Real Image & SMS Bubble) */}
+            <div className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden flex flex-col justify-between hover:shadow-xl hover:border-slate-300 transition-all duration-300 group shadow-xs">
+              <div>
+                {/* Visual Area */}
+                <div className="h-48 sm:h-52 relative overflow-hidden bg-slate-100">
+                  <Image 
+                    src="/images/payment_links_preview.jpg"
+                    alt="Payment Links on mobile"
+                    fill
+                    className="object-cover object-top group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent" />
+                  <span className="absolute top-3 right-3 bg-white/90 backdrop-blur-md text-slate-700 text-[9px] font-black px-2 py-0.5 rounded tracking-wider uppercase shadow-xs">
+                    NO CODE
+                  </span>
+                  
+                  {/* SMS / WhatsApp Notification Bubble Mockup */}
+                  <div className="absolute bottom-3 inset-x-3 bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-xl p-2 shadow-lg space-y-0.5">
+                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                      <Bell className="w-2.5 h-2.5 text-blue-500" /> WhatsApp / SMS Link
+                    </p>
+                    <p className="text-[9px] font-bold text-slate-800 truncate font-mono">
+                      Pay ₹1,499: <span className="text-blue-600 underline">mymob.tech/pay/inv_98</span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* Content Area */}
+                <div className="p-6 space-y-2">
+                  <h4 className="text-base sm:text-lg font-black text-slate-900 group-hover:text-blue-600 transition-colors">
+                    Payment Links
+                  </h4>
+                  <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                    Create and share links over WhatsApp, SMS and social to accept direct bank payments instantly.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-6 pt-0 flex items-center justify-between gap-2">
+                <Link 
+                  href="/login"
+                  className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-black transition-all shadow-xs flex items-center gap-1"
+                >
+                  <span>Sign up Now</span>
+                  <ArrowRight className="w-3 h-3" />
+                </Link>
+                <Link 
+                  href="/login"
+                  className="text-xs font-bold text-slate-600 hover:text-slate-900"
+                >
+                  Know More
+                </Link>
+              </div>
+            </div>
+
+            {/* Card 4: MyMobPay In-Store / QR Soundbox */}
+            <div className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden flex flex-col justify-between hover:shadow-xl hover:border-slate-300 transition-all duration-300 group shadow-xs">
+              <div>
+                {/* Visual Area */}
+                <div className="h-48 sm:h-52 relative overflow-hidden bg-slate-100">
+                  <Image 
+                    src="/images/pos_soundbox_preview.jpg"
+                    alt="In-store QR soundbox terminal"
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent" />
+                  <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-md text-slate-800 text-[9px] font-black px-2.5 py-1 rounded-full flex items-center gap-1 shadow-xs">
+                    <Zap className="w-3 h-3 text-amber-500" />
+                    <span>In-Store &amp; Counter</span>
+                  </div>
+                </div>
+
+                {/* Content Area */}
+                <div className="p-6 space-y-2">
+                  <h4 className="text-base sm:text-lg font-black text-slate-900 group-hover:text-blue-600 transition-colors">
+                    MyMobPay Soundbox &amp; QR
+                  </h4>
+                  <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                    Accept seamless in-store physical payments with India&apos;s best 0% fee soundbox and standee QR solution.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-6 pt-0">
+                <Link 
+                  href="/login"
+                  className="text-xs font-black text-blue-600 hover:text-blue-700 inline-flex items-center gap-1"
+                >
+                  <span>Know More</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </Link>
               </div>
             </div>
 
