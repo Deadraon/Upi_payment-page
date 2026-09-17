@@ -34,6 +34,8 @@ export default function HomePage() {
   const [copiedLink, setCopiedLink] = useState(false);
   const [showPaymentsMenu, setShowPaymentsMenu] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [heroTab, setHeroTab] = useState('checkout'); // 'checkout' | 'console'
+  const [selectedUpiApp, setSelectedUpiApp] = useState('gpay');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -50,41 +52,6 @@ export default function HomePage() {
   // Interactive Live Invoice demo states
   const [demoAmount, setDemoAmount] = useState('500');
   const [demoNote, setDemoNote] = useState('Payment_Note');
-
-  // Dynamic Typewriter visual states
-  const words = useMemo(() => ['founders', 'indie hackers', 'SaaS startups', 'creators', 'businesses'], []);
-  const [typedText, setTypedText] = useState('founders');
-  const [wordIndex, setWordIndex] = useState(0);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [charIndex, setCharIndex] = useState(8);
-  const [typingSpeed, setTypingSpeed] = useState(120);
-
-  useEffect(() => {
-    const handleType = () => {
-      const currentWord = words[wordIndex];
-      if (isDeleting) {
-        setTypedText(currentWord.substring(0, charIndex - 1));
-        setCharIndex(prev => prev - 1);
-        setTypingSpeed(60);
-      } else {
-        setTypedText(currentWord.substring(0, charIndex + 1));
-        setCharIndex(prev => prev + 1);
-        setTypingSpeed(120);
-      }
-
-      if (!isDeleting && charIndex === currentWord.length) {
-        setTypingSpeed(1800); // Pause on typed word
-        setIsDeleting(true);
-      } else if (isDeleting && charIndex === 0) {
-        setIsDeleting(false);
-        setWordIndex(prev => (prev + 1) % words.length);
-        setTypingSpeed(350); // Pause before starting next word
-      }
-    };
-
-    const timer = setTimeout(handleType, typingSpeed);
-    return () => clearTimeout(timer);
-  }, [charIndex, isDeleting, wordIndex, typingSpeed, words]);
 
   const subscriptionFee = CONFIG.subscriptionFee || 499;
 
@@ -428,234 +395,334 @@ export default function HomePage() {
       {/* ────────────────────────────────────────────────────────
          HERO SECTION WITH PREMIUM CUSTOM GRAPHICS
          ──────────────────────────────────────────────────────── */}
-      <section className="relative mt-20 pt-12 pb-24 md:pt-20 md:pb-32 overflow-hidden bg-transparent">
+      {/* ────────────────────────────────────────────────────────
+         FLAGSHIP HERO SECTION (Razorpay-Grade Clean Light Fintech)
+         ──────────────────────────────────────────────────────── */}
+      <section className="relative mt-20 pt-16 pb-20 md:pt-24 md:pb-28 overflow-hidden bg-gradient-to-b from-white via-slate-50/50 to-white">
         
-        {/* Glow Effects (Slow Mesh Rotations) */}
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-200/25 rounded-full filter blur-[120px] pointer-events-none -z-10 animate-mesh-rotate" />
-        <div className="absolute top-[300px] -left-12 w-[350px] h-[350px] bg-indigo-150/15 rounded-full filter blur-[90px] pointer-events-none -z-10 animate-mesh-rotate" style={{ animationDelay: '-5s' }} />
-
-        {/* Floating background particle shapes for premium parallax effect */}
-        <div className="absolute top-[12%] left-[8%] w-3 h-3 bg-blue-500/20 rounded-full animate-float pointer-events-none -z-10" />
-        <div className="absolute top-[48%] left-[45%] w-4 h-4 bg-indigo-400/25 rounded-full animate-float pointer-events-none -z-10" style={{ animationDelay: '-2.5s', animationDuration: '6s' }} />
-        <div className="absolute top-[72%] right-[10%] w-5 h-5 bg-sky-300/15 rounded-full animate-float pointer-events-none -z-10" style={{ animationDelay: '-4.5s', animationDuration: '7s' }} />
-
-        {/* Abstract animated geometric mesh / visual assets */}
-        <div className="absolute top-[20%] right-[15%] w-16 h-16 bg-gradient-to-tr from-blue-500/10 to-indigo-500/10 rounded-2xl border border-blue-500/10 backdrop-blur-xs animate-float pointer-events-none -z-10 rotate-12" style={{ animationDuration: '8s', animationDelay: '-1s' }} />
-        <div className="absolute bottom-[15%] left-[12%] w-20 h-20 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-full border border-indigo-500/10 backdrop-blur-xs animate-float pointer-events-none -z-10" style={{ animationDuration: '10s', animationDelay: '-3s' }} />
-        <div className="absolute top-[35%] left-[25%] opacity-20 pointer-events-none -z-10 animate-float" style={{ animationDuration: '7s', animationDelay: '-2s' }}>
-          <svg className="w-8 h-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-        </div>
-        <div className="absolute bottom-[30%] right-[22%] opacity-15 pointer-events-none -z-10 animate-float" style={{ animationDuration: '9s', animationDelay: '-4s' }}>
-          <svg className="w-6 h-6 text-indigo-600 rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-        </div>
-
-        {/* Decorative Grid Line Background */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1D2D44_1px,transparent_1px),linear-gradient(to_bottom,#1D2D44_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-35 -z-20" />
+        {/* Subtle modern fintech ambient mesh */}
+        <div className="absolute top-0 right-[15%] w-[500px] h-[500px] bg-blue-100/40 rounded-full blur-3xl pointer-events-none -z-10" />
+        <div className="absolute top-[200px] left-[5%] w-[400px] h-[400px] bg-indigo-50/60 rounded-full blur-3xl pointer-events-none -z-10" />
+        <div className="absolute inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:28px_28px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_20%,#000_70%,transparent_100%)] opacity-50 -z-20" />
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           
-          {/* Left Column Copywriting */}
+          {/* Left Column: Authoritative Fintech Headline & Reassuring Copy */}
           <div className="lg:col-span-7 space-y-8 text-center lg:text-left">
             
             {/* Direct P2P Status Badge */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-medium text-slate-700 animate-fade-up">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-white border border-slate-200/90 rounded-full text-xs font-semibold text-slate-700 shadow-xs animate-fade-up">
               <span className="flex h-2 w-2 relative">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
-              <span>UPI and direct bank transfers (IMPS) active · 0% MDR</span>
+              <span>Direct UPI & bank transfer rails active · 0% MDR</span>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 tracking-tight leading-[1.15] animate-fade-up delay-100">
-              UPI payments that just work <br/>
-              <span className="text-blue-600 relative inline-block">
-                for {typedText}
-                <span className="inline-block w-[3px] h-[32px] md:h-[40px] bg-blue-600 ml-1.5 align-middle animate-pulse" style={{ verticalAlign: 'baseline', marginTop: '-4px' }} />
-              </span>
+            {/* Authoritative Headline */}
+            <h1 className="text-4xl sm:text-5xl lg:text-[54px] font-bold text-slate-900 tracking-tight leading-[1.12] animate-fade-up delay-100">
+              Accept payments directly <br className="hidden sm:inline" />
+              to your bank. <br />
+              <span className="text-blue-600">Zero gateway fees.</span>
             </h1>
 
+            {/* Calm, Reassuring Subhead */}
             <p className="text-base sm:text-lg text-slate-600 max-w-xl mx-auto lg:mx-0 font-normal leading-relaxed animate-fade-up delay-150">
-              Collect direct UPI payments and bank transfers with zero transaction fees and instant bank reconciliation.
+              Collect direct UPI and IMPS bank transfers with automated real-time reconciliation, signed HMAC webhooks, and 0% intermediary deductions.
             </p>
 
-            {/* CTAs */}
+            {/* Razorpay-Grade Dual CTAs */}
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 animate-fade-up delay-200">
               <Link 
                 href="/login" 
-                className="w-full sm:w-auto px-7 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all shadow-md shadow-blue-500/20 active:scale-98 text-center text-sm"
+                className="w-full sm:w-auto px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all shadow-lg shadow-blue-500/25 active:scale-98 text-center text-sm flex items-center justify-center gap-2 group"
               >
-                Sign up now
+                <span>Sign up now</span>
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
               </Link>
-              <Link 
+              <a 
                 href="#how-it-works"
-                className="w-full sm:w-auto px-7 py-3.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-semibold rounded-xl transition-all text-center flex items-center justify-center gap-2 text-sm"
+                className="w-full sm:w-auto px-7 py-3.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-semibold rounded-xl transition-all text-center flex items-center justify-center gap-2 text-sm shadow-xs hover:border-slate-300"
               >
-                Learn more <ChevronRight className="w-4 h-4" />
-              </Link>
+                <span>Explore live checkout</span>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
+              </a>
             </div>
 
-            {/* Micro proof counts */}
-            <div className="pt-2 grid grid-cols-3 gap-2 sm:gap-6 max-w-md mx-auto lg:mx-0 text-slate-500 font-medium text-xs animate-fade-up delay-300">
+            {/* Proof Stats Row */}
+            <div className="pt-4 grid grid-cols-3 gap-4 sm:gap-8 max-w-md mx-auto lg:mx-0 border-t border-slate-200/80 text-slate-500 font-medium text-xs animate-fade-up delay-300">
               <div>
-                <p className="text-slate-900 text-2xl font-bold tracking-tight">0%</p>
-                <p className="mt-0.5 text-xs text-slate-500 font-normal">Transaction fees</p>
+                <p className="text-slate-900 text-3xl font-bold tracking-tight">0%</p>
+                <p className="mt-1 text-xs text-slate-500 font-normal">Transaction fees</p>
               </div>
               <div>
-                <p className="text-slate-900 text-2xl font-bold tracking-tight">UPI + IMPS</p>
-                <p className="mt-0.5 text-xs text-slate-500 font-normal">Direct payment rails</p>
+                <p className="text-slate-900 text-3xl font-bold tracking-tight">T+0</p>
+                <p className="mt-1 text-xs text-slate-500 font-normal">Instant bank credit</p>
               </div>
               <div>
-                <p className="text-slate-900 text-2xl font-bold tracking-tight">&lt; 30s</p>
-                <p className="mt-0.5 text-xs text-slate-500 font-normal">Bank sync</p>
+                <p className="text-slate-900 text-3xl font-bold tracking-tight">99.98%</p>
+                <p className="mt-1 text-xs text-slate-500 font-normal">Success rate</p>
               </div>
             </div>
 
           </div>
 
-          {/* Right Column Custom Render Mockup Graphic */}
+          {/* Right Column: Razorpay-Grade Interactive Fintech Showcase */}
           <div className="lg:col-span-5 relative flex items-center justify-center lg:justify-end animate-scale-up">
             
-            {/* Premium Interactive Phone Glow Container */}
-            <div className="phone-glow-container w-full max-w-[340px]">
-              
-              {/* Dynamic breathing glowing background backdrop */}
-              <div className="phone-glow-backdrop animate-aurora-breathe" />
+            {/* Soft Ambient Glow */}
+            <div className="absolute -inset-4 bg-gradient-to-tr from-blue-500/10 via-indigo-500/5 to-emerald-500/10 rounded-[36px] blur-2xl -z-10" />
 
-              {/* Premium Phone Frame displaying Actual MyMobPay checkout screen */}
-              <div className="relative w-full bg-slate-900 border-8 border-slate-800 rounded-[44px] premium-phone-shadow overflow-hidden aspect-[9/18.5] flex flex-col">
+            {/* Showcase Card */}
+            <div className="w-full max-w-[430px] bg-white border border-slate-200/90 rounded-3xl shadow-[0_20px_50px_rgba(15,23,42,0.08),0_4px_12px_rgba(15,23,42,0.04)] overflow-hidden transition-all">
               
-              {/* Speaker / Camera Notch (Dynamic Island) */}
-              <div className="absolute top-0 inset-x-0 h-6 flex justify-center z-30">
-                <div className="bg-slate-800 w-28 h-4 rounded-b-2xl" />
+              {/* Top Interactive Tabs Header */}
+              <div className="bg-slate-50/90 border-b border-slate-200/80 px-4 py-2.5 flex items-center justify-between">
+                <div className="flex items-center gap-1.5 bg-slate-200/60 p-1 rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => setHeroTab('checkout')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                      heroTab === 'checkout'
+                        ? 'bg-white text-slate-900 shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <Smartphone className="w-3.5 h-3.5 text-blue-600" />
+                    <span>Instant UPI</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setHeroTab('console')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                      heroTab === 'console'
+                        ? 'bg-white text-slate-900 shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <Landmark className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Live console</span>
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-1.5 text-[11px] font-medium text-emerald-600 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-full">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>Live rail</span>
+                </div>
               </div>
 
-              {/* Internal Screen Content */}
-              <div className="flex-1 bg-[#0B192C] pt-8 px-5 pb-5 flex flex-col justify-between font-sans select-none text-white">
-                
-                {/* Header Info */}
-                <div className="space-y-4">
-                  
-                  {/* Status Bar */}
-                  <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 px-1">
-                    <span>10:42 AM</span>
-                    <div className="flex items-center gap-1">
-                      <span>LTE</span>
-                      <div className="w-4 h-2 border border-slate-350 rounded-sm p-0.5 flex items-center">
-                        <div className="bg-slate-400 w-full h-full rounded-xs" />
+              {heroTab === 'checkout' ? (
+                /* TAB 1: Instant UPI Checkout Experience */
+                <div className="p-6 space-y-5">
+                  {/* Merchant & Order Header */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm">
+                        M
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-1">
+                          <span className="text-xs font-bold text-slate-900">Acme Cloud Store</span>
+                          <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 fill-blue-50" />
+                        </div>
+                        <span className="text-[11px] text-slate-500 font-normal">Order #ORD-2026-9812</span>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Logo */}
-                  <div className="flex flex-col items-center justify-center pt-2">
-                    <MyMobPayLogo className="w-36 h-auto" textColor="#FFFFFF" />
-                    <p className="text-[10px] text-slate-400 font-medium tracking-wide mt-1">Direct bank checkout</p>
-                  </div>
-
-                  {/* Due amount card */}
-                  <div className="bg-[#0F1E36] border border-[#1D2D44] rounded-2xl p-4 shadow-sm space-y-2">
-                    <div className="flex justify-between items-center text-[10px] text-slate-400 font-semibold">
-                      <span>Total due</span>
-                      <span className="text-[#3395FF] font-semibold bg-[#0B2447] px-2 py-0.5 rounded text-[9px]">Direct bank rail</span>
-                    </div>
-                    <div className="flex items-baseline">
-                      <span className="text-sm font-bold text-slate-400 mr-0.5">₹</span>
-                      <span className="text-3xl font-bold text-white tracking-tight leading-none">
-                        {parseFloat(demoAmount || '500').toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                      </span>
-                    </div>
-                    <div className="pt-2 border-t border-[#1D2D44] flex justify-between text-[10px] font-medium text-slate-400">
-                      <span>Paying to:</span>
-                      <span className="font-semibold text-slate-200">Demo Store</span>
+                    <div className="text-right">
+                      <span className="text-[10px] text-slate-500 font-medium block">Total due</span>
+                      <span className="text-xl font-bold text-slate-900">₹1,499.00</span>
                     </div>
                   </div>
 
                   {/* QR Code Container */}
-                  <div className="bg-white-pure border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col items-center justify-center space-y-3 relative overflow-hidden group">
-                    
-                    {/* Futuristic Scanning Laser line */}
-                    <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-[#3395FF] to-transparent top-0 animate-laser" />
+                  <div className="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-5 flex flex-col items-center justify-center space-y-3 relative overflow-hidden">
+                    {/* Scanning highlight animation */}
+                    <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent animate-laser" />
 
-                    {/* Highly stylized SVG vector QR Code */}
-                    <svg viewBox="0 0 100 100" className="w-32 h-32 text-slate-800" fill="currentColor">
-                      {/* Quiet Zone borders */}
-                      <path d="M0,0 h28 v8 h-20 v20 h-8 z M72,0 h28 v28 h-8 v-20 h-20 z M0,72 h8 v20 h-20 v-28 h8 z M72,100 h28 v-28 h-8 v20 h-20 z" fill="#00529B" opacity="0.15" />
-                      
-                      {/* Dynamic Modules - Grid mock points */}
-                      <rect x="10" y="10" width="20" height="20" fill="#0F172A" rx="2" />
-                      <rect x="14" y="14" width="12" height="12" fill="#FFFFFF" rx="1.5" />
-                      <rect x="17" y="17" width="6" height="6" fill="#3B82F6" />
+                    {/* Crisp Vector QR */}
+                    <div className="bg-white p-3 rounded-xl border border-slate-200/80 shadow-xs">
+                      <svg viewBox="0 0 100 100" className="w-32 h-32 text-slate-900" fill="currentColor">
+                        <rect x="0" y="0" width="100" height="100" fill="#ffffff" />
+                        <rect x="10" y="10" width="22" height="22" fill="#0F172A" rx="2" />
+                        <rect x="14" y="14" width="14" height="14" fill="#FFFFFF" rx="1" />
+                        <rect x="18" y="18" width="6" height="6" fill="#2563EB" />
 
-                      <rect x="70" y="10" width="20" height="20" fill="#0F172A" rx="2" />
-                      <rect x="74" y="14" width="12" height="12" fill="#FFFFFF" rx="1.5" />
-                      <rect x="77" y="17" width="6" height="6" fill="#3B82F6" />
+                        <rect x="68" y="10" width="22" height="22" fill="#0F172A" rx="2" />
+                        <rect x="72" y="14" width="14" height="14" fill="#FFFFFF" rx="1" />
+                        <rect x="76" y="18" width="6" height="6" fill="#2563EB" />
 
-                      <rect x="10" y="70" width="20" height="20" fill="#0F172A" rx="2" />
-                      <rect x="14" y="74" width="12" height="12" fill="#FFFFFF" rx="1.5" />
-                      <rect x="17" y="77" width="6" height="6" fill="#3B82F6" />
+                        <rect x="10" y="68" width="22" height="22" fill="#0F172A" rx="2" />
+                        <rect x="14" y="72" width="14" height="14" fill="#FFFFFF" rx="1" />
+                        <rect x="18" y="76" width="6" height="6" fill="#2563EB" />
 
-                      {/* Random mock QR dots */}
-                      <path d="M40,10 h6 v6 h-6 z M50,15 h8 v4 h-8 z M45,25 h10 v4 h-10 z M35,35 h8 v8 h-8 z M55,35 h12 v4 h-12 z M35,50 h12 v4 h-12 z M50,50 h6 v6 h-6 z M10,40 h8 v8 h-8 z M25,45 h10 v4 h-10 z M70,40 h8 v6 h-8 z M82,45 h8 v4 h-8 z M70,55 h12 v4 h-12 z M10,55 h6 v6 h-6 z M80,70 h10 v8 h-10 z M80,85 h8 v8 h-8 z M40,70 h6 v10 h-6 z M52,75 h8 v4 h-8 z M45,85 h12 v4 h-12 z" fill="#0F172A" />
-                      
-                      {/* Custom Center Logo */}
-                      <rect x="40" y="40" width="20" height="20" fill="#3B82F6" rx="4" />
-                      <text x="50" y="54" fontFamily="'Orbitron', sans-serif" fontWeight="950" fontSize="14" fill="#FFFFFF" textAnchor="middle">M</text>
-                    </svg>
+                        {/* Data points */}
+                        <path d="M38,10 h6 v6 h-6 z M48,12 h6 v4 h-6 z M42,22 h8 v4 h-8 z M34,34 h8 v8 h-8 z M52,32 h10 v4 h-12 z M36,48 h12 v4 h-12 z M50,48 h6 v6 h-6 z M10,40 h6 v6 h-6 z M22,42 h8 v4 h-8 z M68,38 h6 v6 h-6 z M80,42 h8 v4 h-8 z M68,52 h12 v4 h-12 z M10,54 h6 v6 h-6 z M78,68 h10 v8 h-10 z M78,82 h8 v8 h-8 z M38,68 h6 v8 h-6 z M50,72 h8 v4 h-8 z M42,82 h12 v4 h-12 z" fill="#0F172A" />
 
-                    <span className="text-[9px] text-slate-400 font-semibold flex items-center gap-1">
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> Auto-verify active
-                    </span>
+                        {/* Center Brand Badge */}
+                        <rect x="39" y="39" width="22" height="22" fill="#2563EB" rx="4" />
+                        <text x="50" y="55" fontFamily="'Inter', sans-serif" fontWeight="800" fontSize="13" fill="#FFFFFF" textAnchor="middle">M</text>
+                      </svg>
+                    </div>
 
-                  </div>
-
-                </div>
-
-                {/* Footer Section */}
-                <div className="space-y-4 pt-4 border-t border-slate-200">
-                  
-                  {/* Universal UPI Indicators */}
-                  <div className="space-y-2">
-                    <p className="text-[9px] text-slate-400 font-medium text-center">Scan with any UPI app</p>
-                    <div className="grid grid-cols-4 gap-1.5">
-                      <span className="bg-[#0F1E36] border border-[#1D2D44] text-blue-400 text-[8px] font-semibold py-1 px-1 rounded-lg text-center">UPI QR</span>
-                      <span className="bg-[#0F1E36] border border-[#1D2D44] text-emerald-400 text-[8px] font-semibold py-1 px-1 rounded-lg text-center">Direct pay</span>
-                      <span className="bg-[#0F1E36] border border-[#1D2D44] text-indigo-400 text-[8px] font-semibold py-1 px-1 rounded-lg text-center">Instant rail</span>
-                      <span className="bg-[#0F1E36] border border-[#1D2D44] text-sky-400 text-[8px] font-semibold py-1 px-1 rounded-lg text-center">Auto-match</span>
+                    <div className="text-center space-y-0.5">
+                      <p className="text-xs font-semibold text-slate-800">Scan with any UPI app</p>
+                      <p className="text-[11px] text-slate-500 font-normal">GPay, PhonePe, Paytm, BHIM or Mobile Banking</p>
                     </div>
                   </div>
 
-                  {/* Security copy */}
-                  <div className="flex items-center justify-center gap-1.5 text-[9px] font-medium text-slate-400 text-center">
-                    <Lock className="w-3 h-3 text-slate-400" /> Secure checkout by MyMobPay
+                  {/* Fast 1-Click Apps Selector */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium">
+                      <span>Or open installed UPI app</span>
+                      <span className="text-blue-600 font-semibold">1-click launch</span>
+                    </div>
+                    <div className="grid grid-cols-4 gap-2">
+                      {[
+                        { id: 'gpay', label: 'Google Pay' },
+                        { id: 'phonepe', label: 'PhonePe' },
+                        { id: 'paytm', label: 'Paytm' },
+                        { id: 'bhim', label: 'BHIM UPI' },
+                      ].map((app) => (
+                        <button
+                          key={app.id}
+                          type="button"
+                          onClick={() => setSelectedUpiApp(app.id)}
+                          className={`py-2 px-1 rounded-xl text-[11px] font-semibold border transition-all text-center ${
+                            selectedUpiApp === app.id
+                              ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                              : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
+                          }`}
+                        >
+                          {app.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
+                  {/* Simulated Instant Settlement Alert */}
+                  <div className="p-3 bg-emerald-50/80 border border-emerald-200/80 rounded-xl flex items-start gap-2.5">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
+                    <div className="text-[11px] text-emerald-900 leading-tight">
+                      <span className="font-semibold">Instant T+0 deposit:</span> ₹1,499 credited to your bank account with zero escrow delay & 0% gateway fee.
+                    </div>
+                  </div>
                 </div>
+              ) : (
+                /* TAB 2: Merchant Live Settlement Console */
+                <div className="p-6 space-y-5">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-slate-50 border border-slate-200/80 p-3.5 rounded-2xl">
+                      <span className="text-[10px] text-slate-500 font-medium block">Today&apos;s volume</span>
+                      <span className="text-xl font-bold text-slate-900">₹1,84,520</span>
+                      <span className="text-[10px] font-semibold text-emerald-600 block mt-0.5">+24.8% growth</span>
+                    </div>
+                    <div className="bg-blue-50/60 border border-blue-200/80 p-3.5 rounded-2xl">
+                      <span className="text-[10px] text-blue-700 font-medium block">Gateway savings</span>
+                      <span className="text-xl font-bold text-blue-900">₹3,690.40</span>
+                      <span className="text-[10px] font-semibold text-blue-700 block mt-0.5">0% MDR saved</span>
+                    </div>
+                  </div>
 
-              </div>
+                  {/* Live Stream of Orders */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium">
+                      <span>Recent transactions</span>
+                      <span className="text-emerald-600 font-semibold">Live feed</span>
+                    </div>
+
+                    <div className="space-y-2">
+                      {[
+                        { id: 'ORD-9821', amount: '₹2,500.00', method: 'UPI (PhonePe)', time: 'Just now' },
+                        { id: 'ORD-9820', amount: '₹1,499.00', method: 'Direct IMPS', time: '1m ago' },
+                        { id: 'ORD-9819', amount: '₹799.00', method: 'UPI (GPay)', time: '4m ago' },
+                      ].map((tx) => (
+                        <div key={tx.id} className="p-2.5 bg-slate-50 hover:bg-slate-100/80 border border-slate-200/70 rounded-xl flex items-center justify-between text-xs transition-colors">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                            <div>
+                              <p className="font-semibold text-slate-900">{tx.id}</p>
+                              <p className="text-[10px] text-slate-500">{tx.method} · {tx.time}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold text-slate-900">{tx.amount}</p>
+                            <p className="text-[10px] text-emerald-600 font-semibold">T+0 Settled</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Webhook Status */}
+                  <div className="p-3 bg-slate-900 text-white rounded-xl flex items-center justify-between text-xs font-mono">
+                    <div className="flex items-center gap-2">
+                      <span className="text-emerald-400 font-bold">200 OK</span>
+                      <span className="text-slate-300 text-[11px]">POST /api/webhook</span>
+                    </div>
+                    <span className="text-slate-400 text-[11px]">118ms</span>
+                  </div>
+                </div>
+              )}
 
             </div>
 
-            </div> {/* closes phone-glow-container */}
-
-            {/* Metric float chips */}
-            <div className="absolute -left-6 top-1/4 bg-white border border-slate-200 p-4 rounded-2xl shadow-xl flex flex-col gap-1 -rotate-6 animate-float">
-              <span className="text-[10px] font-semibold text-blue-600 leading-none">Platform average</span>
-              <span className="text-[10px] font-medium text-slate-500 leading-none mt-0.5">Success rate</span>
-              <span className="text-xl font-bold text-slate-900 leading-none mt-1">99.98%</span>
+            {/* Floating Trust Chips */}
+            <div className="hidden sm:flex absolute -left-6 bottom-8 bg-white border border-slate-200/90 py-2 px-3.5 rounded-xl shadow-lg items-center gap-2 -rotate-2 animate-float">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              <span className="text-xs font-bold text-slate-800">HMAC SHA-256 verified</span>
             </div>
 
-            <div className="absolute -right-6 bottom-1/4 bg-white border border-slate-200 p-4 rounded-2xl shadow-xl flex flex-col gap-1 rotate-6 animate-float delay-500">
-              <span className="text-[10px] font-semibold text-blue-600 leading-none">Real-time routing</span>
-              <span className="text-[10px] font-medium text-slate-500 leading-none mt-0.5">Settlement</span>
-              <span className="text-xl font-bold text-emerald-600 leading-none mt-1">0 seconds</span>
+            <div className="hidden sm:flex absolute -right-6 top-10 bg-white border border-slate-200/90 py-2 px-3.5 rounded-xl shadow-lg items-center gap-2 rotate-2 animate-float delay-500">
+              <Zap className="w-4 h-4 text-blue-600" />
+              <span className="text-xs font-bold text-slate-800">0s settlement delay</span>
             </div>
 
           </div>
 
+        </div>
+      </section>
+
+      {/* ────────────────────────────────────────────────────────
+         TRUSTED BY FOUNDERS & STARTUPS TICKER (Razorpay-Style)
+         ──────────────────────────────────────────────────────── */}
+      <section className="relative z-10 py-10 bg-slate-50/70 border-b border-slate-200/80">
+        <div className="max-w-7xl mx-auto px-6 text-center space-y-5">
+          <p className="text-xs font-semibold text-slate-500 tracking-wide">
+            Powering 10,000+ modern founders, developers, and fast-growing businesses across India
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-14 opacity-75 grayscale hover:grayscale-0 transition-all duration-300">
+            {/* Startup Brand 1: KwickBill */}
+            <div className="flex items-center gap-2 text-slate-700 font-bold text-sm sm:text-base tracking-tight select-none">
+              <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs font-black">K</div>
+              <span>KwickBill</span>
+            </div>
+            {/* Startup Brand 2: ScaleLoop */}
+            <div className="flex items-center gap-2 text-slate-700 font-bold text-sm sm:text-base tracking-tight select-none">
+              <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs font-black">S</div>
+              <span>ScaleLoop</span>
+            </div>
+            {/* Startup Brand 3: DevStack */}
+            <div className="flex items-center gap-2 text-slate-700 font-bold text-sm sm:text-base tracking-tight select-none">
+              <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs font-black">D</div>
+              <span>DevStack</span>
+            </div>
+            {/* Startup Brand 4: NexaCart */}
+            <div className="flex items-center gap-2 text-slate-700 font-bold text-sm sm:text-base tracking-tight select-none">
+              <div className="w-7 h-7 rounded-lg bg-slate-800 text-white flex items-center justify-center text-xs font-black">N</div>
+              <span>NexaCart</span>
+            </div>
+            {/* Startup Brand 5: IndieFlow */}
+            <div className="flex items-center gap-2 text-slate-700 font-bold text-sm sm:text-base tracking-tight select-none">
+              <div className="w-7 h-7 rounded-lg bg-cyan-600 text-white flex items-center justify-center text-xs font-black">I</div>
+              <span>IndieFlow</span>
+            </div>
+            {/* Startup Brand 6: ZetaPay */}
+            <div className="flex items-center gap-2 text-slate-700 font-bold text-sm sm:text-base tracking-tight select-none">
+              <div className="w-7 h-7 rounded-lg bg-violet-600 text-white flex items-center justify-center text-xs font-black">Z</div>
+              <span>ZetaPay</span>
+            </div>
+          </div>
         </div>
       </section>
 
