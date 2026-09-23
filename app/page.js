@@ -473,7 +473,7 @@ export default function HomePage() {
       {/* ────────────────────────────────────────────────────────
          TRUSTED BY FOUNDERS & STARTUPS TICKER (Razorpay-Style)
          ──────────────────────────────────────────────────────── */}
-      <section className="relative z-10 py-10 bg-slate-50/70 border-b border-slate-200/80">
+      <section className="relative z-10 py-10 bg-slate-50 border-b border-slate-200/80">
         <div className="max-w-7xl mx-auto px-6 text-center space-y-5">
           <p className="text-xs font-semibold text-slate-500 tracking-wide">
             Powering 10,000+ modern founders, developers, and fast-growing businesses across India
@@ -560,7 +560,7 @@ export default function HomePage() {
               <div className="flex min-h-[480px]">
 
                 {/* Sidebar */}
-                <div className="hidden md:flex w-[180px] bg-slate-50/80 border-r border-slate-200 flex-col py-6 px-3 gap-1 flex-shrink-0">
+                <div className="hidden md:flex w-[180px] bg-slate-50 border-r border-slate-200 flex-col py-6 px-3 gap-1 flex-shrink-0">
                   <div className="px-3 pb-4">
                     <MyMobPayLogo className="w-28 h-auto" textColor="#0F172A" />
                   </div>
@@ -1335,13 +1335,13 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
             {/* Left Card: Wide 8 cols */}
-            <div className="lg:col-span-8 bg-slate-50/80 border border-slate-200/90 rounded-3xl p-8 sm:p-12 flex flex-col justify-between hover:border-slate-300 transition-all shadow-xs">
+            <div className="lg:col-span-8 bg-white border border-slate-200 rounded-3xl p-8 sm:p-12 flex flex-col justify-between hover:border-slate-300 transition-all shadow-sm">
               <div>
                 <div className="flex items-center justify-between pb-6">
                   <span className="text-xs sm:text-sm font-semibold text-slate-600 tracking-tight">
                     Direct bank settlement rail
                   </span>
-                  <div className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-slate-400 bg-white shadow-xs">
+                  <div className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-slate-400 bg-slate-50 shadow-xs">
                     <Globe className="w-4 h-4 text-slate-500" />
                   </div>
                 </div>
@@ -1349,13 +1349,13 @@ export default function HomePage() {
                   <span className="text-blue-600">Route payments directly to your bank account,</span> saving on intermediary transaction fees with instant UPI and IMPS transfers.
                 </h3>
               </div>
-              <p className="text-xs sm:text-sm font-normal text-slate-500 pt-4 border-t border-slate-200/60 leading-relaxed">
+              <p className="text-xs sm:text-sm font-normal text-slate-500 pt-4 border-t border-slate-100 leading-relaxed">
                 Receive direct account transfers with zero escrow delays via automated bank email reconciliation.
               </p>
             </div>
 
             {/* Right Card: 4 cols */}
-            <div className="lg:col-span-4 bg-slate-50/80 border border-slate-200/90 rounded-3xl p-8 sm:p-10 flex flex-col justify-between hover:border-slate-300 transition-all shadow-xs">
+            <div className="lg:col-span-4 bg-white border border-slate-200 rounded-3xl p-8 sm:p-10 flex flex-col justify-between hover:border-slate-300 transition-all shadow-sm">
               <div>
                 <h3 className="text-lg sm:text-xl font-bold text-slate-900 leading-relaxed">
                   <span className="text-blue-600">Experience instant settlements</span> with 99.98% reliability, zero escrow holding periods, and no percentage-based gateway deductions.
@@ -1369,7 +1369,7 @@ export default function HomePage() {
                   </Link>
                 </div>
               </div>
-              <p className="text-xs sm:text-sm font-normal text-slate-500 pt-4 border-t border-slate-200/60 leading-relaxed">
+              <p className="text-xs sm:text-sm font-normal text-slate-500 pt-4 border-t border-slate-100 leading-relaxed">
                 A dependable direct payment solution engineered for fast-moving Indian businesses.
               </p>
             </div>
@@ -1950,7 +1950,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             
             {/* Feature 1 */}
-            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-6 space-y-4 hover:border-slate-300 transition-all hover:shadow-md duration-200 group">
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 hover:border-slate-300 transition-all hover:shadow-md duration-200 group">
               <div className="w-10 h-10 rounded-xl bg-blue-500 text-white flex items-center justify-center shadow-xs">
                 <Landmark className="w-5 h-5" />
               </div>
@@ -1961,7 +1961,7 @@ export default function HomePage() {
             </div>
 
             {/* Feature 2 */}
-            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-6 space-y-4 hover:border-slate-300 transition-all hover:shadow-md duration-200 group">
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 hover:border-slate-300 transition-all hover:shadow-md duration-200 group">
               <div className="w-10 h-10 rounded-xl bg-indigo-500 text-white flex items-center justify-center shadow-xs">
                 <ShieldCheck className="w-5 h-5" />
               </div>
@@ -1972,7 +1972,7 @@ export default function HomePage() {
             </div>
 
             {/* Feature 3 */}
-            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-6 space-y-4 hover:border-slate-300 transition-all hover:shadow-md duration-200 group">
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 hover:border-slate-300 transition-all hover:shadow-md duration-200 group">
               <div className="w-10 h-10 rounded-xl bg-violet-500 text-white flex items-center justify-center shadow-xs">
                 <Layers className="w-5 h-5" />
               </div>
@@ -1983,7 +1983,7 @@ export default function HomePage() {
             </div>
 
             {/* Feature 4 */}
-            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-6 space-y-4 hover:border-slate-300 transition-all hover:shadow-md duration-200 group">
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 hover:border-slate-300 transition-all hover:shadow-md duration-200 group">
               <div className="w-10 h-10 rounded-xl bg-sky-500 text-white flex items-center justify-center shadow-xs">
                 <Zap className="w-5 h-5" />
               </div>
@@ -2078,7 +2078,7 @@ export default function HomePage() {
             </div>
 
             {/* Pro/Enterprise Card */}
-            <div className="bg-slate-50/70 border border-slate-200/80 rounded-3xl p-8 flex flex-col justify-between hover:border-slate-300 transition-all">
+            <div className="bg-white border border-slate-200 rounded-3xl p-8 flex flex-col justify-between hover:border-slate-300 transition-all shadow-xs">
               <div className="space-y-6">
                 <div>
                   <span className="text-xs font-semibold text-slate-500">Enterprise scale</span>
@@ -2097,7 +2097,7 @@ export default function HomePage() {
               </div>
               <Link
                 href="/login"
-                className="mt-8 block w-full py-3 bg-slate-200/80 hover:bg-slate-200 text-slate-700 font-semibold rounded-2xl transition-all text-center text-xs"
+                className="mt-8 block w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-2xl transition-all text-center text-xs"
               >
                 Contact for enterprise
               </Link>
