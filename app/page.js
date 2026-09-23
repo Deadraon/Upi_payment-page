@@ -122,23 +122,8 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 overflow-x-hidden selection:bg-blue-500/10 selection:text-blue-600 relative pb-[72px] lg:pb-0">
+    <div className="min-h-screen bg-slate-50 text-slate-900 overflow-x-hidden selection:bg-blue-500/10 selection:text-blue-600 relative">
       <InteractiveBackground />
-      {/* ── STICKY MOBILE BOTTOM CTA BAR (Razorpay-style, hidden on desktop) ── */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-t border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] px-4 py-3 flex items-center gap-3">
-        <Link
-          href="/login"
-          className="flex-1 py-3 border border-slate-200 text-center font-bold text-slate-700 rounded-xl text-sm transition-all hover:bg-slate-50"
-        >
-          Login
-        </Link>
-        <Link
-          href="/login"
-          className="flex-[2] py-3 bg-blue-600 hover:bg-blue-700 text-white text-center font-bold rounded-xl text-sm transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-1.5"
-        >
-          Sign Up Free <ArrowRight className="w-4 h-4" />
-        </Link>
-      </div>
       
       {/* ────────────────────────────────────────────────────────
          ORIGINAL FULL-WIDTH STATIC HEADER WITH MULTI-LAYERED SHADOWS
@@ -916,8 +901,8 @@ export default function HomePage() {
 
             </div>
 
-            {/* Right Column: High-Fidelity Minimal Playground (7 Cols, Desktop Only) */}
-            <div className="hidden lg:flex lg:col-span-7 flex-col">
+            {/* Right Column: High-Fidelity Minimal Playground (7 Cols) */}
+            <div className="lg:col-span-7 flex flex-col">
               <div className="bg-slate-900 rounded-2xl border border-slate-800 flex flex-col flex-1 overflow-hidden min-h-[560px]">
 
                 {/* Window Chrome Header Bar with Real Mac Control Colors */}
@@ -1497,32 +1482,8 @@ export default function HomePage() {
 
           </div>
 
-          {/* Mobile Developer CTA (shown instead of code sandbox) */}
-          <div className="lg:hidden space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {[
-                { icon: <Terminal className="w-5 h-5" />, title: 'REST API', desc: 'Simple HTTP endpoints for order creation, QR generation & status verification.', color: 'text-blue-400' },
-                { icon: <ShieldCheck className="w-5 h-5" />, title: 'HMAC Webhooks', desc: 'Cryptographically signed event callbacks dispatched to your server in under 200ms.', color: 'text-emerald-400' },
-                { icon: <Code className="w-5 h-5" />, title: 'SDKs & Libraries', desc: 'Official typed SDKs for Node.js, Python, PHP, Flutter, and React Native.', color: 'text-purple-400' },
-                { icon: <Zap className="w-5 h-5" />, title: '15-min Integration', desc: 'From zero to live direct-bank payment collection in minutes, not days.', color: 'text-amber-400' },
-              ].map(item => (
-                <div key={item.title} className="bg-[#0B1528] border border-blue-900/30 rounded-2xl p-4 space-y-2">
-                  <div className={item.color}>{item.icon}</div>
-                  <h4 className="text-sm font-bold text-white">{item.title}</h4>
-                  <p className="text-xs text-slate-400 leading-relaxed font-normal">{item.desc}</p>
-                </div>
-              ))}
-            </div>
-            <Link
-              href="/login"
-              className="block w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl text-center transition-all shadow-lg shadow-blue-500/20 text-sm"
-            >
-              Get API Key &amp; Start Building →
-            </Link>
-          </div>
-
-          {/* Interactive Developer Code Sandbox ("Try it out for yourself") Desktop only */}
-          <div className="space-y-4 hidden lg:block">
+          {/* Interactive Developer Code Sandbox ("Try it out for yourself") */}
+          <div className="space-y-4">
             
             {/* Header & Language Selectors */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -1699,32 +1660,6 @@ export default function HomePage() {
           </div>
 
         </div>
-
-        {/* ── MOBILE ONLY: UPI App Trust Strip (shown instead of phone mockup) ── */}
-        <div className="lg:hidden max-w-7xl mx-auto px-6 pb-8">
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4">
-            <p className="text-xs font-semibold text-slate-500 text-center tracking-wide">Works seamlessly with all UPI apps</p>
-            <div className="grid grid-cols-4 gap-3">
-              {[
-                { name: 'GPay', color: 'bg-blue-50 text-blue-700 border-blue-200', initial: 'G' },
-                { name: 'PhonePe', color: 'bg-purple-50 text-purple-700 border-purple-200', initial: 'P' },
-                { name: 'Paytm', color: 'bg-sky-50 text-sky-700 border-sky-200', initial: 'P' },
-                { name: 'BHIM', color: 'bg-emerald-50 text-emerald-700 border-emerald-200', initial: 'B' },
-              ].map(app => (
-                <div key={app.name} className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border ${app.color}`}>
-                  <span className="w-8 h-8 rounded-lg bg-white border border-current/20 flex items-center justify-center font-extrabold text-sm shadow-xs">{app.initial}</span>
-                  <span className="text-[10px] font-semibold">{app.name}</span>
-                </div>
-              ))}
-            </div>
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-medium">
-              <span className="flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> 0% gateway fees</span>
-              <span className="flex items-center gap-1.5"><Zap className="w-3.5 h-3.5 text-blue-500" /> Instant settlement</span>
-              <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-blue-500" /> 99.98% uptime</span>
-            </div>
-          </div>
-        </div>
-
       </section>
 
       {/* ────────────────────────────────────────────────────────
