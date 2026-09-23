@@ -346,7 +346,7 @@ export default function HomePage() {
           </div>
 
           {/* Right Column Custom Render Mockup Graphic (Old Style Phone Scanner) */}
-          <div className="hidden lg:flex lg:col-span-5 relative items-center justify-center lg:justify-end animate-scale-up">
+          <div className="lg:col-span-5 relative flex items-center justify-center lg:justify-end animate-scale-up">
             
             {/* Premium Interactive Phone Glow Container */}
             <div className="phone-glow-container w-full max-w-[340px]">
