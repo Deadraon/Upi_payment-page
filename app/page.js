@@ -516,7 +516,7 @@ export default function HomePage() {
       {/* ────────────────────────────────────────────────────────
          CODED DASHBOARD SHOWCASE (Clean Light Theme)
          ──────────────────────────────────────────────────────── */}
-      <section className="relative z-10 py-24 bg-transparent border-y border-slate-200/60 overflow-hidden">
+      <section className="hidden lg:block relative z-10 py-24 bg-transparent border-y border-slate-200/60 overflow-hidden">
 
         <div className="max-w-7xl mx-auto px-6 space-y-14">
           <div className="text-center space-y-3">
@@ -695,7 +695,7 @@ export default function HomePage() {
       {/* ────────────────────────────────────────────────────────
          HOW IT WORKS — DIRECT SETTLEMENT ARCHITECTURE (MINIMAL)
          ──────────────────────────────────────────────────────── */}
-      <section id="how-it-works" className="relative z-10 py-20 bg-white border-b border-slate-200">
+      <section id="how-it-works" className="hidden lg:block relative z-10 py-20 bg-white border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-6 space-y-14 relative">
           
           {/* Section Header */}
@@ -1381,7 +1381,7 @@ export default function HomePage() {
       {/* ────────────────────────────────────────────────────────
          DEVELOPER SECTION (SENIOR DEV FINISH & BRAND BLUE THEME)
          ──────────────────────────────────────────────────────── */}
-      <section id="developer-section" className="relative z-10 bg-[#080E1C] text-white border-y border-slate-800/80 overflow-hidden">
+      <section id="developer-section" className="hidden lg:block relative z-10 bg-[#080E1C] text-white border-y border-slate-800/80 overflow-hidden">
         
         {/* FULL-WIDTH BRAND BLUE MARQUEE TICKER (ACTUAL SITE LANGUAGES) */}
         <div className="w-full bg-[#1D4ED8] py-3.5 sm:py-4 overflow-hidden border-b border-[#1E40AF] select-none shadow-inner">
@@ -1665,7 +1665,7 @@ export default function HomePage() {
       {/* ────────────────────────────────────────────────────────
          INTERACTIVE SAVINGS SLIDER CALCULATOR
          ──────────────────────────────────────────────────────── */}
-      <section id="pricing-section" className="relative z-10 py-24 bg-transparent border-b border-slate-200/60">
+      <section id="pricing-section" className="hidden lg:block relative z-10 py-24 bg-transparent border-b border-slate-200/60">
         <div className="max-w-4xl mx-auto px-6 space-y-12">
           
           <div className="text-center space-y-3">
