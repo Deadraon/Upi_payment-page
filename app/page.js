@@ -349,9 +349,9 @@ export default function HomePage() {
                 
                 {/* Header */}
                 <div className="bg-white px-3.5 py-2.5 flex justify-between items-center border-b border-[#eaecf0]">
-                  <div className="flex items-center gap-1.5 font-extrabold text-[12px] tracking-tight">
-                    <div className="w-5 h-5 rounded-[6px] bg-gradient-to-br from-[#4a9bff] to-[#2378f0] text-white flex items-center justify-center font-extrabold text-[10px] shadow-sm">M</div>
-                    <span>MyMobPay</span>
+                  <div className="flex items-center gap-0 leading-none">
+                    <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 13, color: '#0f1b2d' }}>MyMob</span>
+                    <span style={{ fontFamily: "'Orbitron', sans-serif", fontWeight: 900, fontStyle: 'italic', fontSize: 13, color: '#3B82F6', marginLeft: 2 }}>Pay</span>
                   </div>
                   <div className="flex items-center gap-1 text-[9px] font-semibold text-[#667085]">
                     <ShieldCheck className="w-3 h-3 text-[#12995d]" />

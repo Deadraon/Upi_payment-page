@@ -7,14 +7,25 @@ import QRCode from 'react-qr-code';
 import { CONFIG } from '@/lib/config';
 import { supabase } from '@/lib/supabase';
 
-/* ── Brand Logo ─────────────────────────────────────────────── */
+/* ── Original MyMobPay Logo (Outfit + Orbitron brand fonts) ─── */
 const MyMobPayLogo = () => (
-  <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontWeight: 800, fontSize: 18, letterSpacing: '-0.02em', userSelect: 'none' }}>
-    <div className="mk">M</div>
-    <div style={{ display: 'flex', alignItems: 'center', lineHeight: 1 }}>
-      <span style={{ fontFamily: "'Outfit', 'DM Sans', sans-serif", fontWeight: 800, fontSize: 20, color: '#101828' }}>MyMob</span>
-      <span style={{ fontFamily: "'Orbitron', sans-serif", fontWeight: 900, fontStyle: 'italic', fontSize: 20, color: '#2f86f6', marginLeft: 3 }}>Pay</span>
-    </div>
+  <div style={{ display: 'flex', alignItems: 'center', gap: 0, lineHeight: 1, userSelect: 'none' }}>
+    <span style={{
+      fontFamily: "'Outfit', sans-serif",
+      fontWeight: 800,
+      fontSize: 24,
+      color: '#0f1b2d',
+      letterSpacing: '-0.02em',
+    }}>MyMob</span>
+    <span style={{
+      fontFamily: "'Orbitron', sans-serif",
+      fontWeight: 900,
+      fontStyle: 'italic',
+      fontSize: 24,
+      color: '#3B82F6',
+      letterSpacing: '-0.01em',
+      marginLeft: 4,
+    }}>Pay</span>
   </div>
 );
 
@@ -135,6 +146,10 @@ function PayPageContent() {
   /* Success timestamp */
   const [okTime,       setOkTime]       = useState('');
 
+  /* Bank copy states */
+  const [copiedAcc,    setCopiedAcc]    = useState(false);
+  const [copiedIfsc,   setCopiedIfsc]   = useState(false);
+
   const autoCreated = useRef(false);
   const [tempId, setTempId] = useState('MMP-DEMO');
   useEffect(() => {
@@ -147,10 +162,10 @@ function PayPageContent() {
   const activeId      = orderId || tempId;
   const upiId         = merchant?.upi_id || CONFIG.upiId;
   const bizName       = merchant?.business_name || CONFIG.businessName;
-  const bankAcc       = merchant?.bank_account_number || '919410181307';
-  const bankIfsc      = merchant?.bank_ifsc || 'PYTM0123456';
+  const bankAcc       = merchant?.bank_account_number || CONFIG.bankAccountNumber || '919410181307';
+  const bankIfsc      = merchant?.bank_ifsc || CONFIG.bankIfsc || 'PYTM0123456';
   const bankName      = merchant?.bank_account_name || bizName;
-  const bankBranch    = merchant?.bank_name || 'Paytm Payments Bank';
+  const bankBranch    = merchant?.bank_name || '';
   const cryptoWallet  = merchant?.crypto_wallet_address || CONFIG.defaultCryptoWallet;
   const cryptoNetwork = merchant?.crypto_network || CONFIG.defaultCryptoNetwork;
   const usdtAmt       = displayAmt ? (displayAmt / (CONFIG.usdtInrRate || 90)).toFixed(4) : '0.0000';
@@ -356,6 +371,22 @@ function PayPageContent() {
     setTimeout(() => setCopyUsdtDone(false), 1500);
   };
 
+  /* Copy Bank Account Number */
+  const handleCopyAcc = () => {
+    try { navigator.clipboard.writeText(bankAcc); } catch {}
+    try { navigator.vibrate?.(15); } catch {}
+    setCopiedAcc(true);
+    setTimeout(() => setCopiedAcc(false), 1500);
+  };
+
+  /* Copy Bank IFSC Code */
+  const handleCopyIfsc = () => {
+    try { navigator.clipboard.writeText(bankIfsc); } catch {}
+    try { navigator.vibrate?.(15); } catch {}
+    setCopiedIfsc(true);
+    setTimeout(() => setCopiedIfsc(false), 1500);
+  };
+
   /* Submit UTR */
   const submitUtr = async (e) => {
     if (e) e.preventDefault();
@@ -542,11 +573,8 @@ function PayPageContent() {
     <div className="app">
       {/* ── HEADER ── */}
       <div className="hd">
-        <Link href="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-          <div className="lg">
-            <div className="mk">M</div>
-            <span style={{ letterSpacing: '-0.02em' }}>MyMobPay</span>
-          </div>
+        <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+          <MyMobPayLogo />
         </Link>
         <div className="sec">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -739,26 +767,77 @@ function PayPageContent() {
                 <span className="ch">›</span>
               </button>
               <div className={`pn ${activeAcc === 'pBank' ? 'show' : ''}`} id="pBank">
-                <div className="banks">
-                  {['SBI', 'HDFC', 'ICICI', 'Axis', 'Kotak', 'PNB'].map(b => (
-                    <button key={b} type="button">{b}</button>
-                  ))}
-                </div>
-                
                 {/* Bank Account Details */}
-                <div style={{ marginTop: 12, background: '#fff', border: '1px solid var(--line)', borderRadius: 12, overflow: 'hidden' }}>
-                  {[
-                    { l: 'Account Name', v: bankName },
-                    { l: 'Account No.', v: bankAcc },
-                    { l: 'IFSC Code', v: bankIfsc },
-                    { l: 'Bank', v: bankBranch },
-                    { l: 'Amount', v: fmtInr(displayAmt), high: true }
-                  ].map((row, i) => (
-                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 12px', fontSize: 12.5, borderTop: i > 0 ? '1px solid var(--line)' : 'none', background: row.high ? 'var(--tint)' : '#fff' }}>
-                      <span style={{ color: 'var(--mut)', fontWeight: 500 }}>{row.l}</span>
-                      <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 600, color: row.high ? 'var(--brand-d)' : 'var(--ink)' }}>{row.v}</span>
+                <div style={{ marginTop: 6, background: '#fff', border: '1px solid var(--line)', borderRadius: 14, overflow: 'hidden' }}>
+                  {/* Account Name */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', borderBottom: '1px solid var(--line)', fontSize: 13 }}>
+                    <span style={{ color: 'var(--mut)', fontWeight: 600 }}>Account Name</span>
+                    <span style={{ fontWeight: 700, color: 'var(--ink)' }}>{bankName}</span>
+                  </div>
+
+                  {/* Account Number with Copy button */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', borderBottom: '1px solid var(--line)', fontSize: 13, background: 'var(--soft)' }}>
+                    <div>
+                      <span style={{ color: 'var(--mut)', fontWeight: 600, display: 'block', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Account Number</span>
+                      <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 700, fontSize: 15, color: 'var(--ink)' }}>{bankAcc}</span>
                     </div>
-                  ))}
+                    <button
+                      type="button"
+                      onClick={handleCopyAcc}
+                      style={{
+                        border: 0,
+                        background: copiedAcc ? '#dcf5e8' : 'var(--tint)',
+                        color: copiedAcc ? '#0d7a47' : 'var(--brand-d)',
+                        fontWeight: 700,
+                        fontSize: 12,
+                        padding: '6px 14px',
+                        borderRadius: 8,
+                        cursor: 'pointer',
+                        transition: 'all 0.15s'
+                      }}
+                    >
+                      {copiedAcc ? 'Copied ✓' : 'Copy'}
+                    </button>
+                  </div>
+
+                  {/* IFSC Code with Copy button */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', borderBottom: bankBranch ? '1px solid var(--line)' : 'none', fontSize: 13, background: 'var(--soft)' }}>
+                    <div>
+                      <span style={{ color: 'var(--mut)', fontWeight: 600, display: 'block', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em' }}>IFSC Code</span>
+                      <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 700, fontSize: 15, color: 'var(--ink)' }}>{bankIfsc}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleCopyIfsc}
+                      style={{
+                        border: 0,
+                        background: copiedIfsc ? '#dcf5e8' : 'var(--tint)',
+                        color: copiedIfsc ? '#0d7a47' : 'var(--brand-d)',
+                        fontWeight: 700,
+                        fontSize: 12,
+                        padding: '6px 14px',
+                        borderRadius: 8,
+                        cursor: 'pointer',
+                        transition: 'all 0.15s'
+                      }}
+                    >
+                      {copiedIfsc ? 'Copied ✓' : 'Copy'}
+                    </button>
+                  </div>
+
+                  {/* Bank Name (only if merchant configured a bank name) */}
+                  {bankBranch && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', borderBottom: '1px solid var(--line)', fontSize: 13 }}>
+                      <span style={{ color: 'var(--mut)', fontWeight: 600 }}>Bank</span>
+                      <span style={{ fontWeight: 600, color: 'var(--ink)' }}>{bankBranch}</span>
+                    </div>
+                  )}
+
+                  {/* Amount to transfer */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', fontSize: 13, background: 'var(--tint)' }}>
+                    <span style={{ color: 'var(--mut)', fontWeight: 600 }}>Amount to Transfer</span>
+                    <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 800, fontSize: 15, color: 'var(--brand-d)' }}>{fmtInr(displayAmt)}</span>
+                  </div>
                 </div>
                 <p className="tip">You&apos;ll return here after paying at your bank.</p>
               </div>
