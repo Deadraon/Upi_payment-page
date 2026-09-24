@@ -163,6 +163,11 @@ export default function RootLayout({ children }) {
         {/* Preload OG banner so it's cached fast */}
         <link rel="preload" as="image" href="/og-banner.png" />
 
+        {/* Google Fonts — used by checkout page & logo */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=Outfit:wght@800&family=Orbitron:wght@900&display=swap" rel="stylesheet" />
+
         {/* JSON-LD Structured Data — Organisation */}
         {/* safeJsonLd() escapes </script>, > and & so the script block cannot
             be prematurely closed regardless of future content changes. */}

@@ -31,7 +31,8 @@ export async function POST(request) {
     const body = await request.json();
     const { api_key, amount, method, note, customer_name, customer_phone, project, callback_url, external_ref } = body;
 
-    if (!api_key) {
+    const effectiveApiKey = api_key || CONFIG.platformApiKey;
+    if (!effectiveApiKey) {
       return NextResponse.json({ error: 'API Key is required to create an order.' }, { status: 400 });
     }
 
@@ -39,14 +40,14 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Valid amount is required' }, { status: 400 });
     }
 
-    let actualKey = api_key;
+    let actualKey = effectiveApiKey;
     let isTestFromKey = false;
     
-    if (api_key.startsWith('test_')) {
-      actualKey = api_key.replace('test_', '');
+    if (effectiveApiKey.startsWith('test_')) {
+      actualKey = effectiveApiKey.replace('test_', '');
       isTestFromKey = true;
-    } else if (api_key.startsWith('live_')) {
-      actualKey = api_key.replace('live_', '');
+    } else if (effectiveApiKey.startsWith('live_')) {
+      actualKey = effectiveApiKey.replace('live_', '');
     }
 
     // 1. Authenticate the merchant using the API Key

@@ -1,4 +1,7 @@
-'use client';
+const fs = require('fs');
+const path = require('path');
+
+const code = `'use client';
 
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -7,26 +10,19 @@ import QRCode from 'react-qr-code';
 import { CONFIG } from '@/lib/config';
 import { supabase } from '@/lib/supabase';
 
-/* ── Original MyMobPay Logo (Outfit + Orbitron brand fonts) ─── */
-const MyMobPayLogo = () => (
-  <div style={{ display:'flex', alignItems:'center', gap:0, lineHeight:1, userSelect:'none' }}>
-    <span style={{
-      fontFamily: "'Outfit', sans-serif",
-      fontWeight: 800,
-      fontSize: 26,
-      color: '#0f1b2d',
-      letterSpacing: '-0.02em',
-    }}>MyMob</span>
-    <span style={{
-      fontFamily: "'Orbitron', sans-serif",
-      fontWeight: 900,
-      fontStyle: 'italic',
-      fontSize: 26,
-      color: '#3B82F6',
-      letterSpacing: '-0.01em',
-      marginLeft: 4,
-    }}>Pay</span>
-  </div>
+/* ── Original MyMobPay Logo ─────────────────────────────────── */
+const MyMobPayLogo = ({ className = 'h-9 w-auto' }) => (
+  <>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@800&family=Orbitron:wght@900&display=swap" rel="stylesheet" />
+    <svg viewBox="0 0 260 56" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+      <text x="2" y="42" letterSpacing="0">
+        <tspan fontFamily="'Outfit', sans-serif" fontWeight="800" fontSize="36" fill="#0f1b2d">MyMob</tspan>
+        <tspan fontFamily="'Orbitron', sans-serif" fontWeight="900" fontStyle="italic" fontSize="36" fill="#2f86f6" dx="3">Pay</tspan>
+      </text>
+    </svg>
+  </>
 );
 
 /* ── UPI deep-link builder ──────────────────────────────────── */
@@ -34,19 +30,19 @@ function buildUpiLink(appId, amount, orderId, merchant, isMandate) {
   const pa    = merchant?.upi_id || CONFIG.upiId;
   const pn    = encodeURIComponent(merchant?.business_name || CONFIG.businessName);
   const upath = isMandate ? 'mandate' : 'pay';
-  let qs = `pa=${pa}&pn=${pn}&am=${amount}&cu=INR&tn=${orderId}`;
+  let qs = \`pa=\${pa}&pn=\${pn}&am=\${amount}&cu=INR&tn=\${orderId}\`;
   if (isMandate) {
     const d = new Date(); d.setDate(d.getDate() + 3);
     const ds = String(d.getDate()).padStart(2,'0') + String(d.getMonth()+1).padStart(2,'0') + d.getFullYear();
-    qs += `&validitystart=${ds}&recur=MONTHLY&amrule=EXACT&share=Y`;
+    qs += \`&validitystart=\${ds}&recur=MONTHLY&amrule=EXACT&share=Y\`;
   }
   const amap = { gpay:'com.google.android.apps.nbu.paisa.user', phonepe:'com.phonepe.app', paytm:'net.one97.paytm', bhim:'in.org.npci.upiapp' };
-  const imap = { gpay:`gpay://upi/${upath}?${qs}`, phonepe:`phonepe://${upath}?${qs}`, paytm:`paytmmp://upi/${upath}?${qs}`, bhim:`upi://${upath}?${qs}` };
+  const imap = { gpay:\`gpay://upi/\${upath}?\${qs}\`, phonepe:\`phonepe://\${upath}?\${qs}\`, paytm:\`paytmmp://upi/\${upath}?\${qs}\`, bhim:\`upi://\${upath}?\${qs}\` };
   if (typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent)) {
     const pkg = amap[appId];
-    return pkg ? `intent://upi/${upath}?${qs}#Intent;scheme=upi;package=${pkg};end;` : `intent://upi/${upath}?${qs}#Intent;scheme=upi;end;`;
+    return pkg ? \`intent://upi/\${upath}?\${qs}#Intent;scheme=upi;package=\${pkg};end;\` : \`intent://upi/\${upath}?\${qs}#Intent;scheme=upi;end;\`;
   }
-  return imap[appId] || `upi://${upath}?${qs}`;
+  return imap[appId] || \`upi://\${upath}?\${qs}\`;
 }
 
 const UPI_CHIPS = [
@@ -122,10 +118,7 @@ function PayPageContent() {
   const [txMsg,        setTxMsg]        = useState('');
 
   const autoCreated = useRef(false);
-  const [tempId, setTempId] = useState('MMP-DEMO');
-  useEffect(() => {
-    setTempId('MMP' + Math.random().toString(36).substring(2, 7).toUpperCase());
-  }, []);
+  const [tempId]    = useState(() => 'MMP' + Math.random().toString(36).substring(2, 7).toUpperCase());
 
   /* derived */
   const isMandate  = orderNote === 'Trial_Setup_3Day' || orderNote === 'Autopay_Setup_3DayTrial';
@@ -146,7 +139,7 @@ function PayPageContent() {
   const fmtInr = (n) => {
     if (n == null) return '—';
     const parts = parseFloat(n).toFixed(2).split('.');
-    return '\u20b9' + parseInt(parts[0]).toLocaleString('en-IN') + '.' + parts[1];
+    return '\\u20b9' + parseInt(parts[0]).toLocaleString('en-IN') + '.' + parts[1];
   };
 
   /* Load merchant */
@@ -175,8 +168,8 @@ function PayPageContent() {
   /* Realtime */
   useEffect(() => {
     if (!activeId) return;
-    const ch = supabase.channel(`pay-${activeId}`).on('postgres_changes', { event:'UPDATE', schema:'public', table:'orders', filter:`id=eq.${activeId}` }, p => {
-      if (p.new?.status === 'verified') { setConfirmed(true); setTimeout(() => router.push(`/status/${activeId}`), 400); }
+    const ch = supabase.channel(\`pay-\${activeId}\`).on('postgres_changes', { event:'UPDATE', schema:'public', table:'orders', filter:\`id=eq.\${activeId}\` }, p => {
+      if (p.new?.status === 'verified') { setConfirmed(true); setTimeout(() => router.push(\`/status/\${activeId}\`), 400); }
     }).subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [activeId, router]);
@@ -185,7 +178,7 @@ function PayPageContent() {
   useEffect(() => {
     if (!orderId || confirmed) return;
     const t = setInterval(async () => {
-      try { const r = await fetch(`/api/orders?id=${orderId}`); if (r.ok) { const d = await r.json(); if (d?.status === 'verified') { setConfirmed(true); router.push(`/status/${orderId}`); } } } catch {}
+      try { const r = await fetch(\`/api/orders?id=\${orderId}\`); if (r.ok) { const d = await r.json(); if (d?.status === 'verified') { setConfirmed(true); router.push(\`/status/\${orderId}\`); } } } catch {}
     }, 3500);
     return () => clearInterval(t);
   }, [orderId, confirmed, router]);
@@ -203,7 +196,7 @@ function PayPageContent() {
         if (am != null) setOrderAmount(am);
         setOrderMode(data.mode || 'live');
         if (data.note) setOrderNote(data.note);
-        if (callback && id) localStorage.setItem(`callback_${id}`, callback);
+        if (callback && id) localStorage.setItem(\`callback_\${id}\`, callback);
       } else { setOrderAmount(amt); }
     } catch { setOrderAmount(amt); } finally { setLoading(false); }
   }
@@ -223,8 +216,8 @@ function PayPageContent() {
       const r = await fetch('/api/orders/verify-utr', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ order_id: activeId, utr: utr.trim() }) });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Failed');
-      if (d.verified) { setUtrMsg('\u2713 Payment verified! Redirecting\u2026'); setTimeout(() => router.push(`/status/${activeId}`), 700); }
-      else setUtrMsg(d.message || 'UTR recorded. Checking in background\u2026');
+      if (d.verified) { setUtrMsg('\\u2713 Payment verified! Redirecting\\u2026'); setTimeout(() => router.push(\`/status/\${activeId}\`), 700); }
+      else setUtrMsg(d.message || 'UTR recorded. Checking in background\\u2026');
     } catch (err) { setUtrMsg(err.message); } finally { setUtrBusy(false); }
   };
 
@@ -236,7 +229,7 @@ function PayPageContent() {
       const r = await fetch('/api/coupons/apply', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ order_id: activeId, code: promoCode.trim().toUpperCase() }) });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Invalid code');
-      setPromoApplied(d.coupon); setOrderAmount(d.new_amount); setPromoMsg(`\u2713 Saved \u20b9${d.discount}!`);
+      setPromoApplied(d.coupon); setOrderAmount(d.new_amount); setPromoMsg(\`\\u2713 Saved \\u20b9\${d.discount}!\`);
     } catch (err) { setPromoMsg(err.message); } finally { setPromoLoading(false); }
   };
 
@@ -248,7 +241,7 @@ function PayPageContent() {
       const r = await fetch('/api/orders/verify-crypto', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ order_id: activeId, tx_hash: txHash.trim(), network: cryptoNetwork, wallet_address: cryptoWallet }) });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Failed');
-      setTxMsg('\u2713 Transaction submitted! Redirecting\u2026'); setTimeout(() => router.push(`/status/${activeId}`), 700);
+      setTxMsg('\\u2713 Transaction submitted! Redirecting\\u2026'); setTimeout(() => router.push(\`/status/\${activeId}\`), 700);
     } catch (err) { setTxMsg(err.message); } finally { setTxBusy(false); }
   };
 
@@ -258,8 +251,8 @@ function PayPageContent() {
     setCtaBusy(true); setCtaStatus('');
     try {
       if (orderId) {
-        const r = await fetch(`/api/orders?id=${orderId}`);
-        if (r.ok) { const d = await r.json(); if (d?.status === 'verified') { router.push(`/status/${orderId}`); return; } }
+        const r = await fetch(\`/api/orders?id=\${orderId}\`);
+        if (r.ok) { const d = await r.json(); if (d?.status === 'verified') { router.push(\`/status/\${orderId}\`); return; } }
       }
       setTimeout(() => {
         setCtaBusy(false);
@@ -277,6 +270,7 @@ function PayPageContent() {
   if (!orderId && !displayAmt) {
     return (
       <div style={S.page}>
+        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=Outfit:wght@800&family=Orbitron:wght@900&display=swap" rel="stylesheet" />
         <div style={S.shell}>
           <header style={S.header}>
             <Link href="/" style={{ display:'flex', alignItems:'center', textDecoration:'none' }}>
@@ -314,7 +308,7 @@ function PayPageContent() {
 
               <button type="submit" disabled={loading} style={S.cta}>
                 {loading ? <span style={S.spinner} /> : null}
-                <span>{loading ? 'Creating order…' : 'Generate Payment QR'}</span>
+                <span>{loading ? 'Creating order\u2026' : 'Generate Payment QR'}</span>
               </button>
             </form>
 
@@ -343,16 +337,17 @@ function PayPageContent() {
 
   return (
     <div style={S.page}>
-      <div className="pay-shell" style={S.shell}>
+      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=Outfit:wght@800&family=Orbitron:wght@900&display=swap" rel="stylesheet" />
+      <div style={S.shell}>
 
         {/* HEADER */}
-        <header className="pay-header" style={S.header}>
+        <header style={S.header}>
           <Link href="/" style={{ display:'flex', alignItems:'center', textDecoration:'none' }}>
             <MyMobPayLogo />
           </Link>
           <div style={S.secure}>
-            <i className="pay-sec-dot" style={S.secDot}/>
-            <span className="pay-secure-label">Secure checkout, powered by MyMobPay</span>
+            <i style={S.secDot}/>
+            <span>Secure checkout, powered by MyMobPay</span>
           </div>
         </header>
 
@@ -363,9 +358,9 @@ function PayPageContent() {
           </div>
         )}
 
-        <div className="pay-grid" style={S.grid}>
+        <div style={S.grid}>
           {/* ── LEFT: Receipt card ── */}
-          <aside className="pay-receipt" style={S.receipt} aria-label="Order summary">
+          <aside style={S.receipt} aria-label="Order summary">
             <div style={S.merRow}>
               <div style={S.merAv}>{bizName.charAt(0).toUpperCase()}</div>
               <div>
@@ -377,18 +372,18 @@ function PayPageContent() {
               </div>
             </div>
 
-            <p suppressHydrationWarning style={{ color:'#5b6b80', fontSize:12, margin:'0 0 6px', paddingTop:14, borderTop:'1px dashed #d6dfea', fontFamily:'"IBM Plex Mono",monospace' }}>
+            <p style={{ color:'#5b6b80', fontSize:12, margin:'0 0 6px', paddingTop:14, borderTop:'1px dashed #d6dfea', fontFamily:'"IBM Plex Mono",monospace' }}>
               {new Date().toLocaleString('en-IN', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })}
             </p>
 
             {/* Receipt lines */}
             {[
-              { label:'Order ID', val: activeId ? `#${activeId.slice(-8).toUpperCase()}` : '—' },
+              { label:'Order ID', val: activeId ? \`#\${activeId.slice(-8).toUpperCase()}\` : '—' },
               { label:'Subtotal', val: displayAmt ? displayAmt.toLocaleString('en-IN', { minimumFractionDigits:2 }) : '—' },
-              ...(promoApplied ? [{ label: `Promo: ${promoApplied.code}`, val: `-${discountAmt.toFixed(2)}`, green:true }] : []),
+              ...(promoApplied ? [{ label: \`Promo: \${promoApplied.code}\`, val: \`-\${discountAmt.toFixed(2)}\`, green:true }] : []),
               { label:'Platform fee', val:'0.00', free:true },
             ].map((row, i) => (
-              <div key={i} suppressHydrationWarning style={{ display:'flex', justifyContent:'space-between', padding:'9px 0', borderBottom:'1px dashed #d6dfea', fontFamily:'"IBM Plex Mono",monospace', fontSize:13, color:'#5b6b80' }}>
+              <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'9px 0', borderBottom:'1px dashed #d6dfea', fontFamily:'"IBM Plex Mono",monospace', fontSize:13, color:'#5b6b80' }}>
                 <span>{row.label}</span>
                 <span style={{ color: row.free ? '#12995d' : row.green ? '#12995d' : '#0f1b2d', fontWeight: row.free || row.green ? 500 : 400 }}>{row.val}</span>
               </div>
@@ -397,7 +392,7 @@ function PayPageContent() {
             {/* Big amount */}
             <div style={{ marginTop:20 }}>
               <small style={{ display:'block', color:'#5b6b80', fontWeight:600, fontSize:13, marginBottom:2, fontFamily:'"DM Sans",sans-serif' }}>Total to pay</small>
-              <b className="pay-amount-big" style={{ font:'600 50px/1.05 "Fraunces",serif', letterSpacing:'-0.025em', display:'block' }}>
+              <b style={{ font:'600 50px/1.05 "Fraunces",serif', letterSpacing:'-0.025em', display:'block' }}>
                 ₹{amtWhole}<s style={{ textDecoration:'none', fontSize:26, color:'#8a99ad' }}>{amtFrac}</s>
               </b>
             </div>
@@ -409,7 +404,7 @@ function PayPageContent() {
                 <span style={{ fontVariantNumeric:'tabular-nums' }}>{mm}:{ss}</span>
               </div>
               <div style={{ height:5, borderRadius:9, background:'#eaf2fe', overflow:'hidden' }}>
-                <div className="pay-progress-bar" style={{ height:'100%', width:pct+'%', background:'#2f86f6', borderRadius:9, transition:'width 1s linear' }} />
+                <div style={{ height:'100%', width:pct+'%', background:'#2f86f6', borderRadius:9, transition:'width 1s linear' }} />
               </div>
             </div>
           </aside>
@@ -428,7 +423,7 @@ function PayPageContent() {
               title="UPI"
               subtitle="PhonePe, Google Pay, Paytm, BHIM"
             >
-              <div className="upi-flex" style={S.upiWrap}>
+              <div style={S.upiWrap}>
                 {/* QR */}
                 <div>
                   <div style={S.qrWrap}>
@@ -450,13 +445,13 @@ function PayPageContent() {
                   <p style={{ margin:'0 0 8px', fontSize:13, color:'#5b6b80', fontFamily:'"DM Sans",sans-serif' }}>Scan with any UPI app, or pay to this ID</p>
                   <div style={S.upiIdBox}>
                     <span style={{ overflow:'hidden', textOverflow:'ellipsis', flex:1, fontFamily:'"IBM Plex Mono",monospace', fontSize:12.5 }}>{upiId}</span>
-                    <button onClick={copyUpiId} className="pay-copy-btn" style={{ ...S.copyBtn, ...(copied ? S.copyBtnDone : {}) }}>{copied ? 'Copied' : 'Copy'}</button>
+                    <button onClick={copyUpiId} style={{ ...S.copyBtn, ...(copied ? S.copyBtnDone : {}) }}>{copied ? 'Copied' : 'Copy'}</button>
                   </div>
                   <p style={{ margin:'0 0 8px', fontSize:13, color:'#5b6b80', fontFamily:'"DM Sans",sans-serif' }}>Or open your app directly</p>
                   <div style={S.chips}>
                     {UPI_CHIPS.map(app => (
                       <button key={app.id} onClick={() => { if (!displayAmt) return; window.location.href = buildUpiLink(app.id, displayAmt, activeId, merchant, isMandate); }}
-                        className="pay-chip" style={S.chip}>
+                        style={S.chip}>
                         <b style={{ width:9, height:9, borderRadius:'50%', background:app.dot, display:'inline-block', flexShrink:0 }} />
                         {app.label}
                       </button>
@@ -485,13 +480,13 @@ function PayPageContent() {
                   ].map((row, i) => (
                     <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px 14px', background: row.highlight ? '#eaf2fe' : i % 2 === 0 ? '#fff' : '#f3f7fc', borderTop: i > 0 ? '1px solid #d6dfea' : 'none' }}>
                       <span style={{ font:'500 12px "DM Sans",sans-serif', color:'#5b6b80' }}>{row.label}</span>
-                      <span style={{ font:`600 12.5px "IBM Plex Mono",monospace`, color: row.highlight ? '#1c6ee0' : '#0f1b2d' }}>{row.val}</span>
+                      <span style={{ font:\`600 12.5px "IBM Plex Mono",monospace\`, color: row.highlight ? '#1c6ee0' : '#0f1b2d' }}>{row.val}</span>
                     </div>
                   ))}
                 </div>
                 <p style={{ margin:'0 0 8px', font:'600 13px "DM Sans",sans-serif', color:'#0f1b2d' }}>Enter IMPS/NEFT UTR after transfer</p>
                 <form onSubmit={submitUtr} style={{ display:'flex', gap:8 }}>
-                  <input type="text" placeholder="12-digit UTR e.g. 425619283741" value={utr} onChange={e => setUtr(e.target.value.replace(/\D/g, '').slice(0, 12))} style={S.monoInput} />
+                  <input type="text" placeholder="12-digit UTR e.g. 425619283741" value={utr} onChange={e => setUtr(e.target.value.replace(/\\D/g, '').slice(0, 12))} style={S.monoInput} />
                   <button type="submit" disabled={utrBusy || utr.length < 12} style={S.smBtn}>{utrBusy ? '…' : 'Confirm'}</button>
                 </form>
                 {utrMsg && <p style={{ margin:'8px 0 0', font:'600 13px "DM Sans",sans-serif', color: utrMsg.startsWith('✓') ? '#12995d' : '#c0392b' }}>{utrMsg}</p>}
@@ -539,7 +534,7 @@ function PayPageContent() {
             {/* UTR quick-entry (for UPI) */}
             {showUtr && (
               <div style={{ display:'flex', gap:8, marginTop:8, marginBottom:4 }}>
-                <input type="text" inputMode="numeric" maxLength={12} placeholder="12-digit UTR, e.g. 425619283741" value={utr} onChange={e => setUtr(e.target.value.replace(/\D/g,'').slice(0,12))} style={S.monoInput} />
+                <input type="text" inputMode="numeric" maxLength={12} placeholder="12-digit UTR, e.g. 425619283741" value={utr} onChange={e => setUtr(e.target.value.replace(/\\D/g,'').slice(0,12))} style={S.monoInput} />
                 <button onClick={submitUtr} disabled={utrBusy || utr.length !== 12} style={S.smBtn}>{utrBusy ? '…' : 'Verify'}</button>
               </div>
             )}
@@ -554,9 +549,9 @@ function PayPageContent() {
             {promoMsg && <p style={{ margin:'4px 0 8px', font:'600 13px "DM Sans",sans-serif', color: promoMsg.startsWith('✓') ? '#12995d' : '#c0392b' }}>{promoMsg}</p>}
 
             {/* CTA */}
-            <button onClick={handleCta} disabled={ctaBusy} className="pay-cta-btn" style={{ ...S.cta, marginTop:8, boxShadow:'0 14px 26px -16px #2f86f6' }}>
+            <button onClick={handleCta} disabled={ctaBusy} style={{ ...S.cta, marginTop:8, boxShadow:'0 14px 26px -16px #2f86f6' }}>
               {ctaBusy && <span style={S.spinner} />}
-              <span>{ctaBusy ? 'Checking status…' : "I've paid, check status"}</span>
+              <span>{ctaBusy ? 'Checking status\u2026' : "I've paid, check status"}</span>
             </button>
 
             {ctaStatus && (
@@ -565,8 +560,8 @@ function PayPageContent() {
 
             {/* Links */}
             <div style={{ display:'flex', justifyContent:'center', gap:22, marginTop:8, font:'600 13px "DM Sans",sans-serif' }}>
-              <button onClick={() => { setShowUtr(!showUtr); setActiveMethod('upi'); }} className="pay-link-btn" style={S.linkBtn}>Already paid? Enter UTR</button>
-              <button onClick={() => setShowPromo(!showPromo)} className="pay-link-btn" style={S.linkBtn}>{promoApplied ? `Promo: ${promoApplied.code} ✓` : 'Have a promo code?'}</button>
+              <button onClick={() => { setShowUtr(!showUtr); setActiveMethod('upi'); }} style={S.linkBtn}>Already paid? Enter UTR</button>
+              <button onClick={() => setShowPromo(!showPromo)} style={S.linkBtn}>{promoApplied ? \`Promo: \${promoApplied.code} ✓\` : 'Have a promo code?'}</button>
             </div>
 
             <div style={{ textAlign:'center', color:'#5b6b80', fontSize:12.5, marginTop:20, fontFamily:'"DM Sans",sans-serif' }}>
@@ -583,7 +578,7 @@ function PayPageContent() {
 function Accordion({ active, onToggle, icon, title, subtitle, children }) {
   return (
     <div style={{ ...S.opt, borderColor: active ? '#2f86f6' : 'transparent' }}>
-      <button type="button" onClick={onToggle}
+      <button onClick={onToggle}
         aria-expanded={active}
         style={{ all:'unset', boxSizing:'border-box', width:'100%', display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 18px', font:'700 15px "DM Sans",sans-serif', cursor:'pointer', gap:12 }}>
         <span style={{ display:'flex', alignItems:'center', gap:12 }}>
@@ -672,58 +667,17 @@ const S = {
 export default function PayPage() {
   return (
     <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=Orbitron:wght@800;900&family=Outfit:wght@700;800&display=swap');
-
+      <style>{\`
         @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes pulse-dot { 0%,100%{box-shadow:0 0 0 4px rgba(18,153,93,.2)} 50%{box-shadow:0 0 0 6px rgba(18,153,93,.12)} }
-
-        /* ── Mobile checkout layout ── */
         @media (max-width: 800px) {
           .pay-grid { grid-template-columns: 1fr !important; }
           .upi-flex { flex-direction: column !important; align-items: stretch !important; }
-          .pay-secure-label { display: none !important; }
-          .pay-receipt { border-radius: 14px !important; }
         }
-        @media (max-width: 480px) {
-          .pay-shell { padding: 16px 14px 36px !important; }
-          .pay-header { margin-bottom: 16px !important; }
-          .pay-amount-big { font-size: 42px !important; }
-        }
-
-        /* ── Hover states ── */
-        .pay-chip:hover { border-color: #2f86f6 !important; }
-        .pay-link-btn:hover { text-decoration: underline; }
-        .pay-cta-btn:hover:not(:disabled) { background: #1c6ee0 !important; }
-        .pay-copy-btn:hover { background: #d6e8ff !important; }
-        .pay-opt-btn:focus-visible { outline: 3px solid #7fb0ff; outline-offset: -3px; }
-
-        /* ── Receipt ticket punch ── */
-        .pay-receipt {
-          -webkit-mask: radial-gradient(7px at 7px 100%,#0000 98%,#000) 0 100%/14px 100% repeat-x;
-          mask: radial-gradient(7px at 7px 100%,#0000 98%,#000) 0 100%/14px 100% repeat-x;
-        }
-
-        /* ── UTR / promo inline expand ── */
-        .pay-extra-box { animation: slideDown .18s ease; }
-        @keyframes slideDown { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:none; } }
-
-        /* ── Secure dot pulse ── */
-        .pay-sec-dot { animation: pulse-dot 2.4s ease-in-out infinite; }
-
-        /* ── Smooth accordion ── */
-        .pay-acc-dot { transition: border .15s !important; }
-        .pay-progress-bar { transition: width 1s linear !important; }
-
-        @media (prefers-reduced-motion: reduce) {
-          .pay-progress-bar { transition: none !important; }
-          .pay-sec-dot { animation: none !important; }
-        }
-      `}</style>
+      \`}</style>
       <Suspense fallback={
         <div style={{ minHeight:'100vh', background:'#e8eef6', display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:12, fontFamily:'"DM Sans",sans-serif', color:'#5b6b80', fontSize:14, fontWeight:600 }}>
           <div style={{ width:32, height:32, border:'3px solid #d6dfea', borderTopColor:'#2f86f6', borderRadius:'50%', animation:'spin .7s linear infinite' }} />
-          Loading secure checkout…
+          Loading secure checkout\u2026
         </div>
       }>
         <PayPageContent />
@@ -731,3 +685,8 @@ export default function PayPage() {
     </>
   );
 }
+`;
+
+const target = path.join(__dirname, '..', 'app', 'pay', 'page.jsx');
+fs.writeFileSync(target, code, 'utf8');
+console.log('Written OK. Lines:', code.split('\\n').length, 'Bytes:', Buffer.byteLength(code, 'utf8'));
