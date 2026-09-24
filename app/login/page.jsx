@@ -706,70 +706,94 @@ export default function LoginPage() {
                           )}
                         </button>
 
-                        {/* Telegram OTP — secondary option */}
+                        {/* Telegram OTP — secondary option (matches old SMS UI) */}
                         <button
                           type="button"
                           onClick={() => { setShowTelegramSection(s => !s); setError(''); setMessage(''); }}
                           disabled={loading}
-                          className="w-full h-10 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer disabled:opacity-50 bg-[#eaedff] hover:bg-[#e2e7ff] text-[#131b2e]"
+                          className="w-full h-10 bg-[#eaedff] hover:bg-[#e2e7ff] text-[#44474d] hover:text-[#131b2e] rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
                         >
-                          {/* Telegram icon */}
-                          <svg className="w-4 h-4 fill-[#0088CC]" viewBox="0 0 24 24">
+                          {/* Telegram logo */}
+                          <svg className="w-3.5 h-3.5 fill-[#0088CC]" viewBox="0 0 24 24">
                             <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
                           </svg>
                           <span>Send via Telegram instead</span>
-                          <span className="ml-auto bg-[#dde1ff] text-[#0038b7] px-1.5 py-0.5 rounded-full text-[10px] font-bold">Free ∞</span>
                         </button>
 
                         {/* Inline Telegram OTP panel */}
                         {showTelegramSection && (
-                          <div className="p-4 bg-[#f0f8ff] rounded-xl border border-[#bde0ff] space-y-3">
+                          <div className="p-3.5 bg-[#eaedff]/60 rounded-xl border border-[#dae2fd] space-y-3">
                             <p className="text-[11px] text-[#44474d] leading-relaxed">
-                              📌 Start a chat with{' '}
-                              <a href="https://t.me/mymobpay_bot" target="_blank" rel="noopener noreferrer"
-                                className="font-bold text-[#0088CC] hover:underline">@mymobpay_bot</a>
-                              {' '}on Telegram first, then enter your username below.
+                              Start a chat with{' '}
+                              <a
+                                href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'mymobpay_bot'}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="font-bold text-[#0045de] hover:underline"
+                              >
+                                @{process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'mymobpay_bot'}
+                              </a>{' '}
+                              on Telegram, then enter your username below:
                             </p>
                             {!telegramOtpSent ? (
                               <>
-                                <div className="flex items-center rounded-lg bg-white px-3 focus-within:ring-2 focus-within:ring-[#0088CC]/30 border border-[#bde0ff] transition-all">
-                                  <span className="text-[#0088CC] font-bold text-sm pr-2 border-r border-[#bde0ff] py-2.5">@</span>
+                                <div className="flex items-center rounded-lg bg-white px-3 focus-within:ring-2 focus-within:ring-[#0045de]/20 border border-[#dae2fd] transition-all">
+                                  <span className="text-[#0088cc] font-bold text-xs pr-2.5 border-r border-[#dae2fd] py-2">@</span>
                                   <input
                                     type="text"
                                     value={telegramUsername}
                                     onChange={e => setTelegramUsername(e.target.value.replace(/^@/, '').replace(/\s/g, ''))}
                                     onKeyDown={e => e.key === 'Enter' && handleTelegramSend()}
                                     placeholder="your_telegram_username"
-                                    className="w-full bg-transparent py-2.5 pl-2 text-xs text-[#131b2e] placeholder-[#74777e] focus:outline-none font-medium"
+                                    className="w-full bg-transparent py-2 pl-2.5 text-xs text-[#131b2e] placeholder-[#74777e] focus:outline-none font-medium"
                                   />
                                 </div>
                                 <button
                                   type="button"
                                   onClick={handleTelegramSend}
                                   disabled={telegramLoading}
-                                  className="w-full h-10 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
-                                  style={{ background: 'linear-gradient(135deg, #229ED9 0%, #0088CC 100%)', color: '#fff' }}
+                                  className="w-full h-10 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 bg-[#0045de] hover:bg-[#0038b7] text-white shadow-xs"
                                 >
-                                  {telegramLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Send OTP to Telegram</span><ArrowRight className="w-3.5 h-3.5" /></>}
+                                  {telegramLoading ? (
+                                    <Loader2 className="w-4 h-4 animate-spin text-white" />
+                                  ) : (
+                                    <>
+                                      <span>Send OTP to Telegram</span>
+                                      <ArrowRight className="w-3.5 h-3.5" />
+                                    </>
+                                  )}
                                 </button>
                               </>
                             ) : (
                               <>
-                                <p className="text-[11px] font-semibold text-[#0088CC] flex items-center gap-1.5">
-                                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-                                  OTP sent to @{telegramUsername} on Telegram
-                                  <button type="button" onClick={() => { setTelegramOtpSent(false); setTelegramOtp(''); }}
-                                    className="ml-auto text-[#44474d] text-[10px] font-normal hover:underline">Change</button>
-                                </p>
+                                <div className="flex items-center justify-between">
+                                  <p className="text-[11px] font-semibold text-[#131b2e] flex items-center gap-1.5">
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-[#009d6d] shrink-0" />
+                                    <span>OTP sent to @{telegramUsername.replace(/^@/, '')}</span>
+                                  </p>
+                                  <button
+                                    type="button"
+                                    onClick={() => { setTelegramOtpSent(false); setTelegramOtp(''); }}
+                                    className="text-[10px] text-[#0045de] font-semibold hover:underline"
+                                  >
+                                    Change
+                                  </button>
+                                </div>
                                 <OtpBoxInput value={telegramOtp} onChange={setTelegramOtp} disabled={telegramLoading} />
                                 <button
                                   type="button"
                                   onClick={handleTelegramVerify}
                                   disabled={telegramLoading || telegramOtp.length !== 6}
-                                  className="w-full h-10 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
-                                  style={{ background: 'linear-gradient(135deg, #229ED9 0%, #0088CC 100%)', color: '#fff' }}
+                                  className="w-full h-10 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 bg-[#0045de] hover:bg-[#0038b7] text-white shadow-xs"
                                 >
-                                  {telegramLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Verify Telegram OTP</span><CheckCircle2 className="w-3.5 h-3.5" /></>}
+                                  {telegramLoading ? (
+                                    <Loader2 className="w-4 h-4 animate-spin text-white" />
+                                  ) : (
+                                    <>
+                                      <span>Verify Telegram OTP</span>
+                                      <CheckCircle2 className="w-3.5 h-3.5" />
+                                    </>
+                                  )}
                                 </button>
                               </>
                             )}
@@ -1042,84 +1066,6 @@ export default function LoginPage() {
                   </svg>
                   <span>Continue with Google Workspace</span>
                 </button>
-
-                {/* Telegram OTP Login Section */}
-                {mode === 'signin' && (
-                  <div className="mt-4">
-                    <button
-                      type="button"
-                      onClick={() => { setShowTelegramSection(s => !s); setError(''); setMessage(''); }}
-                      className="w-full h-11 rounded-lg text-xs font-semibold flex items-center justify-center gap-2.5 transition-all duration-200 cursor-pointer border border-[#dae2fd]"
-                      style={{ background: 'linear-gradient(135deg, #229ED9 0%, #0088CC 100%)', color: '#fff' }}
-                    >
-                      {/* Telegram logo */}
-                      <svg className="w-4 h-4 fill-white" viewBox="0 0 24 24">
-                        <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
-                      </svg>
-                      <span>Log in via Telegram OTP</span>
-                      <span className="bg-white/20 text-white px-1.5 py-0.5 rounded-full text-[10px] font-bold">Free ∞</span>
-                    </button>
-
-                    {/* Telegram OTP expanded panel */}
-                    {showTelegramSection && (
-                      <div className="mt-3 p-4 bg-[#f0f8ff] rounded-xl border border-[#bde0ff] space-y-3">
-                        <p className="text-[11px] text-[#44474d] leading-relaxed">
-                          📌 First, start a chat with our bot:{' '}
-                          <a href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'mymobpay_bot'}`}
-                            target="_blank" rel="noopener noreferrer"
-                            className="font-bold text-[#0088CC] hover:underline">
-                            @mymobpay_bot
-                          </a>{' '}on Telegram, then enter your username below.
-                        </p>
-
-                        {!telegramOtpSent ? (
-                          <>
-                            <div className="flex items-center rounded-lg bg-white px-3 focus-within:ring-2 focus-within:ring-[#0088CC]/30 border border-[#bde0ff] transition-all">
-                              <span className="text-[#0088CC] font-bold text-sm pr-2 border-r border-[#bde0ff] py-2.5">@</span>
-                              <input
-                                type="text"
-                                value={telegramUsername}
-                                onChange={e => setTelegramUsername(e.target.value.replace(/^@/, '').replace(/\s/g, ''))}
-                                onKeyDown={e => e.key === 'Enter' && handleTelegramSend()}
-                                placeholder="your_telegram_username"
-                                className="w-full bg-transparent py-2.5 pl-2 text-xs text-[#131b2e] placeholder-[#74777e] focus:outline-none font-medium"
-                              />
-                            </div>
-                            <button
-                              type="button"
-                              onClick={handleTelegramSend}
-                              disabled={telegramLoading}
-                              className="w-full h-10 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
-                              style={{ background: 'linear-gradient(135deg, #229ED9 0%, #0088CC 100%)', color: '#fff' }}
-                            >
-                              {telegramLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Send OTP to Telegram</span><ArrowRight className="w-3.5 h-3.5" /></>}
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <p className="text-[11px] font-semibold text-[#0088CC] flex items-center gap-1">
-                              <CheckCircle2 className="w-3.5 h-3.5" />
-                              OTP sent to @{telegramUsername.replace(/^@/, '')} on Telegram
-                              <button type="button" onClick={() => { setTelegramOtpSent(false); setTelegramOtp(''); }}
-                                className="ml-auto text-[#44474d] text-[10px] font-normal hover:underline">Change</button>
-                            </p>
-                            <OtpBoxInput value={telegramOtp} onChange={setTelegramOtp} disabled={telegramLoading} />
-                            <button
-                              type="button"
-                              onClick={handleTelegramVerify}
-                              disabled={telegramLoading || telegramOtp.length !== 6}
-                              className="w-full h-10 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
-                              style={{ background: 'linear-gradient(135deg, #229ED9 0%, #0088CC 100%)', color: '#fff' }}
-                            >
-                              {telegramLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Verify Telegram OTP</span><CheckCircle2 className="w-3.5 h-3.5" /></>}
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-
                 {/* QR Code Express Login Bar (in Signin mode) */}
                 {mode === 'signin' && (
                   <div className="mt-4 p-3.5 rounded-lg bg-[#eaedff] flex items-center justify-between gap-3 border border-[#dae2fd]/60">
