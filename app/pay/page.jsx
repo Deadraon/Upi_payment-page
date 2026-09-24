@@ -7,25 +7,14 @@ import QRCode from 'react-qr-code';
 import { CONFIG } from '@/lib/config';
 import { supabase } from '@/lib/supabase';
 
-/* ── Original MyMobPay Logo (Outfit + Orbitron brand fonts) ─── */
+/* ── Brand Logo ─────────────────────────────────────────────── */
 const MyMobPayLogo = () => (
-  <div style={{ display:'flex', alignItems:'center', gap:0, lineHeight:1, userSelect:'none' }}>
-    <span style={{
-      fontFamily: "'Outfit', sans-serif",
-      fontWeight: 800,
-      fontSize: 26,
-      color: '#0f1b2d',
-      letterSpacing: '-0.02em',
-    }}>MyMob</span>
-    <span style={{
-      fontFamily: "'Orbitron', sans-serif",
-      fontWeight: 900,
-      fontStyle: 'italic',
-      fontSize: 26,
-      color: '#3B82F6',
-      letterSpacing: '-0.01em',
-      marginLeft: 4,
-    }}>Pay</span>
+  <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontWeight: 800, fontSize: 18, letterSpacing: '-0.02em', userSelect: 'none' }}>
+    <div className="mk">M</div>
+    <div style={{ display: 'flex', alignItems: 'center', lineHeight: 1 }}>
+      <span style={{ fontFamily: "'Outfit', 'DM Sans', sans-serif", fontWeight: 800, fontSize: 20, color: '#101828' }}>MyMob</span>
+      <span style={{ fontFamily: "'Orbitron', sans-serif", fontWeight: 900, fontStyle: 'italic', fontSize: 20, color: '#2f86f6', marginLeft: 3 }}>Pay</span>
+    </div>
   </div>
 );
 
@@ -50,7 +39,6 @@ function buildUpiLink(appId, amount, orderId, merchant, isMandate) {
 }
 
 /* ── UPI QR string — always upi:// (NOT device deep-link) ─── */
-/* Android intent:// URLs break QR scanning — UPI apps expect upi:// */
 function buildUpiQrValue(amount, orderId, merchant, isMandate) {
   const pa    = merchant?.upi_id || CONFIG.upiId;
   const pn    = encodeURIComponent(merchant?.business_name || CONFIG.businessName);
@@ -65,10 +53,10 @@ function buildUpiQrValue(amount, orderId, merchant, isMandate) {
 }
 
 const UPI_CHIPS = [
-  { id:'phonepe', label:'PhonePe',    dot:'#5f259f' },
-  { id:'gpay',    label:'Google Pay', dot:'#1a73e8' },
-  { id:'paytm',   label:'Paytm',      dot:'#00b9f1' },
-  { id:'bhim',    label:'BHIM',       dot:'#0b5cab' },
+  { id: 'phonepe', label: 'PhonePe',    dot: '#5f259f' },
+  { id: 'gpay',    label: 'Google Pay', dot: '#1a73e8' },
+  { id: 'paytm',   label: 'Paytm',      dot: '#00b9f1' },
+  { id: 'bhim',    label: 'BHIM',       dot: '#0b5cab' },
 ];
 
 /* ──────────────────────────────────────────────────────────────
@@ -89,7 +77,7 @@ function PayPageContent() {
   const paramLid      = searchParams.get('lid')      || '';
   const paramOrderId  = searchParams.get('order_id') || searchParams.get('id') || '';
 
-  /* core state */
+  /* Core state */
   const [merchant,     setMerchant]     = useState(null);
   const [orderId,      setOrderId]      = useState(paramOrderId || null);
   const [orderAmount,  setOrderAmount]  = useState(paramAmount ? parseFloat(paramAmount) : null);
@@ -99,42 +87,53 @@ function PayPageContent() {
   const [error,        setError]        = useState('');
   const [confirmed,    setConfirmed]    = useState(false);
 
-  /* entry form (no amount) */
+  /* Entry form state (when visiting without pre-set amount) */
   const [amount,       setAmount]       = useState(paramAmount);
   const [custName,     setCustName]     = useState(paramName);
   const [custPhone,    setCustPhone]    = useState(paramPhone);
 
-  /* accordion */
-  const [activeMethod, setActiveMethod] = useState('upi');
+  /* View navigation: 'vPay' | 'vWait' | 'vOk' | 'vExp' */
+  const [curView,      setCurView]      = useState('vPay');
+  const [checkMsg,     setCheckMsg]     = useState('');
 
-  /* countdown */
+  /* Accordion state: '' | 'pBank' | 'pUsdt' */
+  const [activeAcc,    setActiveAcc]    = useState('');
+
+  /* Session Countdown Timer (327 seconds default) */
   const SESSION_SECS = 327;
-  const [timeLeft,    setTimeLeft]     = useState(SESSION_SECS);
+  const [timeLeft, setTimeLeft] = useState(SESSION_SECS);
 
-  /* copy */
+  /* Copy feedback state */
   const [copied,       setCopied]       = useState(false);
+  const [copyFeedback, setCopyFeedback] = useState(false);
+  const [copyUsdtDone, setCopyUsdtDone] = useState(false);
+  const copiedRef = useRef(false);
+  const curViewRef = useRef('vPay');
 
-  /* UTR */
+  useEffect(() => {
+    curViewRef.current = curView;
+  }, [curView]);
+
+  /* UTR state */
   const [showUtr,      setShowUtr]      = useState(false);
   const [utr,          setUtr]          = useState('');
   const [utrBusy,      setUtrBusy]      = useState(false);
   const [utrMsg,       setUtrMsg]       = useState('');
 
-  /* Promo */
+  /* Promo code state */
   const [showPromo,    setShowPromo]    = useState(false);
   const [promoCode,    setPromoCode]    = useState('');
   const [promoApplied, setPromoApplied] = useState(null);
   const [promoLoading, setPromoLoading] = useState(false);
   const [promoMsg,     setPromoMsg]     = useState('');
 
-  /* CTA busy */
-  const [ctaBusy,      setCtaBusy]      = useState(false);
-  const [ctaStatus,    setCtaStatus]    = useState('');
-
-  /* Crypto */
+  /* Crypto USDT state */
   const [txHash,       setTxHash]       = useState('');
   const [txBusy,       setTxBusy]       = useState(false);
   const [txMsg,        setTxMsg]        = useState('');
+
+  /* Success timestamp */
+  const [okTime,       setOkTime]       = useState('');
 
   const autoCreated = useRef(false);
   const [tempId, setTempId] = useState('MMP-DEMO');
@@ -142,29 +141,32 @@ function PayPageContent() {
     setTempId('MMP' + Math.random().toString(36).substring(2, 7).toUpperCase());
   }, []);
 
-  /* derived */
-  const isMandate  = orderNote === 'Trial_Setup_3Day' || orderNote === 'Autopay_Setup_3DayTrial';
-  const displayAmt = orderAmount ?? (amount ? parseFloat(amount) : null);
-  const activeId   = orderId || tempId;
-  const upiId      = merchant?.upi_id || CONFIG.upiId;
-  const bizName    = merchant?.business_name || CONFIG.businessName;
-  const bankAcc    = merchant?.bank_account_number || '919410181307';
-  const bankIfsc   = merchant?.bank_ifsc || 'PYTM0123456';
-  const bankName   = merchant?.bank_account_name || bizName;
-  const bankBranch = merchant?.bank_name || 'Paytm Payments Bank';
+  /* Derived values */
+  const isMandate     = orderNote === 'Trial_Setup_3Day' || orderNote === 'Autopay_Setup_3DayTrial';
+  const displayAmt    = orderAmount ?? (amount ? parseFloat(amount) : null);
+  const activeId      = orderId || tempId;
+  const upiId         = merchant?.upi_id || CONFIG.upiId;
+  const bizName       = merchant?.business_name || CONFIG.businessName;
+  const bankAcc       = merchant?.bank_account_number || '919410181307';
+  const bankIfsc      = merchant?.bank_ifsc || 'PYTM0123456';
+  const bankName      = merchant?.bank_account_name || bizName;
+  const bankBranch    = merchant?.bank_name || 'Paytm Payments Bank';
   const cryptoWallet  = merchant?.crypto_wallet_address || CONFIG.defaultCryptoWallet;
   const cryptoNetwork = merchant?.crypto_network || CONFIG.defaultCryptoNetwork;
-  const usdtAmt    = displayAmt ? (displayAmt / (CONFIG.usdtInrRate || 90)).toFixed(4) : '0.0000';
-  const upiQrValue = displayAmt ? buildUpiQrValue(displayAmt, activeId, merchant, isMandate) : '';
+  const usdtAmt       = displayAmt ? (displayAmt / (CONFIG.usdtInrRate || 90)).toFixed(4) : '0.0000';
+  const upiQrValue    = displayAmt ? buildUpiQrValue(displayAmt, activeId, merchant, isMandate) : '';
 
-  /* format currency like the HTML: ₹2,499.00 */
+  /* Format currency matching template: ₹2,499.00 */
   const fmtInr = (n) => {
     if (n == null) return '—';
     const parts = parseFloat(n).toFixed(2).split('.');
     return '\u20b9' + parseInt(parts[0]).toLocaleString('en-IN') + '.' + parts[1];
   };
 
-  /* Load merchant */
+  const amtWhole = displayAmt ? Math.floor(displayAmt).toLocaleString('en-IN') : '0';
+  const amtFrac  = displayAmt ? ('.' + parseFloat(displayAmt).toFixed(2).split('.')[1]) : '.00';
+
+  /* ── Load merchant branding ── */
   useEffect(() => {
     const key = (paramApiKey || CONFIG.platformApiKey || '').replace(/^(test_|live_)/, '');
     if (!key) return;
@@ -174,19 +176,16 @@ function PayPageContent() {
       .then(({ data }) => { if (data) setMerchant(data); });
   }, [paramApiKey]);
 
-  /* Auto-create / hydrate order */
+  /* ── Auto-create / Hydrate order ── */
   useEffect(() => {
     if (autoCreated.current) return;
 
     if (paramOrderId) {
-      // Pre-generated link: orderId is known but amount/merchant may not be in URL.
-      // Always fetch the order from the API to hydrate amount + merchant branding.
       autoCreated.current = true;
       setOrderId(paramOrderId);
       if (paramAmount) {
         setOrderAmount(parseFloat(paramAmount));
       } else {
-        // Fetch order details so we get the amount and merchant info
         fetch(`/api/orders?id=${paramOrderId}`)
           .then(r => r.ok ? r.json() : null)
           .then(d => {
@@ -194,7 +193,6 @@ function PayPageContent() {
             if (d.amount != null) setOrderAmount(parseFloat(d.amount));
             if (d.mode)           setOrderMode(d.mode);
             if (d.note)           setOrderNote(d.note);
-            // Load merchant branding from the order response
             if (d.merchant)       setMerchant(d.merchant);
           })
           .catch(() => {});
@@ -208,35 +206,119 @@ function PayPageContent() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  /* Countdown */
+  /* ── Countdown timer ── */
   useEffect(() => {
-    const t = setInterval(() => setTimeLeft(s => s > 0 ? s - 1 : SESSION_SECS), 1000);
+    const t = setInterval(() => {
+      setTimeLeft(prev => {
+        if (curViewRef.current === 'vOk') return prev;
+        if (prev <= 1) {
+          setCurView('vExp');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
     return () => clearInterval(t);
   }, []);
 
-  /* Realtime */
+  /* ── Realtime Order updates ── */
   useEffect(() => {
     if (!activeId) return;
     const ch = supabase.channel(`pay-${activeId}`).on('postgres_changes', { event:'UPDATE', schema:'public', table:'orders', filter:`id=eq.${activeId}` }, p => {
-      if (p.new?.status === 'verified') { setConfirmed(true); setTimeout(() => router.push(`/status/${activeId}`), 400); }
+      if (p.new?.status === 'verified') {
+        handleSuccess();
+      }
     }).subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [activeId, router]);
+  }, [activeId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  /* Poll */
+  /* ── Polling fallback ── */
   useEffect(() => {
     if (!orderId || confirmed) return;
     const t = setInterval(async () => {
-      try { const r = await fetch(`/api/orders?id=${orderId}`); if (r.ok) { const d = await r.json(); if (d?.status === 'verified') { setConfirmed(true); router.push(`/status/${orderId}`); } } } catch {}
+      try {
+        const r = await fetch(`/api/orders?id=${orderId}`);
+        if (r.ok) {
+          const d = await r.json();
+          if (d?.status === 'verified') {
+            handleSuccess();
+          }
+        }
+      } catch {}
     }, 3500);
     return () => clearInterval(t);
-  }, [orderId, confirmed, router]);
+  }, [orderId, confirmed]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  /* Create order */
+  /* ── Auto-check on visibility change when returning from UPI app ── */
+  useEffect(() => {
+    const handleVis = () => {
+      if (!document.hidden && copiedRef.current && curViewRef.current === 'vPay') {
+        copiedRef.current = false;
+        triggerChecking();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVis);
+    return () => document.removeEventListener('visibilitychange', handleVis);
+  }, [orderId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function handleSuccess() {
+    setConfirmed(true);
+    setOkTime(new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }));
+    setCurView('vOk');
+    try { navigator.vibrate?.(40); } catch {}
+  }
+
+  function triggerChecking() {
+    if (curViewRef.current !== 'vPay' && curViewRef.current !== 'vWait') return;
+    setCurView('vWait');
+    setCheckMsg('Hang on, this takes a few seconds.');
+    
+    // Check order status
+    if (orderId) {
+      fetch(`/api/orders?id=${orderId}`)
+        .then(r => r.ok ? r.json() : null)
+        .then(d => {
+          if (d?.status === 'verified') {
+            handleSuccess();
+          } else {
+            setTimeout(() => {
+              if (curViewRef.current === 'vWait') {
+                setCheckMsg("No payment matched yet. If you have completed the transfer, submit your 12-digit UTR below.");
+              }
+            }, 3000);
+          }
+        })
+        .catch(() => {
+          setCheckMsg("Could not verify status. Please try again or enter your UTR.");
+        });
+    } else {
+      // Demo simulation
+      setTimeout(() => {
+        handleSuccess();
+      }, 2600);
+    }
+  }
+
+  /* ── Order creation API call ── */
   async function createOrder(amt, name, phone, ref, note, callback, project, lid) {
     setLoading(true); setError('');
     try {
-      const res  = await fetch('/api/orders', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ api_key: paramApiKey || CONFIG.platformApiKey, amount:amt, customer_name:name, customer_phone:phone, external_ref:ref, note, callback_url:callback, project, lid, is_mandate: note==='Trial_Setup_3Day'||note==='Autopay_Setup_3DayTrial' }) });
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          api_key: paramApiKey || CONFIG.platformApiKey,
+          amount: amt,
+          customer_name: name,
+          customer_phone: phone,
+          external_ref: ref,
+          note,
+          callback_url: callback,
+          project,
+          lid,
+          is_mandate: note === 'Trial_Setup_3Day' || note === 'Autopay_Setup_3DayTrial'
+        })
+      });
       const data = await res.json();
       if (res.ok && data) {
         const id = data.order_id || data.orderId;
@@ -246,122 +328,200 @@ function PayPageContent() {
         setOrderMode(data.mode || 'live');
         if (data.note) setOrderNote(data.note);
         if (callback && id) localStorage.setItem(`callback_${id}`, callback);
-      } else { setOrderAmount(amt); }
-    } catch { setOrderAmount(amt); } finally { setLoading(false); }
+      } else {
+        setOrderAmount(amt);
+      }
+    } catch {
+      setOrderAmount(amt);
+    } finally {
+      setLoading(false);
+    }
   }
 
   /* Copy UPI ID */
-  const copyUpiId = () => {
+  const handleCopyUpi = () => {
     try { navigator.clipboard.writeText(upiId); } catch {}
+    try { navigator.vibrate?.(15); } catch {}
     setCopied(true);
-    setTimeout(() => setCopied(false), 1600);
+    copiedRef.current = true;
+    setCopyFeedback(true);
+    setTimeout(() => setCopyFeedback(false), 1500);
+  };
+
+  /* Copy USDT Address */
+  const handleCopyUsdt = () => {
+    try { navigator.clipboard.writeText(cryptoWallet); } catch {}
+    try { navigator.vibrate?.(15); } catch {}
+    setCopyUsdtDone(true);
+    setTimeout(() => setCopyUsdtDone(false), 1500);
   };
 
   /* Submit UTR */
   const submitUtr = async (e) => {
-    e.preventDefault(); if (!utr.trim()) return;
+    if (e) e.preventDefault();
+    if (!utr.trim()) return;
     setUtrBusy(true); setUtrMsg('');
     try {
-      const r = await fetch('/api/orders/verify-utr', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ order_id: activeId, utr: utr.trim() }) });
+      const r = await fetch('/api/orders/verify-utr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order_id: activeId, utr: utr.trim() })
+      });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Failed');
-      if (d.verified) { setUtrMsg('\u2713 Payment verified! Redirecting\u2026'); setTimeout(() => router.push(`/status/${activeId}`), 700); }
-      else setUtrMsg(d.message || 'UTR recorded. Checking in background\u2026');
-    } catch (err) { setUtrMsg(err.message); } finally { setUtrBusy(false); }
+      if (d.verified) {
+        setUtrMsg('✓ Payment verified! Redirecting…');
+        handleSuccess();
+      } else {
+        setUtrMsg(d.message || 'UTR recorded. Checking in background…');
+      }
+    } catch (err) {
+      setUtrMsg(err.message);
+    } finally {
+      setUtrBusy(false);
+    }
   };
 
   /* Submit Promo */
   const submitPromo = async (e) => {
-    e.preventDefault(); if (!promoCode.trim()) return;
+    if (e) e.preventDefault();
+    if (!promoCode.trim()) return;
     setPromoLoading(true); setPromoMsg('');
     try {
-      const r = await fetch('/api/coupons/apply', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ order_id: activeId, code: promoCode.trim().toUpperCase() }) });
+      const r = await fetch('/api/coupons/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order_id: activeId, code: promoCode.trim().toUpperCase() })
+      });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Invalid code');
-      setPromoApplied(d.coupon); setOrderAmount(d.new_amount); setPromoMsg(`\u2713 Saved \u20b9${d.discount}!`);
-    } catch (err) { setPromoMsg(err.message); } finally { setPromoLoading(false); }
+      setPromoApplied(d.coupon);
+      setOrderAmount(d.new_amount);
+      setPromoMsg(`✓ Saved ₹${d.discount}!`);
+    } catch (err) {
+      setPromoMsg(err.message);
+    } finally {
+      setPromoLoading(false);
+    }
   };
 
   /* Submit Crypto */
   const submitTx = async (e) => {
-    e.preventDefault(); if (!txHash.trim()) return;
+    if (e) e.preventDefault();
+    if (!txHash.trim()) return;
     setTxBusy(true); setTxMsg('');
     try {
-      const r = await fetch('/api/orders/verify-crypto', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ order_id: activeId, tx_hash: txHash.trim(), network: cryptoNetwork, wallet_address: cryptoWallet }) });
+      const r = await fetch('/api/orders/verify-crypto', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order_id: activeId, tx_hash: txHash.trim(), network: cryptoNetwork, wallet_address: cryptoWallet })
+      });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Failed');
-      setTxMsg('\u2713 Transaction submitted! Redirecting\u2026'); setTimeout(() => router.push(`/status/${activeId}`), 700);
-    } catch (err) { setTxMsg(err.message); } finally { setTxBusy(false); }
-  };
-
-  /* CTA */
-  const handleCta = async () => {
-    if (ctaBusy) return;
-    setCtaBusy(true); setCtaStatus('');
-    try {
-      if (orderId) {
-        const r = await fetch(`/api/orders?id=${orderId}`);
-        if (r.ok) { const d = await r.json(); if (d?.status === 'verified') { router.push(`/status/${orderId}`); return; } }
-      }
-      setTimeout(() => {
-        setCtaBusy(false);
-        setCtaStatus("No payment found yet. It can take a few seconds — try again shortly.");
-      }, 1500);
-    } catch {
-      setCtaBusy(false);
-      setCtaStatus("Could not check status. Please try again.");
+      setTxMsg('✓ Transaction submitted! Redirecting…');
+      handleSuccess();
+    } catch (err) {
+      setTxMsg(err.message);
+    } finally {
+      setTxBusy(false);
     }
   };
 
   /* ───────────────────────────────────────────────────────────
-     ENTRY FORM (no amount / order yet)
+     ENTRY FORM (when loaded with no amount / order ID)
   ─────────────────────────────────────────────────────────── */
   if (!orderId && !displayAmt) {
     return (
-      <div style={S.page}>
-        <div style={S.shell}>
-          <header style={S.header}>
-            <Link href="/" style={{ display:'flex', alignItems:'center', textDecoration:'none' }}>
-              <MyMobPayLogo />
-            </Link>
-            <div style={S.secure}><i style={S.secDot}/><span>Secure checkout</span></div>
-          </header>
+      <div className="app" style={{ justifyContent: 'center' }}>
+        <div className="hd">
+          <div className="lg"><MyMobPayLogo /></div>
+          <div className="sec">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="5" y="11" width="14" height="10" rx="2"/>
+              <path d="M8 11V8a4 4 0 018 0v3"/>
+            </svg>
+            Secure checkout
+          </div>
+        </div>
 
-          <div style={{ maxWidth:440, margin:'0 auto', background:'#fff', borderRadius:20, boxShadow:'0 20px 40px -20px rgba(15,27,45,.18)', padding:'36px 32px' }}>
-            <h1 style={{ font:'800 22px/1.2 "DM Sans",sans-serif', color:'#0f1b2d', margin:'0 0 6px' }}>Enter payment amount</h1>
-            <p style={{ font:'500 14px "DM Sans",sans-serif', color:'#5b6b80', margin:'0 0 28px' }}>You will receive a UPI QR to complete payment.</p>
+        <div className="scr" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <div className="sum">
+            <h1 style={{ font: '800 20px/1.2 "DM Sans",sans-serif', color: 'var(--ink)', margin: '0 0 6px' }}>Enter payment amount</h1>
+            <p style={{ font: '500 13.5px "DM Sans",sans-serif', color: 'var(--mut)', margin: '0 0 20px' }}>Generate a direct UPI checkout session.</p>
 
-            <form onSubmit={(e) => { e.preventDefault(); if (!amount || parseFloat(amount) <= 0) { setError('Please enter a valid amount.'); return; } createOrder(parseFloat(amount), custName, custPhone, paramRef, paramNote, paramCallback, paramProject, paramLid); }}>
-              <label style={S.fieldLabel}>Amount (INR)</label>
-              <div style={{ position:'relative', marginBottom:16 }}>
-                <span style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', font:'600 20px "IBM Plex Mono",monospace', color:'#5b6b80' }}>₹</span>
-                <input type="number" step="0.01" min="1" autoFocus value={amount} placeholder="999"
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              if (!amount || parseFloat(amount) <= 0) {
+                setError('Please enter a valid amount.');
+                return;
+              }
+              createOrder(parseFloat(amount), custName, custPhone, paramRef, paramNote, paramCallback, paramProject, paramLid);
+            }}>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--mut)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 }}>Amount (INR)</label>
+              <div style={{ position: 'relative', marginBottom: 14 }}>
+                <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', font: '600 20px "IBM Plex Mono",monospace', color: 'var(--mut)' }}>₹</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="1"
+                  autoFocus
+                  value={amount}
+                  placeholder="999"
                   onChange={(e) => { setAmount(e.target.value); setError(''); }}
-                  style={{ ...S.monoInput, paddingLeft:36, fontSize:22, fontWeight:700, color:'#0f1b2d' }} />
+                  style={{ width: '100%', minHeight: 52, border: '1px solid var(--line)', borderRadius: 12, padding: '0 14px 0 36px', font: '700 22px "IBM Plex Mono",monospace', color: 'var(--ink)', background: 'var(--soft)', outline: 'none' }}
+                />
               </div>
-              <div style={{ display:'flex', gap:8, marginBottom:20 }}>
-                {[500,1000,2000,5000].map(q => (
-                  <button key={q} type="button" onClick={() => setAmount(String(q))}
-                    style={{ flex:1, padding:'8px 0', font:'600 12.5px "DM Sans",sans-serif', border:'1px solid #d6dfea', borderRadius:10, background:'#fff', color:'#5b6b80', cursor:'pointer' }}>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginBottom: 16 }}>
+                {[500, 1000, 2000, 5000].map(q => (
+                  <button
+                    key={q}
+                    type="button"
+                    onClick={() => setAmount(String(q))}
+                    style={{ padding: '8px 0', font: '700 12.5px "DM Sans",sans-serif', border: '1px solid var(--line)', borderRadius: 10, background: '#fff', color: 'var(--mut)', cursor: 'pointer' }}
+                  >
                     ₹{q}
                   </button>
                 ))}
               </div>
-              <label style={S.fieldLabel}>Your name <span style={{ color:'#b8c6d7' }}>(optional)</span></label>
-              <input type="text" placeholder="Rahul Sharma" value={custName} onChange={(e) => setCustName(e.target.value)} style={{ ...S.monoInput, marginBottom:16, fontFamily:'"DM Sans",sans-serif' }} />
-              <label style={S.fieldLabel}>Phone <span style={{ color:'#b8c6d7' }}>(optional)</span></label>
-              <input type="tel" placeholder="9876543210" value={custPhone} onChange={(e) => setCustPhone(e.target.value)} style={{ ...S.monoInput, marginBottom:20, fontFamily:'"DM Sans",sans-serif' }} />
 
-              {error && <p style={{ color:'#c0392b', font:'600 13px "DM Sans",sans-serif', margin:'0 0 12px' }}>{error}</p>}
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--mut)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 }}>Your name <span style={{ fontWeight: 400, color: '#98a2b3' }}>(optional)</span></label>
+              <input
+                type="text"
+                placeholder="Rahul Sharma"
+                value={custName}
+                onChange={(e) => setCustName(e.target.value)}
+                style={{ width: '100%', minHeight: 46, border: '1px solid var(--line)', borderRadius: 12, padding: '0 14px', font: '500 14px "DM Sans",sans-serif', color: 'var(--ink)', background: 'var(--soft)', outline: 'none', marginBottom: 14 }}
+              />
 
-              <button type="submit" disabled={loading} style={S.cta}>
-                {loading ? <span style={S.spinner} /> : null}
-                <span>{loading ? 'Creating order…' : 'Generate Payment QR'}</span>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--mut)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 }}>Phone <span style={{ fontWeight: 400, color: '#98a2b3' }}>(optional)</span></label>
+              <input
+                type="tel"
+                placeholder="9876543210"
+                value={custPhone}
+                onChange={(e) => setCustPhone(e.target.value)}
+                style={{ width: '100%', minHeight: 46, border: '1px solid var(--line)', borderRadius: 12, padding: '0 14px', font: '500 14px "DM Sans",sans-serif', color: 'var(--ink)', background: 'var(--soft)', outline: 'none', marginBottom: 18 }}
+              />
+
+              {error && <p style={{ color: '#c0392b', fontSize: 13, fontWeight: 600, margin: '0 0 12px' }}>{error}</p>}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="pri wide"
+                style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10 }}
+              >
+                {loading ? <span className="sp" style={{ width: 18, height: 18, borderWidth: 2 }} /> : null}
+                <span>{loading ? 'Creating session…' : 'Generate Payment QR'}</span>
               </button>
             </form>
 
-            <div style={{ textAlign:'center', marginTop:16, font:'500 12px "DM Sans",sans-serif', color:'#5b6b80' }}>
-              0% transaction fee &middot; Funds go straight to merchant
+            <div className="trust">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/>
+                <path d="M9 12l2 2 4-4"/>
+              </svg>
+              <span>0% transaction fee. Funds go straight to merchant.</span>
             </div>
           </div>
         </div>
@@ -370,407 +530,1301 @@ function PayPageContent() {
   }
 
   /* ───────────────────────────────────────────────────────────
-     MAIN 2-COL CHECKOUT
+     MAIN CHECKOUT UI (Mirrors 'MyMobPay checkout (no deep links).html')
   ─────────────────────────────────────────────────────────── */
   const mm = String(Math.floor(timeLeft / 60)).padStart(2, '0');
   const ss = String(timeLeft % 60).padStart(2, '0');
-  const pct = (timeLeft / SESSION_SECS * 100).toFixed(1);
-
-  /* amount breakdown */
-  const baseAmt    = displayAmt ?? 0;
-  const discountAmt = promoApplied ? (baseAmt - parseFloat(orderAmount || baseAmt)) : 0;
-  const finalAmt   = displayAmt ?? baseAmt;
-  const amtWhole   = finalAmt ? Math.floor(finalAmt).toLocaleString('en-IN') : '0';
-  const amtFrac    = finalAmt ? ('.' + parseFloat(finalAmt).toFixed(2).split('.')[1]) : '.00';
+  const timerPct = ((timeLeft / SESSION_SECS) * 100).toFixed(1);
+  const strokeOffset = (100 - (timeLeft / SESSION_SECS) * 100).toFixed(1);
+  const isTimerLow = timeLeft <= 60;
 
   return (
-    <div style={S.page}>
-      <div className="pay-shell" style={S.shell}>
-
-        {/* HEADER */}
-        <header className="pay-header" style={S.header}>
-          <Link href="/" style={{ display:'flex', alignItems:'center', textDecoration:'none' }}>
-            <MyMobPayLogo />
-          </Link>
-          <div style={S.secure}>
-            <i className="pay-sec-dot" style={S.secDot}/>
-            <span className="pay-secure-label">Secure checkout, powered by MyMobPay</span>
+    <div className="app">
+      {/* ── HEADER ── */}
+      <div className="hd">
+        <Link href="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <div className="lg">
+            <div className="mk">M</div>
+            <span style={{ letterSpacing: '-0.02em' }}>MyMobPay</span>
           </div>
-        </header>
+        </Link>
+        <div className="sec">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="5" y="11" width="14" height="10" rx="2"/>
+            <path d="M8 11V8a4 4 0 018 0v3"/>
+          </svg>
+          Secure checkout
+        </div>
+      </div>
 
+      {/* ── PROGRESS BAR ── */}
+      <div className={`prog ${isTimerLow ? 'low' : ''}`} id="prog">
+        <div id="pg" style={{ width: `${timerPct}%` }} />
+      </div>
+
+      {/* ── SCROLLABLE BODY ── */}
+      <div className="scr" id="scr">
+        
+        {/* Test mode banner */}
         {orderMode === 'test' && (
-          <div style={{ marginBottom:16, background:'#fff8e7', border:'1px solid #f0c040', borderRadius:10, padding:'10px 16px', font:'600 13px "DM Sans",sans-serif', color:'#856404', display:'flex', alignItems:'center', gap:8 }}>
-            <span style={{ width:8, height:8, borderRadius:'50%', background:'#f59e0b', display:'inline-block' }} />
-            Test mode &mdash; no real money will be transferred
+          <div style={{ marginBottom: 14, background: '#fff8e7', border: '1px solid #f0c040', borderRadius: 12, padding: '8px 14px', fontSize: 12.5, fontWeight: 700, color: '#856404', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#f59e0b', display: 'inline-block' }} />
+            Test mode &mdash; simulated sandbox transaction
           </div>
         )}
 
-        <div className="pay-grid" style={S.grid}>
-          {/* ── LEFT: Receipt card ──
-               Outer div carries drop-shadow filter; inner aside carries the mask.
-               They MUST be on separate elements — combining filter+mask on the
-               same element is a known WebKit bug that makes the whole element
-               invisible on iOS Safari and Android Chrome. */}
-          <div style={{ filter:'drop-shadow(0 20px 26px rgba(15,27,45,.16))' }}>
-          <aside className="pay-receipt" style={S.receipt} aria-label="Order summary">
-            <div style={S.merRow}>
-              <div style={S.merAv}>{bizName.charAt(0).toUpperCase()}</div>
-              <div>
-                <b style={{ display:'block', font:'700 16px "DM Sans",sans-serif', color:'#0f1b2d', lineHeight:1.2 }}>{bizName}</b>
-                <small style={{ display:'flex', alignItems:'center', gap:4, color:'#12995d', fontWeight:600, fontSize:12.5, fontFamily:'"DM Sans",sans-serif' }}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg>
-                  Verified merchant
-                </small>
-              </div>
-            </div>
-
-            <p suppressHydrationWarning style={{ color:'#5b6b80', fontSize:12, margin:'0 0 6px', paddingTop:14, borderTop:'1px dashed #d6dfea', fontFamily:'"IBM Plex Mono",monospace' }}>
-              {new Date().toLocaleString('en-IN', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })}
-            </p>
-
-            {/* Receipt lines */}
-            {[
-              { label:'Order ID', val: activeId ? `#${activeId.slice(-8).toUpperCase()}` : '—' },
-              { label:'Subtotal', val: displayAmt ? displayAmt.toLocaleString('en-IN', { minimumFractionDigits:2 }) : '—' },
-              ...(promoApplied ? [{ label: `Promo: ${promoApplied.code}`, val: `-${discountAmt.toFixed(2)}`, green:true }] : []),
-              { label:'Platform fee', val:'0.00', free:true },
-            ].map((row, i) => (
-              <div key={i} suppressHydrationWarning style={{ display:'flex', justifyContent:'space-between', padding:'9px 0', borderBottom:'1px dashed #d6dfea', fontFamily:'"IBM Plex Mono",monospace', fontSize:13, color:'#5b6b80' }}>
-                <span>{row.label}</span>
-                <span style={{ color: row.free ? '#12995d' : row.green ? '#12995d' : '#0f1b2d', fontWeight: row.free || row.green ? 500 : 400 }}>{row.val}</span>
-              </div>
-            ))}
-
-            {/* Big amount */}
-            <div style={{ marginTop:20 }}>
-              <small style={{ display:'block', color:'#5b6b80', fontWeight:600, fontSize:13, marginBottom:2, fontFamily:'"DM Sans",sans-serif' }}>Total to pay</small>
-              <b className="pay-amount-big" style={{ font:'600 50px/1.05 "Fraunces",serif', letterSpacing:'-0.025em', display:'block' }}>
-                ₹{amtWhole}<s style={{ textDecoration:'none', fontSize:26, color:'#8a99ad' }}>{amtFrac}</s>
-              </b>
-            </div>
-
-            {/* Session timer */}
-            <div style={{ marginTop:20 }}>
-              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:7, font:'600 13px "DM Sans",sans-serif', color:'#2f86f6' }}>
-                <span>Session expires in</span>
-                <span style={{ fontVariantNumeric:'tabular-nums' }}>{mm}:{ss}</span>
-              </div>
-              <div style={{ height:5, borderRadius:9, background:'#eaf2fe', overflow:'hidden' }}>
-                <div className="pay-progress-bar" style={{ height:'100%', width:pct+'%', background:'#2f86f6', borderRadius:9, transition:'width 1s linear' }} />
-              </div>
-            </div>
-          </aside>
-          </div>{/* /receipt filter wrapper */}
-
-          {/* ── RIGHT: Payment methods ── */}
-          <main>
-            <h2 style={{ font:'800 21px "DM Sans",sans-serif', margin:'2px 0 14px', letterSpacing:'-0.015em', color:'#0f1b2d' }}>
-              How would you like to pay?
-            </h2>
-
-            {/* ── UPI accordion ── */}
-            <Accordion
-              active={activeMethod === 'upi'}
-              onToggle={() => setActiveMethod(activeMethod === 'upi' ? '' : 'upi')}
-              icon={<svg viewBox="0 0 24 24" style={S.accIcSvg}><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>}
-              title="UPI"
-              subtitle="PhonePe, Google Pay, Paytm, BHIM"
-            >
-              <div className="upi-flex" style={S.upiWrap}>
-                {/* QR */}
+        {/* ── AMOUNT CARD WITH TIMER RING (Hidden on success/expired) ── */}
+        {(curView === 'vPay' || curView === 'vWait') && (
+          <div className="sum" id="hero">
+            <div className="top">
+              <div className="mer">
+                <div className="av">{bizName.charAt(0).toUpperCase()}</div>
                 <div>
-                  <div style={S.qrWrap}>
-                    <i style={{ ...S.qrCorner, top:-2, left:-2, borderRight:0, borderBottom:0 }} />
-                    <i style={{ ...S.qrCorner, top:-2, right:-2, borderLeft:0, borderBottom:0 }} />
-                    <i style={{ ...S.qrCorner, bottom:-2, left:-2, borderRight:0, borderTop:0 }} />
-                    <i style={{ ...S.qrCorner, bottom:-2, right:-2, borderLeft:0, borderTop:0 }} />
+                  <b>{bizName}</b>
+                  <small>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/>
+                      <path d="M9 12l2 2 4-4"/>
+                    </svg>
+                    Verified merchant
+                  </small>
+                </div>
+              </div>
+              <div className={`ringw ${isTimerLow ? 'low' : ''}`} id="chip" role="timer" aria-label="Session time left">
+                <svg viewBox="0 0 60 60" aria-hidden="true">
+                  <circle className="rg-bg" cx="30" cy="30" r="26" fill="none" strokeWidth="4"/>
+                  <circle
+                    className="rg-fg"
+                    id="ring"
+                    cx="30"
+                    cy="30"
+                    r="26"
+                    fill="none"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    pathLength="100"
+                    strokeDasharray="100"
+                    strokeDashoffset={strokeOffset}
+                    transform="rotate(-90 30 30)"
+                  />
+                </svg>
+                <span className="tm">{mm}:{ss}</span>
+              </div>
+            </div>
+            
+            <p className="lab">Amount to pay</p>
+            <div className="amt">
+              ₹{amtWhole}<s>{amtFrac}</s>
+            </div>
+            
+            <div className="meta">
+              <div>
+                <small>Order ID</small>
+                <b>#{activeId ? activeId.slice(-8).toUpperCase() : 'DEMO'}</b>
+              </div>
+              <div>
+                <small>Platform fee</small>
+                <b>₹0.00<span className="free">Free</span></b>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── VIEW 1: PAY ── */}
+        {curView === 'vPay' && (
+          <div id="vPay">
+            <div className="gh">Pay with UPI</div>
+            <div className="card" id="pUpi">
+              <div className="pc">
+                <p className="tip" style={{ textAlign: 'center', margin: '0 0 14px' }}>
+                  Scan with any UPI app, or pay to the UPI ID
+                </p>
+                
+                {/* QR Box with corner brackets */}
+                <div className="qrf">
+                  <i /><i /><i /><i />
+                  <div className="qrbox">
                     {upiQrValue ? (
-                      <QRCode value={upiQrValue} size={148} level="H" fgColor="#0f1b2d" bgColor="#ffffff" style={{ display:'block', width:'100%', height:'auto' }} />
+                      <QRCode
+                        value={upiQrValue}
+                        size={166}
+                        level="M"
+                        fgColor="#101828"
+                        bgColor="#ffffff"
+                        style={{ display: 'block', width: '100%', height: 'auto' }}
+                      />
                     ) : (
-                      <div style={{ width:148, height:148, display:'flex', alignItems:'center', justifyContent:'center', color:'#b8c6d7', fontSize:12 }}>Loading…</div>
+                      <div style={{ width: 166, height: 166, display: 'grid', placeItems: 'center', color: 'var(--mut)', fontSize: 13 }}>
+                        Generating QR…
+                      </div>
                     )}
                   </div>
-                  <div style={{ textAlign:'center', fontSize:12, fontWeight:700, marginTop:8, fontFamily:'"DM Sans",sans-serif' }}>Pay {fmtInr(displayAmt)}</div>
                 </div>
 
-                {/* Side */}
-                <div style={{ flex:1, minWidth:0 }}>
-                  <p style={{ margin:'0 0 8px', fontSize:13, color:'#5b6b80', fontFamily:'"DM Sans",sans-serif' }}>Scan with any UPI app, or pay to this ID</p>
-                  <div style={S.upiIdBox}>
-                    <span style={{ overflow:'hidden', textOverflow:'ellipsis', flex:1, fontFamily:'"IBM Plex Mono",monospace', fontSize:12.5 }}>{upiId}</span>
-                    <button onClick={copyUpiId} className="pay-copy-btn" style={{ ...S.copyBtn, ...(copied ? S.copyBtnDone : {}) }}>{copied ? 'Copied' : 'Copy'}</button>
-                  </div>
-                  <p style={{ margin:'0 0 8px', fontSize:13, color:'#5b6b80', fontFamily:'"DM Sans",sans-serif' }}>Or open your app directly</p>
-                  <div style={S.chips}>
+                <div className="cap">Pay {fmtInr(displayAmt)}</div>
+                
+                {/* UPI ID Copy box */}
+                <div className="id">
+                  <span>{upiId}</span>
+                  <button
+                    type="button"
+                    className={`cp ${copyFeedback ? 'done' : ''}`}
+                    onClick={handleCopyUpi}
+                  >
+                    {copyFeedback ? 'Copied' : 'Copy'}
+                  </button>
+                </div>
+
+                {/* 3-Step Guide */}
+                <ol className="how">
+                  <li>On this phone? Copy the UPI ID above</li>
+                  <li>Pay {fmtInr(displayAmt)} in any UPI app</li>
+                  <li>Come back here and tap &quot;I&apos;ve paid&quot;</li>
+                </ol>
+
+                {/* Direct UPI App launcher chips */}
+                <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px dashed var(--line)' }}>
+                  <p style={{ margin: '0 0 8px', fontSize: 12, color: 'var(--mut)', textAlign: 'center', fontWeight: 600 }}>Or open your UPI app directly</p>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
                     {UPI_CHIPS.map(app => (
-                      <button key={app.id} onClick={() => { if (!displayAmt) return; window.location.href = buildUpiLink(app.id, displayAmt, activeId, merchant, isMandate); }}
-                        className="pay-chip" style={S.chip}>
-                        <b style={{ width:9, height:9, borderRadius:'50%', background:app.dot, display:'inline-block', flexShrink:0 }} />
+                      <button
+                        key={app.id}
+                        type="button"
+                        onClick={() => {
+                          if (!displayAmt) return;
+                          window.location.href = buildUpiLink(app.id, displayAmt, activeId, merchant, isMandate);
+                        }}
+                        style={{
+                          all: 'unset',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          fontSize: 12,
+                          fontWeight: 700,
+                          border: '1px solid var(--line)',
+                          borderRadius: 999,
+                          padding: '5px 12px 5px 9px',
+                          background: '#fff',
+                          color: 'var(--ink)',
+                          boxShadow: '0 1px 2px rgba(16,24,40,.04)'
+                        }}
+                      >
+                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: app.dot, display: 'inline-block' }} />
                         {app.label}
                       </button>
                     ))}
                   </div>
                 </div>
               </div>
-            </Accordion>
+            </div>
 
-            {/* ── Net Banking accordion ── */}
-            <Accordion
-              active={activeMethod === 'bank'}
-              onToggle={() => setActiveMethod(activeMethod === 'bank' ? '' : 'bank')}
-              icon={<svg viewBox="0 0 24 24" style={S.accIcSvg}><path d="M3 10l9-6 9 6"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8"/><path d="M3 21h18"/></svg>}
-              title={<>Net Banking <span style={{ background:'#dcf5e8', color:'#0d7a47', fontSize:11.5, borderRadius:999, padding:'2px 8px', marginLeft:8, fontWeight:700 }}>0% fee</span></>}
-              subtitle="Pay from your bank account"
-            >
-              <div style={{ padding:'2px 18px 20px' }}>
-                <div style={{ border:'1px solid #d6dfea', borderRadius:14, overflow:'hidden', marginBottom:12 }}>
+            {/* Other ways to pay accordion */}
+            <div className="gh">Other ways to pay</div>
+            <div className="card">
+              {/* Net Banking */}
+              <button
+                type="button"
+                className="row acc"
+                aria-expanded={activeAcc === 'pBank'}
+                onClick={() => setActiveAcc(activeAcc === 'pBank' ? '' : 'pBank')}
+              >
+                <span className="ic">
+                  <svg viewBox="0 0 24 24"><path d="M3 10l9-6 9 6"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8"/><path d="M3 21h18"/></svg>
+                </span>
+                <span>
+                  Net Banking<span className="badge">0% fee</span>
+                  <small>Pay from your bank account</small>
+                </span>
+                <span className="ch">›</span>
+              </button>
+              <div className={`pn ${activeAcc === 'pBank' ? 'show' : ''}`} id="pBank">
+                <div className="banks">
+                  {['SBI', 'HDFC', 'ICICI', 'Axis', 'Kotak', 'PNB'].map(b => (
+                    <button key={b} type="button">{b}</button>
+                  ))}
+                </div>
+                
+                {/* Bank Account Details */}
+                <div style={{ marginTop: 12, background: '#fff', border: '1px solid var(--line)', borderRadius: 12, overflow: 'hidden' }}>
                   {[
-                    { label:'Account Name', val:bankName },
-                    { label:'Account No.', val:bankAcc },
-                    { label:'IFSC', val:bankIfsc },
-                    { label:'Bank', val:bankBranch },
-                    { label:'Amount', val:fmtInr(displayAmt), highlight:true },
+                    { l: 'Account Name', v: bankName },
+                    { l: 'Account No.', v: bankAcc },
+                    { l: 'IFSC Code', v: bankIfsc },
+                    { l: 'Bank', v: bankBranch },
+                    { l: 'Amount', v: fmtInr(displayAmt), high: true }
                   ].map((row, i) => (
-                    <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px 14px', background: row.highlight ? '#eaf2fe' : i % 2 === 0 ? '#fff' : '#f3f7fc', borderTop: i > 0 ? '1px solid #d6dfea' : 'none' }}>
-                      <span style={{ font:'500 12px "DM Sans",sans-serif', color:'#5b6b80' }}>{row.label}</span>
-                      <span style={{ font:`600 12.5px "IBM Plex Mono",monospace`, color: row.highlight ? '#1c6ee0' : '#0f1b2d' }}>{row.val}</span>
+                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 12px', fontSize: 12.5, borderTop: i > 0 ? '1px solid var(--line)' : 'none', background: row.high ? 'var(--tint)' : '#fff' }}>
+                      <span style={{ color: 'var(--mut)', fontWeight: 500 }}>{row.l}</span>
+                      <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 600, color: row.high ? 'var(--brand-d)' : 'var(--ink)' }}>{row.v}</span>
                     </div>
                   ))}
                 </div>
-                <p style={{ margin:'0 0 8px', font:'600 13px "DM Sans",sans-serif', color:'#0f1b2d' }}>Enter IMPS/NEFT UTR after transfer</p>
-                <form onSubmit={submitUtr} style={{ display:'flex', gap:8 }}>
-                  <input type="text" placeholder="12-digit UTR e.g. 425619283741" value={utr} onChange={e => setUtr(e.target.value.replace(/\D/g, '').slice(0, 12))} style={S.monoInput} />
-                  <button type="submit" disabled={utrBusy || utr.length < 12} style={S.smBtn}>{utrBusy ? '…' : 'Confirm'}</button>
-                </form>
-                {utrMsg && <p style={{ margin:'8px 0 0', font:'600 13px "DM Sans",sans-serif', color: utrMsg.startsWith('✓') ? '#12995d' : '#c0392b' }}>{utrMsg}</p>}
+                <p className="tip">You&apos;ll return here after paying at your bank.</p>
               </div>
-            </Accordion>
 
-            {/* ── Crypto accordion ── */}
-            <Accordion
-              active={activeMethod === 'crypto'}
-              onToggle={() => setActiveMethod(activeMethod === 'crypto' ? '' : 'crypto')}
-              icon={<svg viewBox="0 0 24 24" style={S.accIcSvg}><circle cx="12" cy="12" r="9"/><path d="M9 8h5a2 2 0 010 4H9m0 0h5.5a2 2 0 010 4H9M9 7v10"/></svg>}
-              title="Crypto (USDT)"
-              subtitle="TRC20 network"
-            >
-              <div style={{ padding:'2px 18px 20px' }}>
-                <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
-                  <div style={{ background:'#fff8e7', border:'1px solid #f0c040', borderRadius:12, padding:'12px 16px', textAlign:'center' }}>
-                    <div style={{ font:'600 12px "DM Sans",sans-serif', color:'#856404', marginBottom:4 }}>USDT Amount Due</div>
-                    <div style={{ font:'700 28px "IBM Plex Mono",monospace', color:'#0f1b2d' }}>{usdtAmt}</div>
-                    <div style={{ font:'600 13px "DM Sans",sans-serif', color:'#b07d0e' }}>USDT &bull; @ ₹{CONFIG.usdtInrRate || 90} per USDT</div>
-                  </div>
-                  <div style={{ display:'flex', gap:12, alignItems:'flex-start' }}>
-                    <div style={{ background:'#fff', border:'1px solid #d6dfea', borderRadius:12, padding:10, flexShrink:0 }}>
-                      <QRCode value={cryptoWallet} size={110} level="M" fgColor="#0f1b2d" bgColor="#ffffff" />
-                      <div style={{ textAlign:'center', font:'600 11px "DM Sans",sans-serif', color:'#5b6b80', marginTop:6 }}>Scan wallet QR</div>
-                    </div>
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <p style={{ margin:'0 0 4px', font:'600 12px "DM Sans",sans-serif', color:'#5b6b80', textTransform:'uppercase', letterSpacing:'0.04em' }}>TRC-20 Address</p>
-                      <div style={{ ...S.upiIdBox, marginBottom:12 }}>
-                        <span style={{ overflow:'hidden', textOverflow:'ellipsis', flex:1, fontFamily:'"IBM Plex Mono",monospace', fontSize:11 }}>{cryptoWallet}</span>
-                        <button onClick={() => { try { navigator.clipboard.writeText(cryptoWallet); } catch {} }} style={S.copyBtn}>Copy</button>
-                      </div>
-                      <p style={{ margin:'0 0 6px', font:'600 13px "DM Sans",sans-serif', color:'#0f1b2d' }}>Paste TxHash after sending</p>
-                      <form onSubmit={submitTx} style={{ display:'flex', gap:8 }}>
-                        <input type="text" placeholder="Transaction hash (TxID)…" value={txHash} onChange={e => setTxHash(e.target.value)} style={S.monoInput} />
-                        <button type="submit" disabled={txBusy || !txHash.trim()} style={{ ...S.smBtn, background:'#d97706', boxShadow:'none' }}>{txBusy ? '…' : 'Verify'}</button>
-                      </form>
-                      {txMsg && <p style={{ margin:'8px 0 0', font:'600 13px "DM Sans",sans-serif', color: txMsg.startsWith('✓') ? '#12995d' : '#c0392b' }}>{txMsg}</p>}
-                    </div>
-                  </div>
+              {/* Crypto (USDT) */}
+              <button
+                type="button"
+                className="row acc"
+                aria-expanded={activeAcc === 'pUsdt'}
+                onClick={() => setActiveAcc(activeAcc === 'pUsdt' ? '' : 'pUsdt')}
+              >
+                <span className="ic">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 8h5a2 2 0 010 4H9m0 0h5.5a2 2 0 010 4H9M9 7v10"/></svg>
+                </span>
+                <span>
+                  Crypto (USDT)
+                  <small>TRC20 network</small>
+                </span>
+                <span className="ch">›</span>
+              </button>
+              <div className={`pn ${activeAcc === 'pUsdt' ? 'show' : ''}`} id="pUsdt">
+                <div style={{ textAlign: 'center', padding: '6px 0 2px', fontSize: 13, fontWeight: 700, color: 'var(--mut)' }}>
+                  Pay <strong style={{ color: 'var(--ink)', fontSize: 16, fontFamily: "'IBM Plex Mono', monospace" }}>{usdtAmt} USDT</strong>
                 </div>
-              </div>
-            </Accordion>
+                <div className="id" style={{ marginTop: 8 }}>
+                  <span>{cryptoWallet}</span>
+                  <button
+                    type="button"
+                    className={`cp ${copyUsdtDone ? 'done' : ''}`}
+                    onClick={handleCopyUsdt}
+                  >
+                    {copyUsdtDone ? 'Copied' : 'Copy'}
+                  </button>
+                </div>
+                <p className="tip">Send only USDT on the TRC20 network to this address.</p>
 
-            {/* UTR quick-entry (for UPI) */}
-            {showUtr && (
-              <div style={{ display:'flex', gap:8, marginTop:8, marginBottom:4 }}>
-                <input type="text" inputMode="numeric" maxLength={12} placeholder="12-digit UTR, e.g. 425619283741" value={utr} onChange={e => setUtr(e.target.value.replace(/\D/g,'').slice(0,12))} style={S.monoInput} />
-                <button onClick={submitUtr} disabled={utrBusy || utr.length !== 12} style={S.smBtn}>{utrBusy ? '…' : 'Verify'}</button>
+                <form onSubmit={submitTx} style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                  <input
+                    type="text"
+                    placeholder="Transaction hash (TxID)…"
+                    value={txHash}
+                    onChange={e => setTxHash(e.target.value)}
+                    style={{ flex: 1, minHeight: 44, border: '1px solid #d0d5dd', borderRadius: 10, padding: '0 12px', fontSize: 13, fontFamily: "'IBM Plex Mono', monospace" }}
+                  />
+                  <button
+                    type="submit"
+                    disabled={txBusy || !txHash.trim()}
+                    style={{ minHeight: 44, padding: '0 14px', border: 0, borderRadius: 10, background: 'var(--brand)', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
+                  >
+                    {txBusy ? '…' : 'Verify'}
+                  </button>
+                </form>
+                {txMsg && <p style={{ fontSize: 12, fontWeight: 600, color: txMsg.startsWith('✓') ? 'var(--ok)' : '#c0392b', margin: '6px 0 0' }}>{txMsg}</p>}
               </div>
-            )}
+            </div>
 
-            {/* Promo input */}
+            {/* UTR reference accordion */}
+            <div className="utrc">
+              <button
+                type="button"
+                className="t"
+                id="utrT"
+                aria-expanded={showUtr}
+                onClick={() => setShowUtr(!showUtr)}
+              >
+                <span>Already paid? Enter your UTR</span>
+                <span aria-hidden="true" style={{ transform: showUtr ? 'rotate(90deg)' : 'none', transition: 'transform .2s' }}>›</span>
+              </button>
+              <div className={`utr ${showUtr ? '' : 'hide'}`} id="utrB">
+                <input
+                  id="utr"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={12}
+                  autoComplete="off"
+                  placeholder="12-digit UTR"
+                  aria-label="UTR reference"
+                  value={utr}
+                  onChange={e => setUtr(e.target.value.replace(/\D/g, '').slice(0, 12))}
+                />
+                <button
+                  id="utrV"
+                  type="button"
+                  disabled={utr.length !== 12 || utrBusy}
+                  onClick={submitUtr}
+                >
+                  {utrBusy ? '…' : 'Verify'}
+                </button>
+              </div>
+              {utrMsg && (
+                <p style={{ margin: '0 0 10px', fontSize: 12.5, fontWeight: 600, color: utrMsg.startsWith('✓') ? 'var(--ok)' : '#c0392b' }}>
+                  {utrMsg}
+                </p>
+              )}
+            </div>
+
+            {/* Promo code link & expander */}
+            <div style={{ textAlign: 'center', marginTop: 10 }}>
+              <button
+                type="button"
+                className="ghost"
+                onClick={() => setShowPromo(!showPromo)}
+                style={{ fontSize: 13 }}
+              >
+                {promoApplied ? `Promo applied: ${promoApplied.code} ✓` : 'Have a coupon code?'}
+              </button>
+            </div>
             {showPromo && (
-              <form onSubmit={submitPromo} style={{ display:'flex', gap:8, marginTop:8, marginBottom:4 }}>
-                <input type="text" placeholder="Promo or gift code" value={promoCode} onChange={e => setPromoCode(e.target.value.toUpperCase())} style={{ ...S.monoInput, fontFamily:'"DM Sans",sans-serif', textTransform:'uppercase' }} />
-                <button type="submit" disabled={promoLoading || !promoCode.trim()} style={S.smBtn}>{promoLoading ? '…' : 'Apply'}</button>
+              <form onSubmit={submitPromo} style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+                <input
+                  type="text"
+                  placeholder="Promo code"
+                  value={promoCode}
+                  onChange={e => setPromoCode(e.target.value.toUpperCase())}
+                  style={{ flex: 1, minHeight: 44, border: '1px solid #d0d5dd', borderRadius: 10, padding: '0 12px', fontSize: 13, textTransform: 'uppercase' }}
+                />
+                <button
+                  type="submit"
+                  disabled={promoLoading || !promoCode.trim()}
+                  style={{ minHeight: 44, padding: '0 16px', border: 0, borderRadius: 10, background: 'var(--brand)', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
+                >
+                  {promoLoading ? '…' : 'Apply'}
+                </button>
               </form>
             )}
-            {promoMsg && <p style={{ margin:'4px 0 8px', font:'600 13px "DM Sans",sans-serif', color: promoMsg.startsWith('✓') ? '#12995d' : '#c0392b' }}>{promoMsg}</p>}
-
-            {/* CTA */}
-            <button onClick={handleCta} disabled={ctaBusy} className="pay-cta-btn" style={{ ...S.cta, marginTop:8, boxShadow:'0 14px 26px -16px #2f86f6' }}>
-              {ctaBusy && <span style={S.spinner} />}
-              <span>{ctaBusy ? 'Checking status…' : "I've paid, check status"}</span>
-            </button>
-
-            {ctaStatus && (
-              <div style={{ minHeight:22, textAlign:'center', font:'600 13.5px "DM Sans",sans-serif', color:'#5b6b80', marginTop:10 }}>{ctaStatus}</div>
+            {promoMsg && (
+              <p style={{ textAlign: 'center', margin: '4px 0 0', fontSize: 12, fontWeight: 600, color: promoMsg.startsWith('✓') ? 'var(--ok)' : '#c0392b' }}>
+                {promoMsg}
+              </p>
             )}
 
-            {/* Links */}
-            <div style={{ display:'flex', justifyContent:'center', gap:22, marginTop:8, font:'600 13px "DM Sans",sans-serif' }}>
-              <button onClick={() => { setShowUtr(!showUtr); setActiveMethod('upi'); }} className="pay-link-btn" style={S.linkBtn}>Already paid? Enter UTR</button>
-              <button onClick={() => setShowPromo(!showPromo)} className="pay-link-btn" style={S.linkBtn}>{promoApplied ? `Promo: ${promoApplied.code} ✓` : 'Have a promo code?'}</button>
+            {/* Trust footer */}
+            <div className="trust">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/>
+                <path d="M9 12l2 2 4-4"/>
+              </svg>
+              <span>0% transaction fee. Your payment goes straight to the merchant.</span>
             </div>
+          </div>
+        )}
 
-            <div style={{ textAlign:'center', color:'#5b6b80', fontSize:12.5, marginTop:20, fontFamily:'"DM Sans",sans-serif' }}>
-              0% transaction fee. Your payment goes straight to the merchant.
+        {/* ── VIEW 2: WAIT / CHECKING ── */}
+        {curView === 'vWait' && (
+          <div id="vWait">
+            <div className="gh" style={{ marginTop: 16 }}>Payment status</div>
+            <div className="panel">
+              <div className="sp" />
+              <h2 id="wT">Checking your payment</h2>
+              <p id="wP">{checkMsg || 'Hang on, this takes a few seconds.'}</p>
+              <div style={{ marginTop: 14 }}>
+                <button
+                  type="button"
+                  className="ghost"
+                  id="wBack"
+                  onClick={() => setCurView('vPay')}
+                >
+                  Back to payment options
+                </button>
+              </div>
             </div>
-          </main>
-        </div>
+          </div>
+        )}
+
+        {/* ── VIEW 3: SUCCESS ── */}
+        {curView === 'vOk' && (
+          <div id="vOk">
+            <div className="panel">
+              <svg className="okc" viewBox="0 0 84 84" aria-hidden="true">
+                <circle cx="42" cy="42" r="40"/>
+                <path d="M26 43l11 11 21-23"/>
+              </svg>
+              <h2>Payment received</h2>
+              <p>{fmtInr(displayAmt)} paid to {bizName}</p>
+              <div className="rcp">
+                <div><span>Order ID</span><span>#{activeId ? activeId.slice(-8).toUpperCase() : 'DEMO'}</span></div>
+                <div><span>Method</span><span>UPI</span></div>
+                <div><span>Platform fee</span><span>₹0.00</span></div>
+                <div><span>Time</span><span id="okTime">{okTime || new Date().toLocaleTimeString([], { hour:'numeric', minute:'2-digit' })}</span></div>
+              </div>
+              <button
+                type="button"
+                className="pri wide"
+                onClick={() => {
+                  const cb = typeof window !== 'undefined' ? (localStorage.getItem(`callback_${activeId}`) || paramCallback) : '';
+                  if (cb) {
+                    window.location.href = cb + (cb.includes('?') ? '&' : '?') + `order_id=${activeId}&status=verified`;
+                  } else {
+                    router.push(`/status/${activeId}`);
+                  }
+                }}
+              >
+                Return to {bizName}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── VIEW 4: EXPIRED ── */}
+        {curView === 'vExp' && (
+          <div id="vExp">
+            <div className="panel">
+              <div className="xic">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+              </div>
+              <h2>Session expired</h2>
+              <p>This payment session has ended. Start again to get a fresh code.</p>
+              <button
+                type="button"
+                className="pri wide"
+                id="again"
+                style={{ marginTop: 22 }}
+                onClick={() => {
+                  setTimeLeft(SESSION_SECS);
+                  setCurView('vPay');
+                }}
+              >
+                Start again
+              </button>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* ── BOTTOM FIXED BAR (Only shown on vPay) ── */}
+      {curView === 'vPay' && (
+        <div className="bar" id="bar">
+          <div className="t">
+            <small>Total</small>
+            <b>{fmtInr(displayAmt)}</b>
+          </div>
+          <button
+            type="button"
+            className="pri"
+            id="paid"
+            onClick={triggerChecking}
+          >
+            I&apos;ve paid
+          </button>
+        </div>
+      )}
     </div>
   );
 }
 
-/* ── Accordion Component ─────────────────────────────────────── */
-function Accordion({ active, onToggle, icon, title, subtitle, children }) {
-  return (
-    <div style={{ ...S.opt, borderColor: active ? '#2f86f6' : 'transparent' }}>
-      <button type="button" onClick={onToggle}
-        aria-expanded={active}
-        style={{ all:'unset', boxSizing:'border-box', width:'100%', display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 18px', font:'700 15px "DM Sans",sans-serif', cursor:'pointer', gap:12 }}>
-        <span style={{ display:'flex', alignItems:'center', gap:12 }}>
-          <span style={S.accIc}>{icon}</span>
-          <span>
-            <span style={{ display:'block' }}>{title}</span>
-            {subtitle && <small style={{ display:'block', fontWeight:500, fontSize:12.5, color:'#5b6b80', lineHeight:1.2, marginTop:1 }}>{subtitle}</small>}
-          </span>
-        </span>
-        <span style={{ width:20, height:20, borderRadius:'50%', border: active ? '6px solid #2f86f6' : '2px solid #b8c6d7', flexShrink:0, transition:'border .15s' }} />
-      </button>
-      {active && children}
-    </div>
-  );
-}
-
-/* ── Design tokens (mirrors the HTML :root CSS) ─────────────── */
-const S = {
-  page: { margin:0, background:'#e8eef6', fontFamily:'"DM Sans",system-ui,sans-serif', fontSize:16, lineHeight:1.5, color:'#0f1b2d', minHeight:'100vh' },
-  shell: { maxWidth:1000, margin:'0 auto', padding:'28px 20px 44px' },
-  header: { display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24, gap:14 },
-  secure: { display:'flex', alignItems:'center', gap:8, fontSize:13, fontWeight:600, color:'#5b6b80', textAlign:'right' },
-  secDot: { width:8, height:8, borderRadius:'50%', background:'#12995d', flexShrink:0, boxShadow:'0 0 0 4px rgba(18,153,93,.2)', display:'inline-block' },
-  grid: { display:'grid', gridTemplateColumns:'.82fr 1.18fr', gap:28, alignItems:'start' },
-
-  /* receipt — mask only (filter lives on the wrapper div above) */
-  receipt: {
-    background:'#fff',
-    padding:'28px 26px 44px',
-    fontFamily:'"IBM Plex Mono",monospace',
-    fontSize:13,
-    borderRadius:'18px 18px 0 0',
-    WebkitMask:'radial-gradient(7px at 7px 100%,#0000 98%,#000) 0 100%/14px 100% repeat-x',
-    mask:'radial-gradient(7px at 7px 100%,#0000 98%,#000) 0 100%/14px 100% repeat-x',
-  },
-  merRow: { display:'flex', alignItems:'center', gap:12, fontFamily:'"DM Sans",sans-serif', paddingBottom:16 },
-  merAv:  { width:40, height:40, borderRadius:12, background:'#eaf2fe', color:'#1c6ee0', display:'grid', placeItems:'center', fontWeight:800, flexShrink:0 },
-
-  /* payment options */
-  opt: {
-    background:'#fff',
-    border:'2px solid transparent',
-    borderRadius:18,
-    marginBottom:10,
-    overflow:'hidden',
-    boxShadow:'0 1px 0 #d6dfea, 0 10px 22px -18px rgba(15,27,45,.35)',
-  },
-
-  /* QR */
-  qrWrap: { position:'relative', width:168, padding:14, background:'#fff', border:'1px solid #d6dfea', borderRadius:16 },
-  qrCorner: { position:'absolute', width:20, height:20, border:'3px solid #2f86f6', borderRadius:6, display:'block' },
-
-  /* UPI */
-  upiWrap: { display:'flex', gap:22, alignItems:'center', padding:'2px 18px 20px' },
-
-  /* UPI ID box */
-  upiIdBox: { display:'flex', justifyContent:'space-between', alignItems:'center', gap:8, background:'#f3f7fc', border:'1px solid #d6dfea', borderRadius:11, padding:'8px 8px 8px 12px', fontSize:12.5, marginBottom:14 },
-
-  /* copy button */
-  copyBtn: { all:'unset', cursor:'pointer', font:'700 12px "DM Sans",sans-serif', color:'#1c6ee0', padding:'5px 10px', borderRadius:8, background:'#eaf2fe', flexShrink:0, minWidth:58, textAlign:'center', boxSizing:'border-box' },
-  copyBtnDone: { background:'#dcf5e8', color:'#0d7a47' },
-
-  /* chips */
-  chips: { display:'flex', gap:6, flexWrap:'wrap' },
-  chip: { all:'unset', cursor:'pointer', display:'inline-flex', alignItems:'center', gap:7, font:'600 12.5px "DM Sans",sans-serif', border:'1px solid #d6dfea', borderRadius:999, padding:'6px 12px 6px 9px', background:'#fff', boxSizing:'border-box' },
-
-  /* CTA */
-  cta: { width:'100%', marginTop:8, border:0, background:'#2f86f6', color:'#fff', borderRadius:16, padding:17, font:'700 16px "DM Sans",sans-serif', cursor:'pointer', display:'flex', justifyContent:'center', alignItems:'center', gap:10, boxSizing:'border-box' },
-  spinner: { width:16, height:16, border:'2.5px solid rgba(255,255,255,.4)', borderTopColor:'#fff', borderRadius:'50%', animation:'spin .7s linear infinite', display:'inline-block', flexShrink:0 },
-
-  /* small action button */
-  smBtn: { border:0, borderRadius:12, padding:'0 18px', font:'700 14px "DM Sans",sans-serif', background:'#2f86f6', color:'#fff', cursor:'pointer', whiteSpace:'nowrap', minHeight:44, flexShrink:0, boxShadow:'0 8px 18px -12px #2f86f6' },
-
-  /* link buttons */
-  linkBtn: { all:'unset', cursor:'pointer', color:'#1c6ee0', font:'600 13px "DM Sans",sans-serif' },
-
-  /* field helpers */
-  fieldLabel: { display:'block', font:'600 12px "DM Sans",sans-serif', color:'#5b6b80', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:6 },
-  monoInput: { width:'100%', border:'1px solid #d6dfea', borderRadius:12, padding:'12px 14px', font:'500 14px "IBM Plex Mono",monospace', background:'#fff', color:'#0f1b2d', outline:'none', boxSizing:'border-box' },
-
-  accIc: { width:36, height:36, borderRadius:11, background:'#eaf2fe', color:'#1c6ee0', display:'grid', placeItems:'center', flexShrink:0 },
-  accIcSvg: { width:19, height:19, stroke:'currentColor', fill:'none', strokeWidth:1.8, strokeLinecap:'round', strokeLinejoin:'round' },
-};
-
+/* ──────────────────────────────────────────────────────────────
+   Page Wrapper with Styles
+────────────────────────────────────────────────────────────── */
 export default function PayPage() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=Orbitron:wght@800;900&family=Outfit:wght@700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=Orbitron:wght@800;900&family=Outfit:wght@700;800&display=swap');
 
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes pulse-dot { 0%,100%{box-shadow:0 0 0 4px rgba(18,153,93,.2)} 50%{box-shadow:0 0 0 6px rgba(18,153,93,.12)} }
-
-        /* ── Mobile checkout layout ── */
-        @media (max-width: 800px) {
-          .pay-grid { grid-template-columns: 1fr !important; }
-          .upi-flex { flex-direction: column !important; align-items: stretch !important; }
-          .pay-secure-label { display: none !important; }
-          .pay-receipt { border-radius: 14px !important; }
-        }
-        @media (max-width: 480px) {
-          .pay-shell { padding: 16px 14px 36px !important; }
-          .pay-header { margin-bottom: 16px !important; }
-          .pay-amount-big { font-size: 42px !important; }
-        }
-
-        /* ── Hover states ── */
-        .pay-chip:hover { border-color: #2f86f6 !important; }
-        .pay-link-btn:hover { text-decoration: underline; }
-        .pay-cta-btn:hover:not(:disabled) { background: #1c6ee0 !important; }
-        .pay-copy-btn:hover { background: #d6e8ff !important; }
-        .pay-opt-btn:focus-visible { outline: 3px solid #7fb0ff; outline-offset: -3px; }
-
-        /* ── Receipt ticket punch ── */
-        .pay-receipt {
-          -webkit-mask: radial-gradient(7px at 7px 100%,#0000 98%,#000) 0 100%/14px 100% repeat-x;
-          mask: radial-gradient(7px at 7px 100%,#0000 98%,#000) 0 100%/14px 100% repeat-x;
+        :root {
+          color-scheme: light;
+          --page: #eef2f8;
+          --card: #fff;
+          --ink: #101828;
+          --mut: #667085;
+          --line: #eaecf0;
+          --soft: #f6f8fb;
+          --tint: #eaf2fe;
+          --brand: #2f86f6;
+          --brand-d: #1c6ee0;
+          --ok: #12995d;
+          --warn: #b76e00;
+          box-sizing: border-box;
+          padding-top: env(safe-area-inset-top, 0px);
+          background: var(--page);
         }
 
-        /* ── UTR / promo inline expand ── */
-        .pay-extra-box { animation: slideDown .18s ease; }
-        @keyframes slideDown { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:none; } }
+        html {
+          scroll-padding-top: env(safe-area-inset-top, 0px);
+          -webkit-text-size-adjust: 100%;
+        }
 
-        /* ── Secure dot pulse ── */
-        .pay-sec-dot { animation: pulse-dot 2.4s ease-in-out infinite; }
+        *, *::before, *::after {
+          box-sizing: inherit;
+        }
 
-        /* ── Smooth accordion ── */
-        .pay-acc-dot { transition: border .15s !important; }
-        .pay-progress-bar { transition: width 1s linear !important; }
+        body {
+          margin: 0;
+          background: var(--page);
+          font: 16px/1.5 "DM Sans", system-ui, sans-serif;
+          color: var(--ink);
+          -webkit-tap-highlight-color: transparent;
+        }
+
+        button, input {
+          font-family: inherit;
+        }
+
+        .hide {
+          display: none !important;
+        }
+
+        .app {
+          max-width: 430px;
+          margin: 0 auto;
+          height: 100vh;
+          height: 100dvh;
+          display: flex;
+          flex-direction: column;
+          background: var(--page);
+        }
+
+        /* ── Header ── */
+        .hd {
+          background: #fff;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 12px 18px;
+          border-bottom: 1px solid var(--line);
+        }
+
+        .lg {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          font-weight: 800;
+          font-size: 18px;
+          letter-spacing: -0.02em;
+        }
+
+        .mk {
+          width: 32px;
+          height: 32px;
+          border-radius: 10px;
+          background: linear-gradient(160deg, #4a9bff, #2378f0);
+          color: #fff;
+          display: grid;
+          place-items: center;
+          font-weight: 800;
+          font-size: 15px;
+          box-shadow: 0 6px 12px -6px #2f86f6;
+        }
+
+        .sec {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 12.5px;
+          font-weight: 600;
+          color: var(--mut);
+        }
+
+        .sec svg {
+          color: var(--ok);
+        }
+
+        .prog {
+          height: 3px;
+          background: var(--tint);
+        }
+
+        .prog div {
+          height: 100%;
+          width: 100%;
+          background: var(--brand);
+          transition: width 1s linear, background 0.3s;
+        }
+
+        .prog.low div {
+          background: #e8a317;
+        }
+
+        .scr {
+          flex: 1;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+          padding: 16px 16px 20px;
+        }
+
+        /* ── Amount card with timer ring ── */
+        .sum {
+          background: #fff;
+          border-radius: 22px;
+          padding: 18px 18px 16px;
+          box-shadow: 0 1px 2px rgba(16,24,40,.06), 0 14px 28px -18px rgba(16,24,40,.22);
+        }
+
+        .top {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .mer {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          min-width: 0;
+        }
+
+        .av {
+          width: 44px;
+          height: 44px;
+          border-radius: 14px;
+          background: var(--tint);
+          color: var(--brand-d);
+          display: grid;
+          place-items: center;
+          font-weight: 800;
+          font-size: 18px;
+          flex: none;
+        }
+
+        .mer b {
+          display: block;
+          font-size: 17px;
+          line-height: 1.2;
+        }
+
+        .mer small {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          font-size: 12.5px;
+          color: var(--ok);
+          font-weight: 600;
+          margin-top: 2px;
+        }
+
+        .ringw {
+          position: relative;
+          width: 60px;
+          height: 60px;
+          flex: none;
+          text-align: center;
+        }
+
+        .ringw svg {
+          display: block;
+          width: 100%;
+          height: 100%;
+        }
+
+        .ringw .tm {
+          position: absolute;
+          inset: 0;
+          display: grid;
+          place-items: center;
+          font-size: 12.5px;
+          font-weight: 700;
+          color: var(--ink);
+        }
+
+        .rg-bg {
+          stroke: var(--tint);
+        }
+
+        .rg-fg {
+          stroke: var(--brand);
+          transition: stroke-dashoffset 1s linear, stroke 0.3s;
+        }
+
+        .ringw.low .rg-fg {
+          stroke: #e8a317;
+        }
+
+        .ringw.low .tm {
+          color: #8a5a00;
+        }
+
+        .lab {
+          margin: 20px 0 0;
+          font-size: 13.5px;
+          font-weight: 600;
+          color: var(--mut);
+        }
+
+        .amt {
+          font-size: 46px;
+          font-weight: 800;
+          letter-spacing: -0.035em;
+          line-height: 1.1;
+          margin: 2px 0 16px;
+          font-variant-numeric: tabular-nums;
+        }
+
+        .amt s {
+          text-decoration: none;
+          font-size: 26px;
+          color: #98a2b3;
+          font-weight: 700;
+        }
+
+        .meta {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+        }
+
+        .meta div {
+          background: var(--soft);
+          border-radius: 14px;
+          padding: 10px 12px;
+        }
+
+        .meta small {
+          display: block;
+          font-size: 12px;
+          color: var(--mut);
+          line-height: 1.2;
+        }
+
+        .meta b {
+          font-size: 14.5px;
+          font-weight: 700;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin-top: 3px;
+          font-variant-numeric: tabular-nums;
+        }
+
+        .meta .free {
+          background: #dcf5e8;
+          color: #0d7a47;
+          font-size: 11px;
+          border-radius: 999px;
+          padding: 1px 7px;
+        }
+
+        .tm {
+          font-variant-numeric: tabular-nums;
+        }
+
+        /* ── Groups ── */
+        .gh {
+          margin: 22px 4px 8px;
+          font-size: 13.5px;
+          font-weight: 700;
+          color: var(--mut);
+        }
+
+        .card {
+          background: var(--card);
+          border-radius: 18px;
+          box-shadow: 0 1px 2px rgba(16,24,40,.06), 0 10px 24px -16px rgba(16,24,40,.18);
+          overflow: hidden;
+        }
+
+        .row {
+          all: unset;
+          box-sizing: border-box;
+          width: 100%;
+          min-height: 62px;
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 10px 16px;
+          border-bottom: 1px solid var(--line);
+          font-weight: 700;
+          font-size: 16px;
+          cursor: pointer;
+          color: var(--ink);
+          text-decoration: none;
+        }
+
+        .row:active {
+          background: var(--soft);
+        }
+
+        .row:focus-visible {
+          outline: 3px solid #7fb0ff;
+          outline-offset: -3px;
+        }
+
+        .card > :last-child {
+          border-bottom: 0;
+        }
+
+        .row .ch {
+          margin-left: auto;
+          color: #98a2b3;
+          font-size: 20px;
+          transition: transform 0.2s;
+        }
+
+        .row[aria-expanded="true"] .ch {
+          transform: rotate(90deg);
+        }
+
+        .row small {
+          display: block;
+          font-weight: 500;
+          color: var(--mut);
+          font-size: 13px;
+          line-height: 1.3;
+          margin-top: 1px;
+        }
+
+        .ic {
+          width: 42px;
+          height: 42px;
+          border-radius: 13px;
+          background: var(--tint);
+          color: var(--brand-d);
+          display: grid;
+          place-items: center;
+          flex: none;
+        }
+
+        .ic svg {
+          width: 20px;
+          height: 20px;
+          stroke: currentColor;
+          fill: none;
+          stroke-width: 1.8;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+        }
+
+        .badge {
+          background: #dcf5e8;
+          color: #0d7a47;
+          font-size: 11.5px;
+          border-radius: 999px;
+          padding: 2px 8px;
+          font-weight: 700;
+          margin-left: 6px;
+        }
+
+        .pn {
+          display: none;
+          padding: 6px 16px 18px;
+          border-bottom: 1px solid var(--line);
+          background: var(--soft);
+        }
+
+        .pn.show {
+          display: block;
+        }
+
+        .qrf {
+          position: relative;
+          width: 190px;
+          margin: 10px auto 16px;
+          padding: 12px;
+          background: #fff;
+          border: 1px solid var(--line);
+          border-radius: 16px;
+        }
+
+        .qrf i {
+          position: absolute;
+          width: 18px;
+          height: 18px;
+          border: 3px solid var(--brand);
+          border-radius: 6px;
+        }
+
+        .qrf i:nth-child(1) { top: -2px; left: -2px; border-right: 0; border-bottom: 0; }
+        .qrf i:nth-child(2) { top: -2px; right: -2px; border-left: 0; border-bottom: 0; }
+        .qrf i:nth-child(3) { bottom: -2px; left: -2px; border-right: 0; border-top: 0; }
+        .qrf i:nth-child(4) { bottom: -2px; right: -2px; border-left: 0; border-top: 0; }
+
+        .qrbox svg {
+          display: block;
+          width: 100%;
+          height: auto;
+        }
+
+        .id {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 8px;
+          background: #fff;
+          border: 1px solid var(--line);
+          border-radius: 12px;
+          padding: 6px 6px 6px 12px;
+          font: 500 13px "IBM Plex Mono", monospace;
+          min-height: 48px;
+        }
+
+        .id span {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          word-break: break-all;
+        }
+
+        .cp {
+          border: 0;
+          background: var(--tint);
+          color: var(--brand-d);
+          font-weight: 700;
+          font-size: 13px;
+          padding: 0 14px;
+          min-height: 36px;
+          border-radius: 9px;
+          cursor: pointer;
+          min-width: 64px;
+          flex: none;
+          transition: background 0.15s, color 0.15s;
+        }
+
+        .cp.done {
+          background: #dcf5e8;
+          color: #0d7a47;
+        }
+
+        .tip {
+          font-size: 13px;
+          color: var(--mut);
+          margin: 10px 0 0;
+        }
+
+        .banks {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 8px;
+          margin-top: 10px;
+        }
+
+        .banks button {
+          min-height: 48px;
+          border: 1px solid var(--line);
+          background: #fff;
+          color: var(--ink);
+          border-radius: 12px;
+          font-weight: 700;
+          font-size: 14px;
+          cursor: pointer;
+        }
+
+        .banks button:hover {
+          border-color: var(--brand);
+        }
+
+        .utrc {
+          margin-top: 14px;
+          background: var(--card);
+          border-radius: 16px;
+          padding: 4px 16px;
+          box-shadow: 0 1px 2px rgba(16,24,40,.06);
+        }
+
+        .utrc > button.t {
+          all: unset;
+          width: 100%;
+          min-height: 52px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-weight: 700;
+          font-size: 14.5px;
+          color: var(--brand-d);
+          cursor: pointer;
+        }
+
+        .utrc > button.t:focus-visible {
+          outline: 3px solid #7fb0ff;
+          border-radius: 8px;
+        }
+
+        .utr {
+          display: flex;
+          gap: 8px;
+          padding-bottom: 14px;
+        }
+
+        .utr input {
+          flex: 1;
+          min-width: 0;
+          min-height: 50px;
+          border: 1px solid #d0d5dd;
+          border-radius: 12px;
+          padding: 0 14px;
+          font: 500 16px "IBM Plex Mono", monospace;
+          background: #fff;
+          color: var(--ink);
+          letter-spacing: 0.04em;
+        }
+
+        .utr input:focus {
+          outline: 3px solid #b9d5ff;
+          border-color: var(--brand);
+        }
+
+        .utr button {
+          min-height: 50px;
+          padding: 0 18px;
+          border: 0;
+          border-radius: 12px;
+          background: var(--brand);
+          color: #fff;
+          font-weight: 700;
+          font-size: 15px;
+          cursor: pointer;
+        }
+
+        .utr button:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+        }
+
+        .trust {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 7px;
+          margin: 18px 8px 0;
+          font-size: 12.5px;
+          color: var(--mut);
+          text-align: center;
+        }
+
+        .trust svg {
+          flex: none;
+          color: var(--ok);
+        }
+
+        .pc {
+          padding: 18px 16px 18px;
+        }
+
+        .pc .qrf {
+          margin: 0 auto 12px;
+        }
+
+        .pc .cap {
+          text-align: center;
+          font-weight: 700;
+          font-size: 14px;
+          margin: 0 0 14px;
+        }
+
+        .how {
+          list-style: none;
+          margin: 16px 0 0;
+          padding: 0;
+          counter-reset: h;
+        }
+
+        .how li {
+          counter-increment: h;
+          display: flex;
+          gap: 10px;
+          align-items: center;
+          font-size: 13.5px;
+          color: var(--mut);
+          padding: 5px 0;
+        }
+
+        .how li::before {
+          content: counter(h);
+          flex: none;
+          width: 22px;
+          height: 22px;
+          border-radius: 50%;
+          background: var(--tint);
+          color: var(--brand-d);
+          font-weight: 700;
+          font-size: 12px;
+          display: grid;
+          place-items: center;
+        }
+
+        /* ── Bottom bar ── */
+        .bar {
+          background: #fff;
+          border-top: 1px solid var(--line);
+          padding: 12px 18px calc(14px + env(safe-area-inset-bottom, 0px));
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
+
+        .bar .t small {
+          display: block;
+          color: var(--mut);
+          font-size: 12px;
+          line-height: 1.2;
+        }
+
+        .bar .t b {
+          font-size: 19px;
+          letter-spacing: -0.02em;
+          font-variant-numeric: tabular-nums;
+        }
+
+        .pri {
+          border: 0;
+          background: var(--brand);
+          color: #fff;
+          border-radius: 14px;
+          min-height: 52px;
+          padding: 0 22px;
+          font-weight: 700;
+          font-size: 16px;
+          cursor: pointer;
+          box-shadow: 0 12px 22px -14px var(--brand);
+          transition: background 0.15s, transform 0.1s;
+        }
+
+        .pri:active {
+          background: var(--brand-d);
+          transform: scale(0.99);
+        }
+
+        .bar .pri {
+          flex: 1;
+        }
+
+        .wide {
+          width: 100%;
+        }
+
+        .ghost {
+          border: 0;
+          background: none;
+          color: var(--brand-d);
+          font-weight: 700;
+          font-size: 14px;
+          cursor: pointer;
+          min-height: 44px;
+          padding: 0 4px;
+        }
+
+        button:focus-visible {
+          outline: 3px solid #7fb0ff;
+          outline-offset: 2px;
+        }
+
+        /* ── States panels ── */
+        .panel {
+          background: var(--card);
+          border-radius: 22px;
+          padding: 34px 20px 22px;
+          box-shadow: 0 1px 2px rgba(16,24,40,.06), 0 10px 24px -16px rgba(16,24,40,.18);
+          text-align: center;
+        }
+
+        .panel h2 {
+          margin: 18px 0 6px;
+          font-size: 22px;
+          letter-spacing: -0.02em;
+        }
+
+        .panel p {
+          margin: 0 auto;
+          color: var(--mut);
+          font-size: 14.5px;
+          max-width: 30ch;
+        }
+
+        .sp {
+          width: 46px;
+          height: 46px;
+          border-radius: 50%;
+          border: 4px solid var(--tint);
+          border-top-color: var(--brand);
+          margin: 0 auto;
+          animation: sp 0.8s linear infinite;
+        }
+
+        @keyframes sp {
+          to { transform: rotate(360deg); }
+        }
+
+        .okc {
+          width: 84px;
+          height: 84px;
+          margin: 0 auto;
+          display: block;
+        }
+
+        .okc circle {
+          fill: #e6f7ee;
+          stroke: var(--ok);
+          stroke-width: 3;
+          stroke-dasharray: 252;
+          stroke-dashoffset: 252;
+          animation: dr 0.6s ease-out forwards;
+        }
+
+        .okc path {
+          fill: none;
+          stroke: var(--ok);
+          stroke-width: 5;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+          stroke-dasharray: 50;
+          stroke-dashoffset: 50;
+          animation: dr 0.4s 0.5s ease-out forwards;
+        }
+
+        @keyframes dr {
+          to { stroke-dashoffset: 0; }
+        }
+
+        .rcp {
+          margin: 24px 0 18px;
+          background: var(--soft);
+          border-radius: 16px;
+          padding: 4px 16px;
+          text-align: left;
+        }
+
+        .rcp div {
+          display: flex;
+          justify-content: space-between;
+          padding: 11px 0;
+          font-size: 14px;
+          color: var(--mut);
+          border-bottom: 1px dashed #d8dde6;
+        }
+
+        .rcp div:last-child {
+          border-bottom: 0;
+        }
+
+        .rcp div span:last-child {
+          color: var(--ink);
+          font-weight: 600;
+        }
+
+        .xic {
+          width: 64px;
+          height: 64px;
+          border-radius: 50%;
+          background: #fff1d6;
+          color: var(--warn);
+          display: grid;
+          place-items: center;
+          margin: 0 auto;
+        }
+
+        .xic svg {
+          width: 30px;
+          height: 30px;
+          stroke: currentColor;
+          fill: none;
+          stroke-width: 2;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+        }
+
+        /* ── Centered Card on larger viewports (> 520px) ── */
+        @media (min-width: 520px) {
+          body {
+            padding: 24px 0;
+          }
+          .app {
+            height: min(860px, calc(100vh - 48px));
+            border-radius: 32px;
+            overflow: hidden;
+            box-shadow: 0 30px 80px -30px rgba(16,24,40,.35), 0 0 0 1px var(--line);
+          }
+        }
 
         @media (prefers-reduced-motion: reduce) {
-          .pay-progress-bar { transition: none !important; }
-          .pay-sec-dot { animation: none !important; }
+          .sp { animation-duration: 3s; }
+          .okc circle, .okc path { animation-duration: 0.01s; animation-delay: 0s; }
+          .prog div, .rg-fg { transition: none; }
         }
       `}</style>
       <Suspense fallback={
-        <div style={{ minHeight:'100vh', background:'#e8eef6', display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:12, fontFamily:'"DM Sans",sans-serif', color:'#5b6b80', fontSize:14, fontWeight:600 }}>
-          <div style={{ width:32, height:32, border:'3px solid #d6dfea', borderTopColor:'#2f86f6', borderRadius:'50%', animation:'spin .7s linear infinite' }} />
-          Loading secure checkout…
+        <div style={{ minHeight: '100vh', background: '#eef2f8', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 12, fontFamily: '"DM Sans",sans-serif', color: '#667085', fontSize: 14, fontWeight: 600 }}>
+          <div style={{ width: 36, height: 36, border: '3px solid #eaf2fe', borderTopColor: '#2f86f6', borderRadius: '50%', animation: 'sp .8s linear infinite' }} />
+          Loading checkout…
         </div>
       }>
         <PayPageContent />
