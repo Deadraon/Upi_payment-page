@@ -988,9 +988,61 @@ function PayPageContent() {
           <div id="vWait">
             <div className="gh" style={{ marginTop: 16 }}>Payment status</div>
             <div className="panel">
-              <div className="sp" />
+              <div className="sp-wrap" style={{ margin: '0 auto 16px', display: 'flex', justifyContent: 'center' }}>
+                <svg width="48" height="48" viewBox="0 0 48 48" style={{ display: 'block' }}>
+                  <circle cx="24" cy="24" r="20" stroke="#eaf2fe" strokeWidth="4.5" fill="none" />
+                  <circle
+                    cx="24"
+                    cy="24"
+                    r="20"
+                    stroke="#2f86f6"
+                    strokeWidth="4.5"
+                    strokeLinecap="round"
+                    fill="none"
+                    strokeDasharray="36 90"
+                    className="sp-svg"
+                  >
+                    <animateTransform
+                      attributeName="transform"
+                      type="rotate"
+                      from="0 24 24"
+                      to="360 24 24"
+                      dur="0.85s"
+                      repeatCount="indefinite"
+                    />
+                  </circle>
+                </svg>
+              </div>
               <h2 id="wT">Checking your payment</h2>
               <p id="wP">{checkMsg || 'Hang on, this takes a few seconds.'}</p>
+
+              {/* Inline UTR verification box */}
+              <div style={{ marginTop: 18, background: 'var(--soft)', border: '1px solid var(--line)', borderRadius: 14, padding: 12, textAlign: 'left' }}>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--mut)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 }}>
+                  Already paid? Verify 12-digit UTR now:
+                </label>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={12}
+                    placeholder="12-digit UTR reference"
+                    value={utr}
+                    onChange={e => setUtr(e.target.value.replace(/\D/g, '').slice(0, 12))}
+                    style={{ flex: 1, minHeight: 44, border: '1px solid #d0d5dd', borderRadius: 10, padding: '0 12px', fontSize: 14, fontFamily: "'IBM Plex Mono', monospace", background: '#fff', outline: 'none' }}
+                  />
+                  <button
+                    type="button"
+                    disabled={utr.length !== 12 || utrBusy}
+                    onClick={submitUtr}
+                    style={{ minHeight: 44, padding: '0 16px', border: 0, borderRadius: 10, background: 'var(--brand)', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer', opacity: (utr.length !== 12 || utrBusy) ? 0.5 : 1 }}
+                  >
+                    {utrBusy ? '…' : 'Verify'}
+                  </button>
+                </div>
+                {utrMsg && <p style={{ margin: '6px 0 0', fontSize: 12, fontWeight: 600, color: utrMsg.startsWith('✓') ? 'var(--ok)' : '#c0392b' }}>{utrMsg}</p>}
+              </div>
+
               <div style={{ marginTop: 14 }}>
                 <button
                   type="button"
@@ -1792,18 +1844,35 @@ export default function PayPage() {
           max-width: 30ch;
         }
 
-        .sp {
-          width: 46px;
-          height: 46px;
-          border-radius: 50%;
-          border: 4px solid var(--tint);
-          border-top-color: var(--brand);
-          margin: 0 auto;
-          animation: sp 0.8s linear infinite;
+        @-webkit-keyframes sp {
+          0% { -webkit-transform: rotate(0deg); transform: rotate(0deg); }
+          100% { -webkit-transform: rotate(360deg); transform: rotate(360deg); }
         }
 
         @keyframes sp {
-          to { transform: rotate(360deg); }
+          0% { -webkit-transform: rotate(0deg); transform: rotate(0deg); }
+          100% { -webkit-transform: rotate(360deg); transform: rotate(360deg); }
+        }
+
+        .sp {
+          width: 48px;
+          height: 48px;
+          border-radius: 50%;
+          border: 4.5px solid var(--tint);
+          border-top-color: var(--brand);
+          margin: 0 auto;
+          -webkit-animation: sp 0.85s linear infinite !important;
+          animation: sp 0.85s linear infinite !important;
+          -webkit-transform-origin: center center;
+          transform-origin: center center;
+          -webkit-transform: translateZ(0);
+          transform: translateZ(0);
+          will-change: transform;
+        }
+
+        .sp-svg {
+          -webkit-transform-origin: 24px 24px;
+          transform-origin: 24px 24px;
         }
 
         .okc {
