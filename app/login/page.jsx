@@ -89,8 +89,15 @@ export default function LoginPage() {
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
-  const [otpMethod, setOtpMethod] = useState('whatsapp'); // 'whatsapp' | 'sms'
+  const [otpMethod, setOtpMethod] = useState('whatsapp'); // 'whatsapp' | 'firebase' | 'telegram'
   const [otpTimer, setOtpTimer] = useState(45);
+
+  // Telegram OTP
+  const [telegramUsername, setTelegramUsername] = useState('');
+  const [telegramOtpSent, setTelegramOtpSent] = useState(false);
+  const [telegramOtp, setTelegramOtp] = useState('');
+  const [telegramLoading, setTelegramLoading] = useState(false);
+  const [showTelegramSection, setShowTelegramSection] = useState(false);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -178,6 +185,72 @@ export default function LoginPage() {
       setLoading(false);
     }
   }, [phone, otpMethod]);
+
+  // Telegram OTP handlers
+  const handleTelegramSend = async () => {
+    const username = telegramUsername.trim().replace(/^@/, '');
+    if (!username || username.length < 3) {
+      setError('Please enter your Telegram username (e.g. @yourname).');
+      return;
+    }
+    setError('');
+    setMessage('');
+    setTelegramLoading(true);
+    try {
+      const res = await fetch('/api/auth/telegram-otp/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ telegramUsername: username, purpose: 'login' }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Failed to send Telegram OTP.');
+        if (data.botUrl) window.open(data.botUrl, '_blank');
+        return;
+      }
+      setTelegramOtpSent(true);
+      setTelegramOtp('');
+      setMessage(data.message || `OTP sent to Telegram @${username}.`);
+    } catch (err) {
+      setError(err.message || 'Network error.');
+    } finally {
+      setTelegramLoading(false);
+    }
+  };
+
+  const handleTelegramVerify = async () => {
+    if (!telegramOtp || telegramOtp.length !== 6) {
+      setError('Please enter the complete 6-digit OTP from Telegram.');
+      return;
+    }
+    setError('');
+    setMessage('');
+    setTelegramLoading(true);
+    try {
+      const res = await fetch('/api/auth/telegram-otp/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ telegramUsername: telegramUsername.trim().replace(/^@/, ''), otp: telegramOtp, purpose: 'login' }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Telegram OTP verification failed.');
+        if (data.remaining !== undefined) setTelegramOtp('');
+        return;
+      }
+      if (!data.accountExists) {
+        setMessage('Telegram verified! No account linked. Please sign up.');
+        setMode('signup');
+        return;
+      }
+      setMessage('Telegram OTP verified! Signing you in...');
+      setTimeout(() => router.push('/dashboard'), 800);
+    } catch (err) {
+      setError(err.message || 'Network error.');
+    } finally {
+      setTelegramLoading(false);
+    }
+  };
 
   const handleVerifyOtp = async () => {
     if (!otp || otp.length !== 6) {
@@ -633,15 +706,40 @@ export default function LoginPage() {
                           )}
                         </button>
 
-                        {/* SMS OTP fallback */}
+                        {/* Firebase SMS OTP */}
                         <button
                           type="button"
-                          onClick={() => triggerOtpFlow('sms')}
+                          onClick={async () => {
+                            const cleanPhone = phone.trim().replace(/\D/g, '');
+                            if (!/^[6-9]\d{9}$/.test(cleanPhone)) { setError('Enter a valid 10-digit number.'); return; }
+                            setError(''); setMessage(''); setLoading(true); setOtpMethod('firebase');
+                            try {
+                              const res = await fetch('/api/auth/firebase-otp/send', {
+                                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ phone: cleanPhone, purpose: 'login' }),
+                              });
+                              const data = await res.json();
+                              if (!res.ok) { setError(data.error || 'Failed to send SMS OTP.'); return; }
+                              setOtpSent(true); setOtp(''); setOtpTimer(45);
+                              setMessage(data.message || `SMS OTP sent to +91 ${cleanPhone}.`);
+                            } catch (err) { setError(err.message || 'Network error.'); }
+                            finally { setLoading(false); }
+                          }}
                           disabled={loading}
-                          className="w-full h-10 bg-[#eaedff] hover:bg-[#e2e7ff] text-[#44474d] rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                          className="w-full h-10 rounded-lg text-xs font-bold flex items-center justify-center gap-2.5 transition-all duration-200 cursor-pointer disabled:opacity-50 border border-orange-200"
+                          style={{ background: 'linear-gradient(135deg, #FF6B35 0%, #FF8C00 100%)', color: '#fff' }}
                         >
-                          <Phone className="w-3.5 h-3.5 text-[#0045de]" />
-                          <span>Send via SMS instead</span>
+                          {loading && otpMethod === 'firebase' ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <>
+                              {/* Firebase / SMS icon */}
+                              <svg className="w-4 h-4 fill-white" viewBox="0 0 24 24">
+                                <path d="M3.89 15.672L6.255.461A.25.25 0 0 1 6.7.288l2.437 4.866a.25.25 0 0 0 .224.139.25.25 0 0 0 .224-.14L11.51.29a.25.25 0 0 1 .443-.004l4.218 9.134a.25.25 0 0 0 .408.063l1.822-2.02a.25.25 0 0 1 .387.032l3.35 5.405c.07.112.05.258-.047.347-1.048.977-9.146 9.353-10.153 10.22a.25.25 0 0 1-.36-.037zm0 0"/>
+                              </svg>
+                              <span>Send via SMS (Firebase • 10K/mo free)</span>
+                            </>
+                          )}
                         </button>
                       </>
                     ) : (
@@ -911,7 +1009,84 @@ export default function LoginPage() {
                   <span>Continue with Google Workspace</span>
                 </button>
 
-                {/* QR Code Express Login Bar (in Signin mode) */}
+                {/* Telegram OTP Login Section */}
+                {mode === 'signin' && (
+                  <div className="mt-4">
+                    <button
+                      type="button"
+                      onClick={() => { setShowTelegramSection(s => !s); setError(''); setMessage(''); }}
+                      className="w-full h-11 rounded-lg text-xs font-semibold flex items-center justify-center gap-2.5 transition-all duration-200 cursor-pointer border border-[#dae2fd]"
+                      style={{ background: 'linear-gradient(135deg, #229ED9 0%, #0088CC 100%)', color: '#fff' }}
+                    >
+                      {/* Telegram logo */}
+                      <svg className="w-4 h-4 fill-white" viewBox="0 0 24 24">
+                        <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                      </svg>
+                      <span>Log in via Telegram OTP</span>
+                      <span className="bg-white/20 text-white px-1.5 py-0.5 rounded-full text-[10px] font-bold">Free ∞</span>
+                    </button>
+
+                    {/* Telegram OTP expanded panel */}
+                    {showTelegramSection && (
+                      <div className="mt-3 p-4 bg-[#f0f8ff] rounded-xl border border-[#bde0ff] space-y-3">
+                        <p className="text-[11px] text-[#44474d] leading-relaxed">
+                          📌 First, start a chat with our bot:{' '}
+                          <a href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'mymobpay_bot'}`}
+                            target="_blank" rel="noopener noreferrer"
+                            className="font-bold text-[#0088CC] hover:underline">
+                            @mymobpay_bot
+                          </a>{' '}on Telegram, then enter your username below.
+                        </p>
+
+                        {!telegramOtpSent ? (
+                          <>
+                            <div className="flex items-center rounded-lg bg-white px-3 focus-within:ring-2 focus-within:ring-[#0088CC]/30 border border-[#bde0ff] transition-all">
+                              <span className="text-[#0088CC] font-bold text-sm pr-2 border-r border-[#bde0ff] py-2.5">@</span>
+                              <input
+                                type="text"
+                                value={telegramUsername}
+                                onChange={e => setTelegramUsername(e.target.value.replace(/^@/, '').replace(/\s/g, ''))}
+                                onKeyDown={e => e.key === 'Enter' && handleTelegramSend()}
+                                placeholder="your_telegram_username"
+                                className="w-full bg-transparent py-2.5 pl-2 text-xs text-[#131b2e] placeholder-[#74777e] focus:outline-none font-medium"
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={handleTelegramSend}
+                              disabled={telegramLoading}
+                              className="w-full h-10 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+                              style={{ background: 'linear-gradient(135deg, #229ED9 0%, #0088CC 100%)', color: '#fff' }}
+                            >
+                              {telegramLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Send OTP to Telegram</span><ArrowRight className="w-3.5 h-3.5" /></>}
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-[11px] font-semibold text-[#0088CC] flex items-center gap-1">
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              OTP sent to @{telegramUsername.replace(/^@/, '')} on Telegram
+                              <button type="button" onClick={() => { setTelegramOtpSent(false); setTelegramOtp(''); }}
+                                className="ml-auto text-[#44474d] text-[10px] font-normal hover:underline">Change</button>
+                            </p>
+                            <OtpBoxInput value={telegramOtp} onChange={setTelegramOtp} disabled={telegramLoading} />
+                            <button
+                              type="button"
+                              onClick={handleTelegramVerify}
+                              disabled={telegramLoading || telegramOtp.length !== 6}
+                              className="w-full h-10 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+                              style={{ background: 'linear-gradient(135deg, #229ED9 0%, #0088CC 100%)', color: '#fff' }}
+                            >
+                              {telegramLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><span>Verify Telegram OTP</span><CheckCircle2 className="w-3.5 h-3.5" /></>}
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* QR Code Express Login Bar (in Signin mode) */}}
                 {mode === 'signin' && (
                   <div className="mt-4 p-3.5 rounded-lg bg-[#eaedff] flex items-center justify-between gap-3 border border-[#dae2fd]/60">
                     <div className="flex items-center gap-3">
