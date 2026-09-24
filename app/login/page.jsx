@@ -83,23 +83,21 @@ function OtpBoxInput({ value, onChange, disabled }) {
 export default function LoginPage() {
   const router = useRouter();
   const [mode, setMode] = useState('signin'); // 'signin' | 'signup'
-  const [authTab, setAuthTab] = useState('phone'); // 'phone' | 'email'
+  const [authTab, setAuthTab] = useState('email'); // 'email' (Email OTP & Magic Link) | 'phone' (WhatsApp OTP) | 'password'
 
-  // Inputs
+  // Email OTP & Magic Link
+  const [email, setEmail] = useState('');
+  const [emailOtp, setEmailOtp] = useState('');
+  const [emailOtpSent, setEmailOtpSent] = useState(false);
+  const [emailTimer, setEmailTimer] = useState(45);
+
+  // Phone / WhatsApp OTP
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
-  const [otpMethod, setOtpMethod] = useState('whatsapp'); // 'whatsapp' | 'firebase' | 'telegram'
+  const [otpMethod, setOtpMethod] = useState('whatsapp');
   const [otpTimer, setOtpTimer] = useState(45);
 
-  // Telegram OTP
-  const [telegramUsername, setTelegramUsername] = useState('');
-  const [telegramOtpSent, setTelegramOtpSent] = useState(false);
-  const [telegramOtp, setTelegramOtp] = useState('');
-  const [telegramLoading, setTelegramLoading] = useState(false);
-  const [showTelegramSection, setShowTelegramSection] = useState(false);
-
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
@@ -117,7 +115,34 @@ export default function LoginPage() {
   const [qrTimer, setQrTimer] = useState(45);
   const [qrChallenge, setQrChallenge] = useState('mymob-auth-session');
 
-  // OTP Countdown timer
+  // Supabase Auth State Change Listener (for Magic Link redirects & existing session)
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setMessage('Authenticated successfully! Launching merchant dashboard...');
+        router.replace('/dashboard');
+      }
+    });
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        router.replace('/dashboard');
+      }
+    });
+
+    return () => subscription?.unsubscribe();
+  }, [router]);
+
+  // Email OTP countdown timer
+  useEffect(() => {
+    let interval = null;
+    if (emailOtpSent && emailTimer > 0) {
+      interval = setInterval(() => setEmailTimer(prev => prev - 1), 1000);
+    }
+    return () => clearInterval(interval);
+  }, [emailOtpSent, emailTimer]);
+
+  // WhatsApp OTP Countdown timer
   useEffect(() => {
     let interval = null;
     if (otpSent && otpTimer > 0) {
@@ -186,69 +211,76 @@ export default function LoginPage() {
     }
   }, [phone, otpMethod]);
 
-  // Telegram OTP handlers
-  const handleTelegramSend = async () => {
-    const username = telegramUsername.trim().replace(/^@/, '');
-    if (!username || username.length < 3) {
-      setError('Please enter your Telegram username (e.g. @yourname).');
+  // Email OTP & Magic Link Handlers
+  const handleSendEmailOtp = async () => {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      setError('Please enter a valid merchant email address.');
       return;
     }
     setError('');
     setMessage('');
-    setTelegramLoading(true);
+    setLoading(true);
+
     try {
-      const res = await fetch('/api/auth/telegram-otp/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ telegramUsername: username, purpose: 'login' }),
+      const { error: otpErr } = await supabase.auth.signInWithOtp({
+        email: cleanEmail,
+        options: {
+          emailRedirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/dashboard`,
+          shouldCreateUser: mode === 'signup',
+        },
       });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || 'Failed to send Telegram OTP.');
-        if (data.botUrl) window.open(data.botUrl, '_blank');
-        return;
+
+      if (otpErr) {
+        if (otpErr.message?.toLowerCase().includes('signups not allowed')) {
+          setError('No merchant account registered with this email. Please sign up below.');
+          return;
+        }
+        throw otpErr;
       }
-      setTelegramOtpSent(true);
-      setTelegramOtp('');
-      setMessage(data.message || `OTP sent to Telegram @${username}.`);
+
+      setEmailOtpSent(true);
+      setEmailOtp('');
+      setEmailTimer(45);
+      setMessage(`Login code & Magic Link dispatched to ${cleanEmail}. Check your inbox!`);
     } catch (err) {
-      setError(err.message || 'Network error.');
+      console.error('Email OTP send error:', err);
+      setError(err?.message || 'Could not send verification email. Please try again.');
     } finally {
-      setTelegramLoading(false);
+      setLoading(false);
     }
   };
 
-  const handleTelegramVerify = async () => {
-    if (!telegramOtp || telegramOtp.length !== 6) {
-      setError('Please enter the complete 6-digit OTP from Telegram.');
+  const handleVerifyEmailOtp = async () => {
+    if (!emailOtp || emailOtp.length !== 6) {
+      setError('Please enter the complete 6-digit verification code.');
       return;
     }
+    const cleanEmail = email.trim().toLowerCase();
     setError('');
     setMessage('');
-    setTelegramLoading(true);
+    setLoading(true);
+
     try {
-      const res = await fetch('/api/auth/telegram-otp/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ telegramUsername: telegramUsername.trim().replace(/^@/, ''), otp: telegramOtp, purpose: 'login' }),
+      const { data, error: verifyErr } = await supabase.auth.verifyOtp({
+        email: cleanEmail,
+        token: emailOtp.trim(),
+        type: 'email',
       });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || 'Telegram OTP verification failed.');
-        if (data.remaining !== undefined) setTelegramOtp('');
+
+      if (verifyErr) {
+        setError(verifyErr.message || 'Invalid or expired code. Please try again.');
+        setEmailOtp('');
         return;
       }
-      if (!data.accountExists) {
-        setMessage('Telegram verified! No account linked. Please sign up.');
-        setMode('signup');
-        return;
-      }
-      setMessage('Telegram OTP verified! Signing you in...');
-      setTimeout(() => router.push('/dashboard'), 800);
+
+      setMessage('Email verified! Opening your merchant dashboard...');
+      setTimeout(() => router.push('/dashboard'), 600);
     } catch (err) {
-      setError(err.message || 'Network error.');
+      console.error('Email OTP verify error:', err);
+      setError(err?.message || 'Verification failed. Please check the code.');
     } finally {
-      setTelegramLoading(false);
+      setLoading(false);
     }
   };
 
@@ -626,32 +658,156 @@ export default function LoginPage() {
 
                 {/* In Sign In Mode: Segmented Tab Switcher */}
                 {mode === 'signin' && (
-                  <div className="mt-6 p-1 bg-[#eaedff] rounded-lg flex items-center gap-1">
+                  <div className="mt-6 p-1 bg-[#eaedff] rounded-lg grid grid-cols-3 gap-1">
                     <button 
                       type="button" 
-                      onClick={() => { setAuthTab('phone'); setError(''); }}
-                      className={`flex-1 py-2 rounded-md text-xs font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer ${
-                        authTab === 'phone' 
-                          ? 'bg-white text-[#0045de] shadow-sm' 
-                          : 'text-[#44474d] hover:text-[#131b2e]'
-                      }`}
-                    >
-                      <Smartphone className="w-4 h-4" />
-                      <span>Phone / OTP</span>
-                      <span className="bg-[#dde1ff] text-[#0038b7] px-1.5 py-0.5 rounded-full text-[10px] font-bold">Popular</span>
-                    </button>
-                    <button 
-                      type="button" 
-                      onClick={() => { setAuthTab('email'); setError(''); }}
-                      className={`flex-1 py-2 rounded-md text-xs font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer ${
+                      onClick={() => { setAuthTab('email'); setError(''); setMessage(''); }}
+                      className={`py-2 rounded-md text-xs font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer ${
                         authTab === 'email' 
                           ? 'bg-white text-[#0045de] shadow-sm' 
                           : 'text-[#44474d] hover:text-[#131b2e]'
                       }`}
                     >
-                      <Mail className="w-4 h-4" />
-                      <span>Email &amp; Password</span>
+                      <Mail className="w-3.5 h-3.5" />
+                      <span>Email OTP</span>
                     </button>
+                    <button 
+                      type="button" 
+                      onClick={() => { setAuthTab('phone'); setError(''); setMessage(''); }}
+                      className={`py-2 rounded-md text-xs font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer ${
+                        authTab === 'phone' 
+                          ? 'bg-white text-[#0045de] shadow-sm' 
+                          : 'text-[#44474d] hover:text-[#131b2e]'
+                      }`}
+                    >
+                      <Smartphone className="w-3.5 h-3.5" />
+                      <span>WhatsApp</span>
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={() => { setAuthTab('password'); setError(''); setMessage(''); }}
+                      className={`py-2 rounded-md text-xs font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer ${
+                        authTab === 'password' 
+                          ? 'bg-white text-[#0045de] shadow-sm' 
+                          : 'text-[#44474d] hover:text-[#131b2e]'
+                      }`}
+                    >
+                      <Lock className="w-3.5 h-3.5" />
+                      <span>Password</span>
+                    </button>
+                  </div>
+                )}
+
+                {/* ── Sign In: Email OTP & Magic Link View ── */}
+                {mode === 'signin' && authTab === 'email' && (
+                  <div className="mt-6 flex flex-col space-y-4">
+                    {!emailOtpSent ? (
+                      <>
+                        <div className="flex flex-col space-y-1.5">
+                          <label className="text-xs font-medium text-[#44474d] flex items-center justify-between">
+                            <span>Merchant Email Address</span>
+                            <span className="text-[#0045de] font-semibold flex items-center gap-1 text-[11px]">
+                              <Zap className="w-3.5 h-3.5" /> Magic Link &amp; OTP
+                            </span>
+                          </label>
+                          <div className="flex items-center rounded-lg bg-[#f2f3ff] px-3 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:shadow-md transition-all border border-transparent focus-within:border-blue-400">
+                            <Mail className="w-4 h-4 text-[#74777e] mr-2 shrink-0" />
+                            <input
+                              type="email"
+                              required
+                              value={email}
+                              onChange={(e) => setEmail(e.target.value)}
+                              onKeyDown={(e) => e.key === 'Enter' && email.includes('@') && handleSendEmailOtp()}
+                              placeholder="merchant@company.com"
+                              className="w-full bg-transparent py-2.5 text-xs text-[#131b2e] placeholder-[#74777e] focus:outline-none font-medium"
+                            />
+                          </div>
+                          <p className="text-[11px] text-[#74777e] leading-relaxed">
+                            We will send a 6-digit verification code and a one-click Magic Link to your inbox.
+                          </p>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={handleSendEmailOtp}
+                          disabled={loading || !email.trim() || !email.includes('@')}
+                          className="w-full h-12 bg-[#2c60ff] hover:bg-[#0045de] text-white rounded-lg text-sm font-semibold flex items-center justify-center gap-2 shadow-md transition-all duration-200 cursor-pointer disabled:opacity-50"
+                        >
+                          {loading ? (
+                            <Loader2 className="w-5 h-5 animate-spin text-white" />
+                          ) : (
+                            <>
+                              <span>Send Magic Link &amp; OTP</span>
+                              <ArrowRight className="w-4 h-4" />
+                            </>
+                          )}
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex items-center justify-between p-3 rounded-lg bg-[#eaedff]/60 border border-[#dae2fd]">
+                          <div className="flex items-center gap-2 text-xs text-[#131b2e] font-medium">
+                            <Mail className="w-4 h-4 text-[#0045de] shrink-0" />
+                            <span>Code &amp; Link sent to <strong className="text-[#0045de]">{email}</strong></span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => { setEmailOtpSent(false); setEmailOtp(''); setError(''); setMessage(''); }}
+                            className="text-[11px] text-[#0045de] font-semibold hover:underline cursor-pointer"
+                          >
+                            Change
+                          </button>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium text-[#44474d] text-center block">
+                            Enter 6-digit Email Verification Code
+                          </label>
+                          <OtpBoxInput value={emailOtp} onChange={setEmailOtp} disabled={loading} />
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={handleVerifyEmailOtp}
+                          disabled={loading || emailOtp.length !== 6}
+                          className="w-full h-12 bg-[#2c60ff] hover:bg-[#0045de] text-white rounded-lg text-sm font-semibold flex items-center justify-center gap-2 shadow-md transition-all duration-200 cursor-pointer disabled:opacity-50"
+                        >
+                          {loading ? (
+                            <Loader2 className="w-5 h-5 animate-spin text-white" />
+                          ) : (
+                            <>
+                              <span>Verify Code &amp; Enter Dashboard</span>
+                              <CheckCircle2 className="w-4 h-4" />
+                            </>
+                          )}
+                        </button>
+
+                        {/* Magic link callout */}
+                        <div className="p-3 bg-[#f8f9ff] rounded-lg border border-[#dae2fd]/70 text-center">
+                          <p className="text-[11px] text-[#44474d] leading-relaxed">
+                            ✨ <strong>Tip:</strong> You can also simply click the <strong>Magic Sign-In Link</strong> inside your email to sign in instantly without typing the code.
+                          </p>
+                        </div>
+
+                        {/* Resend button */}
+                        <div className="text-center pt-1">
+                          {emailTimer > 0 ? (
+                            <span className="text-xs text-[#74777e]">
+                              Resend code in <strong className="text-[#131b2e]">{emailTimer}s</strong>
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={handleSendEmailOtp}
+                              disabled={loading}
+                              className="text-xs font-semibold text-[#0045de] hover:underline cursor-pointer"
+                            >
+                              Didn&apos;t receive email? Resend code
+                            </button>
+                          )}
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
 
@@ -706,99 +862,16 @@ export default function LoginPage() {
                           )}
                         </button>
 
-                        {/* Telegram OTP — secondary option (matches old SMS UI) */}
+                        {/* Alternative: Use Email OTP & Magic Link */}
                         <button
                           type="button"
-                          onClick={() => { setShowTelegramSection(s => !s); setError(''); setMessage(''); }}
+                          onClick={() => { setAuthTab('email'); setError(''); setMessage(''); }}
                           disabled={loading}
                           className="w-full h-10 bg-[#eaedff] hover:bg-[#e2e7ff] text-[#44474d] hover:text-[#131b2e] rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
                         >
-                          {/* Telegram logo */}
-                          <svg className="w-3.5 h-3.5 fill-[#0088CC]" viewBox="0 0 24 24">
-                            <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
-                          </svg>
-                          <span>Send via Telegram instead</span>
+                          <Mail className="w-3.5 h-3.5 text-[#0045de]" />
+                          <span>Use Email OTP &amp; Magic Link instead</span>
                         </button>
-
-                        {/* Inline Telegram OTP panel */}
-                        {showTelegramSection && (
-                          <div className="p-3.5 bg-[#eaedff]/60 rounded-xl border border-[#dae2fd] space-y-3">
-                            <p className="text-[11px] text-[#44474d] leading-relaxed">
-                              Start a chat with{' '}
-                              <a
-                                href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'mymobpay_bot'}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="font-bold text-[#0045de] hover:underline"
-                              >
-                                @{process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'mymobpay_bot'}
-                              </a>{' '}
-                              on Telegram, then enter your username below:
-                            </p>
-                            {!telegramOtpSent ? (
-                              <>
-                                <div className="flex items-center rounded-lg bg-white px-3 focus-within:ring-2 focus-within:ring-[#0045de]/20 border border-[#dae2fd] transition-all">
-                                  <span className="text-[#0088cc] font-bold text-xs pr-2.5 border-r border-[#dae2fd] py-2">@</span>
-                                  <input
-                                    type="text"
-                                    value={telegramUsername}
-                                    onChange={e => setTelegramUsername(e.target.value.replace(/^@/, '').replace(/\s/g, ''))}
-                                    onKeyDown={e => e.key === 'Enter' && handleTelegramSend()}
-                                    placeholder="your_telegram_username"
-                                    className="w-full bg-transparent py-2 pl-2.5 text-xs text-[#131b2e] placeholder-[#74777e] focus:outline-none font-medium"
-                                  />
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={handleTelegramSend}
-                                  disabled={telegramLoading}
-                                  className="w-full h-10 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 bg-[#0045de] hover:bg-[#0038b7] text-white shadow-xs"
-                                >
-                                  {telegramLoading ? (
-                                    <Loader2 className="w-4 h-4 animate-spin text-white" />
-                                  ) : (
-                                    <>
-                                      <span>Send OTP to Telegram</span>
-                                      <ArrowRight className="w-3.5 h-3.5" />
-                                    </>
-                                  )}
-                                </button>
-                              </>
-                            ) : (
-                              <>
-                                <div className="flex items-center justify-between">
-                                  <p className="text-[11px] font-semibold text-[#131b2e] flex items-center gap-1.5">
-                                    <CheckCircle2 className="w-3.5 h-3.5 text-[#009d6d] shrink-0" />
-                                    <span>OTP sent to @{telegramUsername.replace(/^@/, '')}</span>
-                                  </p>
-                                  <button
-                                    type="button"
-                                    onClick={() => { setTelegramOtpSent(false); setTelegramOtp(''); }}
-                                    className="text-[10px] text-[#0045de] font-semibold hover:underline"
-                                  >
-                                    Change
-                                  </button>
-                                </div>
-                                <OtpBoxInput value={telegramOtp} onChange={setTelegramOtp} disabled={telegramLoading} />
-                                <button
-                                  type="button"
-                                  onClick={handleTelegramVerify}
-                                  disabled={telegramLoading || telegramOtp.length !== 6}
-                                  className="w-full h-10 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 bg-[#0045de] hover:bg-[#0038b7] text-white shadow-xs"
-                                >
-                                  {telegramLoading ? (
-                                    <Loader2 className="w-4 h-4 animate-spin text-white" />
-                                  ) : (
-                                    <>
-                                      <span>Verify Telegram OTP</span>
-                                      <CheckCircle2 className="w-3.5 h-3.5" />
-                                    </>
-                                  )}
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        )}
                       </>
                     ) : (
                       <>
@@ -871,7 +944,7 @@ export default function LoginPage() {
                 )}
 
                 {/* ── Sign In: Email & Password View ── */}
-                {mode === 'signin' && authTab === 'email' && (
+                {mode === 'signin' && authTab === 'password' && (
                   <form onSubmit={(e) => { e.preventDefault(); handleAuth('signin'); }} className="mt-6 flex flex-col space-y-4">
                     <div className="flex flex-col space-y-1.5">
                       <label className="text-xs font-medium text-[#44474d]">Merchant Email Address</label>
