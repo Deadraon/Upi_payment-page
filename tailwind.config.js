@@ -14,6 +14,26 @@ module.exports = {
         'bg-card':     'var(--bg-card)',
         'white-pure':  '#ffffff',
         
+        // Material 3 Fintech Surface & Color tokens
+        'surface-container-low': '#f2f3ff',
+        'surface-container-lowest': '#ffffff',
+        'surface-container': '#eaedff',
+        'surface-container-high': '#e2e7ff',
+        'surface-container-highest': '#dae2fd',
+        'on-surface': '#131b2e',
+        'on-surface-variant': '#44474d',
+        'outline-variant': '#c4c6ce',
+        'outline': '#74777e',
+        'secondary': '#0045de',
+        'secondary-container': '#2c60ff',
+        'on-secondary': '#ffffff',
+        'secondary-fixed': '#dde1ff',
+        'on-secondary-fixed-variant': '#0038b7',
+        'on-tertiary-container': '#009d6d',
+        'primary-container': '#0c2340',
+        'on-primary-container': '#778bad',
+        'error': '#ba1a1a',
+        
         // Dark theme redirects for standard Tailwind utility classes
         white: 'var(--bg-card)',
         slate: {

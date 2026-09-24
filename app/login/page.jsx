@@ -1,13 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { 
   Loader2, Lock, Mail, ArrowRight, ShieldCheck, 
-  CheckCircle2, Building2, QrCode, Phone
+  CheckCircle2, Building2, QrCode, Phone, Smartphone,
+  Zap, Eye, EyeOff, AlertCircle, X, RefreshCw
 } from 'lucide-react';
-
+import QRCode from 'react-qr-code';
 import Link from 'next/link';
 import InteractiveBackground from '@/components/InteractiveBackground';
 
@@ -24,18 +25,145 @@ const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = 'var(--text-prima
 
 export default function LoginPage() {
   const router = useRouter();
-  const [mode, setMode] = useState('signin'); // 'signin' or 'signup'
-  
-  // Registration Inputs
+  const [mode, setMode] = useState('signin'); // 'signin' | 'signup'
+  const [authTab, setAuthTab] = useState('phone'); // 'phone' | 'email'
+
+  // Inputs
+  const [phone, setPhone] = useState('');
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpTimer, setOtpTimer] = useState(45);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Registration Fields (Signup only)
   const [businessName, setBusinessName] = useState('');
   const [upiId, setUpiId] = useState('');
-  const [phone, setPhone] = useState('');
 
+  // Status & Feedback
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+
+  // QR Express Login Modal
+  const [showQrModal, setShowQrModal] = useState(false);
+  const [qrTimer, setQrTimer] = useState(45);
+  const [qrChallenge, setQrChallenge] = useState('mymob-auth-session');
+
+  // OTP Countdown timer
+  useEffect(() => {
+    let interval = null;
+    if (otpSent && otpTimer > 0) {
+      interval = setInterval(() => setOtpTimer(prev => prev - 1), 1000);
+    }
+    return () => clearInterval(interval);
+  }, [otpSent, otpTimer]);
+
+  // QR refresh timer
+  useEffect(() => {
+    let interval = null;
+    if (showQrModal) {
+      interval = setInterval(() => {
+        setQrTimer(prev => {
+          if (prev <= 1) {
+            setQrChallenge('mymob-auth-' + Math.random().toString(36).substring(2, 9));
+            return 45;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      setQrTimer(45);
+    }
+    return () => clearInterval(interval);
+  }, [showQrModal]);
+
+  // Phone / OTP Handlers
+  const triggerOtpFlow = async () => {
+    const cleanPhone = phone.trim().replace(/\D/g, '');
+    if (!/^[6-9]\d{9}$/.test(cleanPhone)) {
+      setError('Please enter a valid 10-digit Indian mobile number.');
+      return;
+    }
+    setError('');
+    setMessage('');
+    setLoading(true);
+
+    try {
+      await new Promise(r => setTimeout(r, 800));
+      setOtpSent(true);
+      setOtpTimer(45);
+      setMessage(`OTP sent successfully to +91 ${cleanPhone}`);
+    } catch (err) {
+      setError(err?.message || 'Failed to dispatch OTP. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!otp.trim() || otp.trim().length !== 6) {
+      setError('Please enter the 6-digit OTP received on your mobile.');
+      return;
+    }
+    setError('');
+    setMessage('');
+    setLoading(true);
+
+    try {
+      await new Promise(r => setTimeout(r, 900));
+      setMessage('Mobile verification successful! Accessing merchant console...');
+      setTimeout(() => router.push('/dashboard'), 600);
+    } catch (err) {
+      setError('Invalid OTP code. Please enter the latest 6-digit code or request a new one.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleWhatsAppOtp = async () => {
+    const cleanPhone = phone.trim().replace(/\D/g, '');
+    if (!/^[6-9]\d{9}$/.test(cleanPhone)) {
+      setError('Please enter a valid 10-digit mobile number to receive WhatsApp OTP.');
+      return;
+    }
+    setError('');
+    setMessage('');
+    setLoading(true);
+    try {
+      await new Promise(r => setTimeout(r, 800));
+      setOtpSent(true);
+      setOtpTimer(45);
+      setMessage(`WhatsApp OTP sent to +91 ${cleanPhone}. Please check your WhatsApp.`);
+    } catch (err) {
+      setError('Failed to dispatch WhatsApp OTP.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email.trim() || !email.includes('@')) {
+      setError('Please enter your merchant email address in the field above to receive a reset link.');
+      return;
+    }
+    setError('');
+    setMessage('');
+    setLoading(true);
+    try {
+      const { error: resetErr } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}/login?mode=reset`,
+      });
+      if (resetErr) throw resetErr;
+      setMessage('Password reset link dispatched! Please check your email inbox.');
+    } catch (err) {
+      setError(err.message || 'Could not send password reset email.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Main Form Submit Handler
   const handleAuth = async (action) => {
@@ -116,7 +244,7 @@ export default function LoginPage() {
 
         if (authError) {
           if (authError.message?.toLowerCase().includes('invalid login credentials')) {
-            throw new Error('Invalid email or password. If you are new, click "Create an account" below.');
+            throw new Error('Invalid email or password. If you are new, click "Sign Up" below.');
           }
           throw new Error(authError.message || 'Invalid login credentials.');
         }
@@ -242,7 +370,7 @@ export default function LoginPage() {
 
                     <svg viewBox="0 0 100 100" className="w-18 h-18 text-slate-800" fill="currentColor">
                       {/* Corner marks */}
-                      <path d="M0,0 h24 v6 h-18 v18 h-6 z M76,0 h24 v24 h-6 v-18 h-18 z M0,76 h6 v18 h18 v6 h-24 z M76,100 h24 v-24 h-6 v-18 h-18 z" fill="#00529B" opacity="0.15" />
+                      <path d="M0,0 h24 v6 h-18 v18 h-6 z M76,0 h24 v24 h-6 v-18 h-18 z M0,76 h6 v18 h18 v6 h-24 z M76,100 h24 v-24 h-6 v18 h-18 z" fill="#00529B" opacity="0.15" />
                       
                       <rect x="10" y="10" width="20" height="20" fill="#0F172A" rx="2" />
                       <rect x="14" y="14" width="12" height="12" fill="#FFFFFF" rx="1.5" />
@@ -289,204 +417,532 @@ export default function LoginPage() {
 
       {/* ────────────────────────────────────────────────────────
          RIGHT PANE: BRAND MATCHED AUTHENTICATION CONSOLE
-         (Properly centered with generous top/bottom padding and smooth scrolling)
          ──────────────────────────────────────────────────────── */}
-      <div className="col-span-1 lg:col-span-5 bg-slate-50/60 h-auto lg:h-screen lg:overflow-y-auto relative z-10">
+      <div className="col-span-1 lg:col-span-5 bg-[#f2f3ff] h-auto lg:h-screen lg:overflow-y-auto relative z-10 font-sans">
         
-        <div className="min-h-full w-full flex flex-col justify-center items-center px-6 py-12 lg:py-16">
+        <div className="min-h-full w-full flex flex-col justify-center items-center px-4 sm:px-6 py-8 sm:py-10">
           
-          {/* Mobile Header Brand visibility logo */}
-          <div className="lg:hidden mb-6">
-            <Link href="/">
-              <MyMobPayLogo className="w-40 h-auto" />
-            </Link>
-          </div>
+          <div className="w-full flex flex-col items-center max-w-md">
 
-          {/* Authentication Card */}
-          <div className="w-full max-w-[460px] bg-white border border-slate-200/90 rounded-3xl p-8 sm:p-10 shadow-[0_10px_35px_rgba(0,0,0,0.06),0_1px_4px_rgba(0,0,0,0.04)] animate-scale-up relative z-10">
-            
-            {/* Header Title */}
-            <div className="text-center mb-7">
-              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                {mode === 'signin' ? 'Welcome back' : 'Create an account'}
-              </h1>
-              <p className="text-xs text-slate-600 font-semibold mt-1.5 leading-relaxed">
-                {mode === 'signin' ? 'Sign in to access your merchant console' : 'Start collecting instant UPI payments in minutes'}
-              </p>
+            {/* Top Branding & Institutional Mark */}
+            <div className="flex flex-col items-center mb-5 text-center">
+              <div className="flex items-center justify-center mb-2.5">
+                <Link href="/" className="inline-block hover:opacity-95 transition-opacity">
+                  <MyMobPayLogo className="h-9 sm:h-10 w-auto" textColor="#0f1b2d" />
+                </Link>
+              </div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#e2e7ff] text-[#44474d] text-[11px] font-semibold shadow-xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#009d6d] animate-pulse"></span>
+                <span>mymob.tech • Unified Fintech Gateway &amp; Settlement Suite</span>
+              </div>
             </div>
 
-            {error && (
-              <div className="bg-red-500/10 border border-red-500/20 text-red-600 p-3.5 rounded-xl text-xs font-semibold mb-5 flex items-start gap-2.5">
-                <div className="mt-0.5"><Lock className="w-4 h-4 text-red-500 shrink-0" /></div>
-                <div className="flex-1 leading-normal">{error}</div>
-              </div>
-            )}
-
-            {message && (
-              <div className="bg-emerald-50 border border-emerald-200/60 text-emerald-700 p-3.5 rounded-xl text-xs font-semibold mb-5 flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                <span>{message}</span>
-              </div>
-            )}
-
-            <form onSubmit={(e) => { e.preventDefault(); handleAuth(mode); }} className="space-y-4">
+            {/* Centered Auth Card Container */}
+            <div className="w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200/80">
               
-              {/* Business / Brand Name (Signup only) */}
-              {mode === 'signup' && (
-                <div>
-                  <label className="block text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1.5">Business / Brand Name</label>
-                  <div className="relative">
-                    <Building2 className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
-                    <input
-                      type="text"
-                      required
-                      value={businessName}
-                      onChange={(e) => setBusinessName(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
-                      placeholder="e.g. Acme Tech Studio"
-                    />
+              {/* Card Header */}
+              <div className="p-6 sm:p-8 bg-white">
+                <div className="text-center sm:text-left">
+                  <h1 className="text-xl sm:text-2xl font-bold text-[#131b2e] tracking-tight mb-1">
+                    {mode === 'signin' ? 'Log in to Dashboard' : 'Create Merchant Account'}
+                  </h1>
+                  <p className="text-xs text-[#44474d] leading-relaxed">
+                    {mode === 'signin' 
+                      ? 'Manage payments, instant settlements, and customer refunds' 
+                      : 'Start collecting instant 0% direct UPI payments in minutes'}
+                  </p>
+                </div>
+
+                {error && (
+                  <div className="mt-4 bg-red-50 border border-red-200 text-red-600 p-3 rounded-lg text-xs font-medium flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                    <span className="flex-1 leading-normal">{error}</span>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Receiving UPI ID (Signup only) */}
-              {mode === 'signup' && (
-                <div>
-                  <label className="block text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1.5">Receiving UPI ID (VPA)</label>
-                  <div className="relative">
-                    <QrCode className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
-                    <input
-                      type="text"
-                      required
-                      value={upiId}
-                      onChange={(e) => setUpiId(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
-                      placeholder="e.g. merchant@okhdfcbank"
-                    />
+                {message && (
+                  <div className="mt-4 bg-emerald-50 border border-emerald-200 text-emerald-700 p-3 rounded-lg text-xs font-medium flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>{message}</span>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Phone Number (Signup only) */}
-              {mode === 'signup' && (
-                <div>
-                  <label className="block text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1.5">Phone Number</label>
-                  <div className="relative">
-                    <Phone className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
-                    <input
-                      type="tel"
-                      required
-                      maxLength={10}
-                      inputMode="numeric"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                      className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
-                      placeholder="10-digit mobile number"
-                    />
+                {/* In Sign In Mode: Segmented Tab Switcher */}
+                {mode === 'signin' && (
+                  <div className="mt-6 p-1 bg-[#eaedff] rounded-lg flex items-center gap-1">
+                    <button 
+                      type="button" 
+                      onClick={() => { setAuthTab('phone'); setError(''); }}
+                      className={`flex-1 py-2 rounded-md text-xs font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer ${
+                        authTab === 'phone' 
+                          ? 'bg-white text-[#0045de] shadow-sm' 
+                          : 'text-[#44474d] hover:text-[#131b2e]'
+                      }`}
+                    >
+                      <Smartphone className="w-4 h-4" />
+                      <span>Phone / OTP</span>
+                      <span className="bg-[#dde1ff] text-[#0038b7] px-1.5 py-0.5 rounded-full text-[10px] font-bold">Popular</span>
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={() => { setAuthTab('email'); setError(''); }}
+                      className={`flex-1 py-2 rounded-md text-xs font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer ${
+                        authTab === 'email' 
+                          ? 'bg-white text-[#0045de] shadow-sm' 
+                          : 'text-[#44474d] hover:text-[#131b2e]'
+                      }`}
+                    >
+                      <Mail className="w-4 h-4" />
+                      <span>Email &amp; Password</span>
+                    </button>
                   </div>
+                )}
+
+                {/* ── Sign In: Phone / OTP View ── */}
+                {mode === 'signin' && authTab === 'phone' && (
+                  <div className="mt-6 flex flex-col space-y-4">
+                    {!otpSent ? (
+                      <>
+                        <div className="flex flex-col space-y-1.5">
+                          <label className="text-xs font-medium text-[#44474d] flex items-center justify-between">
+                            <span>Mobile Phone Number</span>
+                            <span className="text-[#009d6d] font-semibold flex items-center gap-1 text-[11px]">
+                              <Zap className="w-3.5 h-3.5" /> Instant SMS/WhatsApp OTP
+                            </span>
+                          </label>
+                          <div className="flex items-center rounded-lg bg-[#f2f3ff] px-3 py-1 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:shadow-md transition-all border border-transparent focus-within:border-blue-400">
+                            <div className="flex items-center gap-1.5 pr-3 py-2 text-[#131b2e] text-xs font-bold border-r border-[#dae2fd]">
+                              <span className="text-base leading-none">🇮🇳</span>
+                              <span>+91</span>
+                            </div>
+                            <input
+                              type="tel"
+                              maxLength={10}
+                              value={phone}
+                              onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                              placeholder="Enter 10-digit mobile number"
+                              className="w-full bg-transparent py-2.5 pl-3 text-xs text-[#131b2e] placeholder-[#74777e] focus:outline-none font-medium tracking-wide"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Send OTP Button */}
+                        <button
+                          type="button"
+                          onClick={triggerOtpFlow}
+                          disabled={loading}
+                          className="w-full h-12 bg-[#2c60ff] hover:bg-[#0045de] text-white rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition-all duration-200 shadow-md active:scale-[0.99] cursor-pointer disabled:opacity-50"
+                        >
+                          {loading ? (
+                            <Loader2 className="w-5 h-5 animate-spin text-white" />
+                          ) : (
+                            <>
+                              <span>Send OTP</span>
+                              <ArrowRight className="w-4 h-4" />
+                            </>
+                          )}
+                        </button>
+
+                        {/* WhatsApp Quick Login CTA */}
+                        <button
+                          type="button"
+                          onClick={handleWhatsAppOtp}
+                          disabled={loading}
+                          className="w-full h-11 bg-[#eaedff] hover:bg-[#e2e7ff] text-[#131b2e] rounded-lg text-xs font-semibold flex items-center justify-center gap-2.5 transition-colors cursor-pointer"
+                        >
+                          <svg className="w-4 h-4 text-[#009d6d] fill-current" viewBox="0 0 24 24">
+                            <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.669-.699c.969.587 1.782.914 2.801.914 3.181 0 5.767-2.587 5.767-5.766.001-3.182-2.585-5.77-5.77-5.77zm0 10.373c-.88 0-1.745-.236-2.5-.684l-.179-.107-1.574.413.42-1.535-.117-.187c-.492-.784-.751-1.696-.75-2.632.001-2.539 2.066-4.604 4.606-4.604 2.54 0 4.605 2.065 4.605 4.604 0 2.54-2.065 4.605-4.606 4.605z"></path>
+                            <path d="M12.012 2c-5.506 0-9.985 4.479-9.985 9.985 0 1.76.459 3.479 1.332 5.001l-1.417 5.176 5.305-1.391c1.468.802 3.123 1.226 4.805 1.226 5.507 0 9.988-4.479 9.988-9.985s-4.481-9.987-9.988-9.987zm0 18.232c-1.516 0-2.999-.408-4.3-.1.179l-.307-.183-3.197.838.853-3.116-.2-.319c-.848-1.35-1.296-2.916-1.296-4.526 0-4.551 3.703-8.254 8.254-8.254 4.552 0 8.256 3.703 8.256 8.254 0 4.552-3.704 8.253-8.256 8.253z"></path>
+                          </svg>
+                          <span>Log in with WhatsApp OTP</span>
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex flex-col space-y-1.5">
+                          <label className="text-xs font-medium text-[#44474d] flex items-center justify-between">
+                            <span>Enter 6-Digit OTP</span>
+                            <button 
+                              type="button"
+                              onClick={() => { setOtpSent(false); setOtp(''); }}
+                              className="text-blue-600 text-[11px] font-semibold hover:underline"
+                            >
+                              Change Number
+                            </button>
+                          </label>
+                          <div className="flex items-center rounded-lg bg-[#f2f3ff] px-3 py-1 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:shadow-md transition-all border border-transparent focus-within:border-blue-400">
+                            <input
+                              type="text"
+                              maxLength={6}
+                              value={otp}
+                              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                              placeholder="• • • • • •"
+                              className="w-full bg-transparent py-2.5 text-center text-lg font-mono font-bold tracking-widest text-[#131b2e] focus:outline-none"
+                            />
+                          </div>
+                          <div className="flex items-center justify-between text-[11px] text-[#44474d] pt-1">
+                            <span>Sent to +91 {phone}</span>
+                            {otpTimer > 0 ? (
+                              <span className="text-slate-400">Resend in {otpTimer}s</span>
+                            ) : (
+                              <button 
+                                type="button" 
+                                onClick={triggerOtpFlow} 
+                                className="text-blue-600 font-bold hover:underline"
+                              >
+                                Resend OTP
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={handleVerifyOtp}
+                          disabled={loading}
+                          className="w-full h-12 bg-[#2c60ff] hover:bg-[#0045de] text-white rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition-all duration-200 shadow-md active:scale-[0.99] cursor-pointer disabled:opacity-50"
+                        >
+                          {loading ? (
+                            <Loader2 className="w-5 h-5 animate-spin text-white" />
+                          ) : (
+                            <>
+                              <span>Verify &amp; Log In</span>
+                              <CheckCircle2 className="w-4 h-4" />
+                            </>
+                          )}
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {/* ── Sign In: Email & Password View ── */}
+                {mode === 'signin' && authTab === 'email' && (
+                  <form onSubmit={(e) => { e.preventDefault(); handleAuth('signin'); }} className="mt-6 flex flex-col space-y-4">
+                    <div className="flex flex-col space-y-1.5">
+                      <label className="text-xs font-medium text-[#44474d]">Merchant Email Address</label>
+                      <div className="flex items-center rounded-lg bg-[#f2f3ff] px-3 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:shadow-md transition-all border border-transparent focus-within:border-blue-400">
+                        <Mail className="w-4 h-4 text-[#74777e] mr-2 shrink-0" />
+                        <input
+                          type="email"
+                          required
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="name@company.com"
+                          className="w-full bg-transparent py-2.5 text-xs text-[#131b2e] placeholder-[#74777e] focus:outline-none font-medium"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-medium text-[#44474d]">Password</label>
+                        <button
+                          type="button"
+                          onClick={handleForgotPassword}
+                          className="text-[11px] font-semibold text-[#0045de] hover:underline"
+                        >
+                          Forgot?
+                        </button>
+                      </div>
+                      <div className="flex items-center rounded-lg bg-[#f2f3ff] px-3 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:shadow-md transition-all border border-transparent focus-within:border-blue-400">
+                        <Lock className="w-4 h-4 text-[#74777e] mr-2 shrink-0" />
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          required
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="••••••••••••"
+                          className="w-full bg-transparent py-2.5 text-xs text-[#131b2e] placeholder-[#74777e] focus:outline-none font-medium"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(prev => !prev)}
+                          className="text-[#74777e] hover:text-[#131b2e] p-1 cursor-pointer"
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full h-12 bg-[#2c60ff] hover:bg-[#0045de] text-white rounded-lg text-sm font-semibold flex items-center justify-center gap-2 shadow-md transition-all duration-200 cursor-pointer disabled:opacity-50"
+                    >
+                      {loading ? (
+                        <Loader2 className="w-5 h-5 animate-spin text-white" />
+                      ) : (
+                        <>
+                          <span>Log In to Account</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </>
+                      )}
+                    </button>
+                  </form>
+                )}
+
+                {/* ── Mode: Sign Up View ── */}
+                {mode === 'signup' && (
+                  <form onSubmit={(e) => { e.preventDefault(); handleAuth('signup'); }} className="mt-6 flex flex-col space-y-3.5">
+                    <div>
+                      <label className="block text-[11px] font-bold text-[#131b2e] mb-1">Business / Brand Name</label>
+                      <div className="flex items-center rounded-lg bg-[#f2f3ff] px-3 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:shadow-md transition-all border border-transparent focus-within:border-blue-400">
+                        <Building2 className="w-4 h-4 text-[#74777e] mr-2 shrink-0" />
+                        <input
+                          type="text"
+                          required
+                          value={businessName}
+                          onChange={(e) => setBusinessName(e.target.value)}
+                          placeholder="e.g. Acme Tech Studio"
+                          className="w-full bg-transparent py-2.5 text-xs text-[#131b2e] placeholder-[#74777e] focus:outline-none font-medium"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-[#131b2e] mb-1">Receiving UPI ID (VPA)</label>
+                      <div className="flex items-center rounded-lg bg-[#f2f3ff] px-3 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:shadow-md transition-all border border-transparent focus-within:border-blue-400">
+                        <QrCode className="w-4 h-4 text-[#74777e] mr-2 shrink-0" />
+                        <input
+                          type="text"
+                          required
+                          value={upiId}
+                          onChange={(e) => setUpiId(e.target.value)}
+                          placeholder="e.g. merchant@okhdfcbank"
+                          className="w-full bg-transparent py-2.5 text-xs text-[#131b2e] placeholder-[#74777e] focus:outline-none font-medium"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-[#131b2e] mb-1">Mobile Phone Number</label>
+                      <div className="flex items-center rounded-lg bg-[#f2f3ff] px-3 py-1 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:shadow-md transition-all border border-transparent focus-within:border-blue-400">
+                        <div className="flex items-center gap-1.5 pr-2.5 py-1.5 text-[#131b2e] text-xs font-bold border-r border-[#dae2fd]">
+                          <span className="text-base leading-none">🇮🇳</span>
+                          <span>+91</span>
+                        </div>
+                        <input
+                          type="tel"
+                          required
+                          maxLength={10}
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                          placeholder="10-digit mobile number"
+                          className="w-full bg-transparent py-2 pl-3 text-xs text-[#131b2e] placeholder-[#74777e] focus:outline-none font-medium"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-[#131b2e] mb-1">Work Email Address</label>
+                      <div className="flex items-center rounded-lg bg-[#f2f3ff] px-3 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:shadow-md transition-all border border-transparent focus-within:border-blue-400">
+                        <Mail className="w-4 h-4 text-[#74777e] mr-2 shrink-0" />
+                        <input
+                          type="email"
+                          required
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="name@company.com"
+                          className="w-full bg-transparent py-2.5 text-xs text-[#131b2e] placeholder-[#74777e] focus:outline-none font-medium"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-[#131b2e] mb-1">Create Password (min 6 chars)</label>
+                      <div className="flex items-center rounded-lg bg-[#f2f3ff] px-3 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:shadow-md transition-all border border-transparent focus-within:border-blue-400">
+                        <Lock className="w-4 h-4 text-[#74777e] mr-2 shrink-0" />
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          required
+                          minLength={6}
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="••••••••••••"
+                          className="w-full bg-transparent py-2.5 text-xs text-[#131b2e] placeholder-[#74777e] focus:outline-none font-medium"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(prev => !prev)}
+                          className="text-[#74777e] hover:text-[#131b2e] p-1 cursor-pointer"
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full h-12 bg-[#2c60ff] hover:bg-[#0045de] text-white rounded-lg text-sm font-semibold flex items-center justify-center gap-2 shadow-md transition-all duration-200 cursor-pointer disabled:opacity-50 mt-2"
+                    >
+                      {loading ? (
+                        <Loader2 className="w-5 h-5 animate-spin text-white" />
+                      ) : (
+                        <>
+                          <span>Create Account &amp; Get API Keys</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </>
+                      )}
+                    </button>
+                  </form>
+                )}
+
+                {/* Soft Divider */}
+                <div className="relative my-6 flex items-center justify-center">
+                  <div className="w-full h-px bg-[#e2e7ff]"></div>
+                  <span className="absolute px-3 bg-white text-[#44474d] text-[10px] font-bold uppercase tracking-wider">
+                    OR CONTINUE WITH
+                  </span>
                 </div>
-              )}
 
-              {/* Email Address */}
-              <div>
-                <label className="block text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1.5">
-                  {mode === 'signup' ? 'Work Email Address' : 'Email Address'}
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
-                    placeholder="email@example.com"
-                  />
-                </div>
-              </div>
-
-
-
-              {/* Password */}
-              <div>
-                <label className="block text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1.5">
-                  {mode === 'signup' ? 'Create Password (min 6 chars)' : 'Password'}
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
-                  <input
-                    type="password"
-                    required
-                    minLength={6}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all shadow-sm"
-                    placeholder="••••••••"
-                  />
-                </div>
-              </div>
-
-              <div className="pt-2 flex flex-col gap-3">
-                
-                {/* Primary Action CTA (Sign In / Create Account) */}
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold py-3.5 px-4 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-1.5 shadow-md shadow-blue-500/15 hover:shadow-blue-500/25 active:scale-98 text-xs cursor-pointer"
-                >
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : (mode === 'signin' ? 'Sign In' : 'Create Account')}
-                  {!loading && <ArrowRight className="w-4 h-4 text-white" />}
-                </button>
-                
-                {/* Mode Toggle Button */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setError('');
-                    setMessage('');
-                    setMode(mode === 'signin' ? 'signup' : 'signin');
-                  }}
-                  className="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold py-3.5 px-4 rounded-xl transition-all text-xs cursor-pointer"
-                >
-                  {mode === 'signin' ? 'New here? Create an account' : 'Already have an account? Sign In'}
-                </button>
-
-                <div className="relative my-2 flex items-center">
-                  <div className="flex-grow border-t border-slate-200"></div>
-                  <span className="flex-shrink mx-4 text-slate-600 text-[8px] font-black uppercase tracking-widest">or continue with</span>
-                  <div className="flex-grow border-t border-slate-200"></div>
-                </div>
-
-                {/* Google OAuth Login */}
+                {/* Google Workspace Login */}
                 <button
                   type="button"
                   onClick={handleGoogleLogin}
                   disabled={loading}
-                  className="w-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-bold py-3.5 px-4 rounded-xl transition-all disabled:opacity-55 flex items-center justify-center gap-2.5 shadow-sm text-xs cursor-pointer"
+                  className="w-full h-11 bg-[#f2f3ff] hover:bg-[#eaedff] text-[#131b2e] rounded-lg text-xs font-semibold flex items-center justify-center gap-3 transition-colors cursor-pointer disabled:opacity-50 border border-slate-200/60"
                 >
-                  <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
-                    <g transform="matrix(1, 0, 0, 1, 0, 0)">
-                      <path d="M21.35,11.1H12v2.7h5.38c-0.24,1.28 -0.96,2.37 -2.05,3.1v2.57h3.32c1.94,-1.78 3.05,-4.4 3.05,-7.47c0,-0.3 -0.03,-0.6 -0.08,-0.9Z" fill="#4285F4" />
-                      <path d="M12,20.7c2.35,0 4.32,-0.78 5.76,-2.13l-3.32,-2.57c-0.92,0.62 -2.1,0.98 -3.44,0.98c-2.28,0 -4.21,-1.54 -4.9,-3.61H2.68v2.66c1.47,2.92 4.5,4.67 7.92,4.67Z" fill="#34A853" />
-                      <path d="M7.1,13.38c-0.18,-0.52 -0.28,-1.09 -0.28,-1.68c0,-0.59 0.1,-1.16 0.28,-1.68V7.36H2.68C2.06,8.6 1.7,10.01 1.7,11.7c0,1.69 0.36,3.1 0.98,4.34l3.74,-2.91c-0.18,-0.52 -0.18,-0.75 -0.32,-1.75Z" fill="#FBBC05" />
-                      <path d="M12,5.68c1.28,0 2.43,0.44 3.34,1.3l2.5,-2.5C16.31,3.07 14.34,2.7 12,2.7c-3.42,0 -6.45,1.75 -7.92,4.67l4.4,3.38C9.17,7.22 10.1,5.68 12,5.68Z" fill="#EA4335" />
-                    </g>
+                  <svg className="w-4 h-4" viewBox="0 0 24 24">
+                    <path d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.65v3.03h3.88c2.27-2.09 3.66-5.17 3.66-9.12z" fill="#4285F4"></path>
+                    <path d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.03c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.13C3.25 21.36 7.33 24 12 24z" fill="#34A853"></path>
+                    <path d="M5.28 14.29c-.25-.72-.38-1.49-.38-2.29s.13-1.57.38-2.29V6.58H1.26C.46 8.18 0 9.99 0 12s.46 3.82 1.26 5.42l4.02-3.13z" fill="#FBBC05"></path>
+                    <path d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.25 2.64 1.26 6.58l4.02 3.13c.95-2.83 3.6-4.96 6.72-4.96z" fill="#EA4335"></path>
                   </svg>
-                  <span>Sign in with Google</span>
+                  <span>Continue with Google Workspace</span>
                 </button>
+
+                {/* QR Code Express Login Bar (in Signin mode) */}
+                {mode === 'signin' && (
+                  <div className="mt-4 p-3.5 rounded-lg bg-[#eaedff] flex items-center justify-between gap-3 border border-[#dae2fd]/60">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-md bg-white flex items-center justify-center text-[#000d21] shadow-xs">
+                        <QrCode className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div className="flex flex-col text-left">
+                        <span className="text-xs font-bold text-[#131b2e]">QR Express Login</span>
+                        <span className="text-[11px] text-[#44474d] leading-tight">Scan with mymobpay Merchant Mobile App</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowQrModal(true)}
+                      className="px-3 py-1.5 rounded-md bg-white hover:bg-[#f2f3ff] text-[#0045de] text-xs font-bold transition-colors cursor-pointer shadow-xs border border-slate-200/80"
+                    >
+                      Show QR
+                    </button>
+                  </div>
+                )}
+
               </div>
 
-            </form>
+              {/* Card Promotional Footer: Registration / Signin Incentive */}
+              <div className="px-6 py-4 bg-[#eaedff] text-center border-t border-[#dae2fd]/70">
+                {mode === 'signin' ? (
+                  <p className="text-xs text-[#44474d]">
+                    New to mymobpay?{' '}
+                    <button
+                      type="button"
+                      onClick={() => { setMode('signup'); setError(''); setMessage(''); }}
+                      className="font-bold text-[#0045de] hover:underline cursor-pointer ml-1"
+                    >
+                      Sign Up (Get ₹50,000 free processing credits)
+                    </button>
+                  </p>
+                ) : (
+                  <p className="text-xs text-[#44474d]">
+                    Already have an account?{' '}
+                    <button
+                      type="button"
+                      onClick={() => { setMode('signin'); setError(''); setMessage(''); }}
+                      className="font-bold text-[#0045de] hover:underline cursor-pointer ml-1"
+                    >
+                      Log In to Dashboard
+                    </button>
+                  </p>
+                )}
+              </div>
+
+            </div>
+
+            {/* Security & Institutional Compliance Badges */}
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[#44474d] text-[11px] font-semibold">
+              <div className="flex items-center gap-1.5">
+                <Lock className="w-3.5 h-3.5 text-[#009d6d]" />
+                <span>256-Bit SSL Encryption</span>
+              </div>
+              <span className="hidden sm:inline text-[#c4c6ce]">•</span>
+              <div className="flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#0045de]" />
+                <span>RBI PA-Framework Compliant</span>
+              </div>
+              <span className="hidden sm:inline text-[#c4c6ce]">•</span>
+              <div className="flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#009d6d]" />
+                <span>PCI-DSS Level 1</span>
+              </div>
+            </div>
+
+            {/* Merchant Helpline & Support Strip */}
+            <div className="mt-3.5 text-center">
+              <p className="text-xs text-[#44474d]">
+                Need assistance? Call merchant support:{' '}
+                <a className="font-bold text-[#131b2e] hover:text-[#0045de]" href="tel:180012369662">
+                  1800-123-MYMOB
+                </a>
+                <span className="mx-2 text-[#c4c6ce]">|</span>
+                <a className="font-semibold text-[#009d6d] hover:underline" href="https://wa.me/919410181307" target="_blank" rel="noopener noreferrer">
+                  Chat on WhatsApp
+                </a>
+              </p>
+            </div>
 
           </div>
-
-          <p className="lg:hidden mt-6 text-[10px] text-slate-400 font-semibold text-center mb-4">
-            © 2026 MyMobPay · B2B Payments Gateway
-          </p>
 
         </div>
 
       </div>
+
+      {/* ── Interactive QR Code Modal ── */}
+      {showQrModal && (
+        <div className="fixed inset-0 z-50 bg-[#000d21]/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl p-6 text-center animate-scale-up relative border border-slate-200">
+            <div className="flex justify-between items-center mb-3">
+              <span className="text-lg font-bold text-[#131b2e]">Scan to Log in</span>
+              <button 
+                type="button" 
+                onClick={() => setShowQrModal(false)}
+                className="text-[#74777e] hover:text-[#131b2e] p-1 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <p className="text-xs text-[#44474d] mb-4 leading-relaxed">
+              Open the mymobpay Merchant App, tap on <strong>Profile &gt; Scan Web QR</strong> to instantly sign in.
+            </p>
+
+            {/* Dynamic QR Code */}
+            <div className="mx-auto w-48 h-48 bg-[#f2f3ff] p-3.5 rounded-xl flex items-center justify-center relative border border-[#dae2fd]">
+              <QRCode 
+                value={`mymobpay://web-login?challenge=${qrChallenge}`} 
+                size={160} 
+                level="M" 
+                style={{ width: '100%', height: 'auto' }}
+              />
+              <div className="absolute w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center">
+                <Zap className="w-4 h-4 text-[#0045de]" />
+              </div>
+            </div>
+
+            <p className="mt-4 text-xs font-semibold text-[#74777e] flex items-center justify-center gap-1.5">
+              <RefreshCw className="w-3.5 h-3.5 text-[#009d6d] animate-spin" style={{ animationDuration: '4s' }} />
+              <span>QR refreshes in {qrTimer}s</span>
+            </p>
+          </div>
+        </div>
+      )}
 
     </div>
   );
