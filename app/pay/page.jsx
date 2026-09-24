@@ -740,26 +740,19 @@ function PayPageContent() {
                         </button>
                       </div>
 
-                      <p>Or open your app directly</p>
-                      <div className="chips">
-                        {UPI_CHIPS.map(app => (
-                          <button
-                            key={app.id}
-                            type="button"
-                            onClick={() => {
-                              if (!displayAmt) return;
-                              window.location.href = buildUpiLink(app.id, displayAmt, activeId, merchant, isMandate);
-                            }}
-                            title={`Pay with ${app.label}`}
-                          >
-                            <img
-                              src={app.logo}
-                              alt={app.label}
-                              style={{ maxHeight: app.h, maxWidth: 64, width: 'auto', height: 'auto', display: 'block', objectFit: 'contain' }}
-                            />
-                            <span>{app.label}</span>
-                          </button>
-                        ))}
+                      <div style={{ fontSize: 12.5, color: 'var(--mut)', lineHeight: 1.55, marginTop: 14, paddingTop: 12, borderTop: '1px dashed var(--line)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 7 }}>
+                          <span style={{ width: 18, height: 18, borderRadius: '50%', background: 'var(--tint)', color: 'var(--brand-d)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>1</span>
+                          <span>Open any UPI app on your phone</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 7 }}>
+                          <span style={{ width: 18, height: 18, borderRadius: '50%', background: 'var(--tint)', color: 'var(--brand-d)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>2</span>
+                          <span>Scan QR code to pay exact amount</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ width: 18, height: 18, borderRadius: '50%', background: 'var(--tint)', color: 'var(--brand-d)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>3</span>
+                          <span>Click <strong>&quot;I&apos;ve paid, check status&quot;</strong> below</span>
+                        </div>
                       </div>
                     </div>
                   </div>
