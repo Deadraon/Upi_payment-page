@@ -989,28 +989,18 @@ function PayPageContent() {
             <div className="gh" style={{ marginTop: 16 }}>Payment status</div>
             <div className="panel">
               <div className="sp-wrap" style={{ margin: '0 auto 16px', display: 'flex', justifyContent: 'center' }}>
-                <svg width="48" height="48" viewBox="0 0 48 48" style={{ display: 'block' }}>
-                  <circle cx="24" cy="24" r="20" stroke="#eaf2fe" strokeWidth="4.5" fill="none" />
+                <svg className="sp-spinner" width="48" height="48" viewBox="0 0 48 48" style={{ display: 'block' }}>
+                  <circle cx="24" cy="24" r="20" stroke="var(--tint)" strokeWidth="4.5" fill="none" />
                   <circle
                     cx="24"
                     cy="24"
                     r="20"
-                    stroke="#2f86f6"
+                    stroke="var(--brand)"
                     strokeWidth="4.5"
                     strokeLinecap="round"
                     fill="none"
-                    strokeDasharray="36 90"
-                    className="sp-svg"
-                  >
-                    <animateTransform
-                      attributeName="transform"
-                      type="rotate"
-                      from="0 24 24"
-                      to="360 24 24"
-                      dur="0.85s"
-                      repeatCount="indefinite"
-                    />
-                  </circle>
+                    strokeDasharray="32 94"
+                  />
                 </svg>
               </div>
               <h2 id="wT">Checking your payment</h2>
@@ -1844,14 +1834,25 @@ export default function PayPage() {
           max-width: 30ch;
         }
 
-        @-webkit-keyframes sp {
+        @-webkit-keyframes sp-spin {
           0% { -webkit-transform: rotate(0deg); transform: rotate(0deg); }
           100% { -webkit-transform: rotate(360deg); transform: rotate(360deg); }
         }
 
-        @keyframes sp {
+        @keyframes sp-spin {
           0% { -webkit-transform: rotate(0deg); transform: rotate(0deg); }
           100% { -webkit-transform: rotate(360deg); transform: rotate(360deg); }
+        }
+
+        .sp-spinner {
+          width: 48px;
+          height: 48px;
+          margin: 0 auto;
+          display: block;
+          -webkit-animation: sp-spin 0.85s linear infinite !important;
+          animation: sp-spin 0.85s linear infinite !important;
+          -webkit-transform-origin: 50% 50%;
+          transform-origin: 50% 50%;
         }
 
         .sp {
@@ -1861,18 +1862,9 @@ export default function PayPage() {
           border: 4.5px solid var(--tint);
           border-top-color: var(--brand);
           margin: 0 auto;
-          -webkit-animation: sp 0.85s linear infinite !important;
-          animation: sp 0.85s linear infinite !important;
-          -webkit-transform-origin: center center;
-          transform-origin: center center;
-          -webkit-transform: translateZ(0);
-          transform: translateZ(0);
-          will-change: transform;
-        }
-
-        .sp-svg {
-          -webkit-transform-origin: 24px 24px;
-          transform-origin: 24px 24px;
+          -webkit-animation: sp-spin 0.85s linear infinite !important;
+          animation: sp-spin 0.85s linear infinite !important;
+          box-sizing: border-box;
         }
 
         .okc {
@@ -1967,14 +1959,14 @@ export default function PayPage() {
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .sp { animation-duration: 3s; }
+          .sp, .sp-spinner { animation-duration: 2s; }
           .okc circle, .okc path { animation-duration: 0.01s; animation-delay: 0s; }
           .prog div, .rg-fg { transition: none; }
         }
       `}</style>
       <Suspense fallback={
         <div style={{ minHeight: '100vh', background: '#eef2f8', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 12, fontFamily: '"DM Sans",sans-serif', color: '#667085', fontSize: 14, fontWeight: 600 }}>
-          <div style={{ width: 36, height: 36, border: '3px solid #eaf2fe', borderTopColor: '#2f86f6', borderRadius: '50%', animation: 'sp .8s linear infinite' }} />
+          <div style={{ width: 36, height: 36, border: '3px solid #eaf2fe', borderTopColor: '#2f86f6', borderRadius: '50%', animation: 'sp-spin .8s linear infinite' }} />
           Loading checkout…
         </div>
       }>
