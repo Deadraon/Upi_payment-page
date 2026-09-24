@@ -177,6 +177,13 @@ body {
   100% { transform: translateX(250%); }
 }
 
+@keyframes laserSweep {
+  0% { transform: translateY(0); opacity: 0; }
+  12% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { transform: translateY(135px); opacity: 0; }
+}
+
 /* ─── Animation Utility Classes ─────────────────────────── */
 .animate-fade-up      { animation: fadeUp      0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 .animate-fade-in      { animation: fadeIn      0.4s ease forwards; }
@@ -187,6 +194,7 @@ body {
 .animate-pulse-success{ animation: pulse-success 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite; }
 .animate-shake        { animation: shake       0.35s ease; }
 .animate-scan-beam    { animation: scanBeam    2.2s ease-in-out infinite alternate; }
+.animate-laser        { animation: laserSweep  2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
 .animate-packet-pulse { animation: packetPulse 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
 .animate-laser-shine  { animation: laserShine  3.5s ease-in-out infinite; }
 

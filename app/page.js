@@ -40,6 +40,48 @@ export default function HomePage() {
   const [heroTab, setHeroTab] = useState('checkout'); // 'checkout' | 'console'
   const [selectedUpiApp, setSelectedUpiApp] = useState('gpay');
 
+  // Dynamic animated rotating text lines in Hero section
+  const heroLines = useMemo(() => [
+    'Zero gateway fees.',
+    'Instant bank credit.',
+    '0% transaction charges.',
+    'Real-time T+0 settlement.',
+    'Direct UPI to your account.'
+  ], []);
+
+  const [typedLine, setTypedLine] = useState(heroLines[0]);
+  const [lineIndex, setLineIndex] = useState(0);
+  const [isDeletingLine, setIsDeletingLine] = useState(false);
+  const [charIndex, setCharIndex] = useState(heroLines[0].length);
+  const [typingSpeed, setTypingSpeed] = useState(100);
+
+  useEffect(() => {
+    const handleType = () => {
+      const current = heroLines[lineIndex];
+      if (isDeletingLine) {
+        setTypedLine(current.substring(0, charIndex - 1));
+        setCharIndex(prev => prev - 1);
+        setTypingSpeed(45);
+      } else {
+        setTypedLine(current.substring(0, charIndex + 1));
+        setCharIndex(prev => prev + 1);
+        setTypingSpeed(95);
+      }
+
+      if (!isDeletingLine && charIndex === current.length) {
+        setTypingSpeed(2200); // Pause on completed line
+        setIsDeletingLine(true);
+      } else if (isDeletingLine && charIndex === 0) {
+        setIsDeletingLine(false);
+        setLineIndex(prev => (prev + 1) % heroLines.length);
+        setTypingSpeed(320); // Pause before next line
+      }
+    };
+
+    const timer = setTimeout(handleType, typingSpeed);
+    return () => clearTimeout(timer);
+  }, [charIndex, isDeletingLine, lineIndex, typingSpeed, heroLines]);
+
   // Senior Developer Product Suite Showcase states
   const [productDevLang, setProductDevLang] = useState('curl'); // 'curl' | 'node' | 'python'
   const [productGatewaySimulated, setProductGatewaySimulated] = useState(false);
@@ -282,11 +324,20 @@ export default function HomePage() {
               <span>Direct UPI & bank transfer rails active · 0% MDR</span>
             </div>
 
-            {/* Authoritative Headline */}
-            <h1 className="text-4xl sm:text-5xl lg:text-[54px] font-bold text-slate-900 tracking-tight leading-[1.12] animate-fade-up delay-100">
-              Accept payments directly <br className="hidden sm:inline" />
-              to your bank. <br />
-              <span className="text-blue-600">Zero gateway fees.</span>
+            {/* Authoritative Headline with separate animated lines */}
+            <h1 className="text-4xl sm:text-5xl lg:text-[54px] font-bold text-slate-900 tracking-tight leading-[1.15]">
+              <span className="block animate-fade-up delay-100">
+                Accept payments directly
+              </span>
+              <span className="block animate-fade-up delay-200 mt-1">
+                to your bank.
+              </span>
+              <span className="block text-blue-600 animate-fade-up delay-300 mt-1 min-h-[1.2em]">
+                <span className="relative inline-block">
+                  {typedLine}
+                  <span className="inline-block w-[3px] h-[0.85em] bg-blue-600 ml-1.5 align-middle animate-pulse" style={{ verticalAlign: 'baseline', marginTop: '-2px' }}>|</span>
+                </span>
+              </span>
             </h1>
 
             {/* Calm, Reassuring Subhead */}
@@ -388,6 +439,12 @@ export default function HomePage() {
                   {/* QR Code Container */}
                   <div className="bg-white-pure border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col items-center justify-center space-y-3 relative overflow-hidden group">
                     
+                    {/* Futuristic Scanning Laser line with glowing beam */}
+                    <div className="absolute inset-x-0 top-0 pointer-events-none z-10 animate-laser">
+                      <div className="h-0.5 w-full bg-gradient-to-r from-transparent via-[#3395FF] to-transparent shadow-[0_0_12px_2px_rgba(51,149,255,0.85)]" />
+                      <div className="h-4 w-full bg-gradient-to-b from-[#3395FF]/15 to-transparent" />
+                    </div>
+
                     {/* Subtle Top Indicator line */}
                     <div className="absolute inset-x-0 h-0.5 bg-slate-300 top-0" />
 
