@@ -1120,7 +1120,7 @@ export default function LoginPage() {
                   </div>
                 )}
 
-                {/* QR Code Express Login Bar (in Signin mode) */}}
+                {/* QR Code Express Login Bar (in Signin mode) */}
                 {mode === 'signin' && (
                   <div className="mt-4 p-3.5 rounded-lg bg-[#eaedff] flex items-center justify-between gap-3 border border-[#dae2fd]/60">
                     <div className="flex items-center gap-3">
