@@ -344,104 +344,106 @@ export default function HomePage() {
                 <div className="bg-slate-800 w-28 h-4 rounded-b-2xl" />
               </div>
 
-              {/* Internal Screen Content - Exact MyMobPay Mobile Checkout UI */}
-              <div className="flex-1 bg-[#eef2f8] pt-6 flex flex-col justify-between font-sans select-none text-[#101828] overflow-hidden text-left">
+              {/* Internal Screen Content */}
+              <div className="flex-1 bg-[#0B192C] pt-8 px-5 pb-5 flex flex-col justify-between font-sans select-none text-white">
                 
-                {/* Header */}
-                <div className="bg-white px-3.5 py-2.5 flex justify-between items-center border-b border-[#eaecf0]">
-                  <div className="flex items-center gap-0 leading-none">
-                    <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 13, color: '#0f1b2d' }}>MyMob</span>
-                    <span style={{ fontFamily: "'Orbitron', sans-serif", fontWeight: 900, fontStyle: 'italic', fontSize: 13, color: '#3B82F6', marginLeft: 2 }}>Pay</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-[9px] font-semibold text-[#667085]">
-                    <ShieldCheck className="w-3 h-3 text-[#12995d]" />
-                    <span>Secure checkout</span>
-                  </div>
-                </div>
-
-                {/* Progress bar */}
-                <div className="h-[2.5px] bg-[#eaf2fe]">
-                  <div className="h-full w-[82%] bg-[#2f86f6] rounded-r" />
-                </div>
-
-                {/* Scroll Content Area */}
-                <div className="flex-1 p-3 space-y-2.5 overflow-hidden">
+                {/* Header Info */}
+                <div className="space-y-4">
                   
-                  {/* Amount card with Timer Ring */}
-                  <div className="bg-white rounded-2xl p-3 shadow-sm border border-[#eaecf0]/60 space-y-2">
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg bg-[#eaf2fe] text-[#1c6ee0] flex items-center justify-center font-extrabold text-xs">D</div>
-                        <div>
-                          <b className="block text-[11px] font-bold text-[#101828] leading-tight">Demo Store</b>
-                          <small className="flex items-center gap-1 text-[8.5px] text-[#12995d] font-semibold">
-                            <ShieldCheck className="w-2.5 h-2.5" /> Verified merchant
-                          </small>
-                        </div>
-                      </div>
-                      
-                      {/* Circular Timer Ring */}
-                      <div className="relative w-9 h-9 flex-none">
-                        <svg viewBox="0 0 60 60" className="w-full h-full">
-                          <circle cx="30" cy="30" r="26" fill="none" stroke="#eaf2fe" strokeWidth="4" />
-                          <circle cx="30" cy="30" r="26" fill="none" stroke="#2f86f6" strokeWidth="4" strokeLinecap="round" strokeDasharray="100" strokeDashoffset="24" transform="rotate(-90 30 30)" />
-                        </svg>
-                        <span className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-[#101828] font-mono">05:27</span>
-                      </div>
-                    </div>
-
-                    <div>
-                      <p className="text-[9px] font-semibold text-[#667085] uppercase tracking-wide">Amount to pay</p>
-                      <div className="text-2xl font-extrabold text-[#101828] tracking-tight leading-none mt-0.5">
-                        ₹{parseFloat(demoAmount || '500').toLocaleString('en-IN')}<s className="text-xs text-[#98a2b3] font-bold no-underline">.00</s>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-1.5 pt-1">
-                      <div className="bg-[#f6f8fb] rounded-lg p-1.5">
-                        <small className="block text-[7.5px] text-[#667085]">Order ID</small>
-                        <b className="text-[9px] font-bold text-[#101828] font-mono mt-0.5 block">#A7F2-9C41</b>
-                      </div>
-                      <div className="bg-[#f6f8fb] rounded-lg p-1.5">
-                        <small className="block text-[7.5px] text-[#667085]">Platform fee</small>
-                        <b className="text-[9px] font-bold text-[#101828] mt-0.5 flex items-center gap-1">
-                          ₹0.00<span className="bg-[#dcf5e8] text-[#0d7a47] text-[6.5px] px-1 py-0.2 rounded-full font-bold">Free</span>
-                        </b>
+                  {/* Status Bar */}
+                  <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 px-1">
+                    <span>10:42 AM</span>
+                    <div className="flex items-center gap-1">
+                      <span>LTE</span>
+                      <div className="w-4 h-2 border border-slate-350 rounded-sm p-0.5 flex items-center">
+                        <div className="bg-slate-400 w-full h-full rounded-xs" />
                       </div>
                     </div>
                   </div>
 
-                  {/* Pay with UPI Card */}
-                  <div className="bg-white rounded-2xl p-2.5 shadow-sm border border-[#eaecf0]/60 space-y-2">
-                    <p className="text-[8.5px] text-[#667085] text-center font-medium">Scan with any UPI app, or pay to the UPI ID</p>
+                  {/* Logo */}
+                  <div className="flex flex-col items-center justify-center pt-2">
+                    <MyMobPayLogo className="w-36 h-auto" textColor="#FFFFFF" />
+                    <p className="text-[10px] text-slate-400 font-medium tracking-wide mt-1">Direct bank checkout</p>
+                  </div>
+
+                  {/* Due amount card */}
+                  <div className="bg-[#0F1E36] border border-[#1D2D44] rounded-2xl p-4 shadow-sm space-y-2">
+                    <div className="flex justify-between items-center text-[10px] text-slate-400 font-semibold">
+                      <span>Total due</span>
+                      <span className="text-[#3395FF] font-semibold bg-[#0B2447] px-2 py-0.5 rounded text-[9px]">Direct bank rail</span>
+                    </div>
+                    <div className="flex items-baseline">
+                      <span className="text-sm font-bold text-slate-400 mr-0.5">₹</span>
+                      <span className="text-3xl font-bold text-white tracking-tight leading-none">
+                        {parseFloat(demoAmount || '500').toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                    <div className="pt-2 border-t border-[#1D2D44] flex justify-between text-[10px] font-medium text-slate-400">
+                      <span>Paying to:</span>
+                      <span className="font-semibold text-slate-200">Demo Store</span>
+                    </div>
+                  </div>
+
+                  {/* QR Code Container */}
+                  <div className="bg-white-pure border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col items-center justify-center space-y-3 relative overflow-hidden group">
                     
-                    {/* QR Frame with corners */}
-                    <div className="relative w-24 mx-auto p-1.5 bg-white border border-[#eaecf0] rounded-xl shadow-xs">
-                      <div className="w-full aspect-square flex items-center justify-center">
-                        <QRCode value={`upi://pay?pa=demo@mymobpay&pn=DemoStore&am=${demoAmount || '500'}&cu=INR`} size={84} level="M" style={{ width: '100%', height: 'auto' }} />
-                      </div>
-                    </div>
+                    {/* Subtle Top Indicator line */}
+                    <div className="absolute inset-x-0 h-0.5 bg-slate-300 top-0" />
 
-                    <div className="text-center font-bold text-[10px] text-[#101828]">Pay ₹{parseFloat(demoAmount || '500').toLocaleString('en-IN')}.00</div>
+                    {/* Highly stylized SVG vector QR Code */}
+                    <svg viewBox="0 0 100 100" className="w-32 h-32 text-slate-800" fill="currentColor">
+                      {/* Quiet Zone borders */}
+                      <path d="M0,0 h28 v8 h-20 v20 h-8 z M72,0 h28 v28 h-8 v-20 h-20 z M0,72 h8 v20 h-20 v-28 h8 z M72,100 h28 v-28 h-8 v20 h-20 z" fill="#00529B" opacity="0.15" />
+                      
+                      {/* Dynamic Modules - Grid mock points */}
+                      <rect x="10" y="10" width="20" height="20" fill="#0F172A" rx="2" />
+                      <rect x="14" y="14" width="12" height="12" fill="#FFFFFF" rx="1.5" />
+                      <rect x="17" y="17" width="6" height="6" fill="#3B82F6" />
 
-                    {/* Copy UPI ID bar */}
-                    <div className="flex justify-between items-center bg-[#f6f8fb] border border-[#eaecf0] rounded-lg p-1.5 text-[8.5px] font-mono">
-                      <span className="truncate max-w-[140px] text-[#101828]">9410181307@okbizaxis</span>
-                      <span className="bg-[#eaf2fe] text-[#1c6ee0] px-2 py-0.5 rounded font-bold text-[8px] cursor-pointer">Copy</span>
-                    </div>
+                      <rect x="70" y="10" width="20" height="20" fill="#0F172A" rx="2" />
+                      <rect x="74" y="14" width="12" height="12" fill="#FFFFFF" rx="1.5" />
+                      <rect x="77" y="17" width="6" height="6" fill="#3B82F6" />
+
+                      <rect x="10" y="70" width="20" height="20" fill="#0F172A" rx="2" />
+                      <rect x="14" y="74" width="12" height="12" fill="#FFFFFF" rx="1.5" />
+                      <rect x="17" y="77" width="6" height="6" fill="#3B82F6" />
+
+                      {/* Random mock QR dots */}
+                      <path d="M40,10 h6 v6 h-6 z M50,15 h8 v4 h-8 z M45,25 h10 v4 h-10 z M35,35 h8 v8 h-8 z M55,35 h12 v4 h-12 z M35,50 h12 v4 h-12 z M50,50 h6 v6 h-6 z M10,40 h8 v8 h-8 z M25,45 h10 v4 h-10 z M70,40 h8 v6 h-8 z M82,45 h8 v4 h-8 z M70,55 h12 v4 h-12 z M10,55 h6 v6 h-6 z M80,70 h10 v8 h-10 z M80,85 h8 v8 h-8 z M40,70 h6 v10 h-6 z M52,75 h8 v4 h-8 z M45,85 h12 v4 h-12 z" fill="#0F172A" />
+                      
+                      {/* Custom Center Logo */}
+                      <rect x="40" y="40" width="20" height="20" fill="#3B82F6" rx="4" />
+                      <text x="50" y="54" fontFamily="'Orbitron', sans-serif" fontWeight="950" fontSize="14" fill="#FFFFFF" textAnchor="middle">M</text>
+                    </svg>
+
+                    <span className="text-[9px] text-slate-400 font-semibold flex items-center gap-1">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> Auto-verify active
+                    </span>
+
                   </div>
 
                 </div>
 
-                {/* Bottom Bar */}
-                <div className="bg-white border-t border-[#eaecf0] p-2.5 flex items-center gap-3">
-                  <div className="text-left">
-                    <small className="block text-[7.5px] text-[#667085] leading-none">Total</small>
-                    <b className="text-[12px] font-extrabold text-[#101828] font-mono">₹{parseFloat(demoAmount || '500').toLocaleString('en-IN')}.00</b>
+                {/* Footer Section */}
+                <div className="space-y-4 pt-4 border-t border-slate-200">
+                  
+                  {/* Universal UPI Indicators */}
+                  <div className="space-y-2">
+                    <p className="text-[9px] text-slate-400 font-medium text-center">Scan with any UPI app</p>
+                    <div className="grid grid-cols-4 gap-1.5">
+                      <span className="bg-[#0F1E36] border border-[#1D2D44] text-blue-400 text-[8px] font-semibold py-1 px-1 rounded-lg text-center">UPI QR</span>
+                      <span className="bg-[#0F1E36] border border-[#1D2D44] text-emerald-400 text-[8px] font-semibold py-1 px-1 rounded-lg text-center">Direct pay</span>
+                      <span className="bg-[#0F1E36] border border-[#1D2D44] text-indigo-400 text-[8px] font-semibold py-1 px-1 rounded-lg text-center">Instant rail</span>
+                      <span className="bg-[#0F1E36] border border-[#1D2D44] text-sky-400 text-[8px] font-semibold py-1 px-1 rounded-lg text-center">Auto-match</span>
+                    </div>
                   </div>
-                  <button className="flex-1 bg-[#2f86f6] hover:bg-[#1c6ee0] text-white font-bold py-2 rounded-xl text-[11px] shadow-sm tracking-wide">
-                    I&apos;ve paid
-                  </button>
+
+                  {/* Security copy */}
+                  <div className="flex items-center justify-center gap-1.5 text-[9px] font-medium text-slate-400 text-center">
+                    <Lock className="w-3 h-3 text-slate-400" /> Secure checkout by MyMobPay
+                  </div>
+
                 </div>
 
               </div>
