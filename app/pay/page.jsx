@@ -174,11 +174,38 @@ function PayPageContent() {
       .then(({ data }) => { if (data) setMerchant(data); });
   }, [paramApiKey]);
 
-  /* Auto-create order */
+  /* Auto-create / hydrate order */
   useEffect(() => {
     if (autoCreated.current) return;
-    if (paramOrderId) { setOrderId(paramOrderId); if (paramAmount) setOrderAmount(parseFloat(paramAmount)); autoCreated.current = true; return; }
-    if (paramAmount || paramLid) { autoCreated.current = true; createOrder(parseFloat(paramAmount || 0), paramName, paramPhone, paramRef, paramNote, paramCallback, paramProject, paramLid); }
+
+    if (paramOrderId) {
+      // Pre-generated link: orderId is known but amount/merchant may not be in URL.
+      // Always fetch the order from the API to hydrate amount + merchant branding.
+      autoCreated.current = true;
+      setOrderId(paramOrderId);
+      if (paramAmount) {
+        setOrderAmount(parseFloat(paramAmount));
+      } else {
+        // Fetch order details so we get the amount and merchant info
+        fetch(`/api/orders?id=${paramOrderId}`)
+          .then(r => r.ok ? r.json() : null)
+          .then(d => {
+            if (!d) return;
+            if (d.amount != null) setOrderAmount(parseFloat(d.amount));
+            if (d.mode)           setOrderMode(d.mode);
+            if (d.note)           setOrderNote(d.note);
+            // Load merchant branding from the order response
+            if (d.merchant)       setMerchant(d.merchant);
+          })
+          .catch(() => {});
+      }
+      return;
+    }
+
+    if (paramAmount || paramLid) {
+      autoCreated.current = true;
+      createOrder(parseFloat(paramAmount || 0), paramName, paramPhone, paramRef, paramNote, paramCallback, paramProject, paramLid);
+    }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* Countdown */

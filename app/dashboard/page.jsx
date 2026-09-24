@@ -7862,7 +7862,13 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-            url = `${window.location.origin}/pay?order_id=${data.orderId}`;
+            // Include api_key + amount so the checkout page shows the right merchant
+            // and amount immediately (without waiting for the order API fetch)
+            const preParams = new URLSearchParams();
+            preParams.set('order_id', data.orderId);
+            if (profile?.api_key) preParams.set('key', (profile.sandbox_mode !== false ? 'test_' : 'live_') + profile.api_key);
+            if (payLinkAmount) preParams.set('amount', payLinkAmount);
+            url = `${window.location.origin}/pay?${preParams.toString()}`;
 
 
 
