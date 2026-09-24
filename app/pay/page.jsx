@@ -64,10 +64,10 @@ function buildUpiQrValue(amount, orderId, merchant, isMandate) {
 }
 
 const UPI_CHIPS = [
-  { id: 'phonepe', label: 'PhonePe',    dot: '#5f259f' },
-  { id: 'gpay',    label: 'Google Pay', dot: '#1a73e8' },
-  { id: 'paytm',   label: 'Paytm',      dot: '#00b9f1' },
-  { id: 'bhim',    label: 'BHIM',       dot: '#0b5cab' },
+  { id: 'phonepe', label: 'PhonePe',    logo: '/logos/phonepe.svg', h: 18 },
+  { id: 'gpay',    label: 'Google Pay', logo: '/logos/gpay.svg',    h: 17 },
+  { id: 'paytm',   label: 'Paytm',      logo: '/logos/paytm.svg',   h: 13 },
+  { id: 'bhim',    label: 'BHIM',       logo: '/logos/bhim.svg',    h: 14 },
 ];
 
 /* ──────────────────────────────────────────────────────────────
@@ -710,10 +710,10 @@ function PayPageContent() {
                   <li>Come back here and tap &quot;I&apos;ve paid&quot;</li>
                 </ol>
 
-                {/* Direct UPI App launcher chips */}
+                {/* Direct UPI App launcher chips with original app logos */}
                 <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px dashed var(--line)' }}>
-                  <p style={{ margin: '0 0 8px', fontSize: 12, color: 'var(--mut)', textAlign: 'center', fontWeight: 600 }}>Or open your UPI app directly</p>
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
+                  <p style={{ margin: '0 0 10px', fontSize: 12, color: 'var(--mut)', textAlign: 'center', fontWeight: 600 }}>Or pay directly using your UPI app</p>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
                     {UPI_CHIPS.map(app => (
                       <button
                         key={app.id}
@@ -725,21 +725,24 @@ function PayPageContent() {
                         style={{
                           all: 'unset',
                           cursor: 'pointer',
-                          display: 'inline-flex',
+                          display: 'flex',
                           alignItems: 'center',
-                          gap: 6,
-                          fontSize: 12,
-                          fontWeight: 700,
+                          justifyContent: 'center',
+                          minHeight: 40,
+                          padding: '6px 8px',
                           border: '1px solid var(--line)',
-                          borderRadius: 999,
-                          padding: '5px 12px 5px 9px',
+                          borderRadius: 12,
                           background: '#fff',
-                          color: 'var(--ink)',
-                          boxShadow: '0 1px 2px rgba(16,24,40,.04)'
+                          boxShadow: '0 1px 2px rgba(16,24,40,.04)',
+                          transition: 'all 0.15s'
                         }}
+                        title={`Pay with ${app.label}`}
                       >
-                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: app.dot, display: 'inline-block' }} />
-                        {app.label}
+                        <img
+                          src={app.logo}
+                          alt={app.label}
+                          style={{ maxHeight: app.h, maxWidth: '85%', width: 'auto', height: 'auto', display: 'block', objectFit: 'contain' }}
+                        />
                       </button>
                     ))}
                   </div>
