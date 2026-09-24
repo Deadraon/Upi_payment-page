@@ -49,6 +49,21 @@ function buildUpiLink(appId, amount, orderId, merchant, isMandate) {
   return imap[appId] || `upi://${upath}?${qs}`;
 }
 
+/* ── UPI QR string — always upi:// (NOT device deep-link) ─── */
+/* Android intent:// URLs break QR scanning — UPI apps expect upi:// */
+function buildUpiQrValue(amount, orderId, merchant, isMandate) {
+  const pa    = merchant?.upi_id || CONFIG.upiId;
+  const pn    = encodeURIComponent(merchant?.business_name || CONFIG.businessName);
+  const upath = isMandate ? 'mandate' : 'pay';
+  let qs = `pa=${pa}&pn=${pn}&am=${amount}&cu=INR&tn=${orderId}`;
+  if (isMandate) {
+    const d = new Date(); d.setDate(d.getDate() + 3);
+    const ds = String(d.getDate()).padStart(2,'0') + String(d.getMonth()+1).padStart(2,'0') + d.getFullYear();
+    qs += `&validitystart=${ds}&recur=MONTHLY&amrule=EXACT&share=Y`;
+  }
+  return `upi://${upath}?${qs}`;
+}
+
 const UPI_CHIPS = [
   { id:'phonepe', label:'PhonePe',    dot:'#5f259f' },
   { id:'gpay',    label:'Google Pay', dot:'#1a73e8' },
@@ -140,7 +155,7 @@ function PayPageContent() {
   const cryptoWallet  = merchant?.crypto_wallet_address || CONFIG.defaultCryptoWallet;
   const cryptoNetwork = merchant?.crypto_network || CONFIG.defaultCryptoNetwork;
   const usdtAmt    = displayAmt ? (displayAmt / (CONFIG.usdtInrRate || 90)).toFixed(4) : '0.0000';
-  const upiQrValue = displayAmt ? buildUpiLink('scan', displayAmt, activeId, merchant, isMandate) : '';
+  const upiQrValue = displayAmt ? buildUpiQrValue(displayAmt, activeId, merchant, isMandate) : '';
 
   /* format currency like the HTML: ₹2,499.00 */
   const fmtInr = (n) => {
@@ -364,7 +379,12 @@ function PayPageContent() {
         )}
 
         <div className="pay-grid" style={S.grid}>
-          {/* ── LEFT: Receipt card ── */}
+          {/* ── LEFT: Receipt card ──
+               Outer div carries drop-shadow filter; inner aside carries the mask.
+               They MUST be on separate elements — combining filter+mask on the
+               same element is a known WebKit bug that makes the whole element
+               invisible on iOS Safari and Android Chrome. */}
+          <div style={{ filter:'drop-shadow(0 20px 26px rgba(15,27,45,.16))' }}>
           <aside className="pay-receipt" style={S.receipt} aria-label="Order summary">
             <div style={S.merRow}>
               <div style={S.merAv}>{bizName.charAt(0).toUpperCase()}</div>
@@ -413,6 +433,7 @@ function PayPageContent() {
               </div>
             </div>
           </aside>
+          </div>{/* /receipt filter wrapper */}
 
           {/* ── RIGHT: Payment methods ── */}
           <main>
@@ -609,14 +630,13 @@ const S = {
   secDot: { width:8, height:8, borderRadius:'50%', background:'#12995d', flexShrink:0, boxShadow:'0 0 0 4px rgba(18,153,93,.2)', display:'inline-block' },
   grid: { display:'grid', gridTemplateColumns:'.82fr 1.18fr', gap:28, alignItems:'start' },
 
-  /* receipt */
+  /* receipt — mask only (filter lives on the wrapper div above) */
   receipt: {
     background:'#fff',
     padding:'28px 26px 44px',
     fontFamily:'"IBM Plex Mono",monospace',
     fontSize:13,
     borderRadius:'18px 18px 0 0',
-    filter:'drop-shadow(0 20px 26px rgba(15,27,45,.16))',
     WebkitMask:'radial-gradient(7px at 7px 100%,#0000 98%,#000) 0 100%/14px 100% repeat-x',
     mask:'radial-gradient(7px at 7px 100%,#0000 98%,#000) 0 100%/14px 100% repeat-x',
   },
