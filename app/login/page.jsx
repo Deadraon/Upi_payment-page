@@ -348,28 +348,24 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const { error: otpErr } = await supabase.auth.signInWithOtp({
-        email: cleanEmail,
-        options: {
-          shouldCreateUser: mode === 'signup',
-        },
+      const res = await fetch('/api/auth/email-otp/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: cleanEmail }),
       });
+      const data = await res.json();
 
-      if (otpErr) {
-        if (otpErr.message?.toLowerCase().includes('signups not allowed')) {
-          setError('No merchant account registered with this email. Please sign up below.');
-          return;
-        }
-        throw otpErr;
+      if (!res.ok || data.error) {
+        throw new Error(data.error || 'Could not send verification code.');
       }
 
       setEmailOtpSent(true);
       setEmailOtp('');
       setEmailTimer(45);
-      setMessage(`6-digit verification code sent to ${cleanEmail}. Check your inbox!`);
+      setMessage(data.message || `6-digit verification code sent to ${cleanEmail}. Check your inbox!`);
     } catch (err) {
       console.error('Email OTP send error:', err);
-      setError(err?.message || 'Could not send verification email. Please try again.');
+      setError(formatCustomerError(err));
     } finally {
       setLoading(false);
     }
@@ -387,28 +383,23 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const { error: linkErr } = await supabase.auth.signInWithOtp({
-        email: cleanEmail,
-        options: {
-          emailRedirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/dashboard`,
-          shouldCreateUser: mode === 'signup',
-        },
+      const res = await fetch('/api/auth/email-link/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: cleanEmail }),
       });
+      const data = await res.json();
 
-      if (linkErr) {
-        if (linkErr.message?.toLowerCase().includes('signups not allowed')) {
-          setError('No merchant account registered with this email. Please sign up below.');
-          return;
-        }
-        throw linkErr;
+      if (!res.ok || data.error) {
+        throw new Error(data.error || 'Could not send magic login link.');
       }
 
       setLinkSent(true);
       setLinkTimer(45);
-      setMessage(`Magic sign-in link dispatched to ${cleanEmail}. Check your inbox!`);
+      setMessage(data.message || `Magic sign-in link dispatched to ${cleanEmail}. Check your inbox!`);
     } catch (err) {
       console.error('Email Link send error:', err);
-      setError(err?.message || 'Could not send magic login link. Please try again.');
+      setError(formatCustomerError(err));
     } finally {
       setLoading(false);
     }
