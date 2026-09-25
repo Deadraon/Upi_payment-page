@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 36" fill="none">
+  <!-- Authentic CRED shield monogram + typography -->
+  <g fill="#121216">
+    <!-- Outer Shield Box -->
+    <path d="M4 4 H26 C27.65 4 29 5.35 29 7 V21 C29 27.63 23.63 33 17 33 C10.37 33 5 27.63 5 21 V7 C5 5.35 6.35 4 8 4 Z" fill="#121216"/>
+    <!-- Inner White Cutout -->
+    <path d="M10 8 H24 V20.5 C24 24.37 20.87 27.5 17 27.5 C13.13 27.5 10 24.37 10 20.5 V8 Z" fill="#FFFFFF"/>
+    <!-- Nested Inner Keyhole -->
+    <path d="M13.5 11.5 H20.5 V20.5 C20.5 22.43 18.93 24 17 24 C15.07 24 13.5 22.43 13.5 20.5 V11.5 Z" fill="#121216"/>
+    <rect x="15.5" y="15" width="3" height="5.5" rx="1.5" fill="#FFFFFF"/>
+  </g>
+  <!-- Bold Distinctive CRED Wordmark -->
+  <text x="34" y="24" font-family="'Inter', -apple-system, BlinkMacSystemFont, sans-serif" font-weight="900" font-size="16" letter-spacing="1.5" fill="#121216">CRED</text>
+</svg>
