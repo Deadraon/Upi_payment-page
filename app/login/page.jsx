@@ -24,6 +24,77 @@ const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = 'var(--text-prima
   </svg>
 );
 
+// ── Translate developer/system errors to clear, customer-friendly English ──
+function formatCustomerError(err) {
+  if (!err) return '';
+  const raw = (typeof err === 'string' ? err : err.message || err.error_description || String(err)).trim();
+  const lower = raw.toLowerCase();
+
+  // 1. Token / OTP code errors (e.g. "Token has expired or is invalid")
+  if (
+    lower.includes('token') || 
+    lower.includes('otp') || 
+    lower.includes('verification code')
+  ) {
+    if (lower.includes('expired')) {
+      return 'Your verification code has expired. Please request a new code below.';
+    }
+    if (lower.includes('invalid') || lower.includes('incorrect') || lower.includes('wrong')) {
+      return 'The verification code you entered is incorrect. Please check the 6 digits in your email and try again.';
+    }
+    return 'Invalid verification code. Please check the 6 digits sent to your email and try again.';
+  }
+
+  // 2. Magic Link errors
+  if (lower.includes('link') && (lower.includes('expired') || lower.includes('invalid') || lower.includes('already used'))) {
+    return 'This sign-in link has expired or has already been used. Please request a new link.';
+  }
+
+  // 3. Credentials & Accounts
+  if (lower.includes('invalid login credentials') || lower.includes('invalid credentials')) {
+    return 'Incorrect email or password. Please double-check your details and try again.';
+  }
+  if (lower.includes('signups not allowed') || lower.includes('user not found')) {
+    return 'No merchant account registered with this email. Please sign up below.';
+  }
+  if (lower.includes('already registered') || lower.includes('user already exists') || lower.includes('email already')) {
+    return 'An account with this email already exists. Please log in instead.';
+  }
+  if (lower.includes('email not confirmed')) {
+    return 'Please check your email and click the confirmation link to activate your account.';
+  }
+
+  // 4. Rate limits & Cooldowns
+  if (
+    lower.includes('rate limit') || 
+    lower.includes('over_email_send_rate_limit') || 
+    lower.includes('too many') || 
+    lower.includes('security purposes')
+  ) {
+    return 'Too many attempts. For your security, please wait a minute before requesting another code.';
+  }
+
+  // 5. Network / Server errors
+  if (lower.includes('network') || lower.includes('failed to fetch') || lower.includes('load failed')) {
+    return 'Connection issue. Please check your internet connection and try again.';
+  }
+  if (lower.includes('500') || lower.includes('server error') || lower.includes('internal error')) {
+    return 'Our server is temporarily busy. Please wait a moment and try again.';
+  }
+
+  // 6. Generic cleanup: Strip any developer technical terms
+  return raw
+    .replace(/\btoken\b/gi, 'verification code')
+    .replace(/\bcredentials\b/gi, 'login details')
+    .replace(/\bcredential\b/gi, 'login detail')
+    .replace(/\bauthenticate\b/gi, 'sign in')
+    .replace(/\bauthentication\b/gi, 'sign in')
+    .replace(/\bunauthorized\b/gi, 'access denied')
+    .replace(/\bjwt\b/gi, 'session')
+    .replace(/\bpayload\b/gi, 'information')
+    .replace(/\bendpoint\b/gi, 'service');
+}
+
 // ── 6-digit OTP box input component ────────────────────────────────
 function OtpBoxInput({ value, onChange, disabled }) {
   // Always produce exactly 6 slots
@@ -361,7 +432,7 @@ export default function LoginPage() {
       });
 
       if (verifyErr) {
-        setError(verifyErr.message || 'Invalid or expired code. Please try again.');
+        setError(formatCustomerError(verifyErr));
         setEmailOtp('');
         return;
       }
@@ -370,7 +441,7 @@ export default function LoginPage() {
       setTimeout(() => router.push('/dashboard'), 600);
     } catch (err) {
       console.error('Email OTP verify error:', err);
-      setError(err?.message || 'Verification failed. Please check the code.');
+      setError(formatCustomerError(err));
     } finally {
       setLoading(false);
     }
@@ -535,8 +606,8 @@ export default function LoginPage() {
       }
     } catch (err) {
       console.error('Auth handler error:', err);
-      const exactMessage = err?.message || err?.toString() || 'An error occurred during authentication.';
-      setError(exactMessage);
+      const exactMessage = err?.message || err?.toString() || 'Could not sign in. Please try again.';
+      setError(formatCustomerError(exactMessage));
     } finally {
       setLoading(false);
     }
@@ -555,7 +626,7 @@ export default function LoginPage() {
       });
       if (authError) throw authError;
     } catch (err) {
-      setError(err.message || 'An error occurred during Google authentication.');
+      setError(formatCustomerError(err?.message || 'Could not sign in with Google. Please try again.'));
       setLoading(false);
     }
   };
@@ -737,7 +808,7 @@ export default function LoginPage() {
                 {error && (
                   <div className="mt-4 bg-red-50 border border-red-200 text-red-600 p-3 rounded-lg text-xs font-medium flex items-start gap-2">
                     <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-                    <span className="flex-1 leading-normal">{error}</span>
+                    <span className="flex-1 leading-normal">{formatCustomerError(error)}</span>
                   </div>
                 )}
 
@@ -965,11 +1036,11 @@ export default function LoginPage() {
                             </p>
                           </div>
                           <p className="text-[11px] text-[#74777e] leading-relaxed">
-                            Click the button in your email to instantly authenticate and access your merchant console.
+                            Click the link in your email to sign in instantly and open your dashboard.
                           </p>
                           <div className="pt-1 flex items-center justify-center gap-2 text-[11px] text-emerald-700 font-semibold bg-emerald-50 py-1.5 px-3 rounded-md border border-emerald-200/80">
                             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                            <span>Listening for login approval...</span>
+                            <span>Waiting for sign-in confirmation...</span>
                           </div>
                         </div>
 
