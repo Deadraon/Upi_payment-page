@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import QRCode from 'react-qr-code';
+import InteractiveBackground from '@/components/InteractiveBackground';
 
 const MyMobPayLogo = ({ className = 'h-8 w-auto', textColor = '#131b2e' }) => (
   <svg viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
@@ -632,7 +633,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#faf8ff] flex flex-col justify-center items-center font-sans antialiased p-4 sm:p-6">
+    <div className="min-h-screen lg:h-screen lg:overflow-hidden grid grid-cols-1 lg:grid-cols-12 bg-slate-50 font-sans text-slate-900 relative">
+      <InteractiveBackground />
       
       {/* ────────────────────────────────────────────────────────
          LEFT PANE: DYNAMIC PRODUCT HERO SHOWCASE (Desktop only)
@@ -714,7 +716,7 @@ export default function LoginPage() {
                   </div>
 
                   {/* QR Vector preview with Animated Scanning Laser */}
-                  <div className="bg-white-pure border border-slate-200 rounded-xl p-2.5 shadow-sm flex flex-col items-center justify-center space-y-2 relative overflow-hidden group">
+                  <div className="bg-white border border-slate-200 rounded-xl p-2.5 shadow-sm flex flex-col items-center justify-center space-y-2 relative overflow-hidden group">
                     
                     {/* Laser Scanner Beam */}
                     <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-[#3395FF] to-transparent top-0 animate-laser" />
