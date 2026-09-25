@@ -7,21 +7,16 @@ import {
   Loader2, Lock, Mail, ArrowRight, ShieldCheck, 
   CheckCircle2, Building2, QrCode, Phone, Smartphone,
   Zap, Eye, EyeOff, AlertCircle, X, RefreshCw, MessageCircle,
-  Link2
+  Link2, Check
 } from 'lucide-react';
-import QRCode from 'react-qr-code';
 import Link from 'next/link';
-import InteractiveBackground from '@/components/InteractiveBackground';
 
-const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = 'var(--text-primary)' }) => (
-  <svg viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
-    <text x="2" y="42" letterSpacing="0">
-      {/* MyMob */}
-      <tspan fontFamily="'Outfit', sans-serif" fontWeight="800" fontSize="36" fill={textColor}>MyMob</tspan>
-      {/* Pay */}
-      <tspan fontFamily="'Orbitron', sans-serif" fontWeight="900" fontStyle="italic" fontSize="36" fill="#3B82F6" dx="3">Pay</tspan>
-    </text>
-  </svg>
+const MyMobPayLogo = ({ className = 'h-8 w-auto' }) => (
+  <img 
+    alt="mymobpay" 
+    className={className}
+    src="https://lh3.googleusercontent.com/aida/AEtjO1VydcpYzBGg1jGsDZpaGPM87EfBZw99AvaBcG3wlNdKnwK0DrSFXdNofRQVtkO--VoT-kt_4wUTRsW_p66Ey37jJ8xSEFOTET7MmpnSzd7tZj-4e2ymUmlEBqryaso2cuhSIbLtjB7JZoSqCTlqHsYwsCLQcQk-AKRhBpc52d7hjmeGjPP3w4k0EcYw2sNJzbRLu-VTWI6OsLDMr27jjD7Nx3RctEACqnVDhNwQsNhWj9RP2dFl2kYhHuqb"
+  />
 );
 
 // ── Translate developer/system errors to clear, customer-friendly English ──
@@ -97,12 +92,10 @@ function formatCustomerError(err) {
 
 // ── 6-digit OTP box input component ────────────────────────────────
 function OtpBoxInput({ value, onChange, disabled }) {
-  // Always produce exactly 6 slots
   const digits = Array.from({ length: 6 }, (_, i) => (value || '')[i] || '');
   const inputRefs = useRef([]);
 
   useEffect(() => {
-    // Auto-focus first input on load
     inputRefs.current[0]?.focus();
   }, []);
 
@@ -165,7 +158,7 @@ function OtpBoxInput({ value, onChange, disabled }) {
   };
 
   return (
-    <div className="flex gap-2 sm:gap-2.5 justify-center py-2">
+    <div className="grid grid-cols-6 gap-2 w-full">
       {digits.map((d, i) => (
         <input
           key={i}
@@ -180,12 +173,12 @@ function OtpBoxInput({ value, onChange, disabled }) {
           onKeyDown={e => handleKey(i, e)}
           onPaste={handlePaste}
           onClick={e => e.target.select()}
-          className={`w-11 h-12 text-center text-xl font-bold rounded-lg border-2 transition-all focus:outline-none font-mono
-            ${ d
-              ? 'bg-[#eaedff] border-[#2c60ff] text-[#131b2e]'
-              : 'bg-[#f2f3ff] border-[#dae2fd] text-[#131b2e]'}
-            focus:border-[#2c60ff] focus:bg-white focus:shadow-md focus:shadow-blue-100
-            disabled:opacity-50`}
+          placeholder={d ? '' : '·'}
+          className={`h-12 w-full text-center font-bold text-[20px] rounded-lg border-2 transition-all outline-none ${
+            d
+              ? 'bg-white border-[#2c60ff] text-[#131b2e] shadow-sm'
+              : 'bg-[#f2f3ff] border-[#dae2fd] text-[#131b2e] placeholder:text-[#74777e]'
+          } focus:border-[#2c60ff] focus:bg-white focus:shadow-md disabled:opacity-50`}
         />
       ))}
     </div>
@@ -635,8 +628,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen lg:h-screen lg:overflow-hidden grid grid-cols-1 lg:grid-cols-12 bg-slate-50 font-sans text-slate-900 relative">
-      <InteractiveBackground />
+    <div className="min-h-screen bg-[#faf8ff] flex flex-col justify-center items-center font-sans antialiased p-4 sm:p-6">
       
       {/* ────────────────────────────────────────────────────────
          LEFT PANE: DYNAMIC PRODUCT HERO SHOWCASE (Desktop only)

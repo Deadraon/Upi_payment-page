@@ -3,6 +3,137 @@
 import React, { useState } from 'react';
 import QRCode from 'react-qr-code';
 
+/* ── Instant Inline Vector Icons (0ms render time, no font loading delays, no text ligatures) ── */
+const IconVerifiedUser = ({ className = "w-[18px] h-[18px]" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+  </svg>
+);
+
+const IconStorefront = ({ className = "w-6 h-6" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M4 4h16a1 1 0 011 1v2.5a3.5 3.5 0 01-3.5 3.5A3.5 3.5 0 0114 9.3 3.5 3.5 0 0110 9.3 3.5 3.5 0 016.5 11 3.5 3.5 0 013 7.5V5a1 1 0 011-1zm0 9.5a3.48 3.48 0 002 .63c1.07 0 2.05-.48 2.7-1.24.66.76 1.63 1.24 2.7 1.24s2.05-.48 2.7-1.24c.66.76 1.63 1.24 2.7 1.24a3.48 3.48 0 002-.63V19a1 1 0 01-1 1H5a1 1 0 01-1-1v-5.5zM13 14h-2v4h2v-4z"/>
+  </svg>
+);
+
+const IconCheckCircle = ({ className = "w-[13px] h-[13px]" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+  </svg>
+);
+
+const IconTranslate = ({ className = "w-[14px] h-[14px]" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M5 8l6 0M4 14l6-6 2 3M2 5h12M7 2v3M22 22l-5-10-5 10M14 18h6"/>
+  </svg>
+);
+
+const IconClose = ({ className = "w-5 h-5" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18"></line>
+    <line x1="6" y1="6" x2="18" y2="18"></line>
+  </svg>
+);
+
+const IconQrCodeScanner = ({ className = "w-6 h-6" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M2 7V3a1 1 0 011-1h4v2H4v3H2zm0 10v4a1 1 0 001 1h4v-2H4v-3H2zm18 0v3h-3v2h4a1 1 0 001-1v-4h-2zm-3-15v2h3v3h2V3a1 1 0 00-1-1h-4zM7 7h4v4H7V7zm6 0h4v4h-4V7zm-6 6h4v4H7v-4zm6 0h4v4h-4v-4z"/>
+  </svg>
+);
+
+const IconBolt = ({ className = "w-[12px] h-[12px]" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M11 21h-1l1-7H7.5c-.58 0-.57-.32-.38-.66.19-.35.05-.1.08-.15L13 3h1l-1 7h3.5c.49 0 .56.33.47.51l-.07.13L11 21z"/>
+  </svg>
+);
+
+const IconChevronRight = ({ className = "w-5 h-5" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="9 18 15 12 9 6"></polyline>
+  </svg>
+);
+
+const IconAccountBalance = ({ className = "w-6 h-6" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M4 10v7h3v-7H4zm6 0v7h3v-7h-3zm6 0v7h3v-7h-3zM2 22h19v-3H2v3zm9.5-20.5L2 6v2h19V6l-9.5-4.5z"/>
+  </svg>
+);
+
+const IconBitcoin = ({ className = "w-6 h-6" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M17.06 11.57c.59-.69.94-1.59.94-2.57 0-1.86-1.27-3.43-3-3.87V3h-2v2h-2V3H9v2H6v2h2v10H6v2h3v2h2v-2h2c2.21 0 4-1.79 4-4 0-1.45-.78-2.73-1.94-3.43zM10 7h3c1.1 0 2 .9 2 2s-.9 2-2 2h-3V7zm4 10h-4v-4h4c1.1 0 2 .9 2 2s-.9 2-2 2z"/>
+  </svg>
+);
+
+const IconLink = ({ className = "w-[12px] h-[12px]" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"></path>
+    <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"></path>
+  </svg>
+);
+
+const IconSecurity = ({ className = "w-4 h-4" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+  </svg>
+);
+
+const IconSchedule = ({ className = "w-[14px] h-[14px]" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+  </svg>
+);
+
+const IconVerified = ({ className = "w-4 h-4" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M23 12l-2.44-2.79.34-3.69-3.61-.82-1.89-3.2L12 2.96 8.6 1.5 6.71 4.69 3.1 5.5l.34 3.7L1 12l2.44 2.79-.34 3.7 3.61.82L8.6 22.5l3.4-1.47 3.4 1.46 1.89-3.19 3.61-.82-.34-3.69L23 12zm-12.91 4.72l-3.8-3.81 1.48-1.48 2.32 2.33 5.85-5.87 1.48 1.48-7.33 7.35z"/>
+  </svg>
+);
+
+const IconCopy = ({ className = "w-4 h-4" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+    <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
+  </svg>
+);
+
+const IconCheck = ({ className = "w-4 h-4" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 6 9 17 4 12"></polyline>
+  </svg>
+);
+
+const IconInfo = ({ className = "w-[15px] h-[15px]" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+  </svg>
+);
+
+const IconLock = ({ className = "w-4 h-4" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+  </svg>
+);
+
+const IconHelp = ({ className = "w-[15px] h-[15px]" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 11.9 12 12.5 12 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/>
+  </svg>
+);
+
+const IconArrowForward = ({ className = "w-5 h-5" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="5" y1="12" x2="19" y2="12"></line>
+    <polyline points="12 5 19 12 12 19"></polyline>
+  </svg>
+);
+
+const IconWallet = ({ className = "w-5 h-5" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M21 18v1c0 1.1-.9 2-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h14c1.1 0 2 .9 2 2v1h-9a2 2 0 00-2 2v8a2 2 0 002 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+  </svg>
+);
+
 export default function DesktopCheckoutView({
   merchant,
   orderId,
@@ -129,9 +260,7 @@ export default function DesktopCheckoutView({
     return (
       <div className="w-full max-w-[560px] mx-auto my-12 bg-white rounded-2xl p-8 sm:p-10 shadow-2xl border border-slate-200 text-center animate-fade-in font-sans">
         <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-5 border-2 border-emerald-200">
-          <span className="material-symbols-outlined text-4xl text-emerald-600" style={{ fontVariationSettings: "'FILL' 1" }}>
-            check_circle
-          </span>
+          <IconCheckCircle className="w-12 h-12 text-emerald-600" />
         </div>
         <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Payment Received!</h2>
         <p className="text-slate-500 text-sm mt-1 mb-6">
@@ -165,7 +294,7 @@ export default function DesktopCheckoutView({
           className="focus-ring w-full py-3.5 bg-[#0045de] hover:bg-[#0038b7] text-white font-semibold rounded-xl text-sm transition-all shadow-sm cursor-pointer flex items-center justify-center gap-2"
         >
           <span>Return to {safeBizName}</span>
-          <span className="material-symbols-outlined text-lg">arrow_forward</span>
+          <IconArrowForward className="w-5 h-5" />
         </button>
       </div>
     );
@@ -178,7 +307,7 @@ export default function DesktopCheckoutView({
     return (
       <div className="w-full max-w-[500px] mx-auto my-12 bg-white rounded-2xl p-8 sm:p-10 shadow-2xl border border-slate-200 text-center animate-fade-in font-sans">
         <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-amber-200 text-amber-600">
-          <span className="material-symbols-outlined text-3xl">schedule</span>
+          <IconSchedule className="w-8 h-8 text-amber-600" />
         </div>
         <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Session Expired</h2>
         <p className="text-slate-500 text-sm mt-1 mb-6 leading-relaxed">
@@ -191,7 +320,7 @@ export default function DesktopCheckoutView({
           }}
           className="focus-ring w-full py-3 bg-[#000d21] hover:bg-slate-800 text-white font-semibold rounded-xl text-sm transition-all cursor-pointer flex items-center justify-center gap-2"
         >
-          <span className="material-symbols-outlined text-lg">refresh</span>
+          <IconSchedule className="w-5 h-5" />
           <span>Start Again</span>
         </button>
       </div>
@@ -203,12 +332,6 @@ export default function DesktopCheckoutView({
   ───────────────────────────────────────────────────────────── */
   return (
     <>
-      {/* Exact Material Symbols stylesheet */}
-      <link
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
-        rel="stylesheet"
-      />
-
       {/* Scoped CSS design tokens from MyMobPay Checkout.html */}
       <style jsx global>{`
         :root {
@@ -295,12 +418,7 @@ export default function DesktopCheckoutView({
 
             {/* 1. Floating Trust Pill on Top */}
             <div className="flex items-center gap-2 bg-surface-container-lowest shadow-sm rounded-full px-4 py-1.5 mb-4 border border-outline-variant/30">
-              <span
-                className="material-symbols-outlined text-secondary text-[18px]"
-                style={{ fontVariationSettings: "'FILL' 1" }}
-              >
-                verified_user
-              </span>
+              <IconVerifiedUser className="w-[18px] h-[18px] text-secondary flex-shrink-0" />
               <span className="text-label-md text-on-surface">
                 Encrypted checkout · <strong>mymob.tech</strong>
               </span>
@@ -315,23 +433,13 @@ export default function DesktopCheckoutView({
               <div className="bg-primary-container text-on-primary p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-secondary-container flex items-center justify-center shadow-md flex-shrink-0 text-on-primary">
-                    <span
-                      className="material-symbols-outlined text-2xl"
-                      style={{ fontVariationSettings: "'FILL' 1" }}
-                    >
-                      storefront
-                    </span>
+                    <IconStorefront className="w-6 h-6 text-white flex-shrink-0" />
                   </div>
                   <div className="flex flex-col">
                     <div className="flex items-center gap-2">
                       <span className="text-headline-sm text-on-primary font-semibold">{safeBizName}</span>
                       <span className="inline-flex items-center px-2 py-0.5 rounded-full text-label-sm bg-tertiary-fixed text-on-tertiary-fixed-variant gap-1 font-semibold">
-                        <span
-                          className="material-symbols-outlined text-[13px]"
-                          style={{ fontVariationSettings: "'FILL' 1" }}
-                        >
-                          check_circle
-                        </span>
+                        <IconCheckCircle className="w-[13px] h-[13px] text-on-tertiary-fixed-variant flex-shrink-0" />
                         Verified
                       </span>
                     </div>
@@ -349,7 +457,7 @@ export default function DesktopCheckoutView({
                       onClick={() => setLang(l => (l === 'en' ? 'hi' : 'en'))}
                       className="focus-ring bg-white/10 hover:bg-white/20 text-primary-fixed rounded-lg px-2.5 py-1 text-label-sm flex items-center gap-1.5 transition-colors cursor-pointer"
                     >
-                      <span className="material-symbols-outlined text-[14px]">translate</span>
+                      <IconTranslate className="w-[14px] h-[14px] flex-shrink-0" />
                       <span id="currentLangLabel">
                         {lang === 'en' ? 'English / हिन्दी' : 'हिन्दी / English'}
                       </span>
@@ -361,7 +469,7 @@ export default function DesktopCheckoutView({
                       title="Cancel and return"
                       aria-label="Cancel and return to store"
                     >
-                      <span className="material-symbols-outlined text-xl leading-none">close</span>
+                      <IconClose className="w-5 h-5 flex-shrink-0" />
                     </button>
                   </div>
                   <div className="flex items-baseline gap-1.5">
@@ -401,12 +509,7 @@ export default function DesktopCheckoutView({
                     >
                       <span className="flex items-center gap-3.5 min-w-0">
                         <span className="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center text-secondary flex-shrink-0">
-                          <span
-                            className="material-symbols-outlined text-2xl"
-                            style={{ fontVariationSettings: "'FILL' 1" }}
-                          >
-                            qr_code_scanner
-                          </span>
+                          <IconQrCodeScanner className="w-6 h-6 text-secondary flex-shrink-0" />
                         </span>
                         <span className="flex flex-col text-left min-w-0 flex-1">
                           <span className="text-title-md text-on-surface text-[15px] truncate block font-semibold">
@@ -417,24 +520,17 @@ export default function DesktopCheckoutView({
                               GPay, PhonePe, Paytm, BHIM
                             </span>
                             <span className="text-label-sm px-2 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed-variant font-bold flex items-center gap-0.5 flex-shrink-0">
-                              <span
-                                className="material-symbols-outlined text-[12px]"
-                                style={{ fontVariationSettings: "'FILL' 1" }}
-                              >
-                                bolt
-                              </span>
+                              <IconBolt className="w-[12px] h-[12px] text-on-tertiary-fixed-variant flex-shrink-0" />
                               Fastest
                             </span>
                           </span>
                         </span>
                       </span>
-                      <span
-                        className={`material-symbols-outlined font-bold text-lg tab-chevron flex-shrink-0 ${
+                      <IconChevronRight
+                        className={`w-5 h-5 flex-shrink-0 ${
                           activeOpt === 'upi' ? 'text-secondary' : 'text-outline-variant'
                         }`}
-                      >
-                        chevron_right
-                      </span>
+                      />
                     </button>
 
                     {/* Method 2: Direct bank transfer */}
@@ -453,7 +549,7 @@ export default function DesktopCheckoutView({
                     >
                       <span className="flex items-center gap-3.5 min-w-0">
                         <span className="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center text-on-surface-variant flex-shrink-0">
-                          <span className="material-symbols-outlined text-2xl">account_balance</span>
+                          <IconAccountBalance className="w-6 h-6 text-on-surface-variant flex-shrink-0" />
                         </span>
                         <span className="flex flex-col text-left min-w-0 flex-1">
                           <span className="text-title-md text-on-surface text-[15px] truncate block font-semibold">
@@ -469,13 +565,11 @@ export default function DesktopCheckoutView({
                           </span>
                         </span>
                       </span>
-                      <span
-                        className={`material-symbols-outlined font-bold text-lg tab-chevron flex-shrink-0 ${
+                      <IconChevronRight
+                        className={`w-5 h-5 flex-shrink-0 ${
                           activeOpt === 'bank' ? 'text-secondary' : 'text-outline-variant'
                         }`}
-                      >
-                        chevron_right
-                      </span>
+                      />
                     </button>
 
                     {/* Method 3: Crypto currency */}
@@ -494,7 +588,7 @@ export default function DesktopCheckoutView({
                     >
                       <span className="flex items-center gap-3.5 min-w-0">
                         <span className="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center text-on-surface-variant flex-shrink-0">
-                          <span className="material-symbols-outlined text-2xl">currency_bitcoin</span>
+                          <IconBitcoin className="w-6 h-6 text-on-surface-variant flex-shrink-0" />
                         </span>
                         <span className="flex flex-col text-left min-w-0 flex-1">
                           <span className="text-title-md text-on-surface text-[15px] truncate block font-semibold">
@@ -505,31 +599,24 @@ export default function DesktopCheckoutView({
                               USDT, BTC, ETH settlement
                             </span>
                             <span className="text-label-sm px-2 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed-variant font-semibold flex items-center gap-0.5 flex-shrink-0">
-                              <span
-                                className="material-symbols-outlined text-[12px]"
-                                style={{ fontVariationSettings: "'FILL' 1" }}
-                              >
-                                link
-                              </span>
+                              <IconLink className="w-[12px] h-[12px] text-on-tertiary-fixed-variant flex-shrink-0" />
                               Web3
                             </span>
                           </span>
                         </span>
                       </span>
-                      <span
-                        className={`material-symbols-outlined font-bold text-lg tab-chevron flex-shrink-0 ${
+                      <IconChevronRight
+                        className={`w-5 h-5 flex-shrink-0 ${
                           activeOpt === 'crypto' ? 'text-secondary' : 'text-outline-variant'
                         }`}
-                      >
-                        chevron_right
-                      </span>
+                      />
                     </button>
                   </div>
 
                   {/* Buyer Protection Footnote */}
                   <div className="mt-6 p-3 rounded-xl bg-surface-container-high/40 text-on-surface-variant text-center sm:text-left">
                     <div className="flex items-center gap-2 text-on-surface justify-center sm:justify-start">
-                      <span className="material-symbols-outlined text-base text-secondary">security</span>
+                      <IconSecurity className="w-4 h-4 text-secondary flex-shrink-0" />
                       <span className="text-label-md font-semibold">MyMobPay Buyer Protection</span>
                     </div>
                     <p className="text-body-sm text-[11px] text-on-surface-variant mt-1 leading-normal">
@@ -659,7 +746,7 @@ export default function DesktopCheckoutView({
 
                         <div className="flex-1 text-center sm:text-left">
                           <div className="inline-flex items-center gap-1.5 bg-surface-container-highest text-secondary px-2.5 py-0.5 rounded-full text-label-sm mb-1.5">
-                            <span className="material-symbols-outlined text-[14px]">schedule</span>
+                            <IconSchedule className="w-[14px] h-[14px] text-secondary flex-shrink-0" />
                             <span className="font-mono font-semibold" id="qrTimer">
                               QR expires in {safeMm}:{safeSs}
                             </span>
@@ -678,12 +765,7 @@ export default function DesktopCheckoutView({
                         <div className="flex items-center justify-between">
                           <span className="text-title-md text-on-surface text-[14px] font-semibold flex items-center gap-1.5">
                             Pay directly to merchant VPA
-                            <span
-                              className="material-symbols-outlined text-secondary text-[16px]"
-                              style={{ fontVariationSettings: "'FILL' 1" }}
-                            >
-                              verified
-                            </span>
+                            <IconVerified className="w-4 h-4 text-secondary flex-shrink-0" />
                           </span>
                           <span className="text-label-sm text-on-tertiary-container font-semibold px-2 py-0.5 rounded-full bg-surface-container-high/60">
                             Instant verification
@@ -711,9 +793,11 @@ export default function DesktopCheckoutView({
                             }}
                             type="button"
                           >
-                            <span className="material-symbols-outlined text-[16px] copy-icon">
-                              {copiedField === 'upi' || copyFeedback ? 'check' : 'content_copy'}
-                            </span>
+                            {copiedField === 'upi' || copyFeedback ? (
+                              <IconCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                            ) : (
+                              <IconCopy className="w-4 h-4 flex-shrink-0" />
+                            )}
                             <span className="copy-label">
                               {copiedField === 'upi' || copyFeedback ? 'Copied!' : 'Copy UPI ID'}
                             </span>
@@ -721,7 +805,7 @@ export default function DesktopCheckoutView({
                         </div>
 
                         <p className="text-body-sm text-on-surface-variant text-[12px] leading-relaxed flex items-start gap-1.5">
-                          <span className="material-symbols-outlined text-secondary text-[15px] flex-shrink-0">info</span>
+                          <IconInfo className="w-[15px] h-[15px] text-secondary flex-shrink-0" />
                           <span>
                             Copy this UPI ID into any UPI app to pay <strong className="text-on-surface">₹{formattedAmount}</strong>.
                           </span>
@@ -759,9 +843,11 @@ export default function DesktopCheckoutView({
                               aria-label="Copy virtual account number"
                               onClick={() => handleCopyText(displayBankAcc, 'acc')}
                             >
-                              <span className="material-symbols-outlined text-[16px]">
-                                {copiedField === 'acc' ? 'check' : 'content_copy'}
-                              </span>
+                              {copiedField === 'acc' ? (
+                                <IconCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                              ) : (
+                                <IconCopy className="w-4 h-4 flex-shrink-0" />
+                              )}
                             </button>
                           </span>
                         </div>
@@ -775,9 +861,11 @@ export default function DesktopCheckoutView({
                               aria-label="Copy IFSC code"
                               onClick={() => handleCopyText(displayBankIfsc, 'ifsc')}
                             >
-                              <span className="material-symbols-outlined text-[16px]">
-                                {copiedField === 'ifsc' ? 'check' : 'content_copy'}
-                              </span>
+                              {copiedField === 'ifsc' ? (
+                                <IconCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                              ) : (
+                                <IconCopy className="w-4 h-4 flex-shrink-0" />
+                              )}
                             </button>
                           </span>
                         </div>
@@ -788,7 +876,7 @@ export default function DesktopCheckoutView({
                       </div>
 
                       <div className="p-3 rounded-lg bg-surface-container text-on-surface-variant flex items-center gap-2">
-                        <span className="material-symbols-outlined text-lg text-secondary">info</span>
+                        <IconInfo className="w-5 h-5 text-secondary flex-shrink-0" />
                         <span className="text-body-sm text-[12px]">
                           We verify your transfer automatically once it&apos;s credited — usually within a couple of minutes.
                         </span>
@@ -800,7 +888,7 @@ export default function DesktopCheckoutView({
                         onClick={triggerChecking}
                       >
                         <span>{isChecking ? 'Checking status…' : "I've made the transfer"}</span>
-                        <span className="material-symbols-outlined text-lg">arrow_forward</span>
+                        <IconArrowForward className="w-5 h-5 flex-shrink-0" />
                       </button>
 
                       {checkMsg && (
@@ -888,9 +976,11 @@ export default function DesktopCheckoutView({
                             aria-label="Copy deposit address"
                             onClick={() => handleCopyText(cryptoRates[selectedCrypto].address, 'crypto')}
                           >
-                            <span className="material-symbols-outlined text-[16px]">
-                              {copiedField === 'crypto' ? 'check' : 'content_copy'}
-                            </span>
+                            {copiedField === 'crypto' ? (
+                              <IconCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                            ) : (
+                              <IconCopy className="w-4 h-4 flex-shrink-0" />
+                            )}
                           </button>
                         </div>
                         <div className="p-2.5 bg-surface-container-lowest rounded-lg font-mono text-[11px] text-on-surface truncate border border-outline-variant/30 select-all" id="cryptoAddress">
@@ -903,7 +993,7 @@ export default function DesktopCheckoutView({
                         type="button"
                         onClick={() => announce('Web3 wallet connection will open in supported browser.')}
                       >
-                        <span className="material-symbols-outlined text-lg">account_balance_wallet</span>
+                        <IconWallet className="w-5 h-5 flex-shrink-0" />
                         <span>Connect Web3 wallet to pay</span>
                       </button>
                     </div>
@@ -912,12 +1002,7 @@ export default function DesktopCheckoutView({
                   {/* Card Bottom Row (Secure Checkout / Powered by mymob.tech) */}
                   <div className="pt-5 mt-auto flex items-center justify-between text-on-surface-variant border-t border-surface-container-low">
                     <div className="flex items-center gap-1.5 text-label-sm text-on-surface-variant">
-                      <span
-                        className="material-symbols-outlined text-[16px] text-on-tertiary-container"
-                        style={{ fontVariationSettings: "'FILL' 1" }}
-                      >
-                        lock
-                      </span>
+                      <IconLock className="w-4 h-4 text-on-tertiary-container flex-shrink-0" />
                       <span>Secure checkout</span>
                     </div>
                     <div className="flex items-center gap-1.5 text-label-sm text-on-surface-variant">
@@ -932,7 +1017,7 @@ export default function DesktopCheckoutView({
               {/* Card Footer Bar */}
               <footer className="bg-surface-container-high/60 py-3 px-6 flex flex-wrap items-center justify-between gap-3 text-on-surface-variant">
                 <div className="flex items-center gap-2 text-label-sm">
-                  <span className="material-symbols-outlined text-[16px] text-secondary">verified</span>
+                  <IconVerified className="w-4 h-4 text-secondary flex-shrink-0" />
                   <span>Protected by <strong>mymob.tech</strong> 256-bit encryption</span>
                 </div>
                 <div className="flex items-center gap-3 text-label-sm text-on-surface-variant">
@@ -950,7 +1035,7 @@ export default function DesktopCheckoutView({
                 type="button"
                 onClick={() => announce('Need help? Contact support@mymob.tech')}
               >
-                <span className="material-symbols-outlined text-[15px]">help</span>
+                <IconHelp className="w-[15px] h-[15px] flex-shrink-0" />
                 <span>Need help with payment?</span>
               </button>
               <span className="text-label-sm font-mono text-[12px]">Session ID: {sessionDisplay}</span>
