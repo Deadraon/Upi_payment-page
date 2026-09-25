@@ -10,6 +10,7 @@ import {
   Link2, Check
 } from 'lucide-react';
 import Link from 'next/link';
+import QRCode from 'react-qr-code';
 
 const MyMobPayLogo = ({ className = 'h-8 w-auto' }) => (
   <img 
