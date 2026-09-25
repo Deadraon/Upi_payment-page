@@ -45,9 +45,30 @@ export async function POST(req) {
       });
     }
 
-    // 3. Fallback: If custom SMTP is not yet configured, trigger Supabase mailer
-    console.warn(`[EMAIL OTP] SMTP not configured in .env.local. Falling back to Supabase mailer. OTP code is: ${otpCode}`);
-    await supabase.auth.signInWithOtp({ email: cleanEmail });
+    // 3. Fallback: If custom SMTP is not configured in .env.local, use Supabase's mailer
+    console.warn(`[EMAIL OTP] Using Supabase mailer with OTP template. OTP code is: ${otpCode}`);
+    
+    // Tag user metadata with auth_type = 'otp' so the conditional template displays the OTP code
+    try {
+      const { data: usersData } = await supabaseAdmin.auth.admin.listUsers();
+      const existingUser = usersData?.users?.find(
+        (u) => u.email?.toLowerCase() === cleanEmail
+      );
+      if (existingUser) {
+        await supabaseAdmin.auth.admin.updateUserById(existingUser.id, {
+          user_metadata: { ...(existingUser.user_metadata || {}), auth_type: 'otp' },
+        });
+      }
+    } catch (tagErr) {
+      console.warn('[EMAIL OTP API] Metadata tag notice:', tagErr?.message);
+    }
+
+    await supabase.auth.signInWithOtp({
+      email: cleanEmail,
+      options: {
+        data: { auth_type: 'otp' },
+      },
+    });
 
     return NextResponse.json({
       success: true,

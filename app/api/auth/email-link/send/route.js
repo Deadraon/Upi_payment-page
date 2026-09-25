@@ -51,11 +51,30 @@ export async function POST(req) {
       });
     }
 
-    // 3. Fallback: If custom SMTP is not yet configured, trigger Supabase mailer
-    console.warn(`[EMAIL LINK] SMTP not configured in .env.local. Falling back to Supabase mailer.`);
+    // 3. Fallback: If custom SMTP is not configured in .env.local, use Supabase's mailer
+    console.warn(`[EMAIL LINK] Using Supabase mailer with Magic Link template.`);
+
+    // Tag user metadata with auth_type = 'link' so the conditional template displays the Sign-In button
+    try {
+      const { data: usersData } = await supabaseAdmin.auth.admin.listUsers();
+      const existingUser = usersData?.users?.find(
+        (u) => u.email?.toLowerCase() === cleanEmail
+      );
+      if (existingUser) {
+        await supabaseAdmin.auth.admin.updateUserById(existingUser.id, {
+          user_metadata: { ...(existingUser.user_metadata || {}), auth_type: 'link' },
+        });
+      }
+    } catch (tagErr) {
+      console.warn('[EMAIL LINK API] Metadata tag notice:', tagErr?.message);
+    }
+
     await supabase.auth.signInWithOtp({
       email: cleanEmail,
-      options: { emailRedirectTo: redirectUrl },
+      options: {
+        data: { auth_type: 'link' },
+        emailRedirectTo: redirectUrl,
+      },
     });
 
     return NextResponse.json({
