@@ -348,9 +348,11 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
+      const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.mymob.tech';
       const { error: otpErr } = await supabase.auth.signInWithOtp({
         email: cleanEmail,
         options: {
+          emailRedirectTo: `${origin}/dashboard`,
           shouldCreateUser: mode === 'signup',
         },
       });
@@ -822,7 +824,7 @@ export default function LoginPage() {
 
                 {/* In Sign In Mode: Segmented Tab Switcher */}
                 {mode === 'signin' && (
-                  <div className="mt-6 p-1 bg-[#eaedff] rounded-lg grid grid-cols-3 gap-1">
+                  <div className="mt-6 p-1 bg-[#eaedff] rounded-lg grid grid-cols-2 gap-1">
                     <button 
                       type="button" 
                       onClick={() => { setAuthTab('email'); setError(''); setMessage(''); }}
@@ -834,18 +836,6 @@ export default function LoginPage() {
                     >
                       <Mail className="w-3.5 h-3.5" />
                       <span>Email OTP</span>
-                    </button>
-                    <button 
-                      type="button" 
-                      onClick={() => { setAuthTab('link'); setError(''); setMessage(''); }}
-                      className={`py-2 rounded-md text-xs font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer ${
-                        authTab === 'link' 
-                          ? 'bg-white text-[#0045de] shadow-sm' 
-                          : 'text-[#44474d] hover:text-[#131b2e]'
-                      }`}
-                    >
-                      <Link2 className="w-3.5 h-3.5" />
-                      <span>Email Link</span>
                     </button>
                     <button 
                       type="button" 
@@ -946,10 +936,15 @@ export default function LoginPage() {
                           )}
                         </button>
 
-                        {/* Resend button */}
-                        <div className="text-center pt-1">
+                        {/* Resend button & One-click tip */}
+                        <div className="text-center pt-2 space-y-2.5">
+                          <div className="flex items-center justify-center gap-1.5 p-2 rounded-lg bg-[#eaedff]/50 border border-[#dae2fd]/70 text-[11px] text-[#44474d]">
+                            <Zap className="w-3.5 h-3.5 text-[#0045de] shrink-0" />
+                            <span>You can type the 6 digits above or click the sign-in button in your email!</span>
+                          </div>
+
                           {emailTimer > 0 ? (
-                            <span className="text-xs text-[#74777e]">
+                            <span className="text-xs text-[#74777e] block">
                               Resend code in <strong className="text-[#131b2e]">{emailTimer}s</strong>
                             </span>
                           ) : (
@@ -960,112 +955,6 @@ export default function LoginPage() {
                               className="text-xs font-semibold text-[#0045de] hover:underline cursor-pointer"
                             >
                               Didn&apos;t receive email? Resend code
-                            </button>
-                          )}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                )}
-
-                {/* ── Sign In: Email Link (Magic Link) View ── */}
-                {mode === 'signin' && authTab === 'link' && (
-                  <div className="mt-6 flex flex-col space-y-4">
-                    {!linkSent ? (
-                      <>
-                        <div className="flex flex-col space-y-1.5">
-                          <label className="text-xs font-medium text-[#44474d] flex items-center justify-between">
-                            <span>Merchant Email Address</span>
-                            <span className="text-[#0045de] font-semibold flex items-center gap-1 text-[11px]">
-                              <Zap className="w-3.5 h-3.5" /> One-Click Sign In
-                            </span>
-                          </label>
-                          <div className="flex items-center rounded-lg bg-[#f2f3ff] px-3 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:shadow-md transition-all border border-transparent focus-within:border-blue-400">
-                            <Mail className="w-4 h-4 text-[#74777e] mr-2 shrink-0" />
-                            <input
-                              type="email"
-                              required
-                              value={email}
-                              onChange={(e) => setEmail(e.target.value)}
-                              onKeyDown={(e) => e.key === 'Enter' && email.includes('@') && handleSendEmailLink()}
-                              placeholder="merchant@company.com"
-                              className="w-full bg-transparent py-2.5 text-xs text-[#131b2e] placeholder-[#74777e] focus:outline-none font-medium"
-                            />
-                          </div>
-                          <p className="text-[11px] text-[#74777e] leading-relaxed">
-                            We will send a one-click magic sign-in link to your inbox. Tap the link to sign in instantly with no passwords or codes.
-                          </p>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={handleSendEmailLink}
-                          disabled={loading || !email.trim() || !email.includes('@')}
-                          className="w-full h-12 bg-[#2c60ff] hover:bg-[#0045de] text-white rounded-lg text-sm font-semibold flex items-center justify-center gap-2 shadow-md transition-all duration-200 cursor-pointer disabled:opacity-50"
-                        >
-                          {loading ? (
-                            <Loader2 className="w-5 h-5 animate-spin text-white" />
-                          ) : (
-                            <>
-                              <Link2 className="w-4 h-4" />
-                              <span>Send Magic Sign-In Link</span>
-                              <ArrowRight className="w-4 h-4" />
-                            </>
-                          )}
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => { setAuthTab('email'); setError(''); setMessage(''); }}
-                          disabled={loading}
-                          className="w-full h-10 bg-[#eaedff] hover:bg-[#e2e7ff] text-[#44474d] hover:text-[#131b2e] rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
-                        >
-                          <Mail className="w-3.5 h-3.5 text-[#0045de]" />
-                          <span>Prefer a 6-digit code? Use Email OTP instead</span>
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <div className="p-4 rounded-xl bg-gradient-to-br from-[#eaedff] to-[#f4f6ff] border border-[#dae2fd] text-center space-y-3">
-                          <div className="w-12 h-12 mx-auto rounded-full bg-blue-100 flex items-center justify-center text-[#0045de] shadow-inner">
-                            <Mail className="w-6 h-6 text-[#0045de]" />
-                          </div>
-                          <div>
-                            <h3 className="text-sm font-bold text-[#131b2e]">Check Your Inbox!</h3>
-                            <p className="text-xs text-[#44474d] mt-1">
-                              We sent a one-click magic link to <strong className="text-[#0045de]">{email}</strong>
-                            </p>
-                          </div>
-                          <p className="text-[11px] text-[#74777e] leading-relaxed">
-                            Click the link in your email to sign in instantly and open your dashboard.
-                          </p>
-                          <div className="pt-1 flex items-center justify-center gap-2 text-[11px] text-emerald-700 font-semibold bg-emerald-50 py-1.5 px-3 rounded-md border border-emerald-200/80">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                            <span>Waiting for sign-in confirmation...</span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between pt-1">
-                          <button
-                            type="button"
-                            onClick={() => { setLinkSent(false); setError(''); setMessage(''); }}
-                            className="text-xs font-semibold text-[#74777e] hover:text-[#131b2e] cursor-pointer"
-                          >
-                            ← Change email
-                          </button>
-
-                          {linkTimer > 0 ? (
-                            <span className="text-xs text-[#74777e]">
-                              Resend link in <strong className="text-[#131b2e]">{linkTimer}s</strong>
-                            </span>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={handleSendEmailLink}
-                              disabled={loading}
-                              className="text-xs font-semibold text-[#0045de] hover:underline cursor-pointer"
-                            >
-                              Didn&apos;t receive link? Resend
                             </button>
                           )}
                         </div>
