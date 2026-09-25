@@ -80,28 +80,44 @@ export default function DesktopCheckoutView({
   const [selectedCrypto, setSelectedCrypto] = useState('USDT');
   const [copiedCryptoAddr, setCopiedCryptoAddr] = useState(false);
 
-  // Formatted amount display
-  const formattedAmount = (displayAmt || 1).toLocaleString('en-IN', {
+  // Safe guarded values
+  const safeBizName = bizName || 'Merchant';
+  const safeBizInitial = bizInitial || safeBizName.charAt(0).toUpperCase();
+  const safeActiveId = activeId ? String(activeId) : (paramRef ? String(paramRef) : 'APX-98214');
+  const orderRefDisplay = safeActiveId.startsWith('#')
+    ? safeActiveId.replace('#', '')
+    : safeActiveId.length > 8
+      ? safeActiveId.slice(-8).toUpperCase()
+      : safeActiveId.toUpperCase();
+
+  const numAmt = typeof displayAmt === 'number' && !isNaN(displayAmt)
+    ? displayAmt
+    : (parseFloat(displayAmt) || 1.0);
+
+  const formattedAmount = numAmt.toLocaleString('en-IN', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   });
 
+  const safeMm = mm != null ? String(mm) : '05';
+  const safeSs = ss != null ? String(ss) : '00';
+
   // Crypto conversion calculations
   const cryptoRates = {
     USDT: {
-      amount: `~ ${(displayAmt / 87).toFixed(2)} USDT`,
+      amount: `~ ${(numAmt / 87).toFixed(2)} USDT`,
       network: 'TRC20',
       address: cryptoWallet || 'TYsP8a3k8sLmQzK9vN2D6m4E9qB1wX2yZ7',
       color: '#009d6d'
     },
     BTC: {
-      amount: `~ ${(displayAmt / 8000000).toFixed(6)} BTC`,
+      amount: `~ ${(numAmt / 8000000).toFixed(6)} BTC`,
       network: 'Bitcoin network',
       address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
       color: '#f7931a'
     },
     ETH: {
-      amount: `~ ${(displayAmt / 280000).toFixed(4)} ETH`,
+      amount: `~ ${(numAmt / 280000).toFixed(4)} ETH`,
       network: 'Ethereum mainnet',
       address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976',
       color: '#627eea'
@@ -119,7 +135,7 @@ export default function DesktopCheckoutView({
 
   const handleAppClick = (appId) => {
     if (typeof buildUpiLink === 'function') {
-      const link = buildUpiLink(appId, displayAmt, activeId, merchant, false);
+      const link = buildUpiLink(appId, numAmt, safeActiveId, merchant, false);
       if (typeof window !== 'undefined') {
         window.location.href = link;
       }
@@ -127,9 +143,9 @@ export default function DesktopCheckoutView({
   };
 
   // Virtual bank account info fallback
-  const displayBankAcc = bankAcc || `MYMOB${activeId ? activeId.slice(-8).toUpperCase() : '98214APX'}`;
+  const displayBankAcc = bankAcc || `MYMOB${orderRefDisplay}`;
   const displayBankIfsc = bankIfsc || 'YESB0CMSNOC';
-  const displayBankName = bankName || bizName;
+  const displayBankName = bankName || safeBizName;
 
   /* ─────────────────────────────────────────────────────────────
      1. Success View (curView === 'vOk')
@@ -236,18 +252,18 @@ export default function DesktopCheckoutView({
           {/* Merchant Identity */}
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-[#2c60ff] flex items-center justify-center shadow-md flex-shrink-0 text-white font-black text-xl">
-              <span>{bizInitial || 'M'}</span>
+              <span>{safeBizInitial}</span>
             </div>
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <span className="text-lg font-bold text-white tracking-tight">{bizName}</span>
+                <span className="text-lg font-bold text-white tracking-tight">{safeBizName}</span>
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#6ffbbe] text-[#005236] gap-1">
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   Verified
                 </span>
               </div>
               <div className="flex items-center gap-2 text-sky-200 text-xs mt-0.5 font-medium">
-                <span>Order #{activeId ? (activeId.startsWith('#') ? activeId.replace('#', '') : activeId.slice(-8).toUpperCase()) : 'APX-98214'}</span>
+                <span>Order #{orderRefDisplay}</span>
               </div>
             </div>
           </div>
@@ -511,7 +527,7 @@ export default function DesktopCheckoutView({
                   <div className="flex-1 text-center sm:text-left">
                     <div className="inline-flex items-center gap-1.5 bg-blue-100 text-[#0045de] px-2.5 py-0.5 rounded-full text-xs font-semibold mb-1.5">
                       <Clock className="w-3.5 h-3.5" />
-                      <span className="font-mono">QR expires in {mm}:{ss}</span>
+                      <span className="font-mono">QR expires in {safeMm}:{safeSs}</span>
                     </div>
 
                     <h4 className="text-sm font-bold text-slate-900">
@@ -903,7 +919,7 @@ export default function DesktopCheckoutView({
           <span>Need help with payment?</span>
         </button>
         <span className="font-mono text-[12px]">
-          Session ID: MMP_{activeId ? activeId.slice(0, 8).toUpperCase() : 'M982_6301A'}
+          Session ID: MMP_{orderRefDisplay}
         </span>
       </div>
 

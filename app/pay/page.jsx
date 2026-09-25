@@ -175,6 +175,7 @@ function PayPageContent() {
   const activeId      = orderId || tempId;
   const upiId         = merchant?.upi_id || CONFIG.upiId;
   const bizName       = merchant?.business_name || CONFIG.businessName;
+  const bizInitial    = (bizName || 'M').charAt(0).toUpperCase();
   const bankAcc       = merchant?.bank_account_number || CONFIG.bankAccountNumber || '919410181307';
   const bankIfsc      = merchant?.bank_ifsc || CONFIG.bankIfsc || 'PYTM0123456';
   const bankName      = merchant?.bank_account_name || bizName;
