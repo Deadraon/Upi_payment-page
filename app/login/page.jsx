@@ -12,12 +12,15 @@ import {
 import Link from 'next/link';
 import QRCode from 'react-qr-code';
 
-const MyMobPayLogo = ({ className = 'h-8 w-auto' }) => (
-  <img 
-    alt="mymobpay" 
-    className={className}
-    src="https://lh3.googleusercontent.com/aida/AEtjO1VydcpYzBGg1jGsDZpaGPM87EfBZw99AvaBcG3wlNdKnwK0DrSFXdNofRQVtkO--VoT-kt_4wUTRsW_p66Ey37jJ8xSEFOTET7MmpnSzd7tZj-4e2ymUmlEBqryaso2cuhSIbLtjB7JZoSqCTlqHsYwsCLQcQk-AKRhBpc52d7hjmeGjPP3w4k0EcYw2sNJzbRLu-VTWI6OsLDMr27jjD7Nx3RctEACqnVDhNwQsNhWj9RP2dFl2kYhHuqb"
-  />
+const MyMobPayLogo = ({ className = 'h-8 w-auto', textColor = '#131b2e' }) => (
+  <svg viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
+    <text x="2" y="42" letterSpacing="0">
+      {/* MyMob */}
+      <tspan fontFamily="'Outfit', sans-serif" fontWeight="800" fontSize="36" fill={textColor}>MyMob</tspan>
+      {/* Pay */}
+      <tspan fontFamily="'Orbitron', sans-serif" fontWeight="900" fontStyle="italic" fontSize="36" fill="#3B82F6" dx="3">Pay</tspan>
+    </text>
+  </svg>
 );
 
 // ── Translate developer/system errors to clear, customer-friendly English ──

@@ -8,7 +8,17 @@
 
 import { Mail, ArrowRight, Lock, Check, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
-import Image from 'next/image';
+
+const MyMobPayLogo = ({ className = 'h-8 w-auto', textColor = '#131b2e' }) => (
+  <svg viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
+    <text x="2" y="42" letterSpacing="0">
+      {/* MyMob */}
+      <tspan fontFamily="'Outfit', sans-serif" fontWeight="800" fontSize="36" fill={textColor}>MyMob</tspan>
+      {/* Pay */}
+      <tspan fontFamily="'Orbitron', sans-serif" fontWeight="900" fontStyle="italic" fontSize="36" fill="#3B82F6" dx="3">Pay</tspan>
+    </text>
+  </svg>
+);
 
 export default function MobileLoginExample() {
   const [authTab, setAuthTab] = useState('otp');
@@ -23,13 +33,7 @@ export default function MobileLoginExample() {
         {/* Brand & Gateway Badge Header */}
         <div className="flex flex-col items-center text-center space-y-2 mb-4">
           <div className="h-10 flex items-center justify-center">
-            <Image 
-              alt="mymobpay" 
-              className="h-8 w-auto object-contain"
-              src="https://lh3.googleusercontent.com/aida/AEtjO1VydcpYzBGg1jGsDZpaGPM87EfBZw99AvaBcG3wlNdKnwK0DrSFXdNofRQVtkO--VoT-kt_4wUTRsW_p66Ey37jJ8xSEFOTET7MmpnSzd7tZj-4e2ymUmlEBqryaso2cuhSIbLtjB7JZoSqCTlqHsYwsCLQcQk-AKRhBpc52d7hjmeGjPP3w4k0EcYw2sNJzbRLu-VTWI6OsLDMr27jjD7Nx3RctEACqnVDhNwQsNhWj9RP2dFl2kYhHuqb"
-              width={120}
-              height={32}
-            />
+            <MyMobPayLogo className="h-8 w-auto" textColor="#131b2e" />
           </div>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#e2e7ff] text-[#44474d] shadow-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-[#009d6d] animate-pulse"></span>
