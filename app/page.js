@@ -432,7 +432,7 @@ export default function HomePage() {
                     </div>
                     <div className="pt-2 border-t border-[#1D2D44] flex justify-between text-[10px] font-medium text-slate-400">
                       <span>Paying to:</span>
-                      <span className="font-semibold text-slate-200">Demo Store</span>
+                      <span className="font-semibold text-slate-200">Merchant Store</span>
                     </div>
                   </div>
 

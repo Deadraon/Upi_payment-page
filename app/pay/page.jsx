@@ -33,7 +33,10 @@ const MyMobPayLogo = () => (
 /* ── UPI deep-link builder ──────────────────────────────────── */
 function buildUpiLink(appId, amount, orderId, merchant, isMandate) {
   const pa    = merchant?.upi_id || CONFIG.upiId;
-  const pn    = encodeURIComponent(merchant?.business_name || CONFIG.businessName);
+  const rawPn = merchant?.business_name && merchant.business_name !== 'Demo Store'
+    ? merchant.business_name
+    : (CONFIG.businessName && CONFIG.businessName !== 'Demo Store' ? CONFIG.businessName : 'MyMobPay');
+  const pn    = encodeURIComponent(rawPn);
   const upath = isMandate ? 'mandate' : 'pay';
   let qs = `pa=${pa}&pn=${pn}&am=${amount}&cu=INR&tn=${orderId}`;
   if (isMandate) {
@@ -53,7 +56,10 @@ function buildUpiLink(appId, amount, orderId, merchant, isMandate) {
 /* ── UPI QR string — always upi:// (NOT device deep-link) ─── */
 function buildUpiQrValue(amount, orderId, merchant, isMandate) {
   const pa    = merchant?.upi_id || CONFIG.upiId;
-  const pn    = encodeURIComponent(merchant?.business_name || CONFIG.businessName);
+  const rawPn = merchant?.business_name && merchant.business_name !== 'Demo Store'
+    ? merchant.business_name
+    : (CONFIG.businessName && CONFIG.businessName !== 'Demo Store' ? CONFIG.businessName : 'MyMobPay');
+  const pn    = encodeURIComponent(rawPn);
   const upath = isMandate ? 'mandate' : 'pay';
   let qs = `pa=${pa}&pn=${pn}&am=${amount}&cu=INR&tn=${orderId}`;
   if (isMandate) {
@@ -82,7 +88,7 @@ function PayPageContent() {
 
   const paramApiKey   = searchParams.get('api_key') || searchParams.get('key') || '';
   const paramAmount   = searchParams.get('amount')   || '';
-  const paramProject  = searchParams.get('project')  || '';
+  const paramProject  = searchParams.get('project')  || searchParams.get('merchant') || searchParams.get('biz') || searchParams.get('business_name') || searchParams.get('store') || '';
   const paramCallback = searchParams.get('callback') || '';
   const paramName     = searchParams.get('name')     || '';
   const paramPhone    = searchParams.get('phone')    || '';
@@ -173,8 +179,14 @@ function PayPageContent() {
   const isMandate     = orderNote === 'Trial_Setup_3Day' || orderNote === 'Autopay_Setup_3DayTrial';
   const displayAmt    = orderAmount ?? (amount ? parseFloat(amount) : null);
   const activeId      = orderId || tempId;
+  const isPlatformKey = (paramApiKey || '').replace(/^(test_|live_)/, '') === CONFIG.platformApiKey;
+  const isSetupOrSubscription = isMandate || (orderNote && (orderNote.includes('Trial_Setup') || orderNote.includes('Autopay') || orderNote.includes('Subscription')));
+
   const upiId         = merchant?.upi_id || CONFIG.upiId;
-  const bizName       = merchant?.business_name || CONFIG.businessName;
+  const rawBizName    = (merchant?.business_name && merchant.business_name !== 'Demo Store')
+    ? merchant.business_name
+    : (paramProject || (isPlatformKey || isSetupOrSubscription ? 'MyMobPay' : (CONFIG.businessName && CONFIG.businessName !== 'Demo Store' ? CONFIG.businessName : 'Merchant')));
+  const bizName       = rawBizName === 'Demo Store' ? (isPlatformKey || isSetupOrSubscription ? 'MyMobPay' : 'Merchant') : rawBizName;
   const bizInitial    = (bizName || 'M').charAt(0).toUpperCase();
   const bankAcc       = merchant?.bank_account_number || CONFIG.bankAccountNumber || '919410181307';
   const bankIfsc      = merchant?.bank_ifsc || CONFIG.bankIfsc || 'PYTM0123456';
@@ -199,10 +211,42 @@ function PayPageContent() {
   useEffect(() => {
     const key = (paramApiKey || CONFIG.platformApiKey || '').replace(/^(test_|live_)/, '');
     if (!key) return;
-    supabase.from('merchants')
-      .select('id, business_name, upi_id, theme_color, sandbox_mode, bank_account_number, bank_ifsc, bank_account_name, bank_name, enable_bank_transfer, crypto_wallet_address, crypto_network')
-      .eq('api_key', key).single()
-      .then(({ data }) => { if (data) setMerchant(data); });
+
+    fetch(`/api/merchant?key=${encodeURIComponent(key)}`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data && data.business_name) {
+          if (data.business_name === 'Demo Store') {
+            data.business_name = (key === CONFIG.platformApiKey) ? 'MyMobPay' : 'Merchant';
+          }
+          setMerchant(prev => ({ ...prev, ...data }));
+        } else {
+          supabase.from('merchants')
+            .select('id, business_name, upi_id, theme_color, sandbox_mode, bank_account_number, bank_ifsc, bank_account_name, bank_name, enable_bank_transfer, crypto_wallet_address, crypto_network')
+            .eq('api_key', key).single()
+            .then(({ data: sbData }) => {
+              if (sbData) {
+                if (sbData.business_name === 'Demo Store') {
+                  sbData.business_name = (key === CONFIG.platformApiKey) ? 'MyMobPay' : 'Merchant';
+                }
+                setMerchant(sbData);
+              }
+            });
+        }
+      })
+      .catch(() => {
+        supabase.from('merchants')
+          .select('id, business_name, upi_id, theme_color, sandbox_mode, bank_account_number, bank_ifsc, bank_account_name, bank_name, enable_bank_transfer, crypto_wallet_address, crypto_network')
+          .eq('api_key', key).single()
+          .then(({ data: sbData }) => {
+            if (sbData) {
+              if (sbData.business_name === 'Demo Store') {
+                sbData.business_name = (key === CONFIG.platformApiKey) ? 'MyMobPay' : 'Merchant';
+              }
+              setMerchant(sbData);
+            }
+          });
+      });
   }, [paramApiKey]);
 
   /* ── Auto-create / Hydrate order ── */

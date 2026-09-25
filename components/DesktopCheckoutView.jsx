@@ -47,7 +47,7 @@ export default function DesktopCheckoutView({
   const [liveAnnouncement, setLiveAnnouncement] = useState('');
 
   // Safeguarded values
-  const safeBizName = bizName || 'Merchant Name';
+  const safeBizName = (bizName && bizName !== 'Demo Store') ? bizName : 'Merchant';
   const safeActiveId = activeId ? String(activeId) : (paramRef ? String(paramRef) : 'APX-98214');
   const orderRefDisplay = safeActiveId.startsWith('#')
     ? safeActiveId.replace('#', '')

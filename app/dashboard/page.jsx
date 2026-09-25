@@ -13856,15 +13856,9 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-                              <p className="text-[8.5px] font-extrabold text-white-pure truncate">
-
-
-
-                                {profile?.business_name || 'Demo Store'}
-
-
-
-                              </p>
+                                <p className="text-[8.5px] font-extrabold text-white-pure truncate">
+                                  {profile?.business_name || 'My Store'}
+                                </p>
 
 
 
@@ -15772,7 +15766,7 @@ class MyMobPaySDK {
 
 
 
-  final String businessName = "${profile?.business_name || 'Demo Store'}";
+  final String businessName = "${profile?.business_name || 'Merchant'}";
 
 
 
@@ -15864,7 +15858,7 @@ const MyMobPaySDK = {
 
 
 
-  businessName: "${profile?.business_name || 'Demo Store'}",
+  businessName: "${profile?.business_name || 'Merchant'}",
 
 
 
@@ -16020,7 +16014,7 @@ class MyMobPaySDK {
 
 
 
-  final String businessName = "${profile?.business_name || 'Demo Store'}";
+  final String businessName = "${profile?.business_name || 'Merchant'}";
 
 
 
@@ -16112,7 +16106,7 @@ const MyMobPaySDK = {
 
 
 
-  businessName: "${profile?.business_name || 'Demo Store'}",
+  businessName: "${profile?.business_name || 'Merchant'}",
 
 
 
