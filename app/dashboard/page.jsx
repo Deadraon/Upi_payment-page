@@ -10705,126 +10705,15 @@ echo "Order Created: " . $data['orderId'];
 
                   {activeTab === 'setup-guide' && 'Follow the 5-phase master blueprint to configure direct settlement, notification listeners, and webhooks for 100% automated payment receiving.'}
 
-                  {activeTab === 'overview' && 'Real-time overview of business revenue and platform subscription details.'}
-
-
-
-                  {activeTab === 'payment-links' && 'Generate one-click payment URLs or QR codes to collect custom payments from customers.'}
-
-
-
-                  {activeTab === 'subscription' && 'Monitor subscription status, calculate renewals, and extend your active platform plan.'}
-
-
-
-                  {activeTab === 'transactions' && 'Monitor and filter payment orders. Export history instantly.'}
-
-
-
-                  {activeTab === 'connections' && 'Connect automated verification channels such as email forwarding and cashier staff accounts.'}
-
-
-
-                  {activeTab === 'developer' && 'Configure custom integrations, fetch orders via REST APIs, or copy-paste client SDK snippets.'}
-
-
-
-                  {activeTab === 'playground' && 'Test payment configurations using our simulated checkout device and trace live webhooks.'}
-
-
-
-                  {activeTab === 'settings' && 'Customize your business metadata, direct UPI deposit addresses, and brand colors.'}
-
-
-
-                  {activeTab === 'api' && 'Secret credential tokens for creating programmatic checkouts.'}
-
-
-
-                </p>
-
-
-
-              </div>
-
-
-
-
-
-
-
-            {activeTab === 'transactions' && (
-
-
-
-              <div className="flex gap-2">
-
-
-
-                <button 
-
-
-
-                  onClick={handleRefreshOrders}
-
-
-
-                  disabled={ordersLoading}
-
-
-
-                  className="p-2.5 rounded-xl border border-slate-200 bg-white text-slate-500 hover:text-slate-900 transition-colors shadow-sm disabled:opacity-55"
-
-
-
-                  title="Refresh Transactions"
-
-
-
-                >
-
-
-
-                  <RefreshCw className={`w-4 h-4 ${ordersLoading ? 'animate-spin' : ''}`} />
-
-
-
-                </button>
-
-
-
-                <button 
-
-
-
-                  onClick={downloadCSV}
-
-
-
-                  disabled={filteredOrders.length === 0}
-
-
-
-                  className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white-pure rounded-xl font-bold text-sm flex items-center gap-2 transition-all shadow-md shadow-blue-500/20 disabled:opacity-50"
-
-
-
-                >
-
-
-
-                  <Download className="w-4 h-4" /> Export CSV Report
-
-
-
-                </button>
-
-
-
-              </div>
-
-
-
+                  {activeTab === 'overview' && (
+              <DashboardOverviewRedesign
+                profile={profile}
+                stats={stats}
+                orders={orders}
+                analyticsTimeframe={analyticsTimeframe}
+                setAnalyticsTimeframe={setAnalyticsTimeframe}
+                setActiveTab={setActiveTab}
+              />
             )}
 
 
