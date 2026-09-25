@@ -793,7 +793,7 @@ export default function LoginPage() {
               
               {/* Card Header */}
               <div className="p-6 sm:p-8 bg-white">
-                <div className="text-center sm:text-left">
+                <div className="text-center">
                   <h1 className="text-xl sm:text-2xl font-bold text-[#131b2e] tracking-tight mb-1">
                     {mode === 'signin' ? 'Log in to Dashboard' : 'Create Merchant Account'}
                   </h1>
@@ -1155,9 +1155,9 @@ export default function LoginPage() {
                   </svg>
                   <span>Continue with Google Workspace</span>
                 </button>
-                {/* QR Code Express Login Bar (in Signin mode) */}
+                {/* QR Code Express Login Bar (in Signin mode, desktop only) */}
                 {mode === 'signin' && (
-                  <div className="mt-4 p-3.5 rounded-lg bg-[#eaedff] flex items-center justify-between gap-3 border border-[#dae2fd]/60">
+                  <div className="mt-4 p-3.5 rounded-lg bg-[#eaedff] items-center justify-between gap-3 border border-[#dae2fd]/60 hidden lg:flex">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-md bg-white flex items-center justify-center text-[#000d21] shadow-xs">
                         <QrCode className="w-5 h-5 text-blue-600" />
