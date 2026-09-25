@@ -69,13 +69,21 @@ export async function POST(req) {
       console.warn('[EMAIL LINK API] Metadata tag notice:', tagErr?.message);
     }
 
-    await supabase.auth.signInWithOtp({
+    const { error: signInErr } = await supabase.auth.signInWithOtp({
       email: cleanEmail,
       options: {
         data: { auth_type: 'link' },
         emailRedirectTo: redirectUrl,
       },
     });
+
+    if (signInErr) {
+      console.error('[EMAIL LINK API] signInWithOtp error:', signInErr);
+      return NextResponse.json(
+        { error: signInErr.message || 'Rate limit reached. Please wait a minute before requesting another link.' },
+        { status: signInErr.status || 429 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
