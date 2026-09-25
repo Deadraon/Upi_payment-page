@@ -6,6 +6,7 @@ import Link from 'next/link';
 import QRCode from 'react-qr-code';
 import { CONFIG } from '@/lib/config';
 import { supabase } from '@/lib/supabase';
+import DesktopCheckoutView from '@/components/DesktopCheckoutView';
 
 /* ── Original MyMobPay Website Logo (Outfit 800 + Orbitron 900 italic #3B82F6) ── */
 const MyMobPayLogo = () => (
@@ -564,409 +565,75 @@ function PayPageContent() {
           DESKTOP WINDOW ONLY (>= 768px):
           Exact Receipt design v2 with original website logo
       ═════════════════════════════════════════════════════════ */}
+      {/* ═════════════════════════════════════════════════════════
+          DESKTOP WINDOW ONLY (>= 768px):
+          Custom Hosted Checkout Panel (from MyMobPay Checkout.html)
+      ═════════════════════════════════════════════════════════ */}
       <div className="desktop-checkout-view">
-        <header>
-          <div className="logo">
-            <Link href="/" style={{ textDecoration: 'none' }}>
-              <MyMobPayLogo />
-            </Link>
-          </div>
-          <div className="secure">
-            <i></i><span>Secure checkout, powered by MyMobPay</span>
-          </div>
-        </header>
-
-        {/* Test mode banner */}
-        {orderMode === 'test' && (
-          <div style={{ marginBottom: 18, background: '#fff8e7', border: '1px solid #f0c040', borderRadius: 12, padding: '10px 16px', fontSize: 13, fontWeight: 700, color: '#856404', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#f59e0b', display: 'inline-block' }} />
-            Test mode &mdash; simulated sandbox transaction
-          </div>
-        )}
-
-        {/* Success View */}
-        {curView === 'vOk' && (
-          <div className="pay-status-card">
-            <div className="okc">
-              <svg viewBox="0 0 84 84" aria-hidden="true" style={{ width: 80, height: 80, margin: '0 auto', display: 'block' }}>
-                <circle cx="42" cy="42" r="40" fill="#e6f7ee" stroke="var(--ok)" strokeWidth="3" />
-                <path d="M26 43l11 11 21-23" fill="none" stroke="var(--ok)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div>
-            <h2 style={{ font: '800 24px "DM Sans",sans-serif', margin: '16px 0 6px', color: 'var(--head)' }}>Payment received</h2>
-            <p style={{ color: 'var(--mut)', fontSize: 15, margin: '0 0 20px' }}>{fmtInr(displayAmt)} paid to {bizName}</p>
-            <div style={{ background: 'var(--soft)', borderRadius: 16, padding: '8px 18px', textAlign: 'left', margin: '0 auto 24px', maxWidth: 420 }}>
-              <div className="ln"><span>Order ID</span><span>#{activeId ? activeId.slice(-8).toUpperCase() : 'DEMO'}</span></div>
-              <div className="ln"><span>Method</span><span>UPI</span></div>
-              <div className="ln free"><span>Platform fee</span><span>₹0.00</span></div>
-              <div className="ln" style={{ borderBottom: 'none' }}><span>Time</span><span>{okTime || new Date().toLocaleTimeString([], { hour:'numeric', minute:'2-digit' })}</span></div>
-            </div>
-            <button
-              type="button"
-              className="cta"
-              style={{ maxWidth: 360, margin: '0 auto' }}
-              onClick={handleReturn}
-            >
-              Return to {bizName}
-            </button>
-          </div>
-        )}
-
-        {/* Expired View */}
-        {curView === 'vExp' && (
-          <div className="pay-status-card">
-            <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#fff1d6', color: '#b76e00', display: 'grid', placeItems: 'center', margin: '0 auto 16px' }}>
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="9"/>
-                <path d="M12 7v5l3 2"/>
-              </svg>
-            </div>
-            <h2 style={{ font: '800 24px "DM Sans",sans-serif', margin: '0 0 6px', color: 'var(--head)' }}>Session expired</h2>
-            <p style={{ color: 'var(--mut)', fontSize: 15, margin: '0 0 24px' }}>This payment session has ended. Start again to get a fresh code.</p>
-            <button
-              type="button"
-              className="cta"
-              style={{ maxWidth: 280, margin: '0 auto' }}
-              onClick={() => {
-                setTimeLeft(SESSION_SECS);
-                setCurView('vPay');
-              }}
-            >
-              Start again
-            </button>
-          </div>
-        )}
-
-        {/* Two-column Receipt Layout (vPay & vWait) */}
-        {(curView === 'vPay' || curView === 'vWait') && (
-          <div className="grid">
-            {/* ── LEFT COLUMN: RECEIPT (Receipt Design v2) ── */}
-            <aside className="rc" aria-label="Order summary">
-              <div className="mer">
-                <div className="av">{bizName.charAt(0).toUpperCase()}</div>
-                <div>
-                  <b>{bizName}</b>
-                  <small>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/>
-                      <path d="M9 12l2 2 4-4"/>
-                    </svg>
-                    Verified merchant
-                  </small>
-                </div>
-              </div>
-
-              <p className="date">{orderDate || '24 Sep 2026, 3:59 PM'}</p>
-              <div className="ln"><span>Order ID</span><span>#{activeId ? activeId.slice(-8).toUpperCase() : 'A7F2-9C41'}</span></div>
-              <div className="ln"><span>Subtotal</span><span>{fmtInr(displayAmt).replace('₹', '')}</span></div>
-              <div className="ln free"><span>Platform fee</span><span>0.00 Free</span></div>
-
-              <div className="tot">
-                <small>Total to pay</small>
-                <b>₹{amtWhole}<s>{amtFrac}</s></b>
-              </div>
-
-              <div className="exp">
-                <div className="lab">
-                  <span>Session expires in</span>
-                  <span className="tm">{mm}:{ss}</span>
-                </div>
-                <div className="track" aria-hidden="true">
-                  <div id="bar" style={{ width: `${timerPct}%` }}></div>
-                </div>
-              </div>
-            </aside>
-
-            {/* ── RIGHT COLUMN: PAYMENT OPTIONS (Receipt Design v2) ── */}
-            <main className="pay">
-              <h3>How would you like to pay?</h3>
-
-              {/* UPI Option */}
-              <div className={`opt ${activeOpt === 'upi' ? 'on' : ''}`} data-o>
-                <button
-                  type="button"
-                  className="opt-btn"
-                  aria-expanded={activeOpt === 'upi'}
-                  onClick={() => setActiveOpt('upi')}
-                >
-                  <span className="l">
-                    <span className="ic">
-                      <svg viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>
-                    </span>
-                    <span>
-                      UPI
-                      <small>PhonePe, Google Pay, Paytm, BHIM</small>
-                    </span>
-                  </span>
-                  <span className="dot"></span>
-                </button>
-
-                <div className="body">
-                  <div className="upi">
-                    <div>
-                      {/* QR Box with corner brackets */}
-                      <div className="qrw">
-                        <i></i><i></i><i></i><i></i>
-                        <div id="qr">
-                          {upiQrValue ? (
-                            <QRCode
-                              value={upiQrValue}
-                              size={168}
-                              level="M"
-                              fgColor="#0f1b2d"
-                              bgColor="#ffffff"
-                              style={{ display: 'block', width: '100%', height: 'auto' }}
-                            />
-                          ) : (
-                            <div style={{ width: 140, height: 140, display: 'grid', placeItems: 'center', color: 'var(--mut)', fontSize: 13 }}>
-                              Generating QR…
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="qcap">Pay {fmtInr(displayAmt)}</div>
-                    </div>
-
-                    <div className="side">
-                      <p>Scan with any UPI app, or pay to this ID</p>
-                      <div className="id">
-                        <span>{upiId}</span>
-                        <button
-                          type="button"
-                          className={`copy ${copyFeedback ? 'done' : ''}`}
-                          onClick={handleCopyUpi}
-                        >
-                          {copyFeedback ? 'Copied' : 'Copy'}
-                        </button>
-                      </div>
-
-                      <div style={{ fontSize: 12.5, color: 'var(--mut)', lineHeight: 1.55, marginTop: 14, paddingTop: 12, borderTop: '1px dashed var(--line)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 7 }}>
-                          <span style={{ width: 18, height: 18, borderRadius: '50%', background: 'var(--tint)', color: 'var(--brand-d)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>1</span>
-                          <span>Open any UPI app on your phone</span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 7 }}>
-                          <span style={{ width: 18, height: 18, borderRadius: '50%', background: 'var(--tint)', color: 'var(--brand-d)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>2</span>
-                          <span>Scan QR code to pay exact amount</span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <span style={{ width: 18, height: 18, borderRadius: '50%', background: 'var(--tint)', color: 'var(--brand-d)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>3</span>
-                          <span>Click <strong>&quot;I&apos;ve paid, check status&quot;</strong> below</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Net Banking Option */}
-              <div className={`opt ${activeOpt === 'bank' ? 'on' : ''}`} data-o>
-                <button
-                  type="button"
-                  className="opt-btn"
-                  aria-expanded={activeOpt === 'bank'}
-                  onClick={() => setActiveOpt(activeOpt === 'bank' ? '' : 'bank')}
-                >
-                  <span className="l">
-                    <span className="ic">
-                      <svg viewBox="0 0 24 24"><path d="M3 10l9-6 9 6"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8"/><path d="M3 21h18"/></svg>
-                    </span>
-                    <span>
-                      Net Banking
-                      <span className="badge">0% fee</span>
-                      <small>Pay from your bank account</small>
-                    </span>
-                  </span>
-                  <span className="dot"></span>
-                </button>
-
-                <div className="body">
-                  <div style={{ marginTop: 8, background: '#fff', border: '1px solid var(--line)', borderRadius: 14, overflow: 'hidden' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', borderBottom: '1px solid var(--line)', fontSize: 13 }}>
-                      <span style={{ color: 'var(--mut)', fontWeight: 600 }}>Account Name</span>
-                      <span style={{ fontWeight: 700, color: 'var(--ink)' }}>{bankName}</span>
-                    </div>
-
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', borderBottom: '1px solid var(--line)', fontSize: 13, background: 'var(--soft)' }}>
-                      <div>
-                        <span style={{ color: 'var(--mut)', fontWeight: 600, display: 'block', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Account Number</span>
-                        <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 700, fontSize: 15, color: 'var(--ink)' }}>{bankAcc}</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleCopyAcc}
-                        style={{ border: 0, background: copiedAcc ? '#dcf5e8' : 'var(--tint)', color: copiedAcc ? '#0d7a47' : 'var(--brand-d)', fontWeight: 700, fontSize: 12, padding: '6px 14px', borderRadius: 8, cursor: 'pointer', transition: 'all 0.15s' }}
-                      >
-                        {copiedAcc ? 'Copied ✓' : 'Copy'}
-                      </button>
-                    </div>
-
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', borderBottom: bankBranch ? '1px solid var(--line)' : 'none', fontSize: 13, background: 'var(--soft)' }}>
-                      <div>
-                        <span style={{ color: 'var(--mut)', fontWeight: 600, display: 'block', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em' }}>IFSC Code</span>
-                        <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 700, fontSize: 15, color: 'var(--ink)' }}>{bankIfsc}</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleCopyIfsc}
-                        style={{ border: 0, background: copiedIfsc ? '#dcf5e8' : 'var(--tint)', color: copiedIfsc ? '#0d7a47' : 'var(--brand-d)', fontWeight: 700, fontSize: 12, padding: '6px 14px', borderRadius: 8, cursor: 'pointer', transition: 'all 0.15s' }}
-                      >
-                        {copiedIfsc ? 'Copied ✓' : 'Copy'}
-                      </button>
-                    </div>
-
-                    {bankBranch && (
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', borderBottom: '1px solid var(--line)', fontSize: 13 }}>
-                        <span style={{ color: 'var(--mut)', fontWeight: 600 }}>Bank</span>
-                        <span style={{ fontWeight: 600, color: 'var(--ink)' }}>{bankBranch}</span>
-                      </div>
-                    )}
-
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', fontSize: 13, background: 'var(--tint)' }}>
-                      <span style={{ color: 'var(--mut)', fontWeight: 600 }}>Amount to Transfer</span>
-                      <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 800, fontSize: 15, color: 'var(--brand-d)' }}>{fmtInr(displayAmt)}</span>
-                    </div>
-                  </div>
-                  <p className="note" style={{ marginTop: 8 }}>You&apos;ll return here after paying at your bank.</p>
-                </div>
-              </div>
-
-              {/* Crypto (USDT) Option */}
-              <div className={`opt ${activeOpt === 'crypto' ? 'on' : ''}`} data-o>
-                <button
-                  type="button"
-                  className="opt-btn"
-                  aria-expanded={activeOpt === 'crypto'}
-                  onClick={() => setActiveOpt(activeOpt === 'crypto' ? '' : 'crypto')}
-                >
-                  <span className="l">
-                    <span className="ic">
-                      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 8h5a2 2 0 010 4H9m0 0h5.5a2 2 0 010 4H9M9 7v10"/></svg>
-                    </span>
-                    <span>
-                      Crypto (USDT)
-                      <small>TRC20 network</small>
-                    </span>
-                  </span>
-                  <span className="dot"></span>
-                </button>
-
-                <div className="body">
-                  <div style={{ textAlign: 'center', padding: '6px 0 4px', fontSize: 13, fontWeight: 700, color: 'var(--mut)' }}>
-                    Pay <strong style={{ color: 'var(--ink)', fontSize: 16, fontFamily: "'IBM Plex Mono', monospace" }}>{usdtAmt} USDT</strong>
-                  </div>
-                  <div className="id" style={{ marginTop: 8 }}>
-                    <span>{cryptoWallet}</span>
-                    <button
-                      type="button"
-                      className={`copy ${copyUsdtDone ? 'done' : ''}`}
-                      onClick={handleCopyUsdt}
-                    >
-                      {copyUsdtDone ? 'Copied' : 'Copy'}
-                    </button>
-                  </div>
-                  <p className="note">Send only USDT on the TRC20 network to this address.</p>
-
-                  <form onSubmit={submitTx} style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-                    <input
-                      type="text"
-                      placeholder="Transaction hash (TxID)…"
-                      value={txHash}
-                      onChange={e => setTxHash(e.target.value)}
-                      style={{ flex: 1, minHeight: 44, border: '1px solid var(--line)', borderRadius: 10, padding: '0 12px', fontSize: 13, fontFamily: "'IBM Plex Mono', monospace" }}
-                    />
-                    <button
-                      type="submit"
-                      disabled={txBusy || !txHash.trim()}
-                      style={{ minHeight: 44, padding: '0 14px', border: 0, borderRadius: 10, background: 'var(--brand)', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
-                    >
-                      {txBusy ? '…' : 'Verify'}
-                    </button>
-                  </form>
-                  {txMsg && <p style={{ fontSize: 12, fontWeight: 600, color: txMsg.startsWith('✓') ? 'var(--ok)' : '#c0392b', margin: '6px 0 0' }}>{txMsg}</p>}
-                </div>
-              </div>
-
-              {/* UTR reference expander */}
-              <div className={`extra ${showUtr ? 'show' : ''}`} id="utrbox">
-                <input
-                  id="utr"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  maxLength={12}
-                  placeholder="12-digit UTR, e.g. 425619283741"
-                  aria-label="UTR reference"
-                  value={utr}
-                  onChange={e => setUtr(e.target.value.replace(/\D/g, '').slice(0, 12))}
-                />
-                <button
-                  id="verify"
-                  disabled={utr.length !== 12 || utrBusy}
-                  onClick={submitUtr}
-                >
-                  {utrBusy ? '…' : 'Verify'}
-                </button>
-              </div>
-              {utrMsg && (
-                <p style={{ margin: '6px 0 0', fontSize: 12.5, fontWeight: 600, color: utrMsg.startsWith('✓') ? 'var(--ok)' : '#c0392b' }}>
-                  {utrMsg}
-                </p>
-              )}
-
-              {/* Promo code expander */}
-              <div className={`extra ${showPromo ? 'show' : ''}`} id="promobox">
-                <input
-                  placeholder="Promo or gift code"
-                  aria-label="Promo or gift code"
-                  style={{ fontFamily: "'DM Sans', sans-serif", textTransform: 'uppercase' }}
-                  value={promoCode}
-                  onChange={e => setPromoCode(e.target.value.toUpperCase())}
-                />
-                <button
-                  disabled={promoLoading || !promoCode.trim()}
-                  onClick={submitPromo}
-                >
-                  {promoLoading ? '…' : 'Apply'}
-                </button>
-              </div>
-              {promoMsg && (
-                <p style={{ margin: '6px 0 0', fontSize: 12.5, fontWeight: 600, color: promoMsg.startsWith('✓') ? 'var(--ok)' : '#c0392b' }}>
-                  {promoMsg}
-                </p>
-              )}
-
-              {/* CTA Button */}
-              <button
-                type="button"
-                className={`cta ${isChecking ? 'busy' : ''}`}
-                id="cta"
-                onClick={triggerChecking}
-              >
-                <span className="sp"></span>
-                <span id="ctat">{isChecking ? 'Checking status…' : "I've paid, check status"}</span>
-              </button>
-
-              {/* Live status feedback */}
-              <div className="status" id="status" role="status" aria-live="polite">
-                {checkMsg}
-              </div>
-
-              {/* Action links */}
-              <div className="links">
-                <button type="button" onClick={() => setShowUtr(!showUtr)}>
-                  {showUtr ? 'Hide UTR box' : 'Already paid? Enter UTR'}
-                </button>
-                <button type="button" onClick={() => setShowPromo(!showPromo)}>
-                  {promoApplied ? `Promo applied: ${promoApplied.code} ✓` : 'Have a promo code?'}
-                </button>
-              </div>
-
-              <div className="foot">
-                0% transaction fee. Your payment goes straight to the merchant.
-              </div>
-            </main>
-          </div>
-        )}
+        <DesktopCheckoutView
+          merchant={merchant}
+          orderId={orderId}
+          paramRef={paramRef}
+          paramCallback={paramCallback}
+          activeId={activeId}
+          displayAmt={displayAmt}
+          amtWhole={amtWhole}
+          amtFrac={amtFrac}
+          bizName={bizName}
+          bizInitial={bizInitial}
+          upiId={upiId}
+          upiQrValue={upiQrValue}
+          orderDate={orderDate}
+          timeLeft={timeLeft}
+          mm={mm}
+          ss={ss}
+          activeOpt={activeOpt}
+          setActiveOpt={setActiveOpt}
+          copyFeedback={copyFeedback}
+          handleCopyUpi={handleCopyUpi}
+          isChecking={isChecking}
+          triggerChecking={triggerChecking}
+          checkMsg={checkMsg}
+          handleReturn={handleReturn}
+          bankName={bankName}
+          bankAcc={bankAcc}
+          bankIfsc={bankIfsc}
+          bankBranch={bankBranch}
+          copiedAcc={copiedAcc}
+          copiedIfsc={copiedIfsc}
+          handleCopyAcc={handleCopyAcc}
+          handleCopyIfsc={handleCopyIfsc}
+          cryptoWallet={cryptoWallet}
+          usdtAmt={usdtAmt}
+          txHash={txHash}
+          setTxHash={setTxHash}
+          submitTx={submitTx}
+          txBusy={txBusy}
+          txMsg={txMsg}
+          copyUsdtDone={copyUsdtDone}
+          handleCopyUsdt={handleCopyUsdt}
+          showUtr={showUtr}
+          setShowUtr={setShowUtr}
+          utr={utr}
+          setUtr={setUtr}
+          submitUtr={submitUtr}
+          utrBusy={utrBusy}
+          utrMsg={utrMsg}
+          showPromo={showPromo}
+          setShowPromo={setShowPromo}
+          promoCode={promoCode}
+          setPromoCode={setPromoCode}
+          submitPromo={submitPromo}
+          promoLoading={promoLoading}
+          promoMsg={promoMsg}
+          promoApplied={promoApplied}
+          curView={curView}
+          setCurView={setCurView}
+          okTime={okTime}
+          orderMode={orderMode}
+          fmtInr={fmtInr}
+          buildUpiLink={buildUpiLink}
+        />
       </div>
 
       {/* ═════════════════════════════════════════════════════════
@@ -1506,10 +1173,13 @@ export default function PayPage() {
           }
 
           .desktop-checkout-view {
-            display: block !important;
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 28px 20px 44px;
+            display: flex !important;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            min-height: 100vh;
+            padding: 32px 16px 48px;
+            background: #f2f3ff;
           }
 
           .desktop-checkout-view header {
