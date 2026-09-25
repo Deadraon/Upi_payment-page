@@ -32,6 +32,15 @@ module.exports = {
         'on-tertiary-container': '#009d6d',
         'primary-container': '#0c2340',
         'on-primary-container': '#778bad',
+        'primary': '#000d21',
+        'on-primary': '#ffffff',
+        'primary-fixed': '#d5e3ff',
+        'primary-fixed-dim': '#b3c7ec',
+        'secondary-hover': '#0038b7',
+        'tertiary-fixed': '#6ffbbe',
+        'on-tertiary-fixed-variant': '#005236',
+        'surface': '#faf8ff',
+        'surface-dim': '#d2d9f4',
         'error': '#ba1a1a',
         
         // Dark theme redirects for standard Tailwind utility classes
@@ -66,6 +75,16 @@ module.exports = {
           700: 'var(--accent-light)',
           800: 'var(--accent-light)',
         }
+      },
+      fontSize: {
+        'title-md': ['16px', { lineHeight: '24px', fontWeight: '600' }],
+        'body-md': ['14px', { lineHeight: '20px', fontWeight: '400' }],
+        'body-sm': ['12px', { lineHeight: '16px', fontWeight: '400' }],
+        'headline-sm': ['18px', { lineHeight: '26px', letterSpacing: '-0.005em', fontWeight: '600' }],
+        'label-sm': ['10px', { lineHeight: '14px', letterSpacing: '0.02em', fontWeight: '600' }],
+        'label-md': ['12px', { lineHeight: '16px', letterSpacing: '0.01em', fontWeight: '500' }],
+        'label-lg': ['14px', { lineHeight: '20px', letterSpacing: '0.005em', fontWeight: '500' }],
+        'currency-display': ['32px', { lineHeight: '40px', letterSpacing: '-0.02em', fontWeight: '700' }],
       },
       fontFamily: {
         sans: ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
