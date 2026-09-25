@@ -6,7 +6,8 @@ import { supabase } from '@/lib/supabase';
 import { 
   Loader2, Lock, Mail, ArrowRight, ShieldCheck, 
   CheckCircle2, Building2, QrCode, Phone, Smartphone,
-  Zap, Eye, EyeOff, AlertCircle, X, RefreshCw, MessageCircle
+  Zap, Eye, EyeOff, AlertCircle, X, RefreshCw, MessageCircle,
+  Link2
 } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import Link from 'next/link';
@@ -83,15 +84,19 @@ function OtpBoxInput({ value, onChange, disabled }) {
 export default function LoginPage() {
   const router = useRouter();
   const [mode, setMode] = useState('signin'); // 'signin' | 'signup'
-  const [authTab, setAuthTab] = useState('email'); // 'email' (Email OTP & Magic Link) | 'phone' (WhatsApp OTP) | 'password'
+  const [authTab, setAuthTab] = useState('email'); // 'email' (Email OTP) | 'link' (Email Link) | 'password'
 
-  // Email OTP & Magic Link
+  // Email OTP
   const [email, setEmail] = useState('');
   const [emailOtp, setEmailOtp] = useState('');
   const [emailOtpSent, setEmailOtpSent] = useState(false);
   const [emailTimer, setEmailTimer] = useState(45);
 
-  // Phone / WhatsApp OTP
+  // Email Link (Magic Link)
+  const [linkSent, setLinkSent] = useState(false);
+  const [linkTimer, setLinkTimer] = useState(45);
+
+  // Phone / WhatsApp OTP (preserved)
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
@@ -141,6 +146,15 @@ export default function LoginPage() {
     }
     return () => clearInterval(interval);
   }, [emailOtpSent, emailTimer]);
+
+  // Email Link countdown timer
+  useEffect(() => {
+    let interval = null;
+    if (linkSent && linkTimer > 0) {
+      interval = setInterval(() => setLinkTimer(prev => prev - 1), 1000);
+    }
+    return () => clearInterval(interval);
+  }, [linkSent, linkTimer]);
 
   // WhatsApp OTP Countdown timer
   useEffect(() => {
@@ -211,7 +225,7 @@ export default function LoginPage() {
     }
   }, [phone, otpMethod]);
 
-  // Email OTP & Magic Link Handlers
+  // Email OTP Handler (Strictly OTP code)
   const handleSendEmailOtp = async () => {
     const cleanEmail = email.trim().toLowerCase();
     if (!cleanEmail || !cleanEmail.includes('@')) {
@@ -226,7 +240,6 @@ export default function LoginPage() {
       const { error: otpErr } = await supabase.auth.signInWithOtp({
         email: cleanEmail,
         options: {
-          emailRedirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/dashboard`,
           shouldCreateUser: mode === 'signup',
         },
       });
@@ -242,10 +255,49 @@ export default function LoginPage() {
       setEmailOtpSent(true);
       setEmailOtp('');
       setEmailTimer(45);
-      setMessage(`Login code & Magic Link dispatched to ${cleanEmail}. Check your inbox!`);
+      setMessage(`6-digit verification code sent to ${cleanEmail}. Check your inbox!`);
     } catch (err) {
       console.error('Email OTP send error:', err);
       setError(err?.message || 'Could not send verification email. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Email Link (Magic Link) Handler
+  const handleSendEmailLink = async () => {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      setError('Please enter a valid merchant email address.');
+      return;
+    }
+    setError('');
+    setMessage('');
+    setLoading(true);
+
+    try {
+      const { error: linkErr } = await supabase.auth.signInWithOtp({
+        email: cleanEmail,
+        options: {
+          emailRedirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/dashboard`,
+          shouldCreateUser: mode === 'signup',
+        },
+      });
+
+      if (linkErr) {
+        if (linkErr.message?.toLowerCase().includes('signups not allowed')) {
+          setError('No merchant account registered with this email. Please sign up below.');
+          return;
+        }
+        throw linkErr;
+      }
+
+      setLinkSent(true);
+      setLinkTimer(45);
+      setMessage(`Magic sign-in link dispatched to ${cleanEmail}. Check your inbox!`);
+    } catch (err) {
+      console.error('Email Link send error:', err);
+      setError(err?.message || 'Could not send magic login link. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -673,15 +725,15 @@ export default function LoginPage() {
                     </button>
                     <button 
                       type="button" 
-                      onClick={() => { setAuthTab('phone'); setError(''); setMessage(''); }}
+                      onClick={() => { setAuthTab('link'); setError(''); setMessage(''); }}
                       className={`py-2 rounded-md text-xs font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer ${
-                        authTab === 'phone' 
+                        authTab === 'link' 
                           ? 'bg-white text-[#0045de] shadow-sm' 
                           : 'text-[#44474d] hover:text-[#131b2e]'
                       }`}
                     >
-                      <Smartphone className="w-3.5 h-3.5" />
-                      <span>WhatsApp</span>
+                      <Link2 className="w-3.5 h-3.5" />
+                      <span>Email Link</span>
                     </button>
                     <button 
                       type="button" 
@@ -698,7 +750,7 @@ export default function LoginPage() {
                   </div>
                 )}
 
-                {/* ── Sign In: Email OTP & Magic Link View ── */}
+                {/* ── Sign In: Email OTP View (Strictly 6-Digit Code) ── */}
                 {mode === 'signin' && authTab === 'email' && (
                   <div className="mt-6 flex flex-col space-y-4">
                     {!emailOtpSent ? (
@@ -707,7 +759,7 @@ export default function LoginPage() {
                           <label className="text-xs font-medium text-[#44474d] flex items-center justify-between">
                             <span>Merchant Email Address</span>
                             <span className="text-[#0045de] font-semibold flex items-center gap-1 text-[11px]">
-                              <Zap className="w-3.5 h-3.5" /> Magic Link &amp; OTP
+                              <Zap className="w-3.5 h-3.5" /> 6-Digit OTP
                             </span>
                           </label>
                           <div className="flex items-center rounded-lg bg-[#f2f3ff] px-3 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:shadow-md transition-all border border-transparent focus-within:border-blue-400">
@@ -723,7 +775,7 @@ export default function LoginPage() {
                             />
                           </div>
                           <p className="text-[11px] text-[#74777e] leading-relaxed">
-                            We will send a 6-digit verification code and a one-click Magic Link to your inbox.
+                            We will send a 6-digit verification code to your email inbox.
                           </p>
                         </div>
 
@@ -737,7 +789,7 @@ export default function LoginPage() {
                             <Loader2 className="w-5 h-5 animate-spin text-white" />
                           ) : (
                             <>
-                              <span>Send Magic Link &amp; OTP</span>
+                              <span>Send Email OTP</span>
                               <ArrowRight className="w-4 h-4" />
                             </>
                           )}
@@ -748,7 +800,7 @@ export default function LoginPage() {
                         <div className="flex items-center justify-between p-3 rounded-lg bg-[#eaedff]/60 border border-[#dae2fd]">
                           <div className="flex items-center gap-2 text-xs text-[#131b2e] font-medium">
                             <Mail className="w-4 h-4 text-[#0045de] shrink-0" />
-                            <span>Code &amp; Link sent to <strong className="text-[#0045de]">{email}</strong></span>
+                            <span>Code sent to <strong className="text-[#0045de]">{email}</strong></span>
                           </div>
                           <button
                             type="button"
@@ -776,18 +828,11 @@ export default function LoginPage() {
                             <Loader2 className="w-5 h-5 animate-spin text-white" />
                           ) : (
                             <>
-                              <span>Verify Code &amp; Enter Dashboard</span>
+                              <span>Verify OTP &amp; Enter Dashboard</span>
                               <CheckCircle2 className="w-4 h-4" />
                             </>
                           )}
                         </button>
-
-                        {/* Magic link callout */}
-                        <div className="p-3 bg-[#f8f9ff] rounded-lg border border-[#dae2fd]/70 text-center">
-                          <p className="text-[11px] text-[#44474d] leading-relaxed">
-                            ✨ <strong>Tip:</strong> You can also simply click the <strong>Magic Sign-In Link</strong> inside your email to sign in instantly without typing the code.
-                          </p>
-                        </div>
 
                         {/* Resend button */}
                         <div className="text-center pt-1">
@@ -811,58 +856,52 @@ export default function LoginPage() {
                   </div>
                 )}
 
-                {/* ── Sign In: Phone / WhatsApp OTP View ── */}
-                {mode === 'signin' && authTab === 'phone' && (
+                {/* ── Sign In: Email Link (Magic Link) View ── */}
+                {mode === 'signin' && authTab === 'link' && (
                   <div className="mt-6 flex flex-col space-y-4">
-                    {!otpSent ? (
+                    {!linkSent ? (
                       <>
                         <div className="flex flex-col space-y-1.5">
                           <label className="text-xs font-medium text-[#44474d] flex items-center justify-between">
-                            <span>Mobile Phone Number</span>
-                            <span className="text-[#009d6d] font-semibold flex items-center gap-1 text-[11px]">
-                              <Zap className="w-3.5 h-3.5" /> Instant OTP
+                            <span>Merchant Email Address</span>
+                            <span className="text-[#0045de] font-semibold flex items-center gap-1 text-[11px]">
+                              <Zap className="w-3.5 h-3.5" /> One-Click Sign In
                             </span>
                           </label>
-                          <div className="flex items-center rounded-lg bg-[#f2f3ff] px-3 py-1 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:shadow-md transition-all border border-transparent focus-within:border-blue-400">
-                            <div className="flex items-center gap-1.5 pr-3 py-2 text-[#131b2e] text-xs font-bold border-r border-[#dae2fd]">
-                              <span className="text-base leading-none">🇮🇳</span>
-                              <span>+91</span>
-                            </div>
+                          <div className="flex items-center rounded-lg bg-[#f2f3ff] px-3 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:shadow-md transition-all border border-transparent focus-within:border-blue-400">
+                            <Mail className="w-4 h-4 text-[#74777e] mr-2 shrink-0" />
                             <input
-                              type="tel"
-                              maxLength={10}
-                              value={phone}
-                              onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                              onKeyDown={e => e.key === 'Enter' && phone.length === 10 && handleWhatsAppOtp()}
-                              placeholder="Enter 10-digit mobile number"
-                              className="w-full bg-transparent py-2.5 pl-3 text-xs text-[#131b2e] placeholder-[#74777e] focus:outline-none font-medium tracking-wide"
+                              type="email"
+                              required
+                              value={email}
+                              onChange={(e) => setEmail(e.target.value)}
+                              onKeyDown={(e) => e.key === 'Enter' && email.includes('@') && handleSendEmailLink()}
+                              placeholder="merchant@company.com"
+                              className="w-full bg-transparent py-2.5 text-xs text-[#131b2e] placeholder-[#74777e] focus:outline-none font-medium"
                             />
                           </div>
+                          <p className="text-[11px] text-[#74777e] leading-relaxed">
+                            We will send a one-click magic sign-in link to your inbox. Tap the link to sign in instantly with no passwords or codes.
+                          </p>
                         </div>
 
-                        {/* WhatsApp OTP — primary CTA */}
                         <button
                           type="button"
-                          onClick={handleWhatsAppOtp}
-                          disabled={loading}
-                          className="w-full h-12 rounded-lg text-sm font-bold flex items-center justify-center gap-2.5 transition-all duration-200 shadow-md active:scale-[0.99] cursor-pointer disabled:opacity-50"
-                          style={{ background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)', color: '#fff' }}
+                          onClick={handleSendEmailLink}
+                          disabled={loading || !email.trim() || !email.includes('@')}
+                          className="w-full h-12 bg-[#2c60ff] hover:bg-[#0045de] text-white rounded-lg text-sm font-semibold flex items-center justify-center gap-2 shadow-md transition-all duration-200 cursor-pointer disabled:opacity-50"
                         >
-                          {loading && otpMethod === 'whatsapp' ? (
+                          {loading ? (
                             <Loader2 className="w-5 h-5 animate-spin text-white" />
                           ) : (
                             <>
-                              {/* WhatsApp logo */}
-                              <svg className="w-5 h-5 fill-white" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                              </svg>
-                              <span>Get OTP on WhatsApp</span>
+                              <Link2 className="w-4 h-4" />
+                              <span>Send Magic Sign-In Link</span>
                               <ArrowRight className="w-4 h-4" />
                             </>
                           )}
                         </button>
 
-                        {/* Alternative: Use Email OTP & Magic Link */}
                         <button
                           type="button"
                           onClick={() => { setAuthTab('email'); setError(''); setMessage(''); }}
@@ -870,74 +909,54 @@ export default function LoginPage() {
                           className="w-full h-10 bg-[#eaedff] hover:bg-[#e2e7ff] text-[#44474d] hover:text-[#131b2e] rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
                         >
                           <Mail className="w-3.5 h-3.5 text-[#0045de]" />
-                          <span>Use Email OTP &amp; Magic Link instead</span>
+                          <span>Prefer a 6-digit code? Use Email OTP instead</span>
                         </button>
                       </>
                     ) : (
                       <>
-                        {/* OTP channel badge */}
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold"
-                            style={otpMethod === 'whatsapp'
-                              ? { background: '#e7fde8', color: '#128C7E', border: '1px solid #b7f0bc' }
-                              : { background: '#eaedff', color: '#0045de', border: '1px solid #dae2fd' }}>
-                            {otpMethod === 'whatsapp' ? (
-                              <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                              </svg>
-                            ) : (
-                              <Phone className="w-3.5 h-3.5" />
-                            )}
-                            OTP sent to +91 {phone} via {otpMethod === 'whatsapp' ? 'WhatsApp' : 'SMS'}
+                        <div className="p-4 rounded-xl bg-gradient-to-br from-[#eaedff] to-[#f4f6ff] border border-[#dae2fd] text-center space-y-3">
+                          <div className="w-12 h-12 mx-auto rounded-full bg-blue-100 flex items-center justify-center text-[#0045de] shadow-inner">
+                            <Mail className="w-6 h-6 text-[#0045de]" />
                           </div>
+                          <div>
+                            <h3 className="text-sm font-bold text-[#131b2e]">Check Your Inbox!</h3>
+                            <p className="text-xs text-[#44474d] mt-1">
+                              We sent a one-click magic link to <strong className="text-[#0045de]">{email}</strong>
+                            </p>
+                          </div>
+                          <p className="text-[11px] text-[#74777e] leading-relaxed">
+                            Click the button in your email to instantly authenticate and access your merchant console.
+                          </p>
+                          <div className="pt-1 flex items-center justify-center gap-2 text-[11px] text-emerald-700 font-semibold bg-emerald-50 py-1.5 px-3 rounded-md border border-emerald-200/80">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                            <span>Listening for login approval...</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-1">
                           <button
                             type="button"
-                            onClick={() => { setOtpSent(false); setOtp(''); setError(''); setMessage(''); }}
-                            className="text-[11px] text-[#0045de] font-semibold hover:underline"
-                          >Change</button>
-                        </div>
+                            onClick={() => { setLinkSent(false); setError(''); setMessage(''); }}
+                            className="text-xs font-semibold text-[#74777e] hover:text-[#131b2e] cursor-pointer"
+                          >
+                            ← Change email
+                          </button>
 
-                        {/* 6-box OTP input */}
-                        <div className="flex flex-col space-y-2">
-                          <label className="text-xs font-medium text-[#44474d] text-center">
-                            Enter the 6-digit OTP
-                          </label>
-                          <OtpBoxInput value={otp} onChange={setOtp} disabled={loading} />
-                          <div className="flex items-center justify-between text-[11px] text-[#44474d] pt-1">
-                            <span className="text-[#74777e]">
-                              {otpTimer > 0 ? `Expires in ${otpTimer}s` : 'OTP expired'}
+                          {linkTimer > 0 ? (
+                            <span className="text-xs text-[#74777e]">
+                              Resend link in <strong className="text-[#131b2e]">{linkTimer}s</strong>
                             </span>
-                            {otpTimer > 0 ? (
-                              <span className="text-slate-400">Resend in {otpTimer}s</span>
-                            ) : (
-                              <div className="flex gap-3">
-                                <button type="button" onClick={() => triggerOtpFlow('whatsapp')}
-                                  className="text-[#25D366] font-bold hover:underline flex items-center gap-1">
-                                  <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                                  WhatsApp
-                                </button>
-                                <button type="button" onClick={() => triggerOtpFlow('sms')}
-                                  className="text-[#0045de] font-bold hover:underline">SMS</button>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={handleVerifyOtp}
-                          disabled={loading || otp.length !== 6}
-                          className="w-full h-12 bg-[#2c60ff] hover:bg-[#0045de] text-white rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition-all duration-200 shadow-md active:scale-[0.99] cursor-pointer disabled:opacity-50"
-                        >
-                          {loading ? (
-                            <Loader2 className="w-5 h-5 animate-spin text-white" />
                           ) : (
-                            <>
-                              <span>Verify &amp; Log In</span>
-                              <CheckCircle2 className="w-4 h-4" />
-                            </>
+                            <button
+                              type="button"
+                              onClick={handleSendEmailLink}
+                              disabled={loading}
+                              className="text-xs font-semibold text-[#0045de] hover:underline cursor-pointer"
+                            >
+                              Didn&apos;t receive link? Resend
+                            </button>
                           )}
-                        </button>
+                        </div>
                       </>
                     )}
                   </div>
