@@ -26,42 +26,82 @@ const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = 'var(--text-prima
 
 // ── 6-digit OTP box input component ────────────────────────────────
 function OtpBoxInput({ value, onChange, disabled }) {
-  const digits = (value || '').padEnd(6, '').split('').slice(0, 6);
+  // Always produce exactly 6 slots
+  const digits = Array.from({ length: 6 }, (_, i) => (value || '')[i] || '');
   const inputRefs = useRef([]);
+
+  useEffect(() => {
+    // Auto-focus first input on load
+    inputRefs.current[0]?.focus();
+  }, []);
 
   const handleKey = (index, e) => {
     if (e.key === 'Backspace') {
       e.preventDefault();
-      const next = value.slice(0, index) + value.slice(index + 1);
-      onChange(next);
-      if (index > 0) inputRefs.current[index - 1]?.focus();
+      const chars = (value || '').split('');
+      if (chars[index]) {
+        chars[index] = '';
+        onChange(chars.join(''));
+      } else if (index > 0) {
+        chars[index - 1] = '';
+        onChange(chars.join(''));
+        inputRefs.current[index - 1]?.focus();
+      }
+    } else if (e.key === 'ArrowLeft' && index > 0) {
+      e.preventDefault();
+      inputRefs.current[index - 1]?.focus();
+    } else if (e.key === 'ArrowRight' && index < 5) {
+      e.preventDefault();
+      inputRefs.current[index + 1]?.focus();
     }
   };
 
   const handleInput = (index, e) => {
-    const char = e.target.value.replace(/\D/g, '').slice(-1);
-    if (!char) return;
-    const arr = (value || '').split('');
-    arr[index] = char;
-    const next = arr.join('').slice(0, 6);
+    const raw = e.target.value.replace(/\D/g, '');
+    if (!raw) {
+      const chars = (value || '').split('');
+      chars[index] = '';
+      onChange(chars.join(''));
+      return;
+    }
+
+    if (raw.length > 1) {
+      const pasted = raw.slice(0, 6);
+      onChange(pasted);
+      inputRefs.current[Math.min(pasted.length, 5)]?.focus();
+      return;
+    }
+
+    const char = raw.slice(-1);
+    const chars = (value || '').split('');
+    chars[index] = char;
+    const next = chars.join('').slice(0, 6);
     onChange(next);
-    if (index < 5) inputRefs.current[index + 1]?.focus();
+
+    if (index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
   };
 
   const handlePaste = (e) => {
-    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
-    if (pasted) { onChange(pasted); inputRefs.current[Math.min(pasted.length, 5)]?.focus(); }
     e.preventDefault();
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    if (pasted) {
+      onChange(pasted);
+      const nextFocus = Math.min(pasted.length, 5);
+      inputRefs.current[nextFocus]?.focus();
+    }
   };
 
   return (
-    <div className="flex gap-2 justify-center">
+    <div className="flex gap-2 sm:gap-2.5 justify-center py-2">
       {digits.map((d, i) => (
         <input
           key={i}
-          ref={el => inputRefs.current[i] = el}
+          ref={el => (inputRefs.current[i] = el)}
           type="text"
           inputMode="numeric"
+          pattern="[0-9]*"
           maxLength={1}
           value={d}
           disabled={disabled}
@@ -69,7 +109,7 @@ function OtpBoxInput({ value, onChange, disabled }) {
           onKeyDown={e => handleKey(i, e)}
           onPaste={handlePaste}
           onClick={e => e.target.select()}
-          className={`w-10 h-12 text-center text-xl font-bold rounded-lg border-2 transition-all focus:outline-none font-mono
+          className={`w-11 h-12 text-center text-xl font-bold rounded-lg border-2 transition-all focus:outline-none font-mono
             ${ d
               ? 'bg-[#eaedff] border-[#2c60ff] text-[#131b2e]'
               : 'bg-[#f2f3ff] border-[#dae2fd] text-[#131b2e]'}
