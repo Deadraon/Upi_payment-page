@@ -6,7 +6,7 @@
 
 
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 
 
 
@@ -43,7 +43,7 @@ import {
 
 
 
-  QrCode, Share2, Trash2, Plus, ExternalLink, Sparkles
+  QrCode, Share2, Trash2, Plus, ExternalLink, Sparkles, Check
 
 
 
@@ -157,7 +157,16 @@ export default function DashboardPage() {
 
   const [message, setMessage] = useState('');
 
+  // Track subscription activation transition to ensure payment confirmation screen is shown
+  const [activationDismissed, setActivationDismissed] = useState(false);
+  const wasInactiveOnMount = useRef(null);
 
+  useEffect(() => {
+    if (profile && wasInactiveOnMount.current === null) {
+      const expired = profile.subscription_expires_at && new Date(profile.subscription_expires_at).getTime() < Date.now();
+      wasInactiveOnMount.current = (profile.subscription_status !== 'active' || expired);
+    }
+  }, [profile]);
 
   const [copied, setCopied] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
@@ -5562,27 +5571,23 @@ echo "Order Created: " . $data['orderId'];
         historyOrders={historyOrders}
         historyLoading={historyLoading}
         handleSignOut={handleSignOut}
+        onActivationComplete={() => setActivationDismissed(true)}
       />
     );
   };
 
   const isAdminMerchant = profile?.id === '677d9312-a53f-4b96-815f-53e0eee1b292' || profile?.api_key === CONFIG.platformApiKey;
 
-
-
-
-
-
-
   const isSubExpired = profile?.subscription_expires_at && new Date(profile.subscription_expires_at).getTime() < Date.now();
-  if (profile && (profile.subscription_status !== 'active' || isSubExpired) && !isAdminMerchant) {
+  const isInactiveNow = profile?.subscription_status !== 'active' || isSubExpired;
 
+  // Keep showing paywall if merchant is currently inactive OR if they started as inactive and haven't dismissed the payment confirmation screen
+  const shouldShowPaywall = !isAdminMerchant && profile && (
+    isInactiveNow || (wasInactiveOnMount.current === true && !activationDismissed)
+  );
 
-
+  if (shouldShowPaywall) {
     return renderPaywallBlocker();
-
-
-
   }
 
 
@@ -10122,6 +10127,32 @@ echo "Order Created: " . $data['orderId'];
 
 
           <div className={`${(activeTab === 'overview' || activeTab === 'payment-links' || activeTab === 'transactions' || activeTab === 'subscription') ? 'max-w-[1520px]' : 'max-w-5xl'} mx-auto space-y-6`}>
+            {/* Activation Success Celebration Banner */}
+            {activationDismissed && (
+              <div className="bg-gradient-to-r from-emerald-500/10 via-emerald-50 to-teal-50 border border-emerald-200/90 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm animate-fade-in">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-black shadow-md shadow-emerald-500/20 shrink-0">
+                    <Check className="w-6 h-6 stroke-[3]" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-black text-slate-900">Console Activated Successfully!</h4>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 uppercase tracking-wider">
+                        Active & Live
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-600 mt-0.5">Welcome to your dashboard! All UPI payment collections, API keys, and webhooks are active and operational.</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setActivationDismissed(false)}
+                  className="self-end sm:self-center px-3.5 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition-all shadow-xs cursor-pointer"
+                  type="button"
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
 
 
 

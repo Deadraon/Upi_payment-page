@@ -19,6 +19,7 @@ export default function ConsoleActivationPaywall({
   historyOrders = [],
   historyLoading = false,
   handleSignOut,
+  onActivationComplete,
 }) {
   const [selectedPlan, setSelectedPlan] = useState('trial'); // 'trial' | '1m' | '3m' | 'custom'
   const [copiedVpa, setCopiedVpa] = useState(false);
@@ -28,6 +29,51 @@ export default function ConsoleActivationPaywall({
   const [language, setLanguage] = useState('en'); // 'en' | 'hi'
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showEnterpriseModal, setShowEnterpriseModal] = useState(false);
+
+  // Payment Confirmation Success States
+  const [paymentConfirmed, setPaymentConfirmed] = useState(false);
+  const [countdown, setCountdown] = useState(5);
+
+  // Auto-detect active verified subscription status
+  useEffect(() => {
+    const isSubActive = profile?.subscription_status === 'active';
+    const expiresAt = profile?.subscription_expires_at ? new Date(profile.subscription_expires_at) : null;
+    const isNotExpired = expiresAt && expiresAt.getTime() > Date.now();
+
+    if (isSubActive && isNotExpired) {
+      setPaymentConfirmed(true);
+    }
+  }, [profile?.subscription_status, profile?.subscription_expires_at]);
+
+  // Also check if historyOrders has verified subscription order
+  useEffect(() => {
+    if (historyOrders && historyOrders.length > 0) {
+      const SUBSCRIPTION_NOTES = ['Trial_Setup_3Day', 'Subscription_1Month', 'Subscription_3Month', 'Custom_Enterprise'];
+      const verifiedSubOrder = historyOrders.find(o => 
+        (o.status === 'verified' || o.status === 'completed' || o.status === 'success') &&
+        SUBSCRIPTION_NOTES.some(n => o.note?.includes(n))
+      );
+      if (verifiedSubOrder && profile?.subscription_status === 'active') {
+        setPaymentConfirmed(true);
+      }
+    }
+  }, [historyOrders, profile?.subscription_status]);
+
+  // Countdown timer to automatically transition to console once payment is confirmed
+  useEffect(() => {
+    if (!paymentConfirmed) return;
+    const timer = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          if (onActivationComplete) onActivationComplete();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [paymentConfirmed, onActivationComplete]);
 
   // Auto-poll every 2.5 seconds to detect payment confirmation automatically
   useEffect(() => {
@@ -153,6 +199,7 @@ export default function ConsoleActivationPaywall({
 
         if (isSubActive && isNotExpired) {
           setStatusMsg('✓ Subscription is active and verified! Console is unlocked.');
+          setPaymentConfirmed(true);
           return;
         }
 
@@ -189,6 +236,184 @@ export default function ConsoleActivationPaywall({
         SUBSCRIPTION_NOTES.some(n => o.note?.includes(n))
       ) || null
     : null;
+
+  // ═════════════════════════════════════════════════════════════════════════════
+  // PAYMENT SUCCESS CONFIRMATION SCREEN (WITH ANIMATED GREEN TICK & AUTO-REDIRECT)
+  // ═════════════════════════════════════════════════════════════════════════════
+  if (paymentConfirmed) {
+    const activeOrder = historyOrders?.find(o => 
+      (o.status === 'verified' || o.status === 'completed' || o.status === 'success')
+    );
+    const amountDisplay = activeOrder?.amount ? `₹${Number(activeOrder.amount).toFixed(2)}` : currentPlan.priceText;
+    const expiryDateStr = profile?.subscription_expires_at 
+      ? new Date(profile.subscription_expires_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+      : (selectedPlan === '1m' ? '30 Days Full Access' : selectedPlan === '3m' ? '90 Days Full Access' : '3 Days Free Trial');
+
+    return (
+      <div className="bg-slate-100 font-sans text-slate-800 antialiased min-h-screen flex flex-col justify-center items-center py-6 px-3 sm:px-6">
+        
+        {/* Floating Trust Pill on Top */}
+        <div className="flex items-center space-x-2 bg-white shadow-sm rounded-full px-4 py-1.5 mb-4 border border-emerald-200">
+          <ShieldCheck className="w-4.5 h-4.5 text-emerald-600" />
+          <span className="text-xs font-semibold text-slate-700">
+            Payment Verified • <strong>mymob.tech</strong>
+          </span>
+          <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span className="text-[10px] text-emerald-600 uppercase tracking-wider font-bold">Active</span>
+        </div>
+
+        {/* Success Card Container */}
+        <div className="w-full max-w-[620px] bg-white shadow-2xl rounded-3xl overflow-hidden flex flex-col border border-slate-200/80">
+          
+          {/* Header */}
+          <div className="bg-[#0c2340] text-white p-5 sm:p-6 flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center shadow-md shrink-0 text-white font-black text-lg">
+                <Check className="w-6 h-6 stroke-[3]" />
+              </div>
+              <div>
+                <span className="text-base font-bold text-white tracking-tight block">MyMobPay Technologies</span>
+                <span className="text-xs text-slate-300">Console Activation Gateway</span>
+              </div>
+            </div>
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+              Payment Success
+            </span>
+          </div>
+
+          {/* Success Body */}
+          <div className="p-6 sm:p-8 flex flex-col items-center text-center">
+            
+            {/* Animated Green Tick Icon */}
+            <div className="relative flex items-center justify-center my-4">
+              {/* Outer pulsing ring */}
+              <div className="absolute w-28 h-28 rounded-full bg-emerald-100 animate-ping opacity-75"></div>
+              {/* Green circular base with white checkmark */}
+              <div className="relative w-24 h-24 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center shadow-xl shadow-emerald-500/30 border-4 border-white">
+                <Check className="w-12 h-12 text-white stroke-[3.5]" />
+              </div>
+            </div>
+
+            {/* Title & Message */}
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-3">
+              {language === 'hi' ? 'भुगतान सफल रहा!' : 'Payment Successful!'}
+            </h2>
+            <p className="text-sm text-slate-600 font-medium max-w-md mx-auto mt-2 leading-relaxed">
+              {language === 'hi' 
+                ? 'आपका एक्टिवेशन भुगतान बैंक द्वारा सत्यापित कर दिया गया है। आपका मर्चेंट कंसोल अब सक्रिय हो चुका है।' 
+                : 'Your activation payment has been verified by the bank. Your merchant console and API gateway are now fully unlocked.'}
+            </p>
+
+            {/* Green confirmation pill */}
+            <div className="mt-3 inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-xs font-bold">
+              <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Instant Bank Confirmation Verified</span>
+            </div>
+
+            {/* Receipt Summary Card */}
+            <div className="w-full bg-slate-50 border border-slate-200/80 rounded-2xl p-5 mt-5 text-left space-y-3">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  {language === 'hi' ? 'सक्रिय प्लान' : 'Plan Activated'}
+                </span>
+                <span className="text-sm font-bold text-slate-900">{currentPlan.title}</span>
+              </div>
+              <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  {language === 'hi' ? 'भुगतान राशि' : 'Amount Paid'}
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-base font-black text-emerald-600">{amountDisplay}</span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 uppercase tracking-wide">
+                    ✓ Paid
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Merchant ID</span>
+                <span className="font-mono text-xs font-bold text-slate-700">{merchantId}</span>
+              </div>
+              <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  {language === 'hi' ? 'वैधता' : 'Subscription Validity'}
+                </span>
+                <span className="text-xs font-bold text-slate-800">{expiryDateStr}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  {language === 'hi' ? 'कंसोल स्थिति' : 'Console Status'}
+                </span>
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  Unlocked & Active
+                </span>
+              </div>
+            </div>
+
+            {/* Unlocked Capabilities Pills */}
+            <div className="w-full grid grid-cols-2 gap-2 mt-4 text-[11px] font-semibold text-slate-700">
+              <div className="flex items-center gap-1.5 bg-emerald-50/60 border border-emerald-100 p-2 rounded-xl text-emerald-900">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>Live UPI QR Collections</span>
+              </div>
+              <div className="flex items-center gap-1.5 bg-emerald-50/60 border border-emerald-100 p-2 rounded-xl text-emerald-900">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>Instant Webhooks Sync</span>
+              </div>
+              <div className="flex items-center gap-1.5 bg-emerald-50/60 border border-emerald-100 p-2 rounded-xl text-emerald-900">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>API Keys & Dev Portal</span>
+              </div>
+              <div className="flex items-center gap-1.5 bg-emerald-50/60 border border-emerald-100 p-2 rounded-xl text-emerald-900">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>Real-Time Settlements</span>
+              </div>
+            </div>
+
+            {/* Countdown Progress Bar */}
+            <div className="w-full mt-6 space-y-1.5">
+              <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
+                <span>
+                  {language === 'hi' 
+                    ? `${countdown} सेकंड में कंसोल खुल रहा है...` 
+                    : `Entering console in ${countdown}s...`}
+                </span>
+                <span className="font-bold text-emerald-600">{Math.round(((5 - countdown) / 5) * 100)}%</span>
+              </div>
+              <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-1000 ease-linear rounded-full"
+                  style={{ width: `${Math.min(100, Math.max(10, ((6 - countdown) / 5) * 100))}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Action CTA Button */}
+            <button
+              onClick={() => {
+                if (onActivationComplete) onActivationComplete();
+              }}
+              className="w-full mt-5 py-3.5 px-6 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5 cursor-pointer"
+            >
+              <span>{language === 'hi' ? 'मर्चेंट डैशबोर्ड पर जाएं' : 'Continue to Merchant Dashboard'}</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+
+          </div>
+
+          {/* Footer */}
+          <footer className="bg-slate-50 py-3 px-6 flex items-center justify-center text-slate-500 text-xs border-t border-slate-200">
+            <span className="flex items-center gap-1.5">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              Protected by <strong>mymob.tech</strong> 256-bit encryption • Instant Activation
+            </span>
+          </footer>
+
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-slate-100 font-sans text-slate-800 antialiased min-h-screen flex flex-col justify-center items-center py-6 px-3 sm:px-6">
