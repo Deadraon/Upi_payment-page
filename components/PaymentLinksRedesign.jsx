@@ -12,6 +12,7 @@ import {
   Download,
   RefreshCw,
   CheckCircle2,
+  Loader2,
   Clock,
   ShieldCheck,
   Sparkles,
@@ -45,11 +46,20 @@ export default function PaymentLinksRedesign({
   setActiveTab,
 }) {
   // Form input states
-  const [amount, setAmount] = useState('');
-  const [purpose, setPurpose] = useState('');
-  const [refCode, setRefCode] = useState('');
-  const [customerName, setCustomerName] = useState('');
-  const [customerPhone, setCustomerPhone] = useState('');
+  const [amount, setAmount] = useState('2499.00');
+  const [currency, setCurrency] = useState('INR'); // 'INR' | 'USD'
+  const [purpose, setPurpose] = useState('Software Consulting Retainer / Q1 Sprint');
+  const [refCode, setRefCode] = useState('REF-84920');
+  const [customerName, setCustomerName] = useState('Rohan Sharma');
+  const [customerPhone, setCustomerPhone] = useState('+91 98765 43210');
+  const [customerContact, setCustomerContact] = useState('+91 98765 43210');
+  const [allowPartial, setAllowPartial] = useState(false);
+  const [notifySms, setNotifySms] = useState(true);
+  const [notifyWhatsapp, setNotifyWhatsapp] = useState(true);
+  const [railUpi, setRailUpi] = useState(true);
+  const [railImps, setRailImps] = useState(true);
+  const [railCrypto, setRailCrypto] = useState(false);
+  const [linkValidity, setLinkValidity] = useState('7d');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -440,6 +450,10 @@ export default function PaymentLinksRedesign({
   const previewPurposeFormatted = purpose.trim() || 'Direct Payment';
   const previewRefFormatted = refCode.trim() || 'REF-GEN';
 
+  const destBank = profile?.bank_name || profile?.settlement_bank || 'ICICI';
+  const accNum = profile?.account_number || profile?.bank_account_number || '4092';
+  const lastFour = accNum ? String(accNum).slice(-4) : '4092';
+
   return (
     <div className="flex flex-col gap-6 max-w-[1440px] mx-auto w-full animate-fade-in text-slate-800">
       {/* Toast Notification */}
@@ -580,525 +594,502 @@ export default function PaymentLinksRedesign({
           QUICK CREATE PANEL & INTERACTIVE LINK GENERATOR
           ══════════════════════════════════════════════════════════ */}
       {showCreateModal && (
-        <div
-          ref={createPanelRef}
-          className="bg-white border border-slate-200/90 rounded-2xl p-6 lg:p-7 shadow-sm transition-all animate-fade-up"
-        >
-          {/* Header */}
-          <div className="flex flex-col lg:flex-row items-start justify-between gap-4 pb-6 border-b border-slate-100">
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center shadow-xs">
-                  <Sparkles className="w-4 h-4" />
-                </span>
-                <h2 className="text-lg font-bold text-slate-900 tracking-tight">
-                  Instant Link Generator Studio
-                </h2>
-                <span className="text-[11px] font-bold bg-blue-50 text-blue-700 px-2.5 py-0.5 rounded-full border border-blue-100/80">
-                  Direct VPA Routing
-                </span>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                  profile?.sandbox_mode !== false 
-                    ? 'bg-amber-50 text-amber-700 border-amber-200' 
-                    : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                }`}>
-                  {profile?.sandbox_mode !== false ? '⚡ Test Mode' : '● Live Mode'}
-                </span>
-              </div>
-              <p className="text-xs text-slate-500 mt-1">
-                Configure payment parameters to generate instant UPI deep links and dynamic QR codes with real-time settlement.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setAmount('12499');
-                  setPurpose('Cloud Hosting Q4 Subscription');
-                  setRefCode('REF-CH-992');
-                  setCustomerName('Rohan Sharma');
-                  setCustomerPhone('+91 98765 43210');
-                  showToast('Sample data loaded. Click "Generate Payment Link" to activate.');
-                }}
-                className="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 rounded-lg border border-slate-200 transition-colors cursor-pointer"
-              >
-                Load Sample Data
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setAmount('');
-                  setPurpose('');
-                  setRefCode('');
-                  setCustomerName('');
-                  setCustomerPhone('');
-                  setGeneratedLinkData(null);
-                  setActiveUrl('');
-                  setActiveLinkId('');
-                  showToast('Form cleared');
-                }}
-                className="px-3 py-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
-              >
-                Clear Form
-              </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pt-6">
-            {/* Form Column (7 cols) */}
-            <form onSubmit={handleCreateLink} className="lg:col-span-7 flex flex-col gap-5">
-              {/* Amount Input */}
-              <div className="bg-slate-50/80 border border-slate-200 rounded-xl p-4.5 focus-within:border-blue-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-500/10 transition-all">
-                <div className="flex items-center justify-between mb-2">
-                  <label
-                    htmlFor="input-amount"
-                    className="text-[11px] uppercase tracking-wider text-slate-500 font-bold"
-                  >
-                    Amount to Request (INR) *
-                  </label>
-                  <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
-                    Zero MDR • Direct Settled
-                  </span>
+        <div ref={createPanelRef} className="w-full flex justify-center animate-fade-up">
+          {/* BEGIN: MasterPaymentLinkConsole */}
+          <main className="w-full max-w-4xl bg-white border border-slate-300 rounded-xl shadow-xl shadow-slate-200/60 overflow-hidden font-sans" data-purpose="payment-generator-card">
+            {/* BEGIN: ConsoleHeader */}
+            <header className="border-b border-slate-200 bg-slate-900 px-5 py-4 text-white">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                {/* Left: Status & Title */}
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono tracking-wider uppercase font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block mr-1.5 animate-pulse"></span>
+                      {profile?.sandbox_mode !== false ? 'Test Rail' : 'Live Rail'}
+                    </span>
+                    <span className="text-xs font-mono text-slate-400 tracking-wide uppercase">Direct-to-Bank Engine</span>
+                  </div>
+                  <h1 className="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
+                    CREATE INSTANT PAYMENT LINK
+                    <span className="text-slate-500 font-mono text-xs font-normal">{'// PROTOCOL v2.4'}</span>
+                  </h1>
                 </div>
-
-                <div className="relative flex items-center">
-                  <span className="absolute left-3 text-slate-400 font-bold text-2xl select-none">
-                    ₹
+                {/* Right: Destination Route Badge & Escrow Micro-Badge */}
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="hidden sm:flex flex-col items-end text-right">
+                    <span className="text-[11px] font-mono text-slate-400 leading-none">DESTINATION A/C</span>
+                    <span className="text-xs font-mono font-medium text-slate-200 mt-1 flex items-center gap-1.5">
+                      <svg className="w-3.5 h-3.5 text-blue-400 inline" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"></path>
+                        <path clipRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" fillRule="evenodd"></path>
+                      </svg>
+                      {destBank} •••• {lastFour}
+                    </span>
+                  </div>
+                  <span className="inline-flex items-center px-2.5 py-1 rounded bg-amber-400/10 border border-amber-400/30 text-amber-300 font-mono text-xs font-bold uppercase tracking-wider">
+                    0% ESCROW HOLD
                   </span>
-                  <input
-                    id="input-amount"
-                    type="number"
-                    step="0.01"
-                    min="1"
-                    placeholder="0.00"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    className="w-full bg-transparent border-0 pl-9 pr-3 py-2 text-2xl sm:text-3xl font-extrabold text-slate-900 placeholder:text-slate-300 focus:outline-none tabular-nums"
-                  />
-                </div>
-
-                {/* Quick amount chips */}
-                <div className="flex flex-wrap items-center gap-1.5 mt-3 pt-3 border-t border-slate-200/60">
-                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold mr-1">
-                    Quick:
-                  </span>
-                  {[500, 1000, 2500, 5000, 12499, 25000].map((preset) => (
-                    <button
-                      key={preset}
-                      type="button"
-                      onClick={() => setAmount(preset.toString())}
-                      className={`text-xs px-2.5 py-1 rounded-md border font-semibold transition-all cursor-pointer ${
-                        amount === preset.toString()
-                          ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                          : 'bg-white hover:bg-slate-100 text-slate-600 border-slate-200'
-                      }`}
-                    >
-                      ₹{preset.toLocaleString('en-IN')}
-                    </button>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => setAmount('')}
-                    className={`text-xs px-2.5 py-1 rounded-md border font-semibold transition-all cursor-pointer ${
-                      amount === ''
-                        ? 'bg-slate-800 text-white border-slate-800'
-                        : 'bg-white hover:bg-slate-100 text-slate-600 border-slate-200'
-                    }`}
-                  >
-                    Custom / Open
-                  </button>
                 </div>
               </div>
+              {/* Settlement Guarantee Subtext Bar */}
+              <div className="mt-3 pt-2.5 border-t border-slate-800 text-[11px] text-slate-400 flex flex-wrap items-center justify-between gap-2">
+                <p className="flex items-center gap-1.5 font-mono">
+                  <svg className="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
+                  </svg>
+                  Direct T+0 Passthrough: Zero intermediate ledger holding. Funds credited to account instantly.
+                </p>
+                <span className="text-[10px] font-mono text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded">NPCI SWITCH CONNECTED</span>
+              </div>
+            </header>
+            {/* END: ConsoleHeader */}
 
-              {/* Purpose & Reference in 2 cols */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label
-                    htmlFor="input-purpose"
-                    className="block text-[11px] uppercase tracking-wider text-slate-600 font-bold mb-1.5"
-                  >
-                    Payment Purpose / Note *
-                  </label>
-                  <input
-                    id="input-purpose"
-                    type="text"
-                    placeholder="e.g. Cloud Hosting Q4 Subscription"
-                    value={purpose}
-                    onChange={(e) => setPurpose(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors font-medium"
-                  />
-                  {/* Suggestion pills */}
-                  <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                    {['Consulting', 'Subscription', 'Invoice Settlement', 'Service Fee'].map((item) => (
+            {/* BEGIN: FormBody */}
+            <div className="p-5 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* BEGIN: LeftColumn (Amount & Details) */}
+              <section aria-labelledby="section-amount-details" className="lg:col-span-7 space-y-5">
+                <h2 className="sr-only" id="section-amount-details">Payment Details and Customer Information</h2>
+
+                {/* Monetary Input Card */}
+                <div className="border border-slate-300 rounded-lg p-4 bg-slate-50/70 shadow-sm" data-purpose="amount-panel">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-mono font-bold tracking-wider uppercase text-slate-600" htmlFor="payment-amount">
+                      Amount &amp; Denomination
+                    </label>
+                    <div className="flex items-center gap-1 bg-white border border-slate-300 rounded px-1.5 py-0.5 text-xs font-mono text-slate-700">
                       <button
-                        key={item}
                         type="button"
-                        onClick={() => setPurpose(item)}
-                        className="text-[10px] text-slate-500 hover:text-blue-600 bg-slate-100 hover:bg-blue-50 px-2 py-0.5 rounded border border-slate-200/60 transition-colors cursor-pointer font-medium"
+                        onClick={() => setCurrency('INR')}
+                        className={`px-1 py-0.5 rounded transition-colors ${currency === 'INR' ? 'font-bold text-slate-900 bg-slate-100' : 'text-slate-500 hover:text-slate-900'}`}
                       >
-                        + {item}
+                        INR (₹)
+                      </button>
+                      <span className="text-slate-400">|</span>
+                      <button
+                        type="button"
+                        onClick={() => setCurrency('USD')}
+                        className={`px-1 py-0.5 rounded transition-colors ${currency === 'USD' ? 'font-bold text-slate-900 bg-slate-100' : 'text-slate-500 hover:text-slate-900'}`}
+                      >
+                        USD ($)
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Numeric Hero Input */}
+                  <div className="relative rounded-md shadow-sm border border-slate-300 bg-white focus-within:ring-2 focus-within:ring-blue-600 focus-within:border-blue-600">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                      <span className="text-xl sm:text-2xl font-bold font-mono text-slate-500">
+                        {currency === 'USD' ? '$' : '₹'}
+                      </span>
+                    </div>
+                    <input
+                      className="block w-full rounded-md border-0 py-2.5 pl-9 pr-16 text-2xl sm:text-3xl font-bold font-mono tracking-tight text-slate-900 tabular-nums focus:ring-0 sm:leading-8 placeholder-slate-400 outline-none"
+                      id="payment-amount"
+                      name="amount"
+                      placeholder="0.00"
+                      type="number"
+                      step="any"
+                      min="1"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                    />
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                      <span className="text-xs font-mono font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
+                        0% MDR
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Quick Denomination Increments */}
+                  <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                    <span className="text-[11px] font-mono text-slate-600 mr-1 font-semibold">Quick Add:</span>
+                    {[
+                      { label: '+₹500', val: 500, style: 'bg-white hover:bg-slate-100 active:bg-slate-200 border-slate-300 text-slate-700' },
+                      { label: '+₹1,000', val: 1000, style: 'bg-white hover:bg-slate-100 active:bg-slate-200 border-slate-300 text-slate-700' },
+                      { label: '+₹2,500', val: 2500, style: 'bg-blue-50/80 border-blue-300 font-bold text-blue-700 hover:bg-blue-100' },
+                      { label: '+₹5,000', val: 5000, style: 'bg-white hover:bg-slate-100 active:bg-slate-200 border-slate-300 text-slate-700' },
+                      { label: '+₹10,000', val: 10000, style: 'bg-white hover:bg-slate-100 active:bg-slate-200 border-slate-300 text-slate-700' },
+                    ].map((inc) => (
+                      <button
+                        key={inc.val}
+                        type="button"
+                        onClick={() => {
+                          const curr = parseFloat(amount) || 0;
+                          setAmount((curr + inc.val).toFixed(2));
+                        }}
+                        className={`px-2 py-1 border rounded text-xs font-mono font-medium transition shadow-2xs hover:border-slate-400 ${inc.style}`}
+                      >
+                        {currency === 'USD' ? `+$${inc.val}` : inc.label}
                       </button>
                     ))}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label
-                      htmlFor="input-ref"
-                      className="block text-[11px] uppercase tracking-wider text-slate-600 font-bold"
-                    >
-                      Reference / Invoice ID
-                    </label>
-                    <button
-                      type="button"
-                      onClick={handleRandomRef}
-                      className="text-[10px] text-blue-600 hover:text-blue-700 font-bold cursor-pointer"
-                    >
-                      ⚡ Auto-Gen
-                    </button>
-                  </div>
-                  <input
-                    id="input-ref"
-                    type="text"
-                    placeholder="e.g. REF-CH-992"
-                    value={refCode}
-                    onChange={(e) => setRefCode(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors font-mono font-medium"
-                  />
-                </div>
-              </div>
-
-              {/* Advanced / Customer Drawer Toggle */}
-              <button
-                type="button"
-                onClick={() => setShowAdvanced(!showAdvanced)}
-                className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 py-1 transition-colors w-fit select-none cursor-pointer"
-              >
-                <span>{showAdvanced ? 'Hide customer & notification options' : '+ Add customer details & notifications (optional)'}</span>
-                <ChevronDown
-                  className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                    showAdvanced ? 'rotate-180' : ''
-                  }`}
-                />
-              </button>
-
-              {/* Advanced Fields */}
-              {showAdvanced && (
-                <div className="bg-slate-50/80 p-4.5 rounded-xl border border-slate-200/80 space-y-4 animate-fade-in">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-[11px] uppercase tracking-wider text-slate-600 font-bold mb-1.5">
-                        Customer Full Name
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Rohan Sharma"
-                        value={customerName}
-                        onChange={(e) => setCustomerName(e.target.value)}
-                        className="w-full bg-white border border-slate-200 rounded-lg px-3.5 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] uppercase tracking-wider text-slate-600 font-bold mb-1.5">
-                        Customer Phone / WhatsApp
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="e.g. +91 98765 43210"
-                        value={customerPhone}
-                        onChange={(e) => setCustomerPhone(e.target.value)}
-                        className="w-full bg-white border border-slate-200 rounded-lg px-3.5 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors font-mono"
-                      />
-                    </div>
-                  </div>
-                  <div className="text-[11px] text-slate-500 flex items-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span>Customer details are auto-encrypted and signed with merchant HMAC SHA-256.</span>
-                  </div>
-                </div>
-              )}
-
-              {/* Action Buttons */}
-              <div className="flex flex-wrap items-center gap-3 pt-2">
-                <button
-                  type="submit"
-                  disabled={isGenerating}
-                  className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md shadow-blue-500/20 transition-all active:scale-[0.98] disabled:opacity-60 cursor-pointer"
-                  id="generatePaymentLinkBtn"
-                >
-                  {isGenerating ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                      Generating Link...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4" />
-                      Generate Payment Link
-                    </>
-                  )}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (window.generateMockLink) window.generateMockLink();
-                  }}
-                  className="px-4 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors cursor-pointer"
-                  title="Generate quick random preview link"
-                >
-                  Quick Random Link
-                </button>
-              </div>
-            </form>
-
-            {/* Preview Column (5 cols) */}
-            <div className="lg:col-span-5 flex flex-col">
-              <div className="bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col h-full overflow-hidden transition-all">
-
-                {/* Header */}
-                <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-sm shadow-blue-500/20 shrink-0">
-                      {profile?.business_name?.charAt(0)?.toUpperCase() || 'M'}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-bold text-slate-900 truncate flex items-center gap-1.5">
-                        {profile?.business_name || 'My Business'}
-                        <CheckCircle className="w-3.5 h-3.5 text-emerald-500 shrink-0" fill="currentColor" />
-                      </p>
-                      <p className="text-xs text-slate-400">Payment Request</p>
-                    </div>
-                  </div>
-                  
-                  {generatedLinkData ? (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full animate-fade-in">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      Link Active
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-full">
-                      <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
-                      Draft Preview
-                    </span>
-                  )}
-                </div>
-
-                {/* Amount Block */}
-                <div className="px-5 py-5 border-b border-slate-100 text-center bg-gradient-to-b from-slate-50/80 to-white">
-                  <p className="text-[11px] text-slate-400 uppercase font-bold tracking-wider mb-1">
-                    {generatedLinkData ? 'Amount Due' : 'Estimated Amount'}
-                  </p>
-                  <p
-                    id="preview-amount"
-                    className="text-3xl lg:text-4xl font-black text-slate-900 tracking-tight tabular-nums"
-                  >
-                    {previewAmountFormatted}
-                  </p>
-                  <div className="mt-2 flex items-center justify-center gap-2 flex-wrap">
-                    <span
-                      id="preview-purpose"
-                      className="text-xs font-semibold text-slate-700 bg-white border border-slate-200/90 shadow-2xs px-2.5 py-0.5 rounded-full truncate max-w-[200px]"
-                    >
-                      {previewPurposeFormatted}
-                    </span>
-                    {previewRefFormatted !== 'REF-GEN' && (
-                      <span
-                        id="preview-ref"
-                        className="text-xs font-mono font-medium text-slate-500 bg-slate-100 border border-slate-200/60 px-2 py-0.5 rounded-full"
+                    {amount && (
+                      <button
+                        type="button"
+                        onClick={() => setAmount('')}
+                        className="px-2 py-1 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded text-xs font-mono text-slate-500 hover:text-slate-700 transition"
+                        title="Clear amount"
                       >
-                        {previewRefFormatted}
-                      </span>
+                        Clear
+                      </button>
                     )}
                   </div>
+
+                  {/* Partial Payments Option */}
+                  <div className="mt-3 pt-2.5 border-t border-slate-200 flex items-center justify-between">
+                    <label className="inline-flex items-center text-xs text-slate-600 cursor-pointer select-none">
+                      <input
+                        className="h-3.5 w-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        type="checkbox"
+                        checked={allowPartial}
+                        onChange={(e) => setAllowPartial(e.target.checked)}
+                      />
+                      <span className="ml-2 font-mono text-[11px]">Allow customer partial payments or custom installments</span>
+                    </label>
+                    <span className="text-[10px] font-mono text-slate-400 uppercase">Optional</span>
+                  </div>
                 </div>
 
-                {/* Customer info (if filled) */}
-                {customerName && (
-                  <div className="px-5 py-2.5 border-b border-slate-100 flex items-center gap-2.5 bg-blue-50/30">
-                    <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-bold shrink-0">
-                      {customerName.charAt(0).toUpperCase()}
+                {/* Purpose & Internal Ref Compact Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3" data-purpose="metadata-fields">
+                  <div className="sm:col-span-7">
+                    <label className="block text-xs font-mono font-bold uppercase tracking-wider text-slate-600 mb-1" htmlFor="payment-purpose">
+                      Purpose / Description <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      className="w-full text-xs font-sans border border-slate-300 rounded-md focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-2xs placeholder-slate-400 text-slate-800 py-2 px-3 outline-none"
+                      id="payment-purpose"
+                      name="purpose"
+                      placeholder="e.g. Design Invoice #1029"
+                      type="text"
+                      value={purpose}
+                      onChange={(e) => setPurpose(e.target.value)}
+                    />
+                  </div>
+                  <div className="sm:col-span-5">
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-mono font-bold uppercase tracking-wider text-slate-600" htmlFor="internal-ref">
+                        Internal Ref / Order ID
+                      </label>
+                      <button
+                        type="button"
+                        onClick={handleRandomRef}
+                        className="text-[10px] font-mono text-blue-600 hover:text-blue-800 transition"
+                      >
+                        ⚡ Auto-Gen
+                      </button>
                     </div>
-                    <div className="min-w-0 flex-1 flex items-center justify-between text-xs">
-                      <span className="font-semibold text-slate-800 truncate">{customerName}</span>
-                      {customerPhone && <span className="text-slate-500 font-mono text-[11px]">{customerPhone}</span>}
+                    <input
+                      className="w-full text-xs font-mono uppercase border border-slate-300 rounded-md focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-2xs placeholder-slate-400 text-slate-800 py-2 px-3 bg-slate-50 outline-none"
+                      id="internal-ref"
+                      name="internal_ref"
+                      placeholder="REF-XXXX"
+                      type="text"
+                      value={refCode}
+                      onChange={(e) => setRefCode(e.target.value.toUpperCase())}
+                    />
+                  </div>
+                </div>
+
+                {/* Customer Notification Details Box */}
+                <div className="border border-slate-300 rounded-lg p-3.5 bg-white space-y-3" data-purpose="customer-info-box">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                      <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
+                      </svg>
+                      Customer Contact Details
+                    </span>
+                    <span className="text-[10px] font-mono text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                      Instant notification &amp; receipt
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-mono text-slate-600 uppercase mb-1" htmlFor="customer-name">Customer Name</label>
+                      <input
+                        className="w-full text-xs border border-slate-300 rounded-md focus:border-blue-600 focus:ring-1 focus:ring-blue-600 py-1.5 px-2.5 outline-none"
+                        id="customer-name"
+                        placeholder="Full name"
+                        type="text"
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-mono text-slate-600 uppercase mb-1" htmlFor="customer-contact">Phone or Email</label>
+                      <input
+                        className="w-full text-xs font-mono border border-slate-300 rounded-md focus:border-blue-600 focus:ring-1 focus:ring-blue-600 py-1.5 px-2.5 outline-none"
+                        id="customer-contact"
+                        placeholder="+91 or name@domain.com"
+                        type="text"
+                        value={customerContact}
+                        onChange={(e) => {
+                          setCustomerContact(e.target.value);
+                          setCustomerPhone(e.target.value);
+                        }}
+                      />
                     </div>
                   </div>
-                )}
+                  {/* Instant Trigger Flags */}
+                  <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center gap-4 text-xs font-mono text-slate-600">
+                    <label className="inline-flex items-center gap-1.5 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={notifySms}
+                        onChange={(e) => setNotifySms(e.target.checked)}
+                        className="h-3.5 w-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span>Notify via SMS</span>
+                    </label>
+                    <label className="inline-flex items-center gap-1.5 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={notifyWhatsapp}
+                        onChange={(e) => setNotifyWhatsapp(e.target.checked)}
+                        className="h-3.5 w-3.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                      />
+                      <span className="flex items-center gap-1 text-slate-800 font-medium">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
+                        Send WhatsApp link
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              </section>
+              {/* END: LeftColumn */}
 
-                {/* DYNAMIC CONTENT: PRE-GENERATION VS POST-GENERATION */}
-                {generatedLinkData ? (
-                  /* ── ACTIVE GENERATED STATE ── */
-                  <div className="p-5 flex-1 flex flex-col justify-between gap-4 animate-fade-in">
-                    {/* Link Box */}
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
-                          <LinkIcon className="w-3.5 h-3.5 text-blue-600" />
-                          Generated Payment Link
-                        </span>
-                        <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
-                          Ready to Share
-                        </span>
+              {/* BEGIN: RightColumn (Accepted Rails & Generation) */}
+              <section aria-labelledby="section-rails-output" className="lg:col-span-5 flex flex-col justify-between space-y-4">
+                <h2 className="sr-only" id="section-rails-output">Accepted Payment Rails and Live Link Action</h2>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-mono font-bold uppercase tracking-wider text-slate-600">Accepted Rails</label>
+                    <span className="text-[10px] font-mono text-slate-400">SELECT MULTIPLE</span>
+                  </div>
+
+                  {/* Rail A: UPI QR (Enabled) */}
+                  <label
+                    className={`flex items-start justify-between p-3 rounded-lg border-2 cursor-pointer shadow-xs transition ${
+                      railUpi
+                        ? 'border-blue-600 bg-blue-50/40 hover:bg-blue-50/70'
+                        : 'border-slate-200 bg-white hover:border-slate-300 opacity-80'
+                    }`}
+                    data-purpose="rail-bento-upi"
+                  >
+                    <div className="flex items-start gap-2.5">
+                      <input
+                        type="checkbox"
+                        checked={railUpi}
+                        onChange={(e) => setRailUpi(e.target.checked)}
+                        className="mt-0.5 h-4 w-4 rounded border-blue-600 text-blue-600 focus:ring-blue-500"
+                      />
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-slate-900 tracking-tight">UPI QR (Instant)</span>
+                          <span className="text-[10px] font-mono px-1.5 py-0.2 bg-blue-100 text-blue-700 font-bold rounded">PRIMARY</span>
+                        </div>
+                        <p className="text-[11px] font-mono text-slate-500 mt-0.5">Google Pay, PhonePe, Paytm, BHIM</p>
+                        <p className="text-[10px] font-mono font-medium text-emerald-700 mt-0.5">✓ 0% MDR • Zero Escrow Passthrough</p>
                       </div>
+                    </div>
+                    <span className="text-xs font-mono font-bold text-slate-700">T+0</span>
+                  </label>
 
-                      <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 hover:border-blue-300 transition-colors">
-                        <span
-                          id="preview-url"
-                          className="text-xs font-mono font-medium text-blue-600 truncate flex-1 select-all"
-                          title={activeUrl}
-                        >
-                          {activeUrl}
-                        </span>
+                  {/* Rail B: Direct Bank IMPS (Enabled) */}
+                  <label
+                    className={`flex items-start justify-between p-3 rounded-lg border cursor-pointer shadow-2xs transition ${
+                      railImps
+                        ? 'border-slate-300 bg-white hover:border-slate-400'
+                        : 'border-slate-200 bg-slate-50/60 opacity-80'
+                    }`}
+                    data-purpose="rail-bento-imps"
+                  >
+                    <div className="flex items-start gap-2.5">
+                      <input
+                        type="checkbox"
+                        checked={railImps}
+                        onChange={(e) => setRailImps(e.target.checked)}
+                        className="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <div>
+                        <span className="text-xs font-bold text-slate-900">Bank IMPS / NEFT</span>
+                        <p className="text-[11px] font-mono text-slate-500 mt-0.5">Dedicated Virtual Account direct credit</p>
+                        <p className="text-[10px] font-mono text-slate-600 mt-0.5">RTGS supported for &gt;₹2,00,000</p>
+                      </div>
+                    </div>
+                    <span className="text-xs font-mono font-bold text-slate-700">24/7</span>
+                  </label>
+
+                  {/* Rail C: Polygon USDT (Inactive by default) */}
+                  <label
+                    className={`flex items-start justify-between p-3 rounded-lg border cursor-pointer shadow-2xs transition ${
+                      railCrypto
+                        ? 'border-purple-400 bg-purple-50/50'
+                        : 'border-slate-200 bg-slate-50 hover:border-slate-300'
+                    }`}
+                    data-purpose="rail-bento-usdt"
+                  >
+                    <div className="flex items-start gap-2.5">
+                      <input
+                        type="checkbox"
+                        checked={railCrypto}
+                        onChange={(e) => setRailCrypto(e.target.checked)}
+                        className="mt-0.5 h-4 w-4 rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+                      />
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-medium text-slate-800">Crypto (USDT / USDC)</span>
+                          <span className="text-[9px] font-mono bg-purple-100 text-purple-700 px-1 py-0.2 rounded font-semibold">WEB3</span>
+                        </div>
+                        <p className="text-[11px] font-mono text-slate-500 mt-0.5">Polygon Mainnet passthrough</p>
+                      </div>
+                    </div>
+                    <span className="text-[11px] font-mono text-slate-400">Auto-swap</span>
+                  </label>
+
+                  {/* Expiry Duration Selector */}
+                  <div className="pt-2">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-600">Link Validity</label>
+                      <span className="text-[10px] font-mono text-slate-400">Auto-expires after term</span>
+                    </div>
+                    <div className="grid grid-cols-5 gap-1 text-center font-mono text-[11px]">
+                      {['24h', '3d', '7d', '30d', 'Never'].map((term) => (
                         <button
+                          key={term}
                           type="button"
+                          onClick={() => setLinkValidity(term)}
+                          className={`py-1 px-1 border rounded transition cursor-pointer ${
+                            linkValidity === term
+                              ? 'border-blue-600 bg-blue-600 font-bold text-white shadow-2xs'
+                              : 'border-slate-200 rounded hover:bg-slate-100 text-slate-600'
+                          }`}
+                        >
+                          {term}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Live Link Output & Submit Button Group */}
+                <div className="space-y-3 pt-3 border-t border-slate-200" data-purpose="output-action-group">
+                  {/* Live Preview Pill Card */}
+                  {generatedLinkData && activeUrl ? (
+                    <div className="p-2.5 rounded-lg border border-slate-300 bg-slate-50 text-xs animate-fade-in">
+                      <div className="flex items-center justify-between text-[10px] font-mono uppercase text-slate-600 mb-1">
+                        <span className="font-bold flex items-center gap-1.5 text-emerald-700">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                          Generated Link Preview
+                        </span>
+                        <span className="text-emerald-700 font-bold">HTTPS SECURE</span>
+                      </div>
+                      <div className="flex items-center justify-between bg-white border border-slate-300 rounded px-2.5 py-1.5">
+                        <div className="flex items-center gap-2 truncate pr-2">
+                          <svg className="w-3.5 h-3.5 text-blue-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path clipRule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" fillRule="evenodd"></path>
+                          </svg>
+                          <span className="font-mono text-[11px] text-slate-700 truncate" id="link-url-display">
+                            {activeUrl}
+                          </span>
+                        </div>
+                        <button
                           onClick={() => copyText(activeUrl, 'Payment Link')}
-                          className="shrink-0 p-1.5 hover:bg-white border border-transparent hover:border-slate-200 rounded-lg text-slate-500 hover:text-blue-600 transition-all cursor-pointer shadow-2xs"
-                          title="Copy URL"
+                          className={`shrink-0 inline-flex items-center gap-1 font-mono text-[11px] font-bold border px-2 py-0.5 rounded transition cursor-pointer ${
+                            copiedId === activeUrl
+                              ? 'bg-emerald-100 text-emerald-700 border-emerald-300'
+                              : 'text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 border-blue-200'
+                          }`}
+                          id="copy-link-btn"
+                          type="button"
                         >
                           {copiedId === activeUrl ? (
-                            <Check className="w-4 h-4 text-emerald-600" />
+                            <span>✓ Copied</span>
                           ) : (
-                            <Copy className="w-4 h-4" />
+                            <>
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
+                              </svg>
+                              Copy
+                            </>
                           )}
                         </button>
                       </div>
-                    </div>
 
-                    {/* Themed QR Code Box */}
-                    <div className="bg-gradient-to-br from-slate-50 via-blue-50/20 to-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-center gap-3.5">
-                      <div className="w-16 h-16 bg-white rounded-lg p-1 border border-slate-200 shadow-2xs shrink-0 flex items-center justify-center">
-                        <QRCode
-                          value={activeUrl}
-                          size={56}
-                          level="M"
-                          fgColor="#0f172a"
-                          bgColor="#ffffff"
-                          style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-                        />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-xs font-bold text-slate-900">Direct UPI QR</span>
-                          <span className="text-[9px] font-bold uppercase tracking-wider text-blue-600 bg-blue-50 border border-blue-100 px-1.5 py-0.5 rounded">Auto</span>
-                        </div>
-                        <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
-                          Customer can scan with Google Pay, PhonePe, Paytm, CRED or any UPI app.
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Trust Badges */}
-                    <div className="flex items-center justify-between text-[11px] text-slate-400 px-1">
-                      <span className="flex items-center gap-1">
-                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                        256-bit SSL
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <CheckCircle className="w-3.5 h-3.5 text-blue-500" fill="currentColor" />
-                        NPCI Rails
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Receipt className="w-3.5 h-3.5 text-indigo-500" />
-                        T+0 Direct Settlement
-                      </span>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="space-y-2 pt-1 border-t border-slate-100">
-                      <div className="grid grid-cols-2 gap-2">
+                      {/* Checkout page link & WhatsApp dispatch buttons */}
+                      <div className="mt-2 pt-2 border-t border-slate-200 flex items-center justify-between gap-2">
+                        <a
+                          href={activeUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 inline-flex items-center justify-center gap-1.5 py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 rounded text-xs font-mono font-semibold transition"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          <span>Go to Checkout ↗</span>
+                        </a>
                         <button
                           type="button"
-                          onClick={() => copyText(activeUrl, 'Payment Link')}
-                          className="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs border border-blue-200/80 transition-all active:scale-[0.98] cursor-pointer"
+                          onClick={() => shareWhatsApp(generatedLinkData)}
+                          className="inline-flex items-center justify-center gap-1.5 py-1.5 px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-mono font-semibold transition cursor-pointer"
+                          title="Share on WhatsApp"
                         >
-                          <Copy className="w-3.5 h-3.5" />
-                          Copy Link
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => shareWhatsApp({
-                            customerName: customerName || 'Valued Customer',
-                            customerPhone,
-                            amount: amount || '0',
-                            purpose: purpose || 'Payment',
-                            url: activeUrl,
-                          })}
-                          className="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-all active:scale-[0.98] cursor-pointer"
-                        >
-                          <MessageCircle className="w-3.5 h-3.5" />
-                          Share WhatsApp
+                          <Share2 className="w-3.5 h-3.5" />
+                          <span>WhatsApp</span>
                         </button>
                       </div>
-
-                      <a
-                        href={activeUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-sm transition-all active:scale-[0.98] group cursor-pointer"
-                        id="goToCheckoutBtn"
-                      >
-                        <span>Go to Checkout Page</span>
-                        <ExternalLink className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                      </a>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setGeneratedLinkData(null);
-                          setActiveUrl('');
-                          setActiveLinkId('');
-                        }}
-                        className="w-full text-center text-xs font-semibold text-slate-500 hover:text-slate-800 py-1 transition-colors cursor-pointer"
-                      >
-                        + Generate Another Payment Link
-                      </button>
                     </div>
-                  </div>
-                ) : (
-                  /* ── DRAFT / PRE-GENERATION STATE (No default link, no active checkout) ── */
-                  <div className="p-6 flex-1 flex flex-col items-center justify-center text-center gap-4 animate-fade-in bg-slate-50/30">
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 flex items-center justify-center text-blue-600 shadow-xs">
-                      <Sparkles className="w-7 h-7" />
-                    </div>
-
-                    <div className="max-w-xs space-y-1.5">
-                      <h4 className="text-sm font-bold text-slate-800">
-                        Payment Link Not Generated Yet
-                      </h4>
-                      <p className="text-xs text-slate-500 leading-relaxed">
-                        Enter the amount and purpose on the left, then click{' '}
-                        <strong className="text-blue-600 font-semibold">&ldquo;Generate Payment Link&rdquo;</strong> to produce your secure checkout URL and QR code.
-                      </p>
-                    </div>
-
-                    {/* Feature Highlights */}
-                    <div className="flex flex-wrap items-center justify-center gap-2 pt-1 text-[11px] text-slate-500">
-                      <span className="inline-flex items-center gap-1 bg-white border border-slate-200/80 px-2.5 py-1 rounded-full shadow-2xs font-medium">
-                        <CheckCircle2 className="w-3 h-3 text-emerald-500" />
-                        Dynamic QR & Deep Link
-                      </span>
-                      <span className="inline-flex items-center gap-1 bg-white border border-slate-200/80 px-2.5 py-1 rounded-full shadow-2xs font-medium">
-                        <ShieldCheck className="w-3 h-3 text-blue-500" />
-                        Zero Gateway Fee
-                      </span>
-                    </div>
-
-                    {/* Disabled Placeholder CTA */}
-                    <div className="w-full pt-3 border-t border-slate-200/60 mt-auto">
-                      <div className="w-full py-2.5 px-4 rounded-xl bg-slate-100 text-slate-400 font-medium text-xs border border-dashed border-slate-200 flex items-center justify-center gap-2 select-none cursor-not-allowed">
-                        <LinkIcon className="w-3.5 h-3.5" />
-                        <span>Generate link to activate checkout options</span>
+                  ) : (
+                    /* STANDBY EMPTY STATE — NO DEFAULT LINK SHOWN AS REQUESTED BY USER */
+                    <div className="p-2.5 rounded-lg border border-dashed border-slate-300 bg-slate-50/70 text-xs">
+                      <div className="flex items-center justify-between text-[10px] font-mono uppercase text-slate-500 mb-1">
+                        <span className="font-bold flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-slate-400 inline-block"></span>
+                          Generated Link Preview
+                        </span>
+                        <span className="text-slate-400 font-mono">STANDBY</span>
+                      </div>
+                      <div className="flex items-center justify-between bg-white/70 border border-slate-200 rounded px-2.5 py-1.5 text-slate-400 text-xs font-mono">
+                        <span className="truncate italic">Click &ldquo;Create &amp; Share Payment Link&rdquo; below to activate...</span>
+                        <span className="text-[10px] font-mono text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded shrink-0 ml-2">Awaiting Input</span>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-              </div>
+                  {/* Main CTA Trigger Button */}
+                  <button
+                    onClick={handleCreateLink}
+                    disabled={isGenerating}
+                    className={`w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-mono font-bold text-xs uppercase tracking-wider py-3 px-4 rounded-lg shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2 group cursor-pointer ${
+                      isGenerating ? 'opacity-80 cursor-wait' : ''
+                    }`}
+                    type="button"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Generating Payment Link...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Create &amp; Share Payment Link</span>
+                        <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path d="M14 5l7 7m0 0l-7 7m7-7H3" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
+                        </svg>
+                      </>
+                    )}
+                  </button>
+
+                  {/* Micro Security Footnote */}
+                  <p className="text-[10px] font-mono text-center text-slate-500">
+                    Locked to Bank A/C {lastFour} • End-to-End Signed Signature • 256-bit TLS
+                  </p>
+                </div>
+              </section>
+              {/* END: RightColumn */}
             </div>
-          </div>
+            {/* END: FormBody */}
+          </main>
+          {/* END: MasterPaymentLinkConsole */}
         </div>
       )}
 
