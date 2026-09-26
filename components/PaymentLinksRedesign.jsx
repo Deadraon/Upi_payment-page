@@ -597,119 +597,66 @@ export default function PaymentLinksRedesign({
       </div>
 
       {/* ══════════════════════════════════════════════════════════
-          MASTER PAYMENT LINK CONSOLE (IMAGE 2 DESIGN)
+          CREATE INSTANT PAYMENT LINK — STUDIO SPLIT PANEL
           ══════════════════════════════════════════════════════════ */}
       {showCreateModal && (
-        <div ref={createPanelRef} className="w-full flex justify-center py-4 bg-slate-100 bg-dot-pattern rounded-2xl border border-slate-200/80 shadow-xs animate-fade-up">
-          {/* BEGIN: MasterPaymentLinkConsole */}
-          <main
-            className="w-full max-w-4xl bg-white border border-[#cbd5e1] rounded-xl shadow-xl shadow-slate-200/60 overflow-hidden font-sans"
-            style={{ backgroundColor: '#ffffff', borderColor: '#cbd5e1' }}
-            data-purpose="payment-generator-card"
-          >
-            {/* BEGIN: ConsoleHeader */}
-            <header
-              className="border-b border-slate-800 bg-[#0f172a] px-5 py-4 text-white"
-              style={{ backgroundColor: '#0f172a' }}
-            >
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                {/* Left: Status & Title */}
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono tracking-wider uppercase font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block mr-1.5 animate-pulse"></span>
-                      {profile?.sandbox_mode !== false ? 'Test Rail' : 'Live Rail'}
-                    </span>
-                    <span className="text-xs font-mono text-slate-400 tracking-wide uppercase">Direct-to-Bank Engine</span>
-                  </div>
-                  <h1 className="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
-                    CREATE INSTANT PAYMENT LINK
-                    <span className="text-slate-500 font-mono text-xs font-normal">{'// PROTOCOL v2.4'}</span>
-                  </h1>
+        <div ref={createPanelRef} className="w-full animate-fade-up">
+          {/* BEGIN: Studio Main Floating Card */}
+          <div className="bg-white rounded-3xl border border-slate-200/80 shadow-[0_20px_50px_-12px_rgba(15,23,42,0.12),0_0_1px_1px_rgba(15,23,42,0.05)] overflow-hidden">
+
+            {/* Top Brand Header Banner */}
+            <header className="px-6 py-5 border-b border-slate-100 bg-white flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center space-x-4">
+                {/* Logo Icon */}
+                <div className="h-10 w-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
+                  </svg>
                 </div>
-                {/* Right: Destination Route Badge & Escrow Micro-Badge */}
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="hidden sm:flex flex-col items-end text-right">
-                    <span className="text-[11px] font-mono text-slate-400 leading-none">DESTINATION A/C</span>
-                    <span className="text-xs font-mono font-medium text-slate-200 mt-1 flex items-center gap-1.5">
-                      <svg className="w-3.5 h-3.5 text-blue-400 inline" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"></path>
-                        <path clipRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" fillRule="evenodd"></path>
-                      </svg>
-                      {destBank} •••• {lastFour}
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <h2 className="text-xl font-bold tracking-tight text-slate-900">Create Instant Payment Link</h2>
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>
+                      {profile?.sandbox_mode !== false ? 'Test Rail' : 'Direct-to-Bank Escrow-Free Rail'}
                     </span>
                   </div>
-                  <span className="inline-flex items-center px-2.5 py-1 rounded bg-amber-400/10 border border-amber-400/30 text-amber-300 font-mono text-xs font-bold uppercase tracking-wider">
-                    0% ESCROW HOLD
-                  </span>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Settlement target: <span className="font-medium text-slate-700 font-mono">{profile?.business_name || 'Linked Business A/C'}</span> with instant T+0 direct passthrough.
+                  </p>
                 </div>
               </div>
-              {/* Settlement Guarantee Subtext Bar */}
-              <div className="mt-3 pt-2.5 border-t border-slate-800 text-[11px] text-slate-400 flex flex-wrap items-center justify-between gap-2">
-                <p className="flex items-center gap-1.5 font-mono">
-                  <svg className="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
-                  </svg>
-                  Direct T+0 Passthrough: Zero intermediate ledger holding. Funds credited to account instantly.
-                </p>
-                <span className="text-[10px] font-mono text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded">NPCI SWITCH CONNECTED</span>
+              <div className="flex items-center space-x-3">
+                <div className="border border-emerald-300 bg-emerald-50/50 rounded-lg px-3 py-1.5 text-right">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 leading-tight">Zero Escrow</div>
+                  <div className="text-[11px] font-semibold text-emerald-800 font-mono">Direct Settlement</div>
+                </div>
               </div>
             </header>
-            {/* END: ConsoleHeader */}
 
-            {/* BEGIN: FormBody */}
-            <div className="p-5 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6" style={{ backgroundColor: '#ffffff' }}>
-              {/* BEGIN: LeftColumn (Amount & Details) */}
-              <section aria-labelledby="section-amount-details" className="lg:col-span-7 space-y-5">
-                <h2 className="sr-only" id="section-amount-details">Payment Details and Customer Information</h2>
+            {/* Main Split Studio Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[680px]">
 
-                {/* Monetary Input Card */}
-                <div
-                  className="rounded-lg p-4 shadow-sm border border-[#cbd5e1]"
-                  style={{ backgroundColor: '#f8fafc', borderColor: '#cbd5e1' }}
-                  data-purpose="amount-panel"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="text-xs font-mono font-bold tracking-wider uppercase text-slate-600" htmlFor="payment-amount">
-                      Amount &amp; Denomination
-                    </label>
-                    <div
-                      className="flex items-center gap-1 border border-[#cbd5e1] rounded px-1.5 py-0.5 text-xs font-mono text-slate-700"
-                      style={{ backgroundColor: '#ffffff', borderColor: '#cbd5e1' }}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => setCurrency('INR')}
-                        className={`px-1 py-0.5 rounded transition-colors ${currency === 'INR' ? 'font-bold text-slate-900 bg-slate-100' : 'text-slate-500 hover:text-slate-900'}`}
-                      >
-                        INR (₹)
-                      </button>
-                      <span className="text-slate-400">|</span>
-                      <button
-                        type="button"
-                        onClick={() => setCurrency('USD')}
-                        className={`px-1 py-0.5 rounded transition-colors ${currency === 'USD' ? 'font-bold text-slate-900 bg-slate-100' : 'text-slate-500 hover:text-slate-900'}`}
-                      >
-                        USD ($)
-                      </button>
+              {/* ── LEFT COLUMN: Configuration Form ── */}
+              <section className="lg:col-span-7 p-6 lg:p-8 space-y-6 border-b lg:border-b-0 lg:border-r border-slate-100" data-purpose="builder-form">
+
+                {/* 1. Amount & Currency */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500" htmlFor="payment-amount">Amount &amp; Currency</label>
+                    <div className="flex items-center gap-1 border border-slate-200 rounded px-1.5 py-0.5 text-xs font-mono text-slate-700 bg-white">
+                      <button type="button" onClick={() => setCurrency('INR')} className={`px-1 py-0.5 rounded transition-colors ${currency === 'INR' ? 'font-bold text-slate-900 bg-slate-100' : 'text-slate-500 hover:text-slate-900'}`}>INR (₹)</button>
+                      <span className="text-slate-300">|</span>
+                      <button type="button" onClick={() => setCurrency('USD')} className={`px-1 py-0.5 rounded transition-colors ${currency === 'USD' ? 'font-bold text-slate-900 bg-slate-100' : 'text-slate-500 hover:text-slate-900'}`}>USD ($)</button>
                     </div>
                   </div>
 
-                  {/* Numeric Hero Input */}
-                  <div
-                    className="relative rounded-md shadow-sm border border-[#cbd5e1] focus-within:ring-2 focus-within:ring-blue-600 focus-within:border-blue-600"
-                    style={{ backgroundColor: '#ffffff', borderColor: '#cbd5e1' }}
-                  >
-                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                      <span className="text-xl sm:text-2xl font-bold font-mono text-slate-500">
-                        {currency === 'USD' ? '$' : '₹'}
-                      </span>
-                    </div>
+                  {/* Big Amount Input */}
+                  <div className="relative rounded-2xl bg-slate-50 border border-slate-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
+                    <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-2xl font-bold text-slate-400">{currency === 'USD' ? '$' : '₹'}</span>
                     <input
-                      className="block w-full rounded-md border-0 py-2.5 pl-9 pr-14 text-2xl sm:text-3xl font-bold font-mono tracking-tight text-slate-900 tabular-nums focus:ring-0 sm:leading-8 placeholder-slate-400 outline-none"
-                      style={{ backgroundColor: '#ffffff', color: '#0f172a' }}
+                      className="block w-full pl-11 pr-20 py-3 bg-transparent text-2xl font-bold text-slate-900 border-0 focus:ring-0 font-mono tracking-tight outline-none"
                       id="payment-amount"
-                      name="amount"
                       placeholder="0.00"
                       type="number"
                       step="any"
@@ -717,411 +664,340 @@ export default function PaymentLinksRedesign({
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
                     />
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                      <span className="text-xs font-mono font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
-                        0% MDR
-                      </span>
-                    </div>
+                    <span className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                      <span className="text-xs font-mono font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-200">0% MDR</span>
+                    </span>
                   </div>
 
-                  {/* Quick Denomination Increments */}
-                  <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                    <span className="text-[11px] font-mono text-slate-600 mr-1 font-semibold">Quick Add:</span>
+                  {/* Quick Add Denominations */}
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    <span className="text-xs text-slate-400 font-medium mr-1">Quick Add:</span>
                     {[
-                      { label: '+₹500', val: 500, isBlue: false },
-                      { label: '+₹1,000', val: 1000, isBlue: false },
-                      { label: '+₹2,500', val: 2500, isBlue: true },
-                      { label: '+₹5,000', val: 5000, isBlue: false },
-                      { label: '+₹10,000', val: 10000, isBlue: false },
+                      { label: '+₹500', val: 500 },
+                      { label: '+₹1,000', val: 1000 },
+                      { label: '+₹2,500', val: 2500, highlight: true },
+                      { label: '+₹5,000', val: 5000 },
+                      { label: '+₹10,000', val: 10000 },
                     ].map((inc) => (
                       <button
                         key={inc.val}
                         type="button"
-                        onClick={() => {
-                          const curr = parseFloat(amount) || 0;
-                          setAmount((curr + inc.val).toFixed(2));
-                        }}
-                        className={`px-2 py-1 border rounded text-xs font-mono transition shadow-2xs cursor-pointer ${
-                          inc.isBlue
-                            ? 'bg-blue-50/80 border-blue-300 font-bold text-blue-700 hover:bg-blue-100'
-                            : 'bg-white hover:bg-slate-100 active:bg-slate-200 border-[#cbd5e1] font-medium text-slate-700 hover:border-slate-400'
-                        }`}
-                        style={{
-                          backgroundColor: inc.isBlue ? 'rgba(239, 246, 255, 0.8)' : '#ffffff',
-                          borderColor: inc.isBlue ? '#93c5fd' : '#cbd5e1',
-                          color: inc.isBlue ? '#1d4ed8' : '#334155',
-                        }}
+                        onClick={() => { const curr = parseFloat(amount) || 0; setAmount((curr + inc.val).toFixed(2)); }}
+                        className={`text-xs font-medium font-mono px-2.5 py-1 rounded-md border transition-all ${inc.highlight ? 'bg-blue-50 border-blue-300 text-blue-700 font-bold hover:bg-blue-100' : 'bg-white border-slate-200 text-slate-600 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50'}`}
                       >
                         {currency === 'USD' ? `+$${inc.val}` : inc.label}
                       </button>
                     ))}
                   </div>
 
-                  {/* Partial Payments Option */}
-                  <div className="mt-3 pt-2.5 border-t border-[#e2e8f0] flex items-center justify-between">
-                    <label className="inline-flex items-center text-xs text-slate-600 cursor-pointer select-none">
-                      <input
-                        className="h-3.5 w-3.5 rounded border-[#cbd5e1] text-blue-600 focus:ring-blue-500"
-                        type="checkbox"
-                        checked={allowPartial}
-                        onChange={(e) => setAllowPartial(e.target.checked)}
-                      />
-                      <span className="ml-2 font-mono text-[11px] text-slate-600">Allow customer partial payments or custom installments</span>
+                  {/* Partial Payments Toggle */}
+                  <div className="pt-2 flex items-center space-x-3">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input className="sr-only peer" type="checkbox" checked={allowPartial} onChange={(e) => setAllowPartial(e.target.checked)} />
+                      <div className="w-9 h-5 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
                     </label>
-                    <span className="text-[10px] font-mono text-slate-400 uppercase">Optional</span>
+                    <span className="text-xs text-slate-600 select-none">Allow customer to make partial payments or installments</span>
                   </div>
                 </div>
 
-                {/* Purpose & Internal Ref Compact Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3" data-purpose="metadata-fields">
-                  <div className="sm:col-span-7">
-                    <label className="block text-xs font-mono font-bold uppercase tracking-wider text-slate-600 mb-1" htmlFor="payment-purpose">
-                      Purpose / Description <span className="text-rose-500">*</span>
-                    </label>
+                {/* 2. Purpose & Reference */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500" htmlFor="payment-purpose">Purpose / Description <span className="text-rose-500">*</span></label>
                     <input
-                      className="w-full text-xs font-sans rounded-md focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-2xs placeholder-slate-400 py-2 px-3 outline-none border border-[#cbd5e1]"
-                      style={{ backgroundColor: '#ffffff', color: '#0f172a', borderColor: '#cbd5e1' }}
+                      className="w-full text-sm font-medium rounded-xl border border-slate-200 bg-slate-50/50 py-2 px-3 focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
                       id="payment-purpose"
-                      name="purpose"
-                      placeholder="e.g. Design Invoice #1029"
                       type="text"
+                      placeholder="e.g. Design Invoice #1029"
                       value={purpose}
                       onChange={(e) => setPurpose(e.target.value)}
                     />
                   </div>
-                  <div className="sm:col-span-5">
-                    <div className="flex items-center justify-between mb-1">
-                      <label className="block text-xs font-mono font-bold uppercase tracking-wider text-slate-600" htmlFor="internal-ref">
-                        Internal Ref / Order ID
-                      </label>
-                      <button
-                        type="button"
-                        onClick={handleRandomRef}
-                        className="text-[10px] font-mono text-blue-600 hover:text-blue-800 transition font-medium"
-                      >
-                        ⚡ Auto-Gen
-                      </button>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold uppercase tracking-wider text-slate-500" htmlFor="internal-ref">Internal Reference / Order ID</label>
+                      <button type="button" onClick={handleRandomRef} className="text-[10px] font-mono text-blue-600 hover:text-blue-800 font-medium transition">⚡ Auto-Gen</button>
                     </div>
                     <input
-                      className="w-full text-xs font-mono uppercase rounded-md focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-2xs placeholder-slate-400 py-2 px-3 outline-none border border-[#cbd5e1]"
-                      style={{ backgroundColor: '#f8fafc', color: '#0f172a', borderColor: '#cbd5e1' }}
+                      className="w-full text-sm font-mono uppercase rounded-xl border border-slate-200 bg-slate-50/50 py-2 px-3 focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
                       id="internal-ref"
-                      name="internal_ref"
-                      placeholder="REF-XXXX"
                       type="text"
+                      placeholder="REF-XXXX"
                       value={refCode}
                       onChange={(e) => setRefCode(e.target.value.toUpperCase())}
                     />
                   </div>
                 </div>
 
-                {/* Customer Notification Details Box */}
-                <div
-                  className="rounded-lg p-3.5 space-y-3 border border-[#cbd5e1]"
-                  style={{ backgroundColor: '#ffffff', borderColor: '#cbd5e1' }}
-                  data-purpose="customer-info-box"
-                >
+                {/* 3. Customer Contact Details */}
+                <div className="p-4 rounded-2xl bg-slate-50/80 border border-slate-200 space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                      <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
-                      </svg>
-                      Customer Contact Details
-                    </span>
-                    <span className="text-[10px] font-mono text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                      Instant notification &amp; receipt
-                    </span>
+                    <div className="text-xs font-bold uppercase tracking-wider text-slate-600">Customer Details <span className="text-slate-400 font-normal normal-case">(Optional)</span></div>
+                    <span className="text-[11px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 font-mono">Instant notification &amp; receipt</span>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[11px] font-mono text-slate-600 uppercase mb-1" htmlFor="customer-name">Customer Name</label>
+                      <label className="block text-[11px] font-medium text-slate-500 mb-1" htmlFor="customer-name">Customer Name</label>
                       <input
-                        className="w-full text-xs rounded-md focus:border-blue-600 focus:ring-1 focus:ring-blue-600 py-1.5 px-2.5 outline-none border border-[#cbd5e1]"
-                        style={{ backgroundColor: '#ffffff', color: '#0f172a', borderColor: '#cbd5e1' }}
+                        className="w-full text-sm rounded-lg border border-slate-200 bg-white py-1.5 px-2.5 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
                         id="customer-name"
-                        placeholder="Full name"
+                        placeholder="e.g. Rohan Sharma"
                         type="text"
                         value={customerName}
                         onChange={(e) => setCustomerName(e.target.value)}
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-mono text-slate-600 uppercase mb-1" htmlFor="customer-contact">Phone or Email</label>
+                      <label className="block text-[11px] font-medium text-slate-500 mb-1" htmlFor="customer-contact">Customer Phone / Email</label>
                       <input
-                        className="w-full text-xs font-mono rounded-md focus:border-blue-600 focus:ring-1 focus:ring-blue-600 py-1.5 px-2.5 outline-none border border-[#cbd5e1]"
-                        style={{ backgroundColor: '#ffffff', color: '#0f172a', borderColor: '#cbd5e1' }}
+                        className="w-full text-sm rounded-lg border border-slate-200 bg-white py-1.5 px-2.5 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
                         id="customer-contact"
-                        placeholder="+91 or name@domain.com"
+                        placeholder="+91 or email"
                         type="text"
                         value={customerContact}
-                        onChange={(e) => {
-                          setCustomerContact(e.target.value);
-                          setCustomerPhone(e.target.value);
-                        }}
+                        onChange={(e) => { setCustomerContact(e.target.value); setCustomerPhone(e.target.value); }}
                       />
                     </div>
                   </div>
-                  {/* Instant Trigger Flags */}
-                  <div className="pt-2 border-t border-[#f1f5f9] flex flex-wrap items-center gap-4 text-xs font-mono text-slate-600">
-                    <label className="inline-flex items-center gap-1.5 cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        checked={notifySms}
-                        onChange={(e) => setNotifySms(e.target.checked)}
-                        className="h-3.5 w-3.5 rounded border-[#cbd5e1] text-blue-600 focus:ring-blue-500"
-                      />
-                      <span>Notify via SMS</span>
+                  <div className="flex flex-wrap items-center gap-4 pt-1">
+                    <label className="flex items-center space-x-2 text-xs text-slate-700 cursor-pointer">
+                      <input type="checkbox" checked={notifySms} onChange={(e) => setNotifySms(e.target.checked)} className="rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                      <span className="font-medium">Notify via SMS</span>
                     </label>
-                    <label className="inline-flex items-center gap-1.5 cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        checked={notifyWhatsapp}
-                        onChange={(e) => setNotifyWhatsapp(e.target.checked)}
-                        className="h-3.5 w-3.5 rounded border-[#cbd5e1] text-emerald-600 focus:ring-emerald-500"
-                      />
-                      <span className="flex items-center gap-1 text-slate-800 font-medium">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
-                        Send WhatsApp link
+                    <label className="flex items-center space-x-2 text-xs text-slate-700 cursor-pointer">
+                      <input type="checkbox" checked={notifyWhatsapp} onChange={(e) => setNotifyWhatsapp(e.target.checked)} className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
+                      <span className="flex items-center gap-1 font-medium">
+                        <svg className="w-3.5 h-3.5 text-emerald-600" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"></path></svg>
+                        Share via WhatsApp
                       </span>
                     </label>
                   </div>
                 </div>
-              </section>
-              {/* END: LeftColumn */}
 
-              {/* BEGIN: RightColumn (Accepted Rails & Generation) */}
-              <section aria-labelledby="section-rails-output" className="lg:col-span-5 flex flex-col justify-between space-y-4">
-                <h2 className="sr-only" id="section-rails-output">Accepted Payment Rails and Live Link Action</h2>
+                {/* 4. Accepted Rails & Validity */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-mono font-bold uppercase tracking-wider text-slate-600">Accepted Rails</label>
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500 block">Accepted Rails &amp; Expiry</label>
                     <span className="text-[10px] font-mono text-slate-400">SELECT MULTIPLE</span>
                   </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+                    {/* UPI Rail */}
+                    <label className={`relative flex flex-col p-3 rounded-xl border-2 cursor-pointer transition-all ${railUpi ? 'border-blue-500 bg-blue-50/30' : 'border-slate-200 bg-white hover:border-slate-300'}`}>
+                      <input type="checkbox" checked={railUpi} onChange={(e) => setRailUpi(e.target.checked)} className="absolute top-3 right-3 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                      <span className="font-bold text-xs text-slate-900">UPI QR (Instant)</span>
+                      <span className="text-[11px] text-emerald-600 font-semibold mt-0.5">Zero MDR • 100% Instant</span>
+                      <span className="text-[10px] text-slate-400 mt-2">GPay, PhonePe, Paytm</span>
+                    </label>
+                    {/* Bank IMPS/NEFT Rail */}
+                    <label className={`relative flex flex-col p-3 rounded-xl border-2 cursor-pointer transition-all ${railImps ? 'border-blue-500 bg-blue-50/30' : 'border-slate-200 bg-white hover:border-slate-300'}`}>
+                      <input type="checkbox" checked={railImps} onChange={(e) => setRailImps(e.target.checked)} className="absolute top-3 right-3 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                      <span className="font-bold text-xs text-slate-900">Bank IMPS / NEFT</span>
+                      <span className="text-[11px] text-emerald-600 font-semibold mt-0.5">Virtual A/C Direct</span>
+                      <span className="text-[10px] text-slate-400 mt-2">RTGS &gt;₹2,00,000</span>
+                    </label>
+                    {/* Crypto USDT Rail */}
+                    <label className={`relative flex flex-col p-3 rounded-xl border-2 cursor-pointer transition-all ${railCrypto ? 'border-purple-400 bg-purple-50/50' : 'border-slate-200 bg-white hover:border-slate-300'}`}>
+                      <input type="checkbox" checked={railCrypto} onChange={(e) => setRailCrypto(e.target.checked)} className="absolute top-3 right-3 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                      <span className="font-bold text-xs text-slate-900">Crypto (USDT)</span>
+                      <span className="text-[11px] text-slate-500 mt-0.5">Polygon Mainnet</span>
+                      <span className="text-[10px] text-slate-400 mt-2">Realtime conversion</span>
+                    </label>
+                  </div>
 
-                  {/* Rail A: UPI QR (Enabled) */}
-                  <label
-                    className={`flex items-start justify-between p-3 rounded-lg border-2 cursor-pointer shadow-xs transition ${
-                      railUpi
-                        ? 'border-blue-600 bg-blue-50/40 hover:bg-blue-50/70'
-                        : 'border-[#cbd5e1] bg-white hover:border-slate-400 opacity-80'
-                    }`}
-                    style={{ backgroundColor: railUpi ? 'rgba(239, 246, 255, 0.5)' : '#ffffff' }}
-                    data-purpose="rail-bento-upi"
-                  >
-                    <div className="flex items-start gap-2.5">
-                      <input
-                        type="checkbox"
-                        checked={railUpi}
-                        onChange={(e) => setRailUpi(e.target.checked)}
-                        className="mt-0.5 h-4 w-4 rounded border-blue-600 text-blue-600 focus:ring-blue-500"
-                      />
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-slate-900 tracking-tight">UPI QR (Instant)</span>
-                          <span className="text-[10px] font-mono px-1.5 py-0.2 bg-blue-100 text-blue-700 font-bold rounded">PRIMARY</span>
-                        </div>
-                        <p className="text-[11px] font-mono text-slate-500 mt-0.5">Google Pay, PhonePe, Paytm, BHIM</p>
-                        <p className="text-[10px] font-mono font-medium text-emerald-700 mt-0.5">✓ 0% MDR • Zero Escrow Passthrough</p>
-                      </div>
-                    </div>
-                    <span className="text-xs font-mono font-bold text-slate-700">T+0</span>
-                  </label>
-
-                  {/* Rail B: Direct Bank IMPS (Enabled) */}
-                  <label
-                    className={`flex items-start justify-between p-3 rounded-lg border cursor-pointer shadow-2xs transition ${
-                      railImps
-                        ? 'border-[#cbd5e1] bg-white hover:border-slate-400'
-                        : 'border-[#e2e8f0] bg-slate-50/60 opacity-80'
-                    }`}
-                    style={{ backgroundColor: railImps ? '#ffffff' : '#f8fafc', borderColor: '#cbd5e1' }}
-                    data-purpose="rail-bento-imps"
-                  >
-                    <div className="flex items-start gap-2.5">
-                      <input
-                        type="checkbox"
-                        checked={railImps}
-                        onChange={(e) => setRailImps(e.target.checked)}
-                        className="mt-0.5 h-4 w-4 rounded border-[#cbd5e1] text-blue-600 focus:ring-blue-500"
-                      />
-                      <div>
-                        <span className="text-xs font-bold text-slate-900">Bank IMPS / NEFT</span>
-                        <p className="text-[11px] font-mono text-slate-500 mt-0.5">Dedicated Virtual Account direct credit</p>
-                        <p className="text-[10px] font-mono text-slate-600 mt-0.5">RTGS supported for &gt;₹2,00,000</p>
-                      </div>
-                    </div>
-                    <span className="text-xs font-mono font-bold text-slate-700">24/7</span>
-                  </label>
-
-                  {/* Rail C: Polygon USDT (Inactive by default) */}
-                  <label
-                    className={`flex items-start justify-between p-3 rounded-lg border cursor-pointer shadow-2xs transition ${
-                      railCrypto
-                        ? 'border-purple-400 bg-purple-50/50'
-                        : 'border-[#cbd5e1] bg-slate-50 hover:border-slate-400'
-                    }`}
-                    style={{ backgroundColor: railCrypto ? '#faf5ff' : '#f8fafc', borderColor: railCrypto ? '#c084fc' : '#cbd5e1' }}
-                    data-purpose="rail-bento-usdt"
-                  >
-                    <div className="flex items-start gap-2.5">
-                      <input
-                        type="checkbox"
-                        checked={railCrypto}
-                        onChange={(e) => setRailCrypto(e.target.checked)}
-                        className="mt-0.5 h-4 w-4 rounded border-[#cbd5e1] text-purple-600 focus:ring-purple-500"
-                      />
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-xs font-medium text-slate-800">Crypto (USDT / USDC)</span>
-                          <span className="text-[9px] font-mono bg-purple-100 text-purple-700 px-1 py-0.2 rounded font-semibold">WEB3</span>
-                        </div>
-                        <p className="text-[11px] font-mono text-slate-500 mt-0.5">Polygon Mainnet passthrough</p>
-                      </div>
-                    </div>
-                    <span className="text-[11px] font-mono text-slate-400">Auto-swap</span>
-                  </label>
-
-                  {/* Expiry Duration Selector */}
-                  <div className="pt-2">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-600">Link Validity</label>
-                      <span className="text-[10px] font-mono text-slate-400">Auto-expires after term</span>
-                    </div>
-                    <div className="grid grid-cols-5 gap-1 text-center font-mono text-[11px]">
-                      {['24h', '3d', '7d', '30d', 'Never'].map((term) => (
+                  {/* Validity Segmented Selector */}
+                  <div className="flex items-center justify-between pt-2">
+                    <span className="text-xs text-slate-500 font-medium">Link Validity:</span>
+                    <div className="flex items-center space-x-1 bg-slate-100 p-1 rounded-xl">
+                      {[{ label: '24 Hours', val: '24h' }, { label: '3 Days', val: '3d' }, { label: '7 Days', val: '7d' }, { label: '30 Days', val: '30d' }].map((opt) => (
                         <button
-                          key={term}
+                          key={opt.val}
                           type="button"
-                          onClick={() => setLinkValidity(term)}
-                          className={`py-1 px-1 border rounded transition cursor-pointer ${
-                            linkValidity === term
-                              ? 'border-blue-600 bg-blue-600 font-bold text-white shadow-2xs'
-                              : 'border-[#cbd5e1] rounded hover:bg-slate-100 text-slate-600 bg-white'
-                          }`}
-                          style={{
-                            backgroundColor: linkValidity === term ? '#2563eb' : '#ffffff',
-                            borderColor: linkValidity === term ? '#2563eb' : '#cbd5e1',
-                            color: linkValidity === term ? '#ffffff' : '#475569',
-                          }}
+                          onClick={() => setLinkValidity(opt.val)}
+                          className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${linkValidity === opt.val ? 'bg-white text-blue-600 shadow-sm font-semibold' : 'text-slate-600 hover:text-slate-900'}`}
                         >
-                          {term}
+                          {linkValidity === opt.val ? `Expires in ${opt.label}` : opt.label}
                         </button>
                       ))}
                     </div>
                   </div>
                 </div>
 
-                {/* Live Link Output & Submit Button Group */}
-                <div className="space-y-3 pt-3 border-t border-[#e2e8f0]" data-purpose="output-action-group">
-                  {/* Live Preview Pill Card — Matching Image 2 */}
-                  <div
-                    className="p-2.5 rounded-lg border border-[#cbd5e1] text-xs shadow-2xs"
-                    style={{ backgroundColor: '#f8fafc', borderColor: '#cbd5e1' }}
-                  >
-                    <div className="flex items-center justify-between text-[10px] font-mono uppercase text-slate-600 mb-1">
-                      <span className="font-bold flex items-center gap-1.5">
-                        <span className={`w-1.5 h-1.5 rounded-full inline-block ${generatedLinkData ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}></span>
-                        Generated Link Preview
-                      </span>
-                      <span className="text-emerald-700 font-bold">HTTPS SECURE</span>
-                    </div>
-                    <div
-                      className="flex items-center justify-between border border-[#cbd5e1] rounded px-2.5 py-1.5"
-                      style={{ backgroundColor: '#ffffff', borderColor: '#cbd5e1' }}
-                    >
-                      <div className="flex items-center gap-2 truncate pr-2">
-                        <svg className="w-3.5 h-3.5 text-blue-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                          <path clipRule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" fillRule="evenodd"></path>
-                        </svg>
-                        <span className="font-mono text-[11px] text-slate-700 truncate" id="link-url-display">
-                          {activeUrl || previewUrlDynamic}
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => copyText(activeUrl || previewUrlDynamic, 'Payment Link')}
-                        className={`shrink-0 inline-flex items-center gap-1 font-mono text-[11px] font-bold border px-2 py-0.5 rounded transition cursor-pointer ${
-                          copiedId === (activeUrl || previewUrlDynamic)
-                            ? 'bg-emerald-100 text-emerald-700 border-emerald-300'
-                            : 'text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 border-blue-200'
-                        }`}
-                        style={{ backgroundColor: copiedId === (activeUrl || previewUrlDynamic) ? '#d1fae5' : '#eff6ff' }}
-                        id="copy-link-btn"
-                        type="button"
-                      >
-                        {copiedId === (activeUrl || previewUrlDynamic) ? (
-                          <span>✓ Copied</span>
-                        ) : (
-                          <>
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
-                            </svg>
-                            Copy
-                          </>
-                        )}
-                      </button>
-                    </div>
-
-                    {/* Direct action buttons when active link exists */}
-                    {generatedLinkData && (
-                      <div className="mt-2 pt-2 border-t border-[#e2e8f0] flex items-center justify-between gap-2 animate-fade-in">
-                        <a
-                          href={activeUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex-1 inline-flex items-center justify-center gap-1.5 py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 rounded text-xs font-mono font-semibold transition"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5" />
-                          <span>Go to Checkout ↗</span>
-                        </a>
-                        <button
-                          type="button"
-                          onClick={() => shareWhatsApp(generatedLinkData)}
-                          className="inline-flex items-center justify-center gap-1.5 py-1.5 px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-mono font-semibold transition cursor-pointer"
-                          title="Share on WhatsApp"
-                        >
-                          <Share2 className="w-3.5 h-3.5" />
-                          <span>WhatsApp</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Main CTA Trigger Button */}
+                {/* Bottom Action Buttons */}
+                <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center gap-3">
                   <button
                     onClick={handleCreateLink}
                     disabled={isGenerating}
-                    className={`w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-mono font-bold text-xs uppercase tracking-wider py-3 px-4 rounded-lg shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2 group cursor-pointer ${
-                      isGenerating ? 'opacity-80 cursor-wait' : ''
-                    }`}
-                    style={{ backgroundColor: '#2563eb' }}
+                    className={`flex-1 inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3.5 rounded-xl shadow-lg shadow-blue-500/25 transition-all focus:ring-2 focus:ring-blue-400 focus:outline-none active:scale-[0.98] ${isGenerating ? 'opacity-80 cursor-wait' : ''}`}
                     type="button"
+                    id="create-link-cta"
                   >
                     {isGenerating ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Generating Payment Link...</span>
-                      </>
+                      <><Loader2 className="w-5 h-5 animate-spin" /><span>Generating...</span></>
                     ) : (
                       <>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path></svg>
                         <span>Create &amp; Share Payment Link</span>
-                        <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path d="M14 5l7 7m0 0l-7 7m7-7H3" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
-                        </svg>
                       </>
                     )}
                   </button>
-
-                  {/* Micro Security Footnote */}
-                  <p className="text-[10px] font-mono text-center text-slate-500">
-                    Locked to Bank A/C {lastFour} • End-to-End Signed Signature • 256-bit TLS
-                  </p>
+                  <button
+                    type="button"
+                    onClick={() => showToast('Template saved successfully!')}
+                    className="inline-flex items-center justify-center px-4 py-3.5 rounded-xl border border-slate-200 bg-white font-medium text-xs text-slate-700 hover:bg-slate-50 transition-all"
+                  >
+                    Save as Template
+                  </button>
                 </div>
               </section>
-              {/* END: RightColumn */}
+
+              {/* ── RIGHT COLUMN: Live Customer Checkout Preview ── */}
+              <section className="lg:col-span-5 bg-slate-100/70 p-6 lg:p-8 flex flex-col justify-between items-center relative overflow-hidden" data-purpose="recipient-simulator">
+                {/* Ambient glow blobs */}
+                <div className="absolute -right-20 -top-20 w-60 h-60 bg-blue-200 rounded-full blur-3xl opacity-40 pointer-events-none"></div>
+                <div className="absolute -left-20 -bottom-20 w-60 h-60 bg-emerald-100 rounded-full blur-3xl opacity-40 pointer-events-none"></div>
+
+                {/* Preview Header */}
+                <div className="w-full flex items-center justify-between mb-4 relative z-10">
+                  <div className="flex items-center space-x-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-700">Live Customer Checkout Preview</span>
+                  </div>
+                  <span className="text-[11px] bg-white/80 border border-slate-200 px-2 py-0.5 rounded text-slate-500 font-mono">Canvas Mode</span>
+                </div>
+
+                {/* Mobile Device Simulator */}
+                <div className="w-full max-w-[340px] bg-white rounded-3xl border border-slate-200 shadow-[0_25px_40px_-15px_rgba(30,41,59,0.25),0_0_0_1px_rgba(148,163,184,0.2)] overflow-hidden transition-all duration-300 relative z-10">
+                  {/* Status Bar */}
+                  <div className="bg-slate-900 text-white px-5 pt-3 pb-2 flex items-center justify-between text-[11px] font-mono">
+                    <span>9:41</span>
+                    <div className="flex items-center space-x-1.5">
+                      <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"></path></svg>
+                      <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full"></div>
+                    </div>
+                  </div>
+
+                  {/* Checkout Header */}
+                  <div className="p-5 text-center border-b border-dashed border-slate-200 bg-gradient-to-b from-blue-50/50 to-white">
+                    <div className="inline-flex items-center justify-center relative mb-2">
+                      <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white font-bold flex items-center justify-center text-lg shadow-sm">
+                        {(profile?.business_name || 'MB').slice(0, 2).toUpperCase()}
+                      </div>
+                      <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5">
+                        <svg className="w-4 h-4 text-blue-500 fill-current" viewBox="0 0 20 20">
+                          <path clipRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" fillRule="evenodd"></path>
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="text-xs uppercase font-semibold text-slate-400 tracking-wider">Paying to</div>
+                    <h3 className="text-base font-bold text-slate-800">{profile?.business_name || 'My Business'}</h3>
+                    <p className="text-xs text-slate-500 mt-1 max-w-[240px] mx-auto line-clamp-1">
+                      {purpose.trim() || 'Direct Payment'}
+                    </p>
+                    <div className="mt-3">
+                      <span className="text-xs text-slate-400 font-medium">Total Amount Due</span>
+                      <div className="text-3xl font-extrabold text-slate-900 tracking-tight font-mono mt-0.5">
+                        {currency === 'USD' ? '$' : '₹'}{' '}
+                        {(() => { const v = parseFloat(amount); return isNaN(v) || v <= 0 ? '0.00' : v.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); })()}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* QR Code & Settlement Info */}
+                  <div className="p-5 flex flex-col items-center justify-center bg-white space-y-4">
+                    {/* Live QR Code */}
+                    <div className="p-3 bg-white rounded-2xl border-2 border-slate-100 shadow-sm cursor-pointer">
+                      <QRCode
+                        value={activeUrl || previewUrlDynamic}
+                        size={140}
+                        bgColor="#ffffff"
+                        fgColor="#0f172a"
+                        level="M"
+                      />
+                      <div className="text-center mt-1.5">
+                        <span className="text-[10px] font-medium text-slate-400">Scan with any UPI App</span>
+                      </div>
+                    </div>
+
+                    {/* UPI Brand Logos */}
+                    <div className="flex items-center justify-center space-x-3 text-[11px] font-bold text-slate-500">
+                      <span className="text-indigo-600">PhonePe</span>
+                      <span>•</span>
+                      <span className="text-blue-600">GPay</span>
+                      <span>•</span>
+                      <span className="text-cyan-600">Paytm</span>
+                      <span>•</span>
+                      <span className="text-orange-600">BHIM</span>
+                    </div>
+
+                    {/* Escrow Status Pill */}
+                    <div className="w-full bg-emerald-50 border border-emerald-200/80 rounded-xl p-2.5 flex items-center space-x-2 text-left">
+                      <svg className="w-4 h-4 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path clipRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" fillRule="evenodd"></path></svg>
+                      <div>
+                        <div className="text-[11px] font-bold text-emerald-900 leading-tight">Direct Bank Credit</div>
+                        <div className="text-[10px] text-emerald-700">Passthrough to {profile?.business_name || 'Merchant'} Bank A/C (0% Escrow Fee)</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Device Footer */}
+                  <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span className="text-[11px] font-mono text-slate-500">
+                      {linkValidity === '24h' ? 'Auto-expires in 24 hours' : linkValidity === '3d' ? 'Auto-expires in 3 days' : linkValidity === '7d' ? 'Auto-expires in 7 days' : linkValidity === '30d' ? 'Auto-expires in 30 days' : 'No expiry'}
+                    </span>
+                    <span className="text-blue-600 font-medium text-[11px] hover:underline cursor-pointer">Support</span>
+                  </div>
+                </div>
+
+                {/* Live Generated Link Share Bar */}
+                <div className="w-full mt-6 relative z-10">
+                  {!generatedLinkData ? (
+                    <div className="w-full bg-slate-50/80 border border-dashed border-slate-200 rounded-2xl p-3 text-center flex items-center justify-center space-x-2 text-xs text-slate-400 font-medium">
+                      <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path></svg>
+                      <span>Click "Create &amp; Share Payment Link" to generate active URL</span>
+                    </div>
+                  ) : (
+                    <div className="w-full bg-white border border-slate-200 rounded-2xl p-3 shadow-sm flex items-center justify-between gap-2 animate-fade-in">
+                      <div className="flex items-center space-x-2.5 overflow-hidden">
+                        <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                          <LinkIcon className="w-4 h-4" />
+                        </div>
+                        <div className="truncate">
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Shareable Payment URL</div>
+                          <div className="text-xs font-mono font-medium text-slate-700 truncate">{activeUrl}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => shareWhatsApp(generatedLinkData)}
+                          className="inline-flex items-center justify-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium px-2.5 py-2 rounded-xl transition-all"
+                          title="Share on WhatsApp"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"></path></svg>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => copyText(activeUrl, 'Payment Link')}
+                          className={`inline-flex items-center gap-1.5 text-xs font-medium px-3.5 py-2 rounded-xl transition-all ${copiedId === activeUrl ? 'bg-emerald-600 text-white' : 'bg-slate-900 hover:bg-slate-800 text-white'}`}
+                          id="copy-link-btn"
+                        >
+                          {copiedId === activeUrl ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                          <span>{copiedId === activeUrl ? 'Copied!' : 'Copy'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Security footnote */}
+                <p className="text-[10px] font-mono text-center text-slate-400 mt-3 relative z-10">
+                  © 2025 mymobpay (mymob.tech) • PCI-DSS Compliant • 256-Bit SSL Encrypted Passthrough
+                </p>
+              </section>
             </div>
-            {/* END: FormBody */}
-          </main>
-          {/* END: MasterPaymentLinkConsole */}
+            {/* END: Main Split Studio Layout */}
+          </div>
+          {/* END: Studio Main Floating Card */}
         </div>
       )}
 
