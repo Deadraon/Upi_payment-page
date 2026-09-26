@@ -503,6 +503,7 @@ export default function DashboardPage() {
 
 
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
 
 
@@ -9049,57 +9050,113 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-            {/* ═══════════════════════════════════════════════════════════
-         DESKTOP SIDEBAR (User Design System)
+                  {/* ═══════════════════════════════════════════════════════════
+         DESKTOP SIDEBAR (Original Menu Items with Modern Design)
          ═══════════════════════════════════════════════════════════ */}
       <aside className="fixed left-0 top-0 h-full w-64 bg-white border-r border-slate-200/80 z-50 hidden md:flex flex-col justify-between shadow-[1px_0_4px_0_rgba(0,0,0,0.02)] select-none">
-        <div className="flex flex-col px-6 pt-6">
-          {/* Logo & Brand (Original Wordmark) */}
-          <div className="flex items-center gap-3 pb-6 pt-1">
-            <MyMobPayLogo className="w-36 h-auto" textColor="#0c2340" />
+        <div className="flex flex-col flex-1 overflow-hidden">
+          {/* Logo & Brand (Bigger & Aligned) */}
+          <div className="px-6 pt-7 pb-4 flex items-center">
+            <MyMobPayLogo className="w-44 lg:w-48 h-auto transition-transform hover:scale-[1.02]" textColor="#0c2340" />
           </div>
 
-          {/* Navigation Links */}
-          <nav className="flex flex-col gap-1.5">
+          {/* Navigation Links with Original Categories */}
+          <nav className="flex-1 px-4 py-2 space-y-1 overflow-y-auto">
+            {/* Pinned: Subscription Console */}
+            <button
+              onClick={handleScrollToSubscription}
+              type="button"
+              className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs transition-all border font-bold ${
+                activeTab === 'subscription'
+                  ? 'bg-blue-600/15 text-blue-700 border-blue-500/30 shadow-xs'
+                  : profile?.subscription_status === 'active'
+                  ? 'bg-emerald-500/10 text-emerald-700 border-emerald-500/25 hover:bg-emerald-500/15'
+                  : 'bg-amber-500/10 text-amber-700 border-amber-500/25 hover:bg-amber-500/15'
+              }`}
+            >
+              <Crown className={`w-4 h-4 shrink-0 ${
+                activeTab === 'subscription'
+                  ? 'text-blue-600'
+                  : profile?.subscription_status === 'active'
+                  ? 'text-emerald-600'
+                  : 'text-amber-500'
+              }`} />
+              <span className="flex-1 text-left font-black tracking-wide text-[11px] truncate">
+                {profile?.subscription_status === 'active' ? 'Premium Active' : 'Premium Subscription'}
+              </span>
+              <span className={`w-2 h-2 rounded-full shrink-0 ${
+                profile?.subscription_status === 'active' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-400'
+              }`} />
+            </button>
+
+            {/* Pinned: Admin Console (Super Admin) */}
+            {isAdminUser && (
+              <a
+                href="/admin"
+                className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs transition-all border font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-xs mt-1"
+                title="Access SaaS Super Admin Console"
+              >
+                <Shield className="w-3.5 h-3.5 text-blue-200" />
+                <span className="flex-1 text-left font-black tracking-wide text-[11px]">Admin Console</span>
+                <span className="text-[8px] bg-white/20 px-1.5 py-0.5 rounded font-black uppercase">Root</span>
+              </a>
+            )}
+
+            <div className="h-px bg-slate-100 my-2" />
+
+            {/* Category: General */}
+            <p className="px-3 pt-1 pb-1 text-[10px] font-black text-slate-400 uppercase tracking-wider">
+              General
+            </p>
+
             <button
               onClick={() => setActiveTab('overview')}
               type="button"
-              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all text-sm group text-left ${
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all text-left font-medium ${
                 activeTab === 'overview'
-                  ? 'bg-blue-50 text-blue-600 font-semibold shadow-xs border border-blue-100'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+                  ? 'bg-blue-50 text-blue-600 font-bold border border-blue-100 shadow-2xs'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
-              <span
-                className={`material-symbols-outlined text-xl transition-colors ${
-                  activeTab === 'overview' ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-700'
-                }`}
-                style={activeTab === 'overview' ? { fontVariationSettings: "'FILL' 1" } : undefined}
-              >
-                dashboard
-              </span>
+              <LayoutDashboard className={`w-4 h-4 shrink-0 ${activeTab === 'overview' ? 'text-blue-600' : 'text-slate-400'}`} />
               Overview
             </button>
 
             <button
-              onClick={() => setActiveTab('transactions')}
+              onClick={() => setActiveTab('payment-links')}
               type="button"
-              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all text-sm group text-left ${
-                activeTab === 'transactions'
-                  ? 'bg-blue-50 text-blue-600 font-semibold shadow-xs border border-blue-100'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all text-left font-medium ${
+                activeTab === 'payment-links'
+                  ? 'bg-blue-50 text-blue-600 font-bold border border-blue-100 shadow-2xs'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
-              <span
-                className={`material-symbols-outlined text-xl transition-colors ${
-                  activeTab === 'transactions' ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-700'
-                }`}
-                style={activeTab === 'transactions' ? { fontVariationSettings: "'FILL' 1" } : undefined}
-              >
-                receipt_long
-              </span>
+              <LinkIcon className={`w-4 h-4 shrink-0 ${activeTab === 'payment-links' ? 'text-blue-600' : 'text-slate-400'}`} />
+              Payment Links
+            </button>
+
+            {/* Category: Reports */}
+            <p className="px-3 pt-3 pb-1 text-[10px] font-black text-slate-400 uppercase tracking-wider">
+              Reports
+            </p>
+
+            <button
+              onClick={() => setActiveTab('transactions')}
+              type="button"
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all text-left font-medium ${
+                activeTab === 'transactions'
+                  ? 'bg-blue-50 text-blue-600 font-bold border border-blue-100 shadow-2xs'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+              }`}
+            >
+              <CreditCard className={`w-4 h-4 shrink-0 ${activeTab === 'transactions' ? 'text-blue-600' : 'text-slate-400'}`} />
               Transactions
             </button>
+
+            {/* Category: Integrations */}
+            <p className="px-3 pt-3 pb-1 text-[10px] font-black text-slate-400 uppercase tracking-wider">
+              Integrations
+            </p>
 
             <button
               onClick={() => {
@@ -9107,157 +9164,109 @@ echo "Order Created: " . $data['orderId'];
                 setIntegrationTarget('email_forwarding');
               }}
               type="button"
-              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all text-sm group text-left ${
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all text-left font-medium ${
                 activeTab === 'connections'
-                  ? 'bg-blue-50 text-blue-600 font-semibold shadow-xs border border-blue-100'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+                  ? 'bg-blue-50 text-blue-600 font-bold border border-blue-100 shadow-2xs'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
-              <span
-                className={`material-symbols-outlined text-xl transition-colors ${
-                  activeTab === 'connections' ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-700'
-                }`}
-                style={activeTab === 'connections' ? { fontVariationSettings: "'FILL' 1" } : undefined}
-              >
-                bolt
-              </span>
-              Direct Transfers
+              <LinkIcon className={`w-4 h-4 shrink-0 ${activeTab === 'connections' ? 'text-blue-600' : 'text-slate-400'}`} />
+              Connections
             </button>
 
             <button
-              onClick={() => setActiveTab('payment-links')}
+              onClick={() => {
+                setActiveTab('developer');
+                if (integrationTarget === 'email_forwarding') {
+                  setIntegrationTarget('website');
+                }
+              }}
               type="button"
-              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all text-sm group text-left ${
-                activeTab === 'payment-links'
-                  ? 'bg-blue-50 text-blue-600 font-semibold shadow-xs border border-blue-100'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all text-left font-medium ${
+                activeTab === 'developer'
+                  ? 'bg-blue-50 text-blue-600 font-bold border border-blue-100 shadow-2xs'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
-              <span
-                className={`material-symbols-outlined text-xl transition-colors ${
-                  activeTab === 'payment-links' ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-700'
-                }`}
-                style={activeTab === 'payment-links' ? { fontVariationSettings: "'FILL' 1" } : undefined}
-              >
-                link
-              </span>
-              Payment Links
+              <BookOpen className={`w-4 h-4 shrink-0 ${activeTab === 'developer' ? 'text-blue-600' : 'text-slate-400'}`} />
+              Developer API
             </button>
 
             <button
               onClick={() => setActiveTab('playground')}
               type="button"
-              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all text-sm group text-left ${
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all text-left font-medium ${
                 activeTab === 'playground'
-                  ? 'bg-blue-50 text-blue-600 font-semibold shadow-xs border border-blue-100'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+                  ? 'bg-blue-50 text-blue-600 font-bold border border-blue-100 shadow-2xs'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
-              <span
-                className={`material-symbols-outlined text-xl transition-colors ${
-                  activeTab === 'playground' ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-700'
-                }`}
-                style={activeTab === 'playground' ? { fontVariationSettings: "'FILL' 1" } : undefined}
-              >
-                receipt
-              </span>
-              Invoices & Sandbox
+              <Sparkles className={`w-4 h-4 shrink-0 ${activeTab === 'playground' ? 'text-blue-600' : 'text-slate-400'}`} />
+              Playground
             </button>
 
             <button
               onClick={() => setActiveTab('api')}
               type="button"
-              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all text-sm group text-left ${
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all text-left font-medium ${
                 activeTab === 'api'
-                  ? 'bg-blue-50 text-blue-600 font-semibold shadow-xs border border-blue-100'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+                  ? 'bg-blue-50 text-blue-600 font-bold border border-blue-100 shadow-2xs'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
-              <span
-                className={`material-symbols-outlined text-xl transition-colors ${
-                  activeTab === 'api' ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-700'
-                }`}
-                style={activeTab === 'api' ? { fontVariationSettings: "'FILL' 1" } : undefined}
-              >
-                qr_code_2
-              </span>
-              Smart Collect / UPI
+              <Key className={`w-4 h-4 shrink-0 ${activeTab === 'api' ? 'text-blue-600' : 'text-slate-400'}`} />
+              API Keys
             </button>
 
-            <button
-              onClick={() => setActiveTab('developer')}
-              type="button"
-              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all text-sm group text-left ${
-                activeTab === 'developer'
-                  ? 'bg-blue-50 text-blue-600 font-semibold shadow-xs border border-blue-100'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
-              }`}
-            >
-              <span
-                className={`material-symbols-outlined text-xl transition-colors ${
-                  activeTab === 'developer' ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-700'
-                }`}
-                style={activeTab === 'developer' ? { fontVariationSettings: "'FILL' 1" } : undefined}
-              >
-                code
-              </span>
-              Developer Portal
-            </button>
+            {/* Category: Settings */}
+            <p className="px-3 pt-3 pb-1 text-[10px] font-black text-slate-400 uppercase tracking-wider">
+              Settings
+            </p>
 
             <button
               onClick={() => setActiveTab('settings')}
               type="button"
-              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all text-sm group text-left ${
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all text-left font-medium ${
                 activeTab === 'settings'
-                  ? 'bg-blue-50 text-blue-600 font-semibold shadow-xs border border-blue-100'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+                  ? 'bg-blue-50 text-blue-600 font-bold border border-blue-100 shadow-2xs'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
-              <span
-                className={`material-symbols-outlined text-xl transition-colors ${
-                  activeTab === 'settings' ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-700'
-                }`}
-                style={activeTab === 'settings' ? { fontVariationSettings: "'FILL' 1" } : undefined}
-              >
-                settings
-              </span>
+              <Briefcase className={`w-4 h-4 shrink-0 ${activeTab === 'settings' ? 'text-blue-600' : 'text-slate-400'}`} />
               Settings
             </button>
 
             <button
-              onClick={handleScrollToSubscription}
+              onClick={() => setActiveTab('setup-guide')}
               type="button"
-              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all text-sm group text-left ${
-                activeTab === 'subscription'
-                  ? 'bg-blue-50 text-blue-600 font-semibold shadow-xs border border-blue-100'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all text-left font-medium ${
+                activeTab === 'setup-guide'
+                  ? 'bg-blue-50 text-blue-600 font-bold border border-blue-100 shadow-2xs'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
-              <Crown className={`w-5 h-5 shrink-0 ${activeTab === 'subscription' ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-700'}`} />
-              Subscription
+              <BookOpen className={`w-4 h-4 shrink-0 ${activeTab === 'setup-guide' ? 'text-blue-600' : 'text-slate-400'}`} />
+              0 to 100 Setup Guide
             </button>
-
-            {isAdminUser && (
-              <a
-                href="/admin"
-                className="flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all text-sm text-blue-600 hover:bg-blue-50 font-bold border border-blue-100/60"
-              >
-                <Shield className="w-5 h-5 text-blue-600" />
-                Admin Console
-              </a>
-            )}
           </nav>
         </div>
 
         {/* Sidebar Footer */}
-        <div className="px-6 pb-6">
-          <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-4 border-t border-slate-100">
+        <div className="px-6 pb-6 pt-3 border-t border-slate-100 flex flex-col gap-3">
+          <div className="flex items-center justify-between text-xs text-slate-400 font-medium">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               <span>API Live Rails</span>
             </div>
             <span className="text-[11px] font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">v2.1</span>
           </div>
+          <button
+            onClick={handleSignOut}
+            type="button"
+            className="w-full flex items-center justify-center gap-2 py-2 text-xs font-bold text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+          >
+            <LogOut className="w-3.5 h-3.5" /> Sign Out
+          </button>
         </div>
       </aside>
 
@@ -9279,8 +9288,8 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-                {/* ═══════════════════════════════════════════════════════════
-           HEADER (User Design System)
+                        {/* ═══════════════════════════════════════════════════════════
+           HEADER (Unified Single Top Bar with Notifications Flyout)
            ═══════════════════════════════════════════════════════════ */}
         <header className="fixed top-0 left-0 md:left-64 right-0 bg-white/95 backdrop-blur-md border-b border-slate-200/80 z-40 flex items-center justify-between px-4 sm:px-6 lg:px-8 shadow-[0_1px_3px_0_rgba(0,0,0,0.02)] h-20">
           <div className="flex items-center gap-3 sm:gap-6">
@@ -9326,19 +9335,30 @@ echo "Order Created: " . $data['orderId'];
               </button>
             </div>
 
-            {/* Command Search Bar */}
-            <div className="relative hidden sm:flex items-center">
+            {/* Live Interactive Search Bar */}
+            <div className="relative hidden sm:flex items-center w-60 md:w-72 lg:w-96">
               <Search className="absolute left-3.5 text-slate-400 w-4 h-4 pointer-events-none" />
               <input
-                onClick={() => setIsCommandPaletteOpen(true)}
-                readOnly
-                className="h-10 pl-10 pr-12 bg-slate-50 hover:bg-slate-100/80 transition-all border border-slate-200/80 rounded-xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white w-56 md:w-72 lg:w-96 shadow-sm cursor-pointer"
-                placeholder="Search transactions, UTR, UPI ID..."
                 type="text"
+                placeholder="Search transactions, UTR, orders..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  if (activeTab !== 'transactions' && e.target.value.trim().length > 0) {
+                    setActiveTab('transactions');
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    setActiveTab('transactions');
+                  }
+                }}
+                className="h-10 w-full pl-10 pr-12 bg-slate-50 hover:bg-slate-100/80 border border-slate-200/80 rounded-xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all shadow-xs"
               />
               <kbd
                 onClick={() => setIsCommandPaletteOpen(true)}
-                className="absolute right-3 px-1.5 py-0.5 text-[10px] font-mono font-medium text-slate-400 bg-white border border-slate-200 rounded shadow-xs pointer-events-none"
+                className="absolute right-3 px-1.5 py-0.5 text-[10px] font-mono font-semibold text-slate-400 bg-white border border-slate-200 rounded shadow-2xs cursor-pointer hover:bg-slate-50 hover:text-slate-700"
+                title="Open Command Palette (⌘K)"
               >
                 ⌘K
               </kbd>
@@ -9347,16 +9367,104 @@ echo "Order Created: " . $data['orderId'];
 
           <div className="flex items-center gap-2 sm:gap-4 lg:gap-5">
             <div className="flex items-center gap-1 sm:gap-2">
-              {/* Notification Icon */}
-              <button
-                onClick={() => setIsCommandPaletteOpen(true)}
-                className="relative p-2.5 text-slate-500 hover:text-slate-800 rounded-xl hover:bg-slate-100 transition-colors"
-                title="Notifications & Webhooks"
-                type="button"
-              >
-                <span className="material-symbols-outlined text-xl">notifications</span>
-                <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-blue-600 ring-2 ring-white"></span>
-              </button>
+              {/* Notification Bell with Real Dropdown Flyout */}
+              <div className="relative">
+                <button
+                  onClick={() => {
+                    setIsNotificationOpen(!isNotificationOpen);
+                    setIsProfileDropdownOpen(false);
+                  }}
+                  className={`relative p-2.5 rounded-xl border transition-all ${
+                    isNotificationOpen
+                      ? 'bg-blue-50 text-blue-600 border-blue-200 shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100 border-slate-200/80 bg-white'
+                  }`}
+                  title="Notifications & Activity"
+                  type="button"
+                >
+                  <span className="material-symbols-outlined text-xl">notifications</span>
+                  {orders.filter(o => o.status === 'verified').length > 0 && (
+                    <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-blue-600 ring-2 ring-white animate-pulse"></span>
+                  )}
+                </button>
+
+                {/* Notifications Flyout Panel */}
+                {isNotificationOpen && (
+                  <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden animate-scaleUp">
+                    <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-[#0c2340]">Activity &amp; Notifications</span>
+                        <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full font-mono">
+                          {orders.slice(0, 5).length}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => setIsNotificationOpen(false)}
+                        className="text-slate-400 hover:text-slate-600 p-1"
+                        type="button"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <div className="max-h-80 overflow-y-auto divide-y divide-slate-100">
+                      {orders.slice(0, 5).map((order) => {
+                        const isPaid = order.status === 'verified' || order.status === 'paid';
+                        return (
+                          <div
+                            key={order.id}
+                            onClick={() => {
+                              setActiveTab('transactions');
+                              setIsNotificationOpen(false);
+                            }}
+                            className="p-3.5 hover:bg-slate-50 transition-colors cursor-pointer flex items-start gap-3"
+                          >
+                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
+                              isPaid ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'
+                            }`}>
+                              {isPaid ? <CheckCircle2 className="w-4 h-4" /> : <Clock className="w-4 h-4" />}
+                            </div>
+                            <div className="flex flex-col flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-1">
+                                <span className="text-xs font-bold text-slate-800 truncate">
+                                  {isPaid ? `Payment Received: ₹${order.amount}` : `Pending Checkout: ₹${order.amount}`}
+                                </span>
+                                <span className="text-[10px] text-slate-400 font-mono">
+                                  {order.created_at ? new Date(order.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : ''}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                                {order.customer_name || 'Customer'} • {order.utr ? `UTR: ${order.utr}` : (order.order_id || 'Awaiting verification')}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                      {orders.length === 0 && (
+                        <div className="p-6 text-center text-xs text-slate-400">
+                          No recent activity or notifications.
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs">
+                      <button
+                        onClick={() => {
+                          setActiveTab('transactions');
+                          setIsNotificationOpen(false);
+                        }}
+                        className="text-blue-600 hover:text-blue-700 font-bold flex items-center gap-1"
+                        type="button"
+                      >
+                        View all transactions
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
+                      <span className="text-[10px] text-slate-400 font-mono">Rails Operational</span>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* Docs / Help Icon */}
               <button
@@ -9387,7 +9495,10 @@ echo "Order Created: " . $data['orderId'];
             {/* Profile Dropdown */}
             <div className="relative select-none">
               <div
-                onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                onClick={() => {
+                  setIsProfileDropdownOpen(!isProfileDropdownOpen);
+                  setIsNotificationOpen(false);
+                }}
                 className="flex items-center gap-2.5 sm:gap-3 pl-1 cursor-pointer group"
               >
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#0c2340] to-slate-800 text-white flex items-center justify-center font-bold text-xs shadow-sm shadow-slate-900/10 border border-slate-700/30">
@@ -9426,7 +9537,7 @@ echo "Order Created: " . $data['orderId'];
                     className="w-full text-left px-4 py-2.5 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 font-medium transition-colors"
                   >
                     <User className="w-4 h-4 text-slate-400" />
-                    Profile & Business Info
+                    Profile &amp; Business Info
                   </button>
                   <button
                     onClick={() => {
@@ -9447,7 +9558,7 @@ echo "Order Created: " . $data['orderId'];
                     className="w-full text-left px-4 py-2.5 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 font-medium transition-colors"
                   >
                     <Key className="w-4 h-4 text-slate-400" />
-                    API Keys & Credentials
+                    API Keys &amp; Credentials
                   </button>
                   <button
                     onClick={() => {
@@ -9458,7 +9569,7 @@ echo "Order Created: " . $data['orderId'];
                     className="w-full text-left px-4 py-2.5 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 font-medium transition-colors"
                   >
                     <Shield className="w-4 h-4 text-slate-400" />
-                    Security & Password
+                    Security &amp; Password
                   </button>
                   <div className="border-t border-slate-100 my-1"></div>
                   <button
@@ -9478,14 +9589,13 @@ echo "Order Created: " . $data['orderId'];
         {isMobileMenuOpen && (
           <div className="md:hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex">
             <div className="w-72 bg-white h-full shadow-2xl flex flex-col justify-between p-6 animate-fadeIn">
-              <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-5">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <MyMobPayLogo className="w-32 h-auto" textColor="#0c2340" />
-                  </div>
+                  <MyMobPayLogo className="w-36 h-auto" textColor="#0c2340" />
                   <button
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="p-1.5 text-slate-400 hover:text-slate-800 rounded-lg hover:bg-slate-100"
+                    type="button"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -9493,42 +9603,42 @@ echo "Order Created: " . $data['orderId'];
 
                 <nav className="flex flex-col gap-1 overflow-y-auto max-h-[calc(100vh-200px)]">
                   {[
-                    { id: 'overview', label: 'Overview', icon: 'dashboard' },
-                    { id: 'transactions', label: 'Transactions', icon: 'receipt_long' },
-                    { id: 'connections', label: 'Direct Transfers', icon: 'bolt' },
-                    { id: 'payment-links', label: 'Payment Links', icon: 'link' },
-                    { id: 'playground', label: 'Invoices & Sandbox', icon: 'receipt' },
-                    { id: 'api', label: 'Smart Collect / UPI', icon: 'qr_code_2' },
-                    { id: 'developer', label: 'Developer Portal', icon: 'code' },
-                    { id: 'settings', label: 'Settings', icon: 'settings' },
-                    { id: 'subscription', label: 'Subscription', icon: 'crown', isLucide: true }
-                  ].map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => {
-                        setActiveTab(item.id);
-                        setIsMobileMenuOpen(false);
-                      }}
-                      className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
-                        activeTab === item.id
-                          ? 'bg-blue-50 text-blue-600 border border-blue-100'
-                          : 'text-slate-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      {item.isLucide ? (
-                        <Crown className="w-5 h-5 text-blue-600" />
-                      ) : (
-                        <span className="material-symbols-outlined text-xl">{item.icon}</span>
-                      )}
-                      {item.label}
-                    </button>
-                  ))}
+                    { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+                    { id: 'payment-links', label: 'Payment Links', icon: LinkIcon },
+                    { id: 'transactions', label: 'Transactions', icon: CreditCard },
+                    { id: 'connections', label: 'Connections', icon: LinkIcon },
+                    { id: 'developer', label: 'Developer API', icon: BookOpen },
+                    { id: 'playground', label: 'Playground', icon: Sparkles },
+                    { id: 'api', label: 'API Keys', icon: Key },
+                    { id: 'settings', label: 'Settings', icon: Briefcase },
+                    { id: 'setup-guide', label: 'Setup Guide', icon: BookOpen },
+                    { id: 'subscription', label: 'Subscription', icon: Crown }
+                  ].map((item) => {
+                    const IconComp = item.icon;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => {
+                          setActiveTab(item.id);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+                          activeTab === item.id
+                            ? 'bg-blue-50 text-blue-600 border border-blue-100'
+                            : 'text-slate-600 hover:bg-slate-50'
+                        }`}
+                      >
+                        <IconComp className="w-4.5 h-4.5 shrink-0" />
+                        {item.label}
+                      </button>
+                    );
+                  })}
                   {isAdminUser && (
                     <a
                       href="/admin"
-                      className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold text-blue-600 bg-blue-50/50 border border-blue-100"
+                      className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold text-blue-600 bg-blue-50/50 border border-blue-100 mt-1"
                     >
-                      <Shield className="w-5 h-5 text-blue-600" />
+                      <Shield className="w-4.5 h-4.5 text-blue-600" />
                       Admin Console
                     </a>
                   )}
@@ -9539,6 +9649,7 @@ echo "Order Created: " . $data['orderId'];
                 <button
                   onClick={handleSignOut}
                   className="flex items-center gap-2 text-xs font-bold text-red-600 hover:text-red-700"
+                  type="button"
                 >
                   <LogOut className="w-4 h-4" />
                   Sign Out
