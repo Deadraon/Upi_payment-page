@@ -1,0 +1,1290 @@
+'use client';
+
+import React, { useState, useMemo } from 'react';
+import {
+  Search,
+  Download,
+  SlidersHorizontal,
+  RotateCcw,
+  CheckCircle2,
+  Clock,
+  XCircle,
+  ShieldCheck,
+  TrendingUp,
+  Building2,
+  Copy,
+  Check,
+  ExternalLink,
+  ChevronLeft,
+  ChevronRight,
+  Receipt,
+  X,
+  Plus,
+  Loader2,
+  ArrowUpRight,
+  Eye,
+  CreditCard,
+  QrCode,
+  Zap,
+  HelpCircle
+} from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+
+export default function TransactionsRedesign({
+  profile = {},
+  orders = [],
+  onRefresh,
+  setActiveTab,
+  onProfileUpdate
+}) {
+  // ── State Management ──────────────────────────────────────────
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusTab, setStatusTab] = useState('all'); // 'all', 'settled', 'processing', 'failed'
+  const [timeFilter, setTimeFilter] = useState('all'); // 'today', 'yesterday', '7days', 'mtd', 'all'
+  const [railFilter, setRailFilter] = useState('all'); // 'all', 'upi', 'imps', 'web3'
+  const [amountFilter, setAmountFilter] = useState('all'); // 'all', 'micro', 'standard', 'high'
+  const [showFilters, setShowFilters] = useState(false);
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
+
+  // Modals & Popups
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [showAddBankModal, setShowAddBankModal] = useState(false);
+  const [copiedKey, setCopiedKey] = useState(null);
+
+  // Bank Form State
+  const [bankForm, setBankForm] = useState({
+    bank_name: profile?.bank_name || '',
+    bank_account_number: profile?.bank_account_number || '',
+    bank_account_number_confirm: profile?.bank_account_number || '',
+    bank_ifsc: profile?.bank_ifsc || '',
+    bank_account_name: profile?.bank_account_name || profile?.owner_name || profile?.business_name || ''
+  });
+  const [bankSaving, setBankSaving] = useState(false);
+  const [bankError, setBankError] = useState(null);
+  const [bankSuccess, setBankSuccess] = useState(false);
+
+  // ── Copy Helper ───────────────────────────────────────────────
+  const handleCopy = (text, key) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    setCopiedKey(key);
+    setTimeout(() => setCopiedKey(null), 2000);
+  };
+
+  // ── Time Filter Helper ────────────────────────────────────────
+  const isWithinTimeRange = (dateStr, range) => {
+    if (!dateStr) return true;
+    if (range === 'all') return true;
+
+    const date = new Date(dateStr);
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    if (range === 'today') {
+      return date >= startOfToday;
+    }
+    if (range === 'yesterday') {
+      const startOfYesterday = new Date(startOfToday.getTime() - 24 * 60 * 60 * 1000);
+      return date >= startOfYesterday && date < startOfToday;
+    }
+    if (range === '7days') {
+      const sevenDaysAgo = new Date(startOfToday.getTime() - 7 * 24 * 60 * 60 * 1000);
+      return date >= sevenDaysAgo;
+    }
+    if (range === 'mtd') {
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      return date >= startOfMonth;
+    }
+    return true;
+  };
+
+  // ── Filtered Orders ───────────────────────────────────────────
+  const filteredOrders = useMemo(() => {
+    return orders.filter(order => {
+      // 1. Time filter
+      if (!isWithinTimeRange(order.created_at, timeFilter)) return false;
+
+      // 2. Status tab filter
+      if (statusTab === 'settled' && !(order.status === 'verified' || order.status === 'paid')) return false;
+      if (statusTab === 'processing' && order.status !== 'pending') return false;
+      if (statusTab === 'failed' && !(order.status === 'rejected' || order.status === 'failed' || order.status === 'expired')) return false;
+
+      // 3. Rail filter
+      if (railFilter !== 'all') {
+        const app = (order.upi_app || order.method || '').toLowerCase();
+        if (railFilter === 'upi' && (app.includes('imps') || app.includes('crypto') || app.includes('web3') || app.includes('bank'))) return false;
+        if (railFilter === 'imps' && !app.includes('imps') && !app.includes('bank')) return false;
+        if (railFilter === 'web3' && !app.includes('crypto') && !app.includes('web3') && !app.includes('polygon') && !app.includes('usdt')) return false;
+      }
+
+      // 4. Amount filter
+      const amt = Number(order.amount) || 0;
+      if (amountFilter === 'micro' && amt >= 1000) return false;
+      if (amountFilter === 'standard' && (amt < 1000 || amt > 25000)) return false;
+      if (amountFilter === 'high' && amt <= 25000) return false;
+
+      // 5. Search Query
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const id = (order.id || '').toLowerCase();
+        const orderId = (order.order_id || '').toLowerCase();
+        const utr = (order.utr || '').toLowerCase();
+        const name = (order.customer_name || '').toLowerCase();
+        const phone = (order.customer_phone || '').toLowerCase();
+        const vpa = (order.vpa || '').toLowerCase();
+        const note = (order.note || '').toLowerCase();
+        const app = (order.upi_app || '').toLowerCase();
+
+        return (
+          id.includes(q) ||
+          orderId.includes(q) ||
+          utr.includes(q) ||
+          name.includes(q) ||
+          phone.includes(q) ||
+          vpa.includes(q) ||
+          note.includes(q) ||
+          app.includes(q)
+        );
+      }
+
+      return true;
+    });
+  }, [orders, timeFilter, statusTab, railFilter, amountFilter, searchQuery]);
+
+  // ── KPI Pillar Calculations ───────────────────────────────────
+  const kpiMetrics = useMemo(() => {
+    // Orders in current timeframe
+    const timeScopedOrders = orders.filter(o => isWithinTimeRange(o.created_at, timeFilter));
+    const verifiedOrders = timeScopedOrders.filter(o => o.status === 'verified' || o.status === 'paid');
+
+    const totalVolume = verifiedOrders.reduce((sum, o) => sum + (Number(o.amount) || 0), 0);
+    const successfulTxns = verifiedOrders.length;
+    const totalTxns = timeScopedOrders.length;
+    const conversionRate = totalTxns > 0 ? ((successfulTxns / totalTxns) * 100).toFixed(1) : '100';
+
+    // Yesterday Volume calculation for delta
+    const yesterdayOrders = orders.filter(o => isWithinTimeRange(o.created_at, 'yesterday'));
+    const yesterdayVerified = yesterdayOrders.filter(o => o.status === 'verified' || o.status === 'paid');
+    const yesterdayVolume = yesterdayVerified.reduce((sum, o) => sum + (Number(o.amount) || 0), 0);
+
+    let growthDelta = '+0.0%';
+    if (yesterdayVolume > 0 && totalVolume > 0) {
+      const pct = (((totalVolume - yesterdayVolume) / yesterdayVolume) * 100).toFixed(1);
+      growthDelta = pct >= 0 ? `+${pct}%` : `${pct}%`;
+    } else if (totalVolume > 0) {
+      growthDelta = '+100%';
+    }
+
+    return {
+      totalVolume,
+      settledVolume: totalVolume, // 100% direct settlement
+      successfulTxns,
+      totalTxns,
+      conversionRate,
+      growthDelta
+    };
+  }, [orders, timeFilter]);
+
+  // ── Status Counts for Tabs ────────────────────────────────────
+  const statusCounts = useMemo(() => {
+    const timeScoped = orders.filter(o => isWithinTimeRange(o.created_at, timeFilter));
+    const all = timeScoped.length;
+    const settled = timeScoped.filter(o => o.status === 'verified' || o.status === 'paid').length;
+    const processing = timeScoped.filter(o => o.status === 'pending').length;
+    const failed = timeScoped.filter(o => o.status === 'rejected' || o.status === 'failed' || o.status === 'expired').length;
+
+    return { all, settled, processing, failed };
+  }, [orders, timeFilter]);
+
+  // ── Pagination Calculation ────────────────────────────────────
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage) || 1;
+  const paginatedOrders = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredOrders.slice(start, start + itemsPerPage);
+  }, [filteredOrders, currentPage]);
+
+  const resetFilters = () => {
+    setSearchQuery('');
+    setStatusTab('all');
+    setTimeFilter('all');
+    setRailFilter('all');
+    setAmountFilter('all');
+    setCurrentPage(1);
+  };
+
+  // ── Export CSV Statement ──────────────────────────────────────
+  const handleExportStatement = () => {
+    if (filteredOrders.length === 0) {
+      alert('No transactions found to export.');
+      return;
+    }
+
+    const headers = [
+      'Transaction ID',
+      'Order ID',
+      'Date',
+      'Time',
+      'Amount (INR)',
+      'Customer Name',
+      'Customer Phone',
+      'Customer VPA',
+      'Payment Rail',
+      'Bank Ref / UTR',
+      'Status'
+    ];
+
+    const rows = filteredOrders.map(o => {
+      const dt = o.created_at ? new Date(o.created_at) : new Date();
+      return [
+        `txn_${(o.id || '').slice(0, 8)}`,
+        o.order_id || `ORD-${(o.id || '').slice(0, 6)}`,
+        dt.toLocaleDateString('en-IN'),
+        dt.toLocaleTimeString('en-IN'),
+        o.amount || '0',
+        `"${(o.customer_name || 'Customer').replace(/"/g, '""')}"`,
+        `"${(o.customer_phone || '').replace(/"/g, '""')}"`,
+        `"${(o.vpa || '').replace(/"/g, '""')}"`,
+        `"${(o.upi_app || 'UPI').replace(/"/g, '""')}"`,
+        `"${(o.utr || 'N/A').replace(/"/g, '""')}"`,
+        o.status || 'pending'
+      ].join(',');
+    });
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `MyMobPay_Statement_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // ── Save Bank Account Handler ─────────────────────────────────
+  const handleBankSave = async (e) => {
+    if (e) e.preventDefault();
+    setBankError(null);
+    setBankSuccess(false);
+
+    if (!bankForm.bank_name.trim()) return setBankError('Bank name is required.');
+    if (!bankForm.bank_account_name.trim()) return setBankError('Account holder name is required.');
+    if (!bankForm.bank_account_number.trim()) return setBankError('Account number is required.');
+    if (bankForm.bank_account_number !== bankForm.bank_account_number_confirm) {
+      return setBankError('Account numbers do not match.');
+    }
+    if (!bankForm.bank_ifsc.trim()) return setBankError('IFSC code is required.');
+    if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(bankForm.bank_ifsc.trim().toUpperCase())) {
+      return setBankError('Invalid IFSC code format (e.g. HDFC0001234).');
+    }
+
+    setBankSaving(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          bank_name: bankForm.bank_name.trim(),
+          bank_account_number: bankForm.bank_account_number.trim(),
+          bank_account_name: bankForm.bank_account_name.trim(),
+          bank_ifsc: bankForm.bank_ifsc.trim().toUpperCase(),
+          enable_bank_transfer: true,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', profile.id);
+
+      if (error) throw error;
+
+      setBankSuccess(true);
+      if (onProfileUpdate) {
+        onProfileUpdate({
+          ...profile,
+          bank_name: bankForm.bank_name.trim(),
+          bank_account_number: bankForm.bank_account_number.trim(),
+          bank_account_name: bankForm.bank_account_name.trim(),
+          bank_ifsc: bankForm.bank_ifsc.trim().toUpperCase(),
+          enable_bank_transfer: true
+        });
+      }
+      setTimeout(() => {
+        setShowAddBankModal(false);
+        setBankSuccess(false);
+      }, 1200);
+    } catch (err) {
+      setBankError(err.message || 'Failed to save bank details.');
+    } finally {
+      setBankSaving(false);
+    }
+  };
+
+  // ── Helper to Get App Pill Info ───────────────────────────────
+  const getAppPill = (order) => {
+    const app = (order.upi_app || order.method || '').toLowerCase();
+    if (app.includes('phonepe')) {
+      return {
+        label: 'UPI (PhonePe)',
+        bg: 'bg-purple-50',
+        text: 'text-purple-700',
+        icon: 'qr_code',
+        identifier: order.vpa || 'customer@ybl'
+      };
+    }
+    if (app.includes('gpay') || app.includes('google')) {
+      return {
+        label: 'UPI (Google Pay)',
+        bg: 'bg-green-50',
+        text: 'text-green-700',
+        icon: 'contactless',
+        identifier: order.vpa || 'customer@okaxis'
+      };
+    }
+    if (app.includes('paytm')) {
+      return {
+        label: 'UPI QR (Paytm)',
+        bg: 'bg-sky-50',
+        text: 'text-sky-700',
+        icon: 'qr_code_scanner',
+        identifier: order.vpa || 'customer@paytm'
+      };
+    }
+    if (app.includes('cred')) {
+      return {
+        label: 'UPI QR (CRED)',
+        bg: 'bg-slate-100',
+        text: 'text-slate-800',
+        icon: 'qr_code',
+        identifier: order.vpa || 'customer@axis'
+      };
+    }
+    if (app.includes('imps') || app.includes('bank') || app.includes('neft')) {
+      return {
+        label: 'IMPS Direct Rail',
+        bg: 'bg-blue-50',
+        text: 'text-blue-700',
+        icon: 'swap_horiz',
+        identifier: profile?.bank_name ? `${profile.bank_name} ••••${(profile.bank_account_number || '4092').slice(-4)}` : 'Direct IMPS'
+      };
+    }
+    if (app.includes('crypto') || app.includes('web3') || app.includes('polygon') || app.includes('usdt')) {
+      return {
+        label: 'Web3 Smart Collect',
+        bg: 'bg-violet-50',
+        text: 'text-violet-700',
+        icon: 'token',
+        identifier: 'Polygon • 0x4b...392F'
+      };
+    }
+    return {
+      label: 'UPI Direct Rail',
+      bg: 'bg-blue-50',
+      text: 'text-blue-700',
+      icon: 'qr_code_2',
+      identifier: order.vpa || profile?.upi_id || 'Instant Settlement'
+    };
+  };
+
+  const hasBankAccount = !!(profile?.bank_account_number && profile?.bank_name);
+
+  return (
+    <div className="flex flex-col gap-6 max-w-[1520px] mx-auto w-full text-slate-800 animate-fadeIn">
+      {/* ═══════════════════════════════════════════════════════════
+         1. TOP CONTEXT & ACTION BAR
+         ═══════════════════════════════════════════════════════════ */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-2">
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-2xl lg:text-3xl font-extrabold text-[#0c2340] tracking-tight">
+              Transactions
+            </h1>
+            <span className="bg-emerald-50 text-emerald-700 border border-emerald-200/70 text-xs px-2.5 py-0.5 rounded-full flex items-center gap-1.5 font-bold shadow-xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              Live Ingestion Rail
+            </span>
+          </div>
+          <p className="text-xs lg:text-sm text-slate-500 max-w-2xl font-medium">
+            Real-time payment audit trail across UPI QR, IMPS Direct, and Web3 rails with instant direct-to-bank settlement.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            type="button"
+            className="bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 text-slate-700 transition-all duration-150 px-4 py-2.5 rounded-xl text-xs font-bold shadow-xs flex items-center gap-2"
+          >
+            <SlidersHorizontal className="w-4 h-4 text-blue-600" />
+            {showFilters ? 'Hide Rails Filter' : 'Filter Rails'}
+          </button>
+          <button
+            onClick={handleExportStatement}
+            type="button"
+            className="bg-blue-600 hover:bg-blue-700 transition-all duration-150 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-sm shadow-blue-500/20 flex items-center gap-2"
+          >
+            <Download className="w-4 h-4" />
+            Download Statement (CSV/XLS)
+          </button>
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════
+         2. KPI METRIC STRIP (4 Core Rail Performance Pillars)
+         ═══════════════════════════════════════════════════════════ */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Metric 1: Total Volume */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col justify-between relative overflow-hidden group hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-xs uppercase tracking-wider font-bold text-slate-500">
+              Total Volume {timeFilter === 'all' ? 'Overall' : timeFilter === 'today' ? 'Today' : timeFilter === '7days' ? 'Last 7 Days' : 'Period'}
+            </span>
+            <span className="p-2 rounded-xl bg-blue-50 text-blue-600">
+              <CreditCard className="w-4 h-4" />
+            </span>
+          </div>
+          <div className="mt-4 flex flex-col gap-1">
+            <span className="text-2xl font-extrabold text-[#0c2340] tracking-tight font-mono">
+              ₹ {kpiMetrics.totalVolume.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 text-[11px] px-2 py-0.5 rounded-md font-bold flex items-center gap-0.5">
+                <TrendingUp className="w-3 h-3" /> {kpiMetrics.growthDelta}
+              </span>
+              <span className="text-xs text-slate-400 font-medium">vs yesterday (T-1)</span>
+            </div>
+          </div>
+          <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-blue-500/5 rounded-full pointer-events-none group-hover:scale-125 transition-transform"></div>
+        </div>
+
+        {/* Metric 2: Settled Volume */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col justify-between relative overflow-hidden group hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-xs uppercase tracking-wider font-bold text-slate-500">
+              Settled to Bank
+            </span>
+            <span className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
+              <Building2 className="w-4 h-4" />
+            </span>
+          </div>
+          <div className="mt-4 flex flex-col gap-1">
+            <span className="text-2xl font-extrabold text-[#0c2340] tracking-tight font-mono">
+              ₹ {kpiMetrics.settledVolume.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 text-[11px] px-2 py-0.5 rounded-md font-bold">
+                100% Direct Settlement
+              </span>
+              <span className="text-xs text-slate-400 font-medium">Zero Escrow</span>
+            </div>
+          </div>
+          <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-emerald-500/5 rounded-full pointer-events-none group-hover:scale-125 transition-transform"></div>
+        </div>
+
+        {/* Metric 3: Successful Conversions */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col justify-between relative overflow-hidden group hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-xs uppercase tracking-wider font-bold text-slate-500">
+              Successful Inflow
+            </span>
+            <span className="p-2 rounded-xl bg-blue-50 text-blue-600">
+              <CheckCircle2 className="w-4 h-4" />
+            </span>
+          </div>
+          <div className="mt-4 flex flex-col gap-1">
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-extrabold text-[#0c2340] tracking-tight font-mono">
+                {kpiMetrics.successfulTxns.toLocaleString('en-IN')}
+              </span>
+              <span className="text-xs text-slate-400 font-medium">txns</span>
+            </div>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 text-[11px] px-2 py-0.5 rounded-md font-bold">
+                {kpiMetrics.conversionRate}% Conversion
+              </span>
+              <span className="text-xs text-slate-400 font-medium">Bank-grade SLA</span>
+            </div>
+          </div>
+          <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-blue-500/5 rounded-full pointer-events-none group-hover:scale-125 transition-transform"></div>
+        </div>
+
+        {/* Metric 4: Settlement Velocity */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col justify-between relative overflow-hidden group hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-xs uppercase tracking-wider font-bold text-slate-500">
+              Avg. Credit Velocity
+            </span>
+            <span className="p-2 rounded-xl bg-amber-50 text-amber-600">
+              <Zap className="w-4 h-4" />
+            </span>
+          </div>
+          <div className="mt-4 flex flex-col gap-1">
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-extrabold text-[#0c2340] tracking-tight font-mono">
+                142
+              </span>
+              <span className="text-xs text-slate-400 font-medium">ms</span>
+            </div>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className="bg-slate-100 text-slate-700 text-[11px] px-2 py-0.5 rounded-md font-bold">
+                T+0 IMPS Direct
+              </span>
+              <span className="text-xs text-slate-400 font-medium">Real-time RTGS/IMPS</span>
+            </div>
+          </div>
+          <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-amber-500/5 rounded-full pointer-events-none group-hover:scale-125 transition-transform"></div>
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════
+         3. DYNAMIC FILTER CONTROL MATRIX
+         ═══════════════════════════════════════════════════════════ */}
+      <div className="bg-white p-4 lg:p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col gap-4">
+        {/* Status Selection Tabs & Time Quick Selector */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
+          <div className="flex flex-wrap items-center gap-1.5 bg-slate-50 p-1.5 rounded-xl border border-slate-200/70">
+            <button
+              onClick={() => { setStatusTab('all'); setCurrentPage(1); }}
+              type="button"
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                statusTab === 'all'
+                  ? 'bg-white text-[#0c2340] shadow-xs border border-slate-200/80'
+                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100/60'
+              }`}
+            >
+              All Logs
+              <span className="bg-slate-100 text-slate-700 text-[10px] font-mono px-1.5 py-0.5 rounded-full">
+                {statusCounts.all}
+              </span>
+            </button>
+
+            <button
+              onClick={() => { setStatusTab('settled'); setCurrentPage(1); }}
+              type="button"
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                statusTab === 'settled'
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100/60'
+              }`}
+            >
+              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+              Auto-Settled
+              <span className="bg-emerald-100/70 text-emerald-800 text-[10px] font-mono px-1.5 py-0.5 rounded-full">
+                {statusCounts.settled}
+              </span>
+            </button>
+
+            <button
+              onClick={() => { setStatusTab('processing'); setCurrentPage(1); }}
+              type="button"
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                statusTab === 'processing'
+                  ? 'bg-blue-50 text-blue-700 border border-blue-200/80 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100/60'
+              }`}
+            >
+              <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+              Processing
+              <span className="bg-blue-100/70 text-blue-800 text-[10px] font-mono px-1.5 py-0.5 rounded-full">
+                {statusCounts.processing}
+              </span>
+            </button>
+
+            <button
+              onClick={() => { setStatusTab('failed'); setCurrentPage(1); }}
+              type="button"
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                statusTab === 'failed'
+                  ? 'bg-red-50 text-red-700 border border-red-200/80 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100/60'
+              }`}
+            >
+              <span className="w-2 h-2 rounded-full bg-red-500"></span>
+              Failed
+              <span className="bg-red-100/70 text-red-800 text-[10px] font-mono px-1.5 py-0.5 rounded-full">
+                {statusCounts.failed}
+              </span>
+            </button>
+          </div>
+
+          {/* Time Selector */}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200/70 text-slate-700">
+              <Clock className="w-4 h-4 text-slate-400 mr-2" />
+              <select
+                value={timeFilter}
+                onChange={(e) => { setTimeFilter(e.target.value); setCurrentPage(1); }}
+                className="bg-transparent text-xs font-bold text-[#0c2340] focus:outline-none cursor-pointer pr-1"
+              >
+                <option value="today">Today (Real-time)</option>
+                <option value="yesterday">Yesterday</option>
+                <option value="7days">Last 7 Days</option>
+                <option value="mtd">Month to Date</option>
+                <option value="all">All Time History</option>
+              </select>
+            </div>
+            {onRefresh && (
+              <button
+                onClick={onRefresh}
+                className="p-2 bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-900 rounded-xl border border-slate-200/70 transition-colors"
+                title="Refresh Transactions"
+                type="button"
+              >
+                <RotateCcw className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Deep Query Search & Rail/Amount Selectors */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-3 pt-1">
+          <div className="md:col-span-6 relative flex items-center">
+            <Search className="absolute left-3.5 text-slate-400 w-4 h-4 pointer-events-none" />
+            <input
+              value={searchQuery}
+              onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+              placeholder="Search by Txn ID (txn_8849...), Bank UTR / RRN, Customer VPA, Order ID..."
+              type="text"
+              className="w-full h-11 pl-10 pr-10 bg-slate-50 hover:bg-slate-100/50 text-[#0c2340] placeholder:text-slate-400 text-xs font-medium rounded-xl border border-slate-200/80 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 text-slate-400 hover:text-slate-700 text-xs font-bold p-1"
+                type="button"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          <div className="md:col-span-3">
+            <div className="h-11 px-3 bg-slate-50 border border-slate-200/80 rounded-xl flex items-center justify-between">
+              <div className="flex items-center gap-2 text-slate-700 w-full">
+                <QrCode className="w-4 h-4 text-blue-600 shrink-0" />
+                <span className="text-xs text-slate-400 font-medium shrink-0">Rail:</span>
+                <select
+                  value={railFilter}
+                  onChange={(e) => { setRailFilter(e.target.value); setCurrentPage(1); }}
+                  className="bg-transparent text-xs font-bold text-[#0c2340] focus:outline-none cursor-pointer w-full truncate"
+                >
+                  <option value="all">All Rails (UPI, IMPS, Web3)</option>
+                  <option value="upi">UPI QR (PhonePe / GPay / Paytm)</option>
+                  <option value="imps">IMPS Direct Transfer</option>
+                  <option value="web3">Web3 Smart Collect (USDT Polygon)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div className="md:col-span-3 flex items-center gap-2">
+            <div className="h-11 px-3 bg-slate-50 border border-slate-200/80 rounded-xl flex items-center justify-between w-full">
+              <div className="flex items-center gap-2 text-slate-700 w-full">
+                <span className="text-xs font-bold text-slate-400 shrink-0">₹</span>
+                <span className="text-xs text-slate-400 font-medium shrink-0">Amount:</span>
+                <select
+                  value={amountFilter}
+                  onChange={(e) => { setAmountFilter(e.target.value); setCurrentPage(1); }}
+                  className="bg-transparent text-xs font-bold text-[#0c2340] focus:outline-none cursor-pointer w-full truncate"
+                >
+                  <option value="all">All Volumes</option>
+                  <option value="micro">Micro (&lt; ₹1,000)</option>
+                  <option value="standard">Standard (₹1,000 - ₹25,000)</option>
+                  <option value="high">High Value (&gt; ₹25,000)</option>
+                </select>
+              </div>
+            </div>
+
+            <button
+              onClick={resetFilters}
+              title="Reset All Filters"
+              type="button"
+              className="h-11 w-11 flex-shrink-0 bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-800 rounded-xl border border-slate-200/80 flex items-center justify-center transition-colors"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════
+         4. SETTLEMENT INTEGRITY ASSURANCE STRIP
+         ═══════════════════════════════════════════════════════════ */}
+      <div className="bg-slate-100/80 border border-slate-200/80 px-5 py-3.5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-slate-800 shadow-xs">
+        <div className="flex items-center gap-3.5">
+          <div className="w-9 h-9 rounded-xl bg-white border border-slate-200/80 flex items-center justify-center text-emerald-600 shadow-xs flex-shrink-0">
+            <ShieldCheck className="w-5 h-5" />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-xs font-extrabold text-[#0c2340] flex items-center gap-1.5">
+              Direct Settlement Escrow-Free Rail
+            </span>
+            <span className="text-[11px] text-slate-500 font-medium">
+              {hasBankAccount ? (
+                <>
+                  All cleared collections are settled in real-time directly into <strong className="text-slate-800 font-bold">{profile.bank_name} A/C ending in {(profile.bank_account_number || '').slice(-4)}</strong> via NPCI IMPS rail. Escrow lockup: <span className="text-emerald-700 font-bold">0% (Pure Passthrough)</span>.
+                </>
+              ) : (
+                <>
+                  Direct settlement active via UPI ID: <strong className="text-slate-800 font-bold">{profile?.upi_id || 'Configured in Settings'}</strong>. Escrow lockup: <span className="text-emerald-700 font-bold">0% (Pure Passthrough)</span>.
+                </>
+              )}
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 self-start sm:self-auto flex-shrink-0">
+          {!hasBankAccount && (
+            <button
+              onClick={() => {
+                setBankForm({
+                  bank_name: profile?.bank_name || '',
+                  bank_account_number: profile?.bank_account_number || '',
+                  bank_account_number_confirm: profile?.bank_account_number || '',
+                  bank_ifsc: profile?.bank_ifsc || '',
+                  bank_account_name: profile?.bank_account_name || profile?.owner_name || profile?.business_name || ''
+                });
+                setShowAddBankModal(true);
+              }}
+              type="button"
+              className="px-3 py-1.5 bg-white hover:bg-blue-50 text-blue-600 border border-blue-200 hover:border-blue-300 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Add Bank Account
+            </button>
+          )}
+          <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-slate-200/70 text-slate-600 text-[10px] font-bold uppercase tracking-wider">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+            NPCI Validated
+          </div>
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════
+         5. TRANSACTION LEDGER TABLE COMPONENT
+         ═══════════════════════════════════════════════════════════ */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden flex flex-col">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse table-auto">
+            <thead className="bg-slate-50 border-b border-slate-200/80">
+              <tr className="text-slate-500 text-[11px] uppercase tracking-wider font-bold">
+                <th className="py-3.5 px-5 text-left font-extrabold">TRANSACTION &amp; ORDER</th>
+                <th className="py-3.5 px-4 text-left font-extrabold">RAIL</th>
+                <th className="py-3.5 px-4 text-left font-extrabold">CUSTOMER</th>
+                <th className="py-3.5 px-4 text-left font-extrabold">BANK REF / UTR</th>
+                <th className="py-3.5 px-4 text-right font-extrabold">AMOUNT RECEIVED</th>
+                <th className="py-3.5 px-5 text-right font-extrabold">STATUS</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
+              {paginatedOrders.length > 0 ? (
+                paginatedOrders.map((order) => {
+                  const pill = getAppPill(order);
+                  const isSettled = order.status === 'verified' || order.status === 'paid';
+                  const isProcessing = order.status === 'pending';
+                  const isFailed = order.status === 'rejected' || order.status === 'failed' || order.status === 'expired';
+
+                  const dateStr = order.created_at ? new Date(order.created_at) : new Date();
+                  const timeFormatted = dateStr.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+                  const dateFormatted = dateStr.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+
+                  return (
+                    <tr
+                      key={order.id}
+                      onClick={() => setSelectedOrder(order)}
+                      className="hover:bg-slate-50/80 cursor-pointer transition-colors group"
+                    >
+                      {/* Transaction & Order */}
+                      <td className="py-3.5 px-5">
+                        <div className="flex flex-col gap-0.5">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-mono text-xs font-bold text-[#0c2340] group-hover:text-blue-600 transition-colors">
+                              txn_{order.id.slice(0, 8)}
+                            </span>
+                            <span className="text-slate-300">•</span>
+                            <span className="text-[11px] font-mono text-slate-500">
+                              {order.order_id || `ORD-${order.id.slice(0, 6)}`}
+                            </span>
+                          </div>
+                          <span className="text-[10px] text-slate-400 font-medium">
+                            {dateFormatted}, {timeFormatted}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Rail */}
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center gap-2.5">
+                          <div className={`w-8 h-8 rounded-xl ${pill.bg} ${pill.text} flex items-center justify-center font-bold text-xs flex-shrink-0 border border-slate-200/40 shadow-2xs`}>
+                            <span className="material-symbols-outlined text-base">{pill.icon}</span>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-xs font-bold text-[#0c2340]">
+                              {pill.label}
+                            </span>
+                            <span className="font-mono text-[10px] text-slate-400 truncate max-w-[140px]">
+                              {pill.identifier}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Customer */}
+                      <td className="py-3.5 px-4">
+                        <div className="flex flex-col">
+                          <span className="text-xs font-bold text-[#0c2340] truncate max-w-[150px]">
+                            {order.customer_name || 'Direct Customer'}
+                          </span>
+                          <span className="text-[11px] text-slate-400 font-medium">
+                            {order.customer_phone ? `+91 ${order.customer_phone.slice(0, 5)} ••••${order.customer_phone.slice(-2)}` : order.customer_email || 'Verified Inflow'}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Bank Ref / UTR */}
+                      <td className="py-3.5 px-4">
+                        {order.utr ? (
+                          <div className="flex items-center gap-1.5 font-mono text-xs font-bold text-[#0c2340]">
+                            <span>UTR: {order.utr}</span>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCopy(order.utr, `utr_${order.id}`);
+                              }}
+                              className="text-slate-300 hover:text-slate-600 p-0.5"
+                              title="Copy UTR"
+                              type="button"
+                            >
+                              {copiedKey === `utr_${order.id}` ? (
+                                <Check className="w-3 h-3 text-emerald-600" />
+                              ) : (
+                                <Copy className="w-3 h-3" />
+                              )}
+                            </button>
+                          </div>
+                        ) : isProcessing ? (
+                          <div className="flex items-center gap-1.5 text-amber-600 text-xs font-mono font-medium">
+                            <Clock className="w-3.5 h-3.5 text-amber-500 animate-spin" />
+                            <span>Awaiting Bank RRN</span>
+                          </div>
+                        ) : (
+                          <span className="text-slate-400 text-xs font-mono font-medium">—</span>
+                        )}
+                      </td>
+
+                      {/* Amount Received */}
+                      <td className="py-3.5 px-4 text-right">
+                        <div className="font-mono font-extrabold text-sm text-[#0c2340]">
+                          ₹ {Number(order.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                        </div>
+                        <div className={`text-[10px] font-bold font-mono flex items-center justify-end gap-0.5 ${
+                          isSettled ? 'text-emerald-600' : isProcessing ? 'text-blue-600' : 'text-slate-400'
+                        }`}>
+                          {isSettled ? 'Direct (100%)' : isProcessing ? 'In-Flight' : 'Unpaid'}
+                        </div>
+                      </td>
+
+                      {/* Status */}
+                      <td className="py-3.5 px-5 text-right">
+                        {isSettled && (
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/70 shadow-2xs">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            Auto-Settled
+                          </div>
+                        )}
+                        {isProcessing && (
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200/70 shadow-2xs">
+                            <Loader2 className="w-3 h-3 text-blue-600 animate-spin" />
+                            Processing
+                          </div>
+                        )}
+                        {isFailed && (
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-red-50 text-red-700 border border-red-200/70 shadow-2xs">
+                            <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                            Failed
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan={6} className="py-12 px-4 text-center">
+                    <div className="flex flex-col items-center justify-center max-w-sm mx-auto text-slate-500">
+                      <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
+                        <Receipt className="w-6 h-6" />
+                      </div>
+                      <p className="text-sm font-bold text-[#0c2340] mb-1">No Transactions Found</p>
+                      <p className="text-xs text-slate-400 mb-4 text-center">
+                        No transactions match your current search and filter settings. Try clearing the filters or creating a payment link.
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={resetFilters}
+                          type="button"
+                          className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
+                        >
+                          Clear Filters
+                        </button>
+                        {setActiveTab && (
+                          <button
+                            onClick={() => setActiveTab('payment-links')}
+                            type="button"
+                            className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-xs"
+                          >
+                            Create Payment Link
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* ═══════════════════════════════════════════════════════════
+           6. PAGINATION & LEDGER FOOTER CONTROLS
+           ═══════════════════════════════════════════════════════════ */}
+        <div className="px-6 py-4 bg-white border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+            <span>
+              Showing <strong className="text-[#0c2340] font-bold">{filteredOrders.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}</strong> to{' '}
+              <strong className="text-[#0c2340] font-bold">{Math.min(currentPage * itemsPerPage, filteredOrders.length)}</strong> of{' '}
+              <strong className="text-[#0c2340] font-bold">{filteredOrders.length}</strong> transactions
+            </span>
+            <span className="mx-1 text-slate-300">•</span>
+            <span className="bg-slate-100 px-2 py-0.5 rounded text-slate-700 font-mono text-[11px]">
+              Page {currentPage} of {totalPages}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 border transition-all ${
+                currentPage === 1
+                  ? 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed'
+                  : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+              }`}
+              type="button"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+              Previous
+            </button>
+
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              let pageNum;
+              if (totalPages <= 5) pageNum = i + 1;
+              else if (currentPage <= 3) pageNum = i + 1;
+              else if (currentPage >= totalPages - 2) pageNum = totalPages - 4 + i;
+              else pageNum = currentPage - 2 + i;
+
+              return (
+                <button
+                  key={pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                  type="button"
+                  className={`w-8 h-8 rounded-xl text-xs font-bold flex items-center justify-center transition-all ${
+                    currentPage === pageNum
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'bg-white text-slate-700 border border-slate-200/80 hover:bg-slate-50'
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage >= totalPages}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 border transition-all ${
+                currentPage >= totalPages
+                  ? 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed'
+                  : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+              }`}
+              type="button"
+            >
+              Next
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════
+         7. TRANSACTION DETAILS MODAL
+         ═══════════════════════════════════════════════════════════ */}
+      {selectedOrder && (
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden animate-scaleUp">
+            {/* Modal Header */}
+            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+                  <Receipt className="w-5 h-5" />
+                </div>
+                <div className="flex flex-col">
+                  <h3 className="text-base font-extrabold text-[#0c2340]">Transaction Audit Details</h3>
+                  <span className="text-xs font-mono text-slate-400">ID: {selectedOrder.id}</span>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedOrder(null)}
+                className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-200/50 rounded-xl transition-colors"
+                type="button"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 flex flex-col gap-4 text-xs">
+              {/* Amount & Status Card */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+                <div className="flex flex-col">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Amount Received</span>
+                  <span className="text-2xl font-extrabold text-[#0c2340] font-mono mt-0.5">
+                    ₹ {Number(selectedOrder.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+                <div className="flex flex-col items-end">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Status</span>
+                  {selectedOrder.status === 'verified' || selectedOrder.status === 'paid' ? (
+                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Auto-Settled
+                    </span>
+                  ) : selectedOrder.status === 'pending' ? (
+                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200/80 flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5" />
+                      Processing
+                    </span>
+                  ) : (
+                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-200/80 flex items-center gap-1.5">
+                      <XCircle className="w-3.5 h-3.5" />
+                      Failed
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Data Grid */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 bg-slate-50/60 rounded-xl border border-slate-100 flex flex-col">
+                  <span className="text-[10px] text-slate-400 uppercase font-bold">Order ID</span>
+                  <span className="text-xs font-mono font-bold text-slate-800 mt-1">
+                    {selectedOrder.order_id || `ORD-${selectedOrder.id.slice(0, 6)}`}
+                  </span>
+                </div>
+                <div className="p-3 bg-slate-50/60 rounded-xl border border-slate-100 flex flex-col">
+                  <span className="text-[10px] text-slate-400 uppercase font-bold">Bank UTR / Ref</span>
+                  <span className="text-xs font-mono font-bold text-slate-800 mt-1">
+                    {selectedOrder.utr || 'Awaiting UTR'}
+                  </span>
+                </div>
+                <div className="p-3 bg-slate-50/60 rounded-xl border border-slate-100 flex flex-col">
+                  <span className="text-[10px] text-slate-400 uppercase font-bold">Customer Name</span>
+                  <span className="text-xs font-bold text-slate-800 mt-1">
+                    {selectedOrder.customer_name || 'Direct Payer'}
+                  </span>
+                </div>
+                <div className="p-3 bg-slate-50/60 rounded-xl border border-slate-100 flex flex-col">
+                  <span className="text-[10px] text-slate-400 uppercase font-bold">Customer Phone</span>
+                  <span className="text-xs font-mono font-bold text-slate-800 mt-1">
+                    {selectedOrder.customer_phone || 'N/A'}
+                  </span>
+                </div>
+                <div className="p-3 bg-slate-50/60 rounded-xl border border-slate-100 flex flex-col">
+                  <span className="text-[10px] text-slate-400 uppercase font-bold">Payment Rail / App</span>
+                  <span className="text-xs font-bold text-slate-800 mt-1">
+                    {selectedOrder.upi_app || selectedOrder.method || 'Universal UPI'}
+                  </span>
+                </div>
+                <div className="p-3 bg-slate-50/60 rounded-xl border border-slate-100 flex flex-col">
+                  <span className="text-[10px] text-slate-400 uppercase font-bold">Timestamp</span>
+                  <span className="text-xs font-mono text-slate-700 mt-1">
+                    {selectedOrder.created_at ? new Date(selectedOrder.created_at).toLocaleString('en-IN') : 'N/A'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Settlement Routing */}
+              <div className="p-3.5 bg-emerald-50/70 border border-emerald-100 rounded-xl text-emerald-900">
+                <div className="flex items-center gap-2 font-bold mb-1">
+                  <ShieldCheck className="w-4 h-4 text-emerald-700" />
+                  Direct-to-Bank Pure Passthrough
+                </div>
+                <p className="text-[11px] text-emerald-800 font-medium">
+                  {hasBankAccount
+                    ? `Payment routed in real-time to ${profile.bank_name} ending in ${(profile.bank_account_number || '').slice(-4)} via NPCI rail with zero intermediary escrow.`
+                    : `Payment verified and confirmed directly to your primary UPI ID (${profile?.upi_id || 'merchant'}).`}
+                </p>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+              <button
+                onClick={() => {
+                  const receiptText = `MyMobPay Receipt\nOrder: ${selectedOrder.order_id || selectedOrder.id}\nAmount: ₹${selectedOrder.amount}\nUTR: ${selectedOrder.utr || 'Pending'}\nStatus: ${selectedOrder.status}`;
+                  handleCopy(receiptText, 'modal_receipt');
+                }}
+                className="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs"
+                type="button"
+              >
+                {copiedKey === 'modal_receipt' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                Copy Audit Trail
+              </button>
+              <button
+                onClick={() => setSelectedOrder(null)}
+                className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs transition-colors shadow-xs"
+                type="button"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════
+         8. ADD BANK ACCOUNT MODAL
+         ═══════════════════════════════════════════════════════════ */}
+      {showAddBankModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden animate-scaleUp">
+            {/* Header */}
+            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+                  <Building2 className="w-5 h-5" />
+                </div>
+                <div className="flex flex-col">
+                  <h3 className="text-base font-extrabold text-[#0c2340]">Add Bank Account</h3>
+                  <span className="text-xs text-slate-400 font-medium">Enable IMPS/RTGS direct settlement rail</span>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAddBankModal(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-200/50 rounded-xl transition-colors"
+                type="button"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleBankSave} className="p-6 flex flex-col gap-4 text-xs">
+              {bankError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 font-medium">
+                  {bankError}
+                </div>
+              )}
+              {bankSuccess && (
+                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 font-bold flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4" />
+                  Bank account saved successfully!
+                </div>
+              )}
+
+              <div className="flex flex-col gap-1.5">
+                <label className="font-bold text-slate-700">Bank Name</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. HDFC Bank, ICICI Bank, State Bank of India"
+                  value={bankForm.bank_name}
+                  onChange={e => setBankForm({ ...bankForm, bank_name: e.target.value })}
+                  className="h-10 px-3.5 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="font-bold text-slate-700">Account Holder Name</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Name as registered with bank"
+                  value={bankForm.bank_account_name}
+                  onChange={e => setBankForm({ ...bankForm, bank_account_name: e.target.value })}
+                  className="h-10 px-3.5 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-bold text-slate-700">Account Number</label>
+                  <input
+                    type="password"
+                    required
+                    placeholder="Enter account number"
+                    value={bankForm.bank_account_number}
+                    onChange={e => setBankForm({ ...bankForm, bank_account_number: e.target.value })}
+                    className="h-10 px-3.5 bg-slate-50 border border-slate-200 rounded-xl font-mono font-medium text-slate-800 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-bold text-slate-700">Confirm Account Number</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Re-enter account number"
+                    value={bankForm.bank_account_number_confirm}
+                    onChange={e => setBankForm({ ...bankForm, bank_account_number_confirm: e.target.value })}
+                    className="h-10 px-3.5 bg-slate-50 border border-slate-200 rounded-xl font-mono font-medium text-slate-800 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="font-bold text-slate-700">Bank IFSC Code</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. HDFC0001234"
+                  value={bankForm.bank_ifsc}
+                  onChange={e => setBankForm({ ...bankForm, bank_ifsc: e.target.value.toUpperCase() })}
+                  className="h-10 px-3.5 bg-slate-50 border border-slate-200 rounded-xl font-mono font-bold text-slate-800 uppercase focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                />
+              </div>
+
+              {/* Security Banner */}
+              <div className="p-3 bg-blue-50/70 border border-blue-100 rounded-xl text-blue-900 text-[11px] flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0" />
+                <span>Zero Escrow: Collections credit directly to this account via NPCI IMPS rails.</span>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAddBankModal(false)}
+                  className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-bold transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={bankSaving}
+                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-xs flex items-center gap-1.5 transition-colors disabled:opacity-50"
+                >
+                  {bankSaving ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Bank Account'
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

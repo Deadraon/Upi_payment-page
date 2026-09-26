@@ -23,10 +23,7 @@ import { CONFIG } from '@/lib/config';
 
 
 import { 
-
-
-
-  LogOut, Save, Key, User, Briefcase, Link as LinkIcon, 
+  Building2, LogOut, Save, Key, User, Briefcase, Link as LinkIcon, 
 
 
 
@@ -58,6 +55,7 @@ import QRCode from 'react-qr-code';
 import ConsoleActivationPaywall from '@/components/ConsoleActivationPaywall';
 import DashboardOverviewRedesign from '@/components/DashboardOverviewRedesign';
 import PaymentLinksRedesign from '@/components/PaymentLinksRedesign';
+import TransactionsRedesign from '@/components/TransactionsRedesign';
 
 
 
@@ -630,6 +628,15 @@ export default function DashboardPage() {
 
 
 
+
+    const merchantInitials = useMemo(() => {
+    const name = profile?.business_name || profile?.owner_name || user?.email || 'MyMobPay';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2 && parts[0] && parts[1]) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  }, [profile, user]);
 
   const allShortcuts = [
 
@@ -9042,464 +9049,224 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-      {/* Sidebar (Desktop) */}
+            {/* ═══════════════════════════════════════════════════════════
+         DESKTOP SIDEBAR (User Design System)
+         ═══════════════════════════════════════════════════════════ */}
+      <aside className="fixed left-0 top-0 h-full w-64 bg-white border-r border-slate-200/80 z-50 hidden md:flex flex-col justify-between shadow-[1px_0_4px_0_rgba(0,0,0,0.02)] select-none">
+        <div className="flex flex-col px-6 pt-6">
+          {/* Logo & Brand */}
+          <div className="flex items-center gap-3 pb-8">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white shadow-md shadow-blue-500/25 ring-1 ring-blue-500/30 flex-shrink-0">
+              <span className="font-bold text-lg tracking-tighter font-sans">mP</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xl text-[#0c2340] tracking-tight font-extrabold leading-none">
+                mymob<span className="text-blue-600">pay</span>
+              </span>
+              <span className="text-xs text-slate-400 font-medium mt-1">mymob.tech</span>
+            </div>
+          </div>
 
-
-
-      <aside className="rp-sidebar hidden md:flex flex-col sticky top-0 h-screen border-r border-[#263143]">
-
-
-
-        <div className="rp-sidebar-header">
-
-
-
-          <MyMobPayLogo className="w-32 h-auto" textColor="#FFFFFF" />
-
-
-
-        </div>
-
-
-
-        
-
-
-
-        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-
-
-
-          {/* Subscription tab — pinned at top */}
-
-          <button
-
-            onClick={handleScrollToSubscription}
-
-            className={`w-full flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-xs transition-all border font-bold ${
-
-              activeTab === 'subscription'
-
-                ? 'bg-blue-600/20 text-white border-blue-500/30 shadow-md shadow-blue-500/10'
-
-                : profile?.subscription_status === 'active'
-
-                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25 hover:bg-emerald-500/15 hover:text-emerald-300 shadow-sm'
-
-                  : 'bg-amber-500/10 text-amber-400 border-amber-500/25 hover:bg-amber-500/15 hover:text-amber-300 shadow-sm'
-
-            }`}
-
-          >
-
-            <Crown className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'subscription' ? 'text-white' : profile?.subscription_status === 'active' ? 'text-emerald-400' : 'text-amber-400'}`} />
-
-            <span className="flex-1 text-left font-black tracking-wide text-[11px]">
-
-              {profile?.subscription_status === 'active' ? 'Premium Active' : 'Premium Subscription'}
-
-            </span>
-
-            <span className={`w-2 h-2 rounded-full ${profile?.subscription_status === 'active' ? 'bg-emerald-400 animate-pulse-success' : 'bg-amber-400'}`} />
-
-          </button>
-
-          {isAdminUser && (
-            <a
-              href="/admin"
-              className="w-full flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-xs transition-all border font-bold bg-gradient-to-r from-blue-600/25 to-indigo-600/25 hover:from-blue-600/35 hover:to-indigo-600/35 text-blue-300 border-blue-500/40 shadow-sm mt-1.5"
-              title="Access SaaS Super Admin Console"
+          {/* Navigation Links */}
+          <nav className="flex flex-col gap-1.5">
+            <button
+              onClick={() => setActiveTab('overview')}
+              type="button"
+              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all text-sm group text-left ${
+                activeTab === 'overview'
+                  ? 'bg-blue-50 text-blue-600 font-semibold shadow-xs border border-blue-100'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+              }`}
             >
-              <Shield className="w-3.5 h-3.5 shrink-0 text-blue-400 animate-pulse" />
-              <span className="flex-1 text-left font-black tracking-wide text-[11px]">Admin Console</span>
-              <span className="text-[8px] bg-blue-500/30 text-blue-200 px-1.5 py-0.5 rounded font-black uppercase">Root</span>
-            </a>
-          )}
-
-          <div className="rp-nav-divider" />
-
-
-
-
-
-
-
-          {/* Category: General */}
-
-
-
-          <p className="rp-nav-label">
-
-
-
-            General
-
-
-
-          </p>
-
-
-
-
-
-
-
-          <button 
-
-
-
-            onClick={() => setActiveTab('overview')}
-
-
-
-            className={`rp-nav-item ${activeTab === 'overview' ? 'active' : ''}`}
-
-
-
-          >
-
-
-
-            <LayoutDashboard className="w-4.5 h-4.5 shrink-0" /> Overview
-
-
-
-          </button>
-
-
-
-
-
-
-
-          <button 
-
-
-
-            onClick={() => setActiveTab('payment-links')}
-
-
-
-            className={`rp-nav-item ${activeTab === 'payment-links' ? 'active' : ''}`}
-
-
-
-          >
-
-
-
-            <LinkIcon className="w-4.5 h-4.5 shrink-0" /> Payment Links
-
-
-
-          </button>
-
-
-
-          
-
-
-
-          {/* Category: Reports */}
-
-
-
-          <p className="rp-nav-label">
-
-
-
-            Reports
-
-
-
-          </p>
-
-
-
-
-
-
-
-          <button 
-
-
-
-            onClick={() => setActiveTab('transactions')}
-
-
-
-            className={`rp-nav-item ${activeTab === 'transactions' ? 'active' : ''}`}
-
-
-
-          >
-
-
-
-            <CreditCard className="w-4.5 h-4.5 shrink-0" /> Transactions
-
-
-
-          </button>
-
-
-
-
-
-
-
-          {/* Category: Connections */}
-
-
-
-          <p className="rp-nav-label">
-
-
-
-            Integrations
-
-
-
-          </p>
-
-
-
-
-
-
-
-          <button 
-
-
-
-            onClick={() => {
-
-
-
-              setActiveTab('connections');
-
-
-
-              setIntegrationTarget('email_forwarding');
-
-
-
-            }}
-
-
-
-            className={`rp-nav-item ${activeTab === 'connections' ? 'active' : ''}`}
-
-
-
-          >
-
-
-
-            <LinkIcon className="w-4.5 h-4.5 shrink-0" /> Connections
-
-
-
-          </button>
-
-
-
-
-
-
-
-          <button 
-
-
-
-            onClick={() => {
-
-
-
-              setActiveTab('developer');
-
-
-
-              if (integrationTarget === 'email_forwarding') {
-
-
-
-                setIntegrationTarget('website');
-
-
-
-              }
-
-
-
-            }}
-
-
-
-            className={`rp-nav-item ${activeTab === 'developer' ? 'active' : ''}`}
-
-
-
-          >
-
-
-
-            <BookOpen className="w-4.5 h-4.5 shrink-0" /> Developer API
-
-
-
-          </button>
-
-
-
-
-
-
-
-          <button 
-
-
-
-            onClick={() => setActiveTab('playground')}
-
-
-
-            className={`rp-nav-item ${activeTab === 'playground' ? 'active' : ''}`}
-
-
-
-          >
-
-
-
-            <Sparkles className="w-4.5 h-4.5 shrink-0" /> Playground
-
-
-
-          </button>
-
-
-
-
-
-
-
-          <button 
-
-
-
-            onClick={() => setActiveTab('api')}
-
-
-
-            className={`rp-nav-item ${activeTab === 'api' ? 'active' : ''}`}
-
-
-
-          >
-
-
-
-            <Key className="w-4.5 h-4.5 shrink-0" /> API Keys
-
-
-
-          </button>
-
-
-
-
-
-
-
-          {/* Category: Settings */}
-
-
-
-          <p className="rp-nav-label">
-
-
-
-            Settings
-
-
-
-          </p>
-
-
-
-
-
-
-
-          <button 
-
-
-
-            onClick={() => setActiveTab('settings')}
-
-
-
-            className={`rp-nav-item ${activeTab === 'settings' ? 'active' : ''}`}
-
-
-
-          >
-
-
-
-            <Briefcase className="w-4.5 h-4.5 shrink-0" /> Settings
-
-
-
-          </button>
-
-
-
-        </nav>
-
-
-
-
-
-
-
-        {/* Sidebar Footer Sign Out button */}
-
-
-
-        <div className="p-4 border-t border-slate-800 bg-[#141c2b]">
-
-
-
-          <button 
-
-
-
-            onClick={handleSignOut}
-
-
-
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-slate-700/50 rounded-lg transition-all text-xs font-semibold text-slate-350 hover:text-white shadow-sm cursor-pointer"
-
-
-
-          >
-
-
-
-            <LogOut className="w-3.5 h-3.5" /> Sign Out
-
-
-
-          </button>
-
-
-
+              <span
+                className={`material-symbols-outlined text-xl transition-colors ${
+                  activeTab === 'overview' ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-700'
+                }`}
+                style={activeTab === 'overview' ? { fontVariationSettings: "'FILL' 1" } : undefined}
+              >
+                dashboard
+              </span>
+              Overview
+            </button>
+
+            <button
+              onClick={() => setActiveTab('transactions')}
+              type="button"
+              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all text-sm group text-left ${
+                activeTab === 'transactions'
+                  ? 'bg-blue-50 text-blue-600 font-semibold shadow-xs border border-blue-100'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+              }`}
+            >
+              <span
+                className={`material-symbols-outlined text-xl transition-colors ${
+                  activeTab === 'transactions' ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-700'
+                }`}
+                style={activeTab === 'transactions' ? { fontVariationSettings: "'FILL' 1" } : undefined}
+              >
+                receipt_long
+              </span>
+              Transactions
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('connections');
+                setIntegrationTarget('email_forwarding');
+              }}
+              type="button"
+              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all text-sm group text-left ${
+                activeTab === 'connections'
+                  ? 'bg-blue-50 text-blue-600 font-semibold shadow-xs border border-blue-100'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+              }`}
+            >
+              <span
+                className={`material-symbols-outlined text-xl transition-colors ${
+                  activeTab === 'connections' ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-700'
+                }`}
+                style={activeTab === 'connections' ? { fontVariationSettings: "'FILL' 1" } : undefined}
+              >
+                bolt
+              </span>
+              Direct Transfers
+            </button>
+
+            <button
+              onClick={() => setActiveTab('payment-links')}
+              type="button"
+              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all text-sm group text-left ${
+                activeTab === 'payment-links'
+                  ? 'bg-blue-50 text-blue-600 font-semibold shadow-xs border border-blue-100'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+              }`}
+            >
+              <span
+                className={`material-symbols-outlined text-xl transition-colors ${
+                  activeTab === 'payment-links' ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-700'
+                }`}
+                style={activeTab === 'payment-links' ? { fontVariationSettings: "'FILL' 1" } : undefined}
+              >
+                link
+              </span>
+              Payment Links
+            </button>
+
+            <button
+              onClick={() => setActiveTab('playground')}
+              type="button"
+              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all text-sm group text-left ${
+                activeTab === 'playground'
+                  ? 'bg-blue-50 text-blue-600 font-semibold shadow-xs border border-blue-100'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+              }`}
+            >
+              <span
+                className={`material-symbols-outlined text-xl transition-colors ${
+                  activeTab === 'playground' ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-700'
+                }`}
+                style={activeTab === 'playground' ? { fontVariationSettings: "'FILL' 1" } : undefined}
+              >
+                receipt
+              </span>
+              Invoices & Sandbox
+            </button>
+
+            <button
+              onClick={() => setActiveTab('api')}
+              type="button"
+              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all text-sm group text-left ${
+                activeTab === 'api'
+                  ? 'bg-blue-50 text-blue-600 font-semibold shadow-xs border border-blue-100'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+              }`}
+            >
+              <span
+                className={`material-symbols-outlined text-xl transition-colors ${
+                  activeTab === 'api' ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-700'
+                }`}
+                style={activeTab === 'api' ? { fontVariationSettings: "'FILL' 1" } : undefined}
+              >
+                qr_code_2
+              </span>
+              Smart Collect / UPI
+            </button>
+
+            <button
+              onClick={() => setActiveTab('developer')}
+              type="button"
+              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all text-sm group text-left ${
+                activeTab === 'developer'
+                  ? 'bg-blue-50 text-blue-600 font-semibold shadow-xs border border-blue-100'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+              }`}
+            >
+              <span
+                className={`material-symbols-outlined text-xl transition-colors ${
+                  activeTab === 'developer' ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-700'
+                }`}
+                style={activeTab === 'developer' ? { fontVariationSettings: "'FILL' 1" } : undefined}
+              >
+                code
+              </span>
+              Developer Portal
+            </button>
+
+            <button
+              onClick={() => setActiveTab('settings')}
+              type="button"
+              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all text-sm group text-left ${
+                activeTab === 'settings'
+                  ? 'bg-blue-50 text-blue-600 font-semibold shadow-xs border border-blue-100'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+              }`}
+            >
+              <span
+                className={`material-symbols-outlined text-xl transition-colors ${
+                  activeTab === 'settings' ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-700'
+                }`}
+                style={activeTab === 'settings' ? { fontVariationSettings: "'FILL' 1" } : undefined}
+              >
+                settings
+              </span>
+              Settings
+            </button>
+
+            <button
+              onClick={handleScrollToSubscription}
+              type="button"
+              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all text-sm group text-left ${
+                activeTab === 'subscription'
+                  ? 'bg-blue-50 text-blue-600 font-semibold shadow-xs border border-blue-100'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+              }`}
+            >
+              <Crown className={`w-5 h-5 shrink-0 ${activeTab === 'subscription' ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-700'}`} />
+              Subscription
+            </button>
+
+            {isAdminUser && (
+              <a
+                href="/admin"
+                className="flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all text-sm text-blue-600 hover:bg-blue-50 font-bold border border-blue-100/60"
+              >
+                <Shield className="w-5 h-5 text-blue-600" />
+                Admin Console
+              </a>
+            )}
+          </nav>
         </div>
 
-
-
+        {/* Sidebar Footer */}
+        <div className="px-6 pb-6">
+          <div className="flex items-center justify-between text-xs text-slate-400 font-medium pt-4 border-t border-slate-100">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>API Live Rails</span>
+            </div>
+            <span className="text-[11px] font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">v2.1</span>
+          </div>
+        </div>
       </aside>
 
 
@@ -9512,7 +9279,7 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-      <main className="flex-1 flex flex-col min-w-0 min-h-screen">
+      <main className="md:pl-64 flex-1 flex flex-col min-w-0 min-h-screen bg-[#f8fafc] pt-20">
 
 
 
@@ -9520,130 +9287,280 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-        {/* Mobile Header Bar */}
-
-
-
-        <header className="md:hidden h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-40 shadow-sm">
-
-
-
-          <MyMobPayLogo className="w-32 h-auto" />
-
-
-
-          <div className="flex items-center gap-2">
-
-
-
-            <button
-
-
-
-              onClick={toggleTheme}
-
-
-
-              className="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-all cursor-pointer mr-1"
-
-
-
-              title="Toggle Light/Dark Theme"
-
-
-
-            >
-
-
-
-              {theme === 'light' ? (
-
-
-
-                <svg className="w-4 h-4 animate-scaleUp" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-
-
-
-                  <circle cx="12" cy="12" r="5" />
-
-
-
-                  <line x1="12" y1="1" x2="12" y2="3" />
-
-
-
-                  <line x1="12" y1="21" x2="12" y2="23" />
-
-
-
-                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-
-
-
-                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-
-
-
-                  <line x1="1" y1="12" x2="3" y2="12" />
-
-
-
-                  <line x1="21" y1="12" x2="23" y2="12" />
-
-
-
-                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-
-
-
-                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-
-
-
-                </svg>
-
-
-
-              ) : (
-
-
-
-                <svg className="w-4 h-4 animate-scaleUp" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-
-
-
-                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-
-
-
-                </svg>
-
-
-
-              )}
-            </button>
-
-            {/* Mobile Admin Console Access Button */}
-            {isAdminUser && (
-              <a
-                href="/admin"
-                className="flex items-center gap-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-2.5 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-sm mr-1 shrink-0"
-                title="SaaS Admin Console"
-              >
-                <Shield className="w-3 h-3 text-blue-200" />
-                <span>Admin</span>
-              </a>
-            )}
-
+                {/* ═══════════════════════════════════════════════════════════
+           HEADER (User Design System)
+           ═══════════════════════════════════════════════════════════ */}
+        <header className="fixed top-0 left-0 md:left-64 right-0 bg-white/95 backdrop-blur-md border-b border-slate-200/80 z-40 flex items-center justify-between px-4 sm:px-6 lg:px-8 shadow-[0_1px_3px_0_rgba(0,0,0,0.02)] h-20">
+          <div className="flex items-center gap-3 sm:gap-6">
+            {/* Mobile Hamburger Toggle */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-colors"
-              title="Menu"
+              className="md:hidden p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+              type="button"
+              title="Toggle Menu"
             >
               {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
+
+            {/* Live Mode / Test Mode Switcher */}
+            <div className="flex items-center bg-slate-100/90 p-1.5 rounded-xl border border-slate-200/70 shadow-inner">
+              <button
+                onClick={() => {
+                  if (profile?.sandbox_mode !== false) toggleSandboxMode();
+                }}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 ${
+                  profile?.sandbox_mode === false
+                    ? 'bg-white text-blue-600 shadow-sm border border-slate-200/60'
+                    : 'text-slate-500 hover:text-slate-900'
+                }`}
+                type="button"
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                Live Mode
+              </button>
+              <button
+                onClick={() => {
+                  if (profile?.sandbox_mode === false) toggleSandboxMode();
+                }}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-2 ${
+                  profile?.sandbox_mode !== false
+                    ? 'bg-white text-amber-600 shadow-sm border border-slate-200/60 font-semibold'
+                    : 'text-slate-500 hover:text-slate-900'
+                }`}
+                type="button"
+              >
+                {profile?.sandbox_mode !== false && <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>}
+                Test Mode
+              </button>
+            </div>
+
+            {/* Command Search Bar */}
+            <div className="relative hidden sm:flex items-center">
+              <Search className="absolute left-3.5 text-slate-400 w-4 h-4 pointer-events-none" />
+              <input
+                onClick={() => setIsCommandPaletteOpen(true)}
+                readOnly
+                className="h-10 pl-10 pr-12 bg-slate-50 hover:bg-slate-100/80 transition-all border border-slate-200/80 rounded-xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white w-56 md:w-72 lg:w-96 shadow-sm cursor-pointer"
+                placeholder="Search transactions, UTR, UPI ID..."
+                type="text"
+              />
+              <kbd
+                onClick={() => setIsCommandPaletteOpen(true)}
+                className="absolute right-3 px-1.5 py-0.5 text-[10px] font-mono font-medium text-slate-400 bg-white border border-slate-200 rounded shadow-xs pointer-events-none"
+              >
+                ⌘K
+              </kbd>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 sm:gap-4 lg:gap-5">
+            <div className="flex items-center gap-1 sm:gap-2">
+              {/* Notification Icon */}
+              <button
+                onClick={() => setIsCommandPaletteOpen(true)}
+                className="relative p-2.5 text-slate-500 hover:text-slate-800 rounded-xl hover:bg-slate-100 transition-colors"
+                title="Notifications & Webhooks"
+                type="button"
+              >
+                <span className="material-symbols-outlined text-xl">notifications</span>
+                <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-blue-600 ring-2 ring-white"></span>
+              </button>
+
+              {/* Docs / Help Icon */}
+              <button
+                onClick={() => setActiveTab('setup-guide')}
+                className="p-2.5 text-slate-500 hover:text-slate-800 rounded-xl hover:bg-slate-100 transition-colors"
+                title="Documentation & Setup Guide"
+                type="button"
+              >
+                <span className="material-symbols-outlined text-xl">help_outline</span>
+              </button>
+            </div>
+
+            {/* Admin Console Shortcut */}
+            {isAdminUser && (
+              <a
+                href="/admin"
+                className="hidden lg:flex items-center gap-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200/80 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors"
+                title="Access SaaS Super Admin Console"
+              >
+                <Shield className="w-3.5 h-3.5 text-blue-600" />
+                <span>Admin</span>
+                <span className="text-[9px] bg-blue-200/70 text-blue-800 px-1 py-0.2 rounded font-black">ROOT</span>
+              </a>
+            )}
+
+            <div className="h-8 w-[1px] bg-slate-200 mx-0.5 sm:mx-1"></div>
+
+            {/* Profile Dropdown */}
+            <div className="relative select-none">
+              <div
+                onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                className="flex items-center gap-2.5 sm:gap-3 pl-1 cursor-pointer group"
+              >
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#0c2340] to-slate-800 text-white flex items-center justify-center font-bold text-xs shadow-sm shadow-slate-900/10 border border-slate-700/30">
+                  {merchantInitials}
+                </div>
+                <div className="hidden md:flex flex-col text-left">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-slate-900 font-bold leading-tight group-hover:text-blue-600 transition-colors truncate max-w-[120px]">
+                      {profile?.business_name || profile?.owner_name || 'MyMobPay'}
+                    </span>
+                    <span className="material-symbols-outlined text-slate-400 text-sm">expand_more</span>
+                  </div>
+                  <span className="text-[11px] font-mono text-slate-400 font-medium">
+                    MID: {profile?.id ? profile.id.slice(0, 8).toUpperCase() : 'MMP884920'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Dropdown Menu Modal */}
+              {isProfileDropdownOpen && (
+                <div className="absolute right-0 mt-3 w-64 bg-white border border-slate-200 rounded-2xl shadow-xl py-2 z-50 animate-scaleUp">
+                  <div className="px-4 py-2.5 border-b border-slate-100 flex flex-col gap-0.5">
+                    <p className="text-xs font-bold text-slate-900 truncate">
+                      {profile?.business_name || profile?.owner_name || 'Merchant'}
+                    </p>
+                    <p className="text-[11px] font-mono text-slate-400 truncate">
+                      {user?.email || 'merchant@mymob.tech'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setIsProfileDropdownOpen(false);
+                      setProfileModalTab('profile');
+                      setIsProfileModalOpen(true);
+                    }}
+                    className="w-full text-left px-4 py-2.5 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 font-medium transition-colors"
+                  >
+                    <User className="w-4 h-4 text-slate-400" />
+                    Profile & Business Info
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsProfileDropdownOpen(false);
+                      setProfileModalTab('bank');
+                      setIsProfileModalOpen(true);
+                    }}
+                    className="w-full text-left px-4 py-2.5 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 font-medium transition-colors"
+                  >
+                    <Building2 className="w-4 h-4 text-slate-400" />
+                    Bank Settlement Account
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsProfileDropdownOpen(false);
+                      setActiveTab('api');
+                    }}
+                    className="w-full text-left px-4 py-2.5 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 font-medium transition-colors"
+                  >
+                    <Key className="w-4 h-4 text-slate-400" />
+                    API Keys & Credentials
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsProfileDropdownOpen(false);
+                      setProfileModalTab('security');
+                      setIsProfileModalOpen(true);
+                    }}
+                    className="w-full text-left px-4 py-2.5 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 font-medium transition-colors"
+                  >
+                    <Shield className="w-4 h-4 text-slate-400" />
+                    Security & Password
+                  </button>
+                  <div className="border-t border-slate-100 my-1"></div>
+                  <button
+                    onClick={handleSignOut}
+                    className="w-full text-left px-4 py-2.5 text-xs text-red-600 hover:bg-red-50 flex items-center gap-2.5 font-bold transition-colors"
+                  >
+                    <LogOut className="w-4 h-4 text-red-500" />
+                    Sign Out
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
+
+        {/* Mobile Navigation Drawer */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex">
+            <div className="w-72 bg-white h-full shadow-2xl flex flex-col justify-between p-6 animate-fadeIn">
+              <div className="flex flex-col gap-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white shadow-md font-bold text-sm">
+                      mP
+                    </div>
+                    <span className="text-lg text-[#0c2340] font-extrabold">
+                      mymob<span className="text-blue-600">pay</span>
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="p-1.5 text-slate-400 hover:text-slate-800 rounded-lg hover:bg-slate-100"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <nav className="flex flex-col gap-1 overflow-y-auto max-h-[calc(100vh-200px)]">
+                  {[
+                    { id: 'overview', label: 'Overview', icon: 'dashboard' },
+                    { id: 'transactions', label: 'Transactions', icon: 'receipt_long' },
+                    { id: 'connections', label: 'Direct Transfers', icon: 'bolt' },
+                    { id: 'payment-links', label: 'Payment Links', icon: 'link' },
+                    { id: 'playground', label: 'Invoices & Sandbox', icon: 'receipt' },
+                    { id: 'api', label: 'Smart Collect / UPI', icon: 'qr_code_2' },
+                    { id: 'developer', label: 'Developer Portal', icon: 'code' },
+                    { id: 'settings', label: 'Settings', icon: 'settings' },
+                    { id: 'subscription', label: 'Subscription', icon: 'crown', isLucide: true }
+                  ].map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        setActiveTab(item.id);
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+                        activeTab === item.id
+                          ? 'bg-blue-50 text-blue-600 border border-blue-100'
+                          : 'text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      {item.isLucide ? (
+                        <Crown className="w-5 h-5 text-blue-600" />
+                      ) : (
+                        <span className="material-symbols-outlined text-xl">{item.icon}</span>
+                      )}
+                      {item.label}
+                    </button>
+                  ))}
+                  {isAdminUser && (
+                    <a
+                      href="/admin"
+                      className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold text-blue-600 bg-blue-50/50 border border-blue-100"
+                    >
+                      <Shield className="w-5 h-5 text-blue-600" />
+                      Admin Console
+                    </a>
+                  )}
+                </nav>
+              </div>
+
+              <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+                <button
+                  onClick={handleSignOut}
+                  className="flex items-center gap-2 text-xs font-bold text-red-600 hover:text-red-700"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Sign Out
+                </button>
+                <span className="text-[11px] font-mono text-slate-400">v2.1</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Mobile Navigation Drawer (Razorpay Style) */}
         {isMobileMenuOpen && (
@@ -10677,7 +10594,7 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-          <div className={`${(activeTab === 'overview' || activeTab === 'payment-links') ? 'max-w-[1440px]' : 'max-w-5xl'} mx-auto space-y-6`}>
+          <div className={`${(activeTab === 'overview' || activeTab === 'payment-links' || activeTab === 'transactions') ? 'max-w-[1520px]' : 'max-w-5xl'} mx-auto space-y-6`}>
 
 
 
@@ -10689,7 +10606,7 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-            {activeTab !== 'overview' && activeTab !== 'payment-links' && (
+            {activeTab !== 'overview' && activeTab !== 'payment-links' && activeTab !== 'transactions' && (
             <div className="mb-6 pt-2 md:pt-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
 
 
@@ -11093,1011 +11010,16 @@ echo "Order Created: " . $data['orderId'];
 
 
             {/* ═══════════════════════════════════════════════════════════
-
-
-
-               TAB: TRANSACTIONS LOGS
-
-
-
+               TAB: TRANSACTIONS LOGS (User Design System)
                ═══════════════════════════════════════════════════════════ */}
-
-
-
             {activeTab === 'transactions' && (
-
-
-
-              <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden flex flex-col">
-
-
-
-                
-
-
-
-                {/* Search Bar & Filters */}
-
-
-
-                <div className="p-6 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-
-
-
-                  
-
-
-
-                  {/* Search input field */}
-
-
-
-                  <div className="relative flex-1 max-w-md w-full">
-
-
-
-                    <Search className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
-
-
-
-                    <input 
-
-
-
-                      type="text"
-
-
-
-                      placeholder="Search Customer Name, UTR, Order ID, Note..."
-
-
-
-                      value={searchQuery}
-
-
-
-                      onChange={e => setSearchQuery(e.target.value)}
-
-
-
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-10 pr-4 focus:outline-none focus:border-blue-500 text-xs font-semibold text-slate-800"
-
-
-
-                    />
-
-
-
-                    {searchQuery && (
-
-
-
-                      <button onClick={() => setSearchQuery('')} className="absolute right-3.5 top-3 text-[10px] text-slate-400 hover:text-slate-900">
-
-
-
-                        ✕
-
-
-
-                      </button>
-
-
-
-                    )}
-
-
-
-                  </div>
-
-
-
-
-
-
-
-                  {/* Filter controls */}
-
-
-
-                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0">
-
-
-
-                    {[
-
-
-
-                      { id: 'all', label: 'All Orders' },
-
-
-
-                      { id: 'pending', label: 'Pending' },
-
-
-
-                      { id: 'verified', label: 'Verified' },
-
-
-
-                      { id: 'rejected', label: 'Rejected' },
-
-
-
-                      { id: 'expired', label: 'Expired' }
-
-
-
-                    ].map(f => (
-
-
-
-                      <button
-
-
-
-                        key={f.id}
-
-
-
-                        onClick={() => setStatusFilter(f.id)}                         className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all whitespace-nowrap ${statusFilter === f.id ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-800'}`}
-
-
-
-                      >
-
-
-
-                        {f.label}
-
-
-
-                      </button>
-
-
-
-                    ))}
-
-
-
-                  </div>
-
-
-
-
-
-
-
-                </div>
-
-
-
-
-
-
-
-                {/* Badge Legend */}
-                <div className="px-6 py-3 bg-slate-50/50 border-b border-slate-100 flex flex-wrap gap-4 items-center text-[10px] text-slate-550 font-semibold select-none">
-                  <span className="text-[9px] uppercase tracking-wider text-slate-400 font-black">Note Tags Legend:</span>
-                  <span className="flex items-center gap-1 px-1.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded text-[9px] font-bold cursor-help" title="Transaction initiated from an integrated website check or redirect.">
-                    🌐 Website Origin
-                  </span>
-                  <span className="flex items-center gap-1 px-1.5 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded text-[9px] font-bold cursor-help" title="Transaction initiated using a generated one-click payment link.">
-                    🔗 Payment Link
-                  </span>
-                  <span className="flex items-center gap-1 px-1.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded text-[9px] font-bold cursor-help" title="Transaction initiated via REST API endpoints integration.">
-                    ⚡ API Integration
-                  </span>
-                </div>
-
-                {/* Live transaction log table */}
-
-
-
-                <div className="overflow-x-auto">
-
-
-
-                  <table className="min-w-[1000px] w-full divide-y divide-slate-100">
-
-
-
-                    <thead className="bg-slate-50">
-
-
-
-                      <tr>
-
-
-
-                        <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-500 uppercase tracking-widest">Order ID</th>
-
-
-
-                        <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-500 uppercase tracking-widest">Date & Time</th>
-
-
-
-                        <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-500 uppercase tracking-widest">Customer</th>
-
-
-
-                        <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-500 uppercase tracking-widest">Amount (INR)</th>
-
-
-
-                        <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-500 uppercase tracking-widest">Note</th>
-
-
-
-                        <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-500 uppercase tracking-widest">UTR / Ref</th>
-
-
-
-                        <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-500 uppercase tracking-widest">Settlement</th>
-
-
-
-                        <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-500 uppercase tracking-widest">Status</th>
-
-
-
-                      </tr>
-
-
-
-                    </thead>
-
-
-
-                    <tbody className="divide-y divide-slate-100 bg-white">
-
-
-
-                      {ordersLoading ? (
-
-
-
-                        <tr>
-
-
-
-                          <td colSpan="8" className="px-6 py-12 text-center text-xs text-slate-500">
-
-
-
-                            <Loader2 className="w-5 h-5 animate-spin text-blue-500 mx-auto mb-2" />
-
-
-
-                            Loading transaction records...
-
-
-
-                          </td>
-
-
-
-                        </tr>
-
-
-
-                      ) : filteredOrders.length === 0 ? (
-
-
-
-                        <tr>
-
-
-
-                          <td colSpan="8" className="px-6 py-12 text-center text-xs font-medium text-slate-500">
-
-
-
-                            No transaction logs matched your query.
-
-
-
-                          </td>
-
-
-
-                        </tr>
-
-
-
-                      ) : (
-
-
-
-                        filteredOrders.map(order => {
-
-
-
-                          const localTime = new Date(order.created_at).toLocaleString('en-IN', {
-
-
-
-                            timeZone: 'Asia/Kolkata',
-
-
-
-                            dateStyle: 'medium',
-
-
-
-                            timeStyle: 'short'
-
-
-
-                          });
-
-
-
-
-
-
-
-                          return (
-
-
-
-                            <tr 
-
-
-
-                              key={order.id} 
-
-
-
-                              onClick={() => {
-
-
-
-                                if (order.status === 'verified') {
-
-
-
-                                  setSelectedHistoryOrder(order);
-
-
-
-                                }
-
-
-
-                              }}
-
-
-
-                              className={`transition-colors border-b border-slate-100 ${order.status === 'verified' ? 'cursor-pointer hover:bg-[#f8f9ff]' : 'hover:bg-[#f8f9ff]'}`}
-
-
-
-                            >
-
-
-
-                              
-
-
-
-                              {/* Order ID */}
-
-
-
-                              <td className="px-6 py-4 whitespace-nowrap text-xs font-mono font-bold text-blue-600">
-
-
-
-                                <span 
-
-
-
-                                  className="cursor-pointer hover:text-blue-800 hover:underline flex items-center gap-1.5"
-
-
-
-                                  onClick={(e) => {
-
-
-
-                                    e.stopPropagation();
-
-
-
-                                    navigator.clipboard.writeText(order.id);
-
-
-
-                                    alert("Copied Order ID!");
-
-
-
-                                  }}
-
-
-
-                                  title="Copy Order ID"
-
-
-
-                                >
-
-
-
-                                  {order.id}
-
-
-
-                                  <Copy className="w-3 h-3 flex-shrink-0 opacity-40 hover:opacity-100" />
-
-
-
-                                </span>
-
-
-
-                              </td>
-
-
-
-
-
-
-
-                              {/* Date */}
-
-
-
-                              <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-600 font-semibold">
-
-
-
-                                {localTime}
-
-
-
-                              </td>
-
-
-
-
-
-
-
-                              {/* Customer */}
-
-
-
-                              <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-900">
-
-
-
-                                {order.customer_name || order.customer_phone ? (
-
-
-
-                                  <div className="space-y-0.5">
-
-
-
-                                    <p className="font-bold">{order.customer_name || 'N/A'}</p>
-
-
-
-                                    {order.customer_phone && <p className="text-[10px] text-slate-400 font-semibold">{order.customer_phone}</p>}
-
-
-
-                                  </div>
-
-
-
-                                ) : (
-
-
-
-                                  <span className="text-slate-400 font-medium">Anonymous</span>
-
-
-
-                                )}
-
-
-
-                              </td>
-
-
-
-
-
-
-
-                              {/* Amount */}
-
-
-
-                              <td className="px-6 py-4 whitespace-nowrap text-xs font-black text-slate-900 flex items-center gap-0.5">
-
-
-
-                                <span className="text-slate-400 font-bold">₹</span>
-
-
-
-                                {parseFloat(order.amount).toFixed(2)}
-
-
-
-                              </td>
-
-
-
-
-
-
-
-                              {/* Note */}
-
-
-
-                              <td className="px-6 py-4 text-xs text-slate-500 font-semibold max-w-[280px]" title={order.note}>
-
-
-
-                                <div className="space-y-1">
-
-
-
-                                  <p className="truncate max-w-[240px]">{order.note || '-'}</p>
-
-
-
-                                  {(() => {
-
-
-
-                                    const hasCallback = !!order.callback_url;
-
-
-
-                                    
-
-
-
-                                    let domain = '';
-
-
-
-                                    if (hasCallback) {
-
-
-
-                                      try {
-
-
-
-                                        domain = new URL(order.callback_url).hostname.replace(/^www\./, '');
-
-
-
-                                      } catch(e) {}
-
-
-
-                                    }
-
-
-
-                                    
-
-
-
-                                    // Don't label mymob.tech / mymobpay
-
-
-
-                                    const isMymob = domain && (domain.includes('mymob.tech') || domain.includes('mymobpay'));
-
-
-
-                                    const showDomainBadge = domain && !isMymob;
-
-
-
-
-
-
-
-                                    // Determine method labeling
-
-
-
-                                    const methodUpper = (order.method || '').toUpperCase();
-
-
-
-                                    const isLink = methodUpper === 'LINK' || !!order.external_ref;
-
-
-
-                                    const isApi = methodUpper === 'API' || (!isLink && !!order.callback_url);
-
-
-
-                                    
-
-
-
-                                    let methodLabel = 'UPI';
-
-
-
-                                    let methodColor = 'bg-slate-50 text-slate-600 border-slate-200';
-
-
-
-                                    
-
-
-
-                                    if (isLink) {
-
-
-
-                                      methodLabel = 'Link';
-
-
-
-                                      methodColor = 'bg-indigo-50 text-indigo-700 border-indigo-200';
-
-
-
-                                    } else if (isApi) {
-
-
-
-                                      methodLabel = 'API';
-
-
-
-                                      methodColor = 'bg-amber-50 text-amber-700 border-amber-200';
-
-
-
-                                    } else if (methodUpper && methodUpper !== 'GENERIC') {
-
-
-
-                                      methodLabel = methodUpper;
-
-
-
-                                    }
-
-
-
-
-
-
-
-                                    return (
-
-
-
-                                      <div className="flex flex-wrap gap-1.5 mt-1 select-none">
-
-
-
-                                        {/* External Domain Badge */}
-
-
-
-                                        {showDomainBadge && (
-
-
-
-                                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-black tracking-wide bg-blue-50 text-blue-700 border border-blue-200 cursor-help" title={`Originating website domain: ${domain}`}>
-
-
-
-                                            🌐 {domain}
-
-
-
-                                          </span>
-
-
-
-                                        )}
-
-
-
-                                        {/* Method Badge */}
-
-
-
-                                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-black tracking-wide uppercase border ${methodColor} cursor-help`} title={isLink ? "Initiated via a generated payment link" : isApi ? "Initiated via merchant REST API" : "Initiated via UPI checkout payload"}>
-
-
-
-                                          {isLink ? '🔗' : isApi ? '⚡' : '💳'} {methodLabel}
-
-
-
-                                        </span>
-
-
-
-                                      </div>
-
-
-
-                                    );
-
-
-
-                                  })()}
-
-
-
-                                </div>
-
-
-
-                              </td>
-
-
-
-
-
-
-
-                              {/* UTR */}
-
-
-
-                              <td className="px-6 py-4 whitespace-nowrap text-xs font-mono font-semibold text-slate-700">
-
-
-
-                                {order.utr ? (
-
-
-
-                                  <span className="bg-slate-50 px-2 py-0.5 rounded border border-slate-200/80">{order.utr}</span>
-
-
-
-                                ) : (
-
-
-
-                                  <span className="text-slate-400 font-semibold">—</span>
-
-
-
-                                )}
-
-
-
-                              </td>
-
-
-
-
-
-
-
-                              {/* Settlement */}
-
-
-
-                              <td className="px-6 py-4 whitespace-nowrap text-xs">
-
-
-
-                                {order.status === 'verified' ? (
-
-
-
-                                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[9px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">
-
-
-
-                                    <CheckCircle2 className="w-3 h-3 text-emerald-500" /> Instant Bank
-
-
-
-                                  </span>
-
-
-
-                                ) : (
-
-
-
-                                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80">
-
-
-
-                                    <Clock className="w-3 h-3 text-amber-500 animate-pulse" /> Escrow holding
-
-
-
-                                  </span>
-
-
-
-                                )}
-
-
-
-                              </td>
-
-
-
-
-
-
-
-                              {/* Status Badge */}
-
-
-
-                              <td className="px-6 py-4 whitespace-nowrap text-xs">
-
-
-
-                                {order.status === 'verified' && (
-
-
-
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-100 text-emerald-850 border border-emerald-250">
-
-
-
-                                    ✓ Verified
-
-
-
-                                  </span>
-
-
-
-                                )}
-
-
-
-                                {order.status === 'pending' && (
-
-
-
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-100 text-amber-850 border border-amber-250 animate-pulse">
-
-
-
-                                    ● Pending
-
-
-
-                                  </span>
-
-
-
-                                )}
-
-
-
-                                {order.status === 'rejected' && (
-
-
-
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-250">
-
-
-
-                                    ✕ Rejected
-
-
-
-                                  </span>
-
-
-
-                                )}
-
-
-
-                                {order.status === 'expired' && (
-
-
-
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-slate-100 text-slate-650 border border-slate-250">
-
-
-
-                                    Expired
-
-
-
-                                  </span>
-
-
-
-                                )}
-
-
-
-                              </td>
-
-
-
-
-
-
-
-                            </tr>
-
-
-
-                          );
-
-
-
-                        })
-
-
-
-                      )}
-
-
-
-                    </tbody>
-
-
-
-                  </table>
-
-
-
-                </div>
-
-
-
-
-
-
-
-                {/* Footer Count */}
-
-
-
-                <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex justify-between items-center">
-
-
-
-                  <span className="text-[10px] text-slate-400 font-bold uppercase">Escrow Release Policy: Immediate P2P settlement</span>
-
-
-
-                  <span className="text-xs text-slate-500 font-semibold">{filteredOrders.length} records filtered</span>
-
-
-
-                </div>
-
-
-
-
-
-
-
-              </div>
-
-
-
+              <TransactionsRedesign
+                profile={profile}
+                orders={orders}
+                onRefresh={fetchOrders}
+                setActiveTab={setActiveTab}
+                onProfileUpdate={setProfile}
+              />
             )}
 
 
