@@ -130,55 +130,47 @@ export default function ConsoleActivationPaywall({
 
   const handleRefreshStatus = async () => {
     setStatusChecking(true);
-    setStatusMsg('Checking payment status & active orders…');
+    setStatusMsg('Checking payment status & activation…');
     try {
       const merchantUid = user?.id || profile?.id;
       if (merchantUid) {
-        // Direct safety check on recent orders for this merchant
-        const { data: recentOrders } = await supabase
-          .from('orders')
-          .select('*')
-          .eq('external_ref', merchantUid)
-          .order('created_at', { ascending: false })
-          .limit(5);
-
-        if (recentOrders && recentOrders.length > 0) {
-          const verifiedOrder = recentOrders.find(o => o.status === 'verified' || o.status === 'completed' || o.status === 'paid');
-          if (verifiedOrder) {
-            const isTrial = verifiedOrder.note?.includes('Trial');
-            const now = new Date();
-            const expiryDate = new Date(now.getTime() + (isTrial ? 3 : 30) * 24 * 60 * 60 * 1000);
-
-            await supabase
-              .from('merchants')
-              .update({
-                subscription_status: 'active',
-                subscription_expires_at: expiryDate.toISOString(),
-                setup_progress: {
-                  trial_activated_at: isTrial ? now.toISOString() : null,
-                  trial_expires_at: isTrial ? expiryDate.toISOString() : null,
-                  subscription_activated_at: !isTrial ? now.toISOString() : null,
-                  plan_type: isTrial ? 'trial_3day' : 'subscription',
-                  last_payment_at: now.toISOString(),
-                  last_order_id: verifiedOrder.id
-                }
-              })
-              .eq('id', merchantUid);
-
-            setStatusMsg('✓ Payment verified! Console successfully unlocked.');
-            await fetchProfile(merchantUid);
-            return;
-          } else {
-            const pendingOrder = recentOrders[0];
-            setStatusMsg(`Payment pending for Order #${pendingOrder.id?.slice(0, 8)}. If paid via UPI, enter 12-digit UTR on checkout page to verify.`);
-          }
-        } else {
-          setStatusMsg('No recent payments detected yet. Please scan QR or click Pay via UPI.');
-        }
-
+        // Re-fetch profile securely from database
         await fetchProfile(merchantUid);
         if (fetchSubscriptionHistory) {
           await fetchSubscriptionHistory(merchantUid);
+        }
+
+        // Check if there is an active valid subscription
+        const { data: currentMerchant } = await supabase
+          .from('merchants')
+          .select('subscription_status, subscription_expires_at')
+          .eq('id', merchantUid)
+          .single();
+
+        const isSubActive = currentMerchant?.subscription_status === 'active';
+        const expiresAt = currentMerchant?.subscription_expires_at ? new Date(currentMerchant.subscription_expires_at) : null;
+        const isNotExpired = expiresAt && expiresAt.getTime() > Date.now();
+
+        if (isSubActive && isNotExpired) {
+          setStatusMsg('✓ Subscription is active and verified! Console is unlocked.');
+          return;
+        }
+
+        // Check for any pending order created in the last 30 minutes
+        const thirtyMinsAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+        const { data: recentOrder } = await supabase
+          .from('orders')
+          .select('id, amount, status, created_at')
+          .eq('external_ref', merchantUid)
+          .gte('created_at', thirtyMinsAgo)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (recentOrder && recentOrder.status === 'pending') {
+          setStatusMsg(`Payment for Order #${recentOrder.id?.slice(0, 8)} is pending bank confirmation. Please wait for bank sync or enter UTR on checkout.`);
+        } else {
+          setStatusMsg('No recent payment detected. Please scan the QR code to complete activation.');
         }
       }
     } catch (err) {

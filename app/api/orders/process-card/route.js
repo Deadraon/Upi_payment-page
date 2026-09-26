@@ -47,6 +47,14 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Please enter a valid 6-digit OTP.' }, { status: 400 });
     }
 
+    // SECURITY CHECK: Card payment simulation is strictly restricted to sandbox test mode orders
+    if (order.mode !== 'test') {
+      return NextResponse.json({
+        error: 'Direct card processing is only available in sandbox test mode. For live payments, please use UPI or Direct Bank Transfer.',
+        code: 'METHOD_UNAVAILABLE'
+      }, { status: 400 });
+    }
+
     // In simulation / test flow, any 6-digit OTP (e.g. 123456 or generated) succeeds
     const brandPrefix = (card_brand || 'CARD').toUpperCase();
     const cardRef = `CRD_${brandPrefix}_${Math.random().toString(36).substring(2, 8).toUpperCase()}`;

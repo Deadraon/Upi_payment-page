@@ -60,42 +60,51 @@ export async function POST(request) {
       }, { status: 400 });
     }
 
-    // 3. Mark verified in database
-    const { data: updatedOrder, error: updateError } = await supabaseAdmin
+    // 3. In test mode, allow instant sandbox simulation
+    if (order.mode === 'test') {
+      const { data: updatedOrder, error: updateError } = await supabaseAdmin
+        .from('orders')
+        .update({
+          status: 'verified',
+          utr: cleanTx,
+          customer_utr: cleanTx,
+          verified_at: new Date().toISOString()
+        })
+        .eq('id', order.id)
+        .select()
+        .single();
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      // Dispatch webhook to merchant
+      try {
+        await triggerMerchantWebhook(order.id);
+      } catch (whErr) {
+        console.error('[Crypto] Webhook trigger error:', whErr);
+      }
+
+      return NextResponse.json({
+        success: true,
+        verified: true,
+        message: 'Test crypto payment recorded and verified successfully!',
+        order: updatedOrder
+      }, { status: 200 });
+    }
+
+    // 4. In live mode: Save tx hash and keep order pending awaiting on-chain block confirmations
+    await supabaseAdmin
       .from('orders')
       .update({
-        status: 'verified',
-        utr: cleanTx,
-        customer_utr: cleanTx,
-        verified_at: new Date().toISOString()
+        customer_utr: cleanTx
       })
-      .eq('id', order.id)
-      .select()
-      .single();
-
-    if (updateError) {
-      throw updateError;
-    }
-
-    // Check SaaS billing subscription if relevant
-    try {
-      await checkAndProcessSubscription(updatedOrder, '');
-    } catch (e) {
-      console.error('[Crypto] Subscription update error:', e);
-    }
-
-    // Dispatch webhook to merchant
-    try {
-      await triggerMerchantWebhook(order.id);
-    } catch (whErr) {
-      console.error('[Crypto] Webhook trigger error:', whErr);
-    }
+      .eq('id', order.id);
 
     return NextResponse.json({
       success: true,
-      verified: true,
-      message: 'Crypto transaction recorded and verified successfully!',
-      order: updatedOrder
+      verified: false,
+      message: 'Transaction hash recorded. Awaiting blockchain network block confirmations...'
     }, { status: 200 });
 
   } catch (err) {

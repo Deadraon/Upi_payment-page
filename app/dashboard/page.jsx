@@ -5574,7 +5574,8 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-  if (profile && profile.subscription_status !== 'active' && !isAdminMerchant) {
+  const isSubExpired = profile?.subscription_expires_at && new Date(profile.subscription_expires_at).getTime() < Date.now();
+  if (profile && (profile.subscription_status !== 'active' || isSubExpired) && !isAdminMerchant) {
 
 
 

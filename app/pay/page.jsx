@@ -347,21 +347,18 @@ function PayPageContent() {
             setCheckMsg('✓ Payment verified! Redirecting…');
             handleSuccess();
           } else {
-            setCheckMsg('Payment pending. If already paid via UPI, enter your 12-digit UTR below for instant unlock.');
+            setCheckMsg('Payment pending bank confirmation. If already paid via UPI, enter your 12-digit UTR below.');
             setShowUtr(true);
           }
         })
         .catch(() => {
           setIsChecking(false);
-          setCheckMsg('Could not verify status. Please enter your 12-digit UTR below.');
+          setCheckMsg('Could not verify status. If already paid, enter your 12-digit UTR below.');
           setShowUtr(true);
         });
     } else {
-      setTimeout(() => {
-        setIsChecking(false);
-        setCheckMsg('Payment pending. If already paid via UPI, enter your 12-digit UTR below for instant unlock.');
-        setShowUtr(true);
-      }, 600);
+      setIsChecking(false);
+      setCheckMsg('Payment session initializing. Please wait a moment.');
     }
   }
 

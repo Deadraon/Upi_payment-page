@@ -61,43 +61,71 @@ export async function POST(request) {
       }, { status: 400 });
     }
 
-    // 3. Mark the order verified with the customer's submitted UTR
-    const { data: updatedOrder, error: updateErr } = await supabaseAdmin
+    // 3. Check for matching bank credit in email_logs
+    let isBankConfirmed = false;
+    const { data: matchedEmail } = await supabaseAdmin
+      .from('email_logs')
+      .select('*')
+      .ilike('body_snippet', `%${cleanUtr}%`)
+      .limit(1);
+
+    if (matchedEmail && matchedEmail.length > 0) {
+      isBankConfirmed = true;
+    }
+
+    // 4. In test mode OR if bank alert has already matched, verify the order
+    if (order.mode === 'test' || isBankConfirmed) {
+      const { data: updatedOrder, error: updateErr } = await supabaseAdmin
+        .from('orders')
+        .update({
+          status: 'verified',
+          utr: cleanUtr,
+          customer_utr: cleanUtr,
+          verified_at: new Date().toISOString()
+        })
+        .eq('id', order.id)
+        .select()
+        .single();
+
+      if (updateErr) {
+        console.error('Error verifying order with UTR:', updateErr);
+        return NextResponse.json({ error: updateErr.message }, { status: 500 });
+      }
+
+      // Trigger subscription activation only for live, authentic verified orders
+      if (order.mode !== 'test') {
+        try {
+          await checkAndProcessSubscription(updatedOrder, '');
+        } catch (subErr) {
+          console.error('Subscription process error on UTR verify:', subErr);
+        }
+      }
+
+      // Trigger outbound merchant webhook
+      try {
+        await triggerMerchantWebhook(order.id);
+      } catch (whErr) {
+        console.error('Webhook error on UTR verify:', whErr);
+      }
+
+      return NextResponse.json({
+        success: true,
+        verified: true,
+        message: 'Payment verified successfully!',
+        order: updatedOrder
+      }, { status: 200 });
+    }
+
+    // 5. In live mode without immediate bank match: Save customer_utr and keep pending
+    await supabaseAdmin
       .from('orders')
-      .update({
-        status: 'verified',
-        utr: cleanUtr,
-        customer_utr: cleanUtr,
-        verified_at: new Date().toISOString()
-      })
-      .eq('id', order.id)
-      .select()
-      .single();
-
-    if (updateErr) {
-      console.error('Error verifying order with UTR:', updateErr);
-      return NextResponse.json({ error: updateErr.message }, { status: 500 });
-    }
-
-    // 4. Trigger subscription activation if this order is a subscription / trial setup order
-    try {
-      await checkAndProcessSubscription(updatedOrder, '');
-    } catch (subErr) {
-      console.error('Subscription process error on UTR verify:', subErr);
-    }
-
-    // 5. Trigger outbound merchant webhook
-    try {
-      await triggerMerchantWebhook(order.id);
-    } catch (whErr) {
-      console.error('Webhook error on UTR verify:', whErr);
-    }
+      .update({ customer_utr: cleanUtr })
+      .eq('id', order.id);
 
     return NextResponse.json({
       success: true,
-      verified: true,
-      message: 'Payment verified successfully!',
-      order: updatedOrder
+      verified: false,
+      message: 'UTR saved. Automatic verification in progress via bank credit alert...'
     }, { status: 200 });
 
   } catch (err) {
