@@ -953,7 +953,7 @@ export default function PaymentLinksRedesign({
                   {!generatedLinkData ? (
                     <div className="w-full bg-slate-50/80 border border-dashed border-slate-200 rounded-2xl p-3 text-center flex items-center justify-center space-x-2 text-xs text-slate-400 font-medium">
                       <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path></svg>
-                      <span>Click "Create &amp; Share Payment Link" to generate active URL</span>
+                      <span>Click &quot;Create &amp; Share Payment Link&quot; to generate active URL</span>
                     </div>
                   ) : (
                     <div className="w-full bg-white border border-slate-200 rounded-2xl p-3 shadow-sm flex items-center justify-between gap-2 animate-fade-in">
