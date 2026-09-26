@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import QRCode from 'react-qr-code';
 import {
   Link as LinkIcon,
   Copy,
@@ -13,7 +12,6 @@ import {
   RefreshCw,
   CheckCircle2,
   Clock,
-  QrCode,
   ShieldCheck,
   Sparkles,
   Send,
@@ -28,68 +26,12 @@ import {
   Share2,
   Eye,
   Sliders,
-  DollarSign
+  DollarSign,
+  TrendingUp
 } from 'lucide-react';
 
-// Default starter links matching the design mockup for instant aesthetic appeal
-const DEFAULT_INITIAL_LINKS = [
-  {
-    id: 'pl_98xK29La',
-    purpose: 'Cloud Hosting Q4 Subscription',
-    ref: 'REF-CH-992',
-    customerName: 'Rohan Sharma',
-    customerPhone: '+91 98765 43210',
-    amount: '12499.00',
-    createdAt: new Date(Date.now() - 1000 * 60 * 18).toISOString(), // ~18 mins ago
-    status: 'Paid',
-    url: 'https://mymob.tech/pay?order_id=ord_98xK29La&amount=12499.00',
-  },
-  {
-    id: 'pl_77qR10Pk',
-    purpose: 'Annual SaaS License Tier-3',
-    ref: 'APX-8812',
-    customerName: 'TechNova Systems',
-    customerPhone: 'accounts@technova.in',
-    amount: '45000.00',
-    createdAt: new Date(Date.now() - 1000 * 60 * 75).toISOString(), // ~1.2 hrs ago
-    status: 'Paid',
-    url: 'https://mymob.tech/pay?order_id=ord_77qR10Pk&amount=45000.00',
-  },
-  {
-    id: 'pl_63mB41Vx',
-    purpose: 'Wholesale Bulk Inventory Advance',
-    ref: 'PO-BL-4019',
-    customerName: 'Kalyan Traders',
-    customerPhone: '+91 94450 12099',
-    amount: '25000.00',
-    partialAmount: '10000.00',
-    createdAt: new Date(Date.now() - 1000 * 60 * 210).toISOString(), // ~3.5 hrs ago
-    status: 'Partial',
-    url: 'https://mymob.tech/pay?order_id=ord_63mB41Vx&amount=25000.00',
-  },
-  {
-    id: 'pl_51pT89Mn',
-    purpose: 'Cross-Border Settlement USDT',
-    ref: 'TX-USDT-991',
-    customerName: 'Apex Global Ventures',
-    customerPhone: '0x4b...392F',
-    amount: '82300.00',
-    createdAt: new Date(Date.now() - 1000 * 60 * 340).toISOString(), // ~5.5 hrs ago
-    status: 'Paid',
-    url: 'https://mymob.tech/pay?order_id=ord_51pT89Mn&amount=82300.00',
-  },
-  {
-    id: 'pl_19zW02Kf',
-    purpose: 'Consulting Retainer Monthly Fee',
-    ref: 'RET-CON-04',
-    customerName: 'Ananya Deshmukh',
-    customerPhone: 'ananya@deshmukh.co',
-    amount: '2500.00',
-    createdAt: new Date(Date.now() - 1000 * 60 * 420).toISOString(), // ~7 hrs ago
-    status: 'Pending',
-    url: 'https://mymob.tech/pay?order_id=ord_19zW02Kf&amount=2500.00',
-  },
-];
+// No default starter links — only show links the merchant actually created
+const DEFAULT_INITIAL_LINKS = [];
 
 export default function PaymentLinksRedesign({
   profile = {},
@@ -270,19 +212,18 @@ export default function PaymentLinksRedesign({
       }
     });
 
-    const totalProcessedCount = paidCount > 0 ? paidCount : 824;
-    const displayTotalAmount = totalAmt > 0 ? totalAmt : 1845200;
-    const avgTicket = totalProcessedCount > 0 ? Math.round(displayTotalAmount / totalProcessedCount) : 2240;
-    const conversionRate = (paidCount + pendingCount) > 0
-      ? ((paidCount / (paidCount + pendingCount)) * 100).toFixed(1)
-      : '89.2';
+    const totalLinks = paidCount + pendingCount + expiredCount;
+    const avgTicket = paidCount > 0 ? Math.round(totalAmt / paidCount) : 0;
+    const conversionRate = totalLinks > 0
+      ? ((paidCount / totalLinks) * 100).toFixed(1)
+      : '0.0';
 
     return {
-      totalCollected: displayTotalAmount,
-      totalCount: totalProcessedCount,
-      activeLinks: pendingCount > 0 ? pendingCount : 42,
-      paidLinks: paidCount > 0 ? paidCount : 824,
-      expiredLinks: expiredCount > 0 ? expiredCount : 12,
+      totalCollected: totalAmt,
+      totalCount: paidCount,
+      activeLinks: pendingCount,
+      paidLinks: paidCount,
+      expiredLinks: expiredCount,
       avgTicket,
       conversionRate,
     };
@@ -541,16 +482,14 @@ export default function PaymentLinksRedesign({
             <span className="text-xs uppercase tracking-wider text-slate-500 font-semibold">
               Total Collected
             </span>
-            <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-              +24.5%
-            </span>
+            <TrendingUp className="w-4 h-4 text-slate-400" />
           </div>
           <div className="mt-3 flex flex-col">
             <span className="text-2xl text-slate-900 tracking-tight font-bold">
               ₹ {metrics.totalCollected.toLocaleString('en-IN', { minimumFractionDigits: 0 })}
             </span>
             <span className="text-xs text-slate-500 mt-1">
-              Processed across {metrics.totalCount} payments
+              {metrics.totalCount > 0 ? `Across ${metrics.totalCount} paid link${metrics.totalCount !== 1 ? 's' : ''}` : 'No payments yet'}
             </span>
           </div>
         </div>
@@ -599,9 +538,11 @@ export default function PaymentLinksRedesign({
           </div>
           <div className="mt-3 flex flex-col">
             <span className="text-2xl text-slate-900 tracking-tight font-bold">
-              ₹ {metrics.avgTicket.toLocaleString('en-IN')}
+              {metrics.avgTicket > 0 ? `₹ ${metrics.avgTicket.toLocaleString('en-IN')}` : '—'}
             </span>
-            <span className="text-xs text-slate-500 mt-1">Top payment rail: UPI QR</span>
+            <span className="text-xs text-slate-500 mt-1">
+              {metrics.paidLinks > 0 ? 'Per successful payment' : 'No paid links yet'}
+            </span>
           </div>
         </div>
       </div>
