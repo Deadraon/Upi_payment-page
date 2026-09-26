@@ -454,6 +454,12 @@ export default function PaymentLinksRedesign({
   const accNum = profile?.account_number || profile?.bank_account_number || '4092';
   const lastFour = accNum ? String(accNum).slice(-4) : '4092';
 
+  const previewUrlDynamic = useMemo(() => {
+    const host = typeof window !== 'undefined' ? window.location.origin : 'https://mymob.tech';
+    const cleanRef = refCode.trim() || '84920';
+    return `${host}/pay/pl_${cleanRef.toLowerCase().replace(/[^a-z0-9]/g, '') || '84920'}`;
+  }, [refCode]);
+
   return (
     <div className="flex flex-col gap-6 max-w-[1440px] mx-auto w-full animate-fade-in text-slate-800">
       {/* Toast Notification */}
@@ -591,14 +597,21 @@ export default function PaymentLinksRedesign({
       </div>
 
       {/* ══════════════════════════════════════════════════════════
-          QUICK CREATE PANEL & INTERACTIVE LINK GENERATOR
+          MASTER PAYMENT LINK CONSOLE (IMAGE 2 DESIGN)
           ══════════════════════════════════════════════════════════ */}
       {showCreateModal && (
-        <div ref={createPanelRef} className="w-full flex justify-center animate-fade-up">
+        <div ref={createPanelRef} className="w-full flex justify-center py-4 bg-slate-100 bg-dot-pattern rounded-2xl border border-slate-200/80 shadow-xs animate-fade-up">
           {/* BEGIN: MasterPaymentLinkConsole */}
-          <main className="w-full max-w-4xl bg-white border border-slate-300 rounded-xl shadow-xl shadow-slate-200/60 overflow-hidden font-sans" data-purpose="payment-generator-card">
+          <main
+            className="w-full max-w-4xl bg-white border border-[#cbd5e1] rounded-xl shadow-xl shadow-slate-200/60 overflow-hidden font-sans"
+            style={{ backgroundColor: '#ffffff', borderColor: '#cbd5e1' }}
+            data-purpose="payment-generator-card"
+          >
             {/* BEGIN: ConsoleHeader */}
-            <header className="border-b border-slate-200 bg-slate-900 px-5 py-4 text-white">
+            <header
+              className="border-b border-slate-800 bg-[#0f172a] px-5 py-4 text-white"
+              style={{ backgroundColor: '#0f172a' }}
+            >
               <div className="flex flex-wrap items-center justify-between gap-3">
                 {/* Left: Status & Title */}
                 <div className="space-y-1">
@@ -645,18 +658,25 @@ export default function PaymentLinksRedesign({
             {/* END: ConsoleHeader */}
 
             {/* BEGIN: FormBody */}
-            <div className="p-5 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="p-5 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6" style={{ backgroundColor: '#ffffff' }}>
               {/* BEGIN: LeftColumn (Amount & Details) */}
               <section aria-labelledby="section-amount-details" className="lg:col-span-7 space-y-5">
                 <h2 className="sr-only" id="section-amount-details">Payment Details and Customer Information</h2>
 
                 {/* Monetary Input Card */}
-                <div className="border border-slate-300 rounded-lg p-4 bg-slate-50/70 shadow-sm" data-purpose="amount-panel">
+                <div
+                  className="rounded-lg p-4 shadow-sm border border-[#cbd5e1]"
+                  style={{ backgroundColor: '#f8fafc', borderColor: '#cbd5e1' }}
+                  data-purpose="amount-panel"
+                >
                   <div className="flex items-center justify-between mb-2">
                     <label className="text-xs font-mono font-bold tracking-wider uppercase text-slate-600" htmlFor="payment-amount">
                       Amount &amp; Denomination
                     </label>
-                    <div className="flex items-center gap-1 bg-white border border-slate-300 rounded px-1.5 py-0.5 text-xs font-mono text-slate-700">
+                    <div
+                      className="flex items-center gap-1 border border-[#cbd5e1] rounded px-1.5 py-0.5 text-xs font-mono text-slate-700"
+                      style={{ backgroundColor: '#ffffff', borderColor: '#cbd5e1' }}
+                    >
                       <button
                         type="button"
                         onClick={() => setCurrency('INR')}
@@ -676,14 +696,18 @@ export default function PaymentLinksRedesign({
                   </div>
 
                   {/* Numeric Hero Input */}
-                  <div className="relative rounded-md shadow-sm border border-slate-300 bg-white focus-within:ring-2 focus-within:ring-blue-600 focus-within:border-blue-600">
+                  <div
+                    className="relative rounded-md shadow-sm border border-[#cbd5e1] focus-within:ring-2 focus-within:ring-blue-600 focus-within:border-blue-600"
+                    style={{ backgroundColor: '#ffffff', borderColor: '#cbd5e1' }}
+                  >
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                       <span className="text-xl sm:text-2xl font-bold font-mono text-slate-500">
                         {currency === 'USD' ? '$' : '₹'}
                       </span>
                     </div>
                     <input
-                      className="block w-full rounded-md border-0 py-2.5 pl-9 pr-16 text-2xl sm:text-3xl font-bold font-mono tracking-tight text-slate-900 tabular-nums focus:ring-0 sm:leading-8 placeholder-slate-400 outline-none"
+                      className="block w-full rounded-md border-0 py-2.5 pl-9 pr-14 text-2xl sm:text-3xl font-bold font-mono tracking-tight text-slate-900 tabular-nums focus:ring-0 sm:leading-8 placeholder-slate-400 outline-none"
+                      style={{ backgroundColor: '#ffffff', color: '#0f172a' }}
                       id="payment-amount"
                       name="amount"
                       placeholder="0.00"
@@ -704,11 +728,11 @@ export default function PaymentLinksRedesign({
                   <div className="mt-3 flex flex-wrap items-center gap-1.5">
                     <span className="text-[11px] font-mono text-slate-600 mr-1 font-semibold">Quick Add:</span>
                     {[
-                      { label: '+₹500', val: 500, style: 'bg-white hover:bg-slate-100 active:bg-slate-200 border-slate-300 text-slate-700' },
-                      { label: '+₹1,000', val: 1000, style: 'bg-white hover:bg-slate-100 active:bg-slate-200 border-slate-300 text-slate-700' },
-                      { label: '+₹2,500', val: 2500, style: 'bg-blue-50/80 border-blue-300 font-bold text-blue-700 hover:bg-blue-100' },
-                      { label: '+₹5,000', val: 5000, style: 'bg-white hover:bg-slate-100 active:bg-slate-200 border-slate-300 text-slate-700' },
-                      { label: '+₹10,000', val: 10000, style: 'bg-white hover:bg-slate-100 active:bg-slate-200 border-slate-300 text-slate-700' },
+                      { label: '+₹500', val: 500, isBlue: false },
+                      { label: '+₹1,000', val: 1000, isBlue: false },
+                      { label: '+₹2,500', val: 2500, isBlue: true },
+                      { label: '+₹5,000', val: 5000, isBlue: false },
+                      { label: '+₹10,000', val: 10000, isBlue: false },
                     ].map((inc) => (
                       <button
                         key={inc.val}
@@ -717,33 +741,32 @@ export default function PaymentLinksRedesign({
                           const curr = parseFloat(amount) || 0;
                           setAmount((curr + inc.val).toFixed(2));
                         }}
-                        className={`px-2 py-1 border rounded text-xs font-mono font-medium transition shadow-2xs hover:border-slate-400 ${inc.style}`}
+                        className={`px-2 py-1 border rounded text-xs font-mono transition shadow-2xs cursor-pointer ${
+                          inc.isBlue
+                            ? 'bg-blue-50/80 border-blue-300 font-bold text-blue-700 hover:bg-blue-100'
+                            : 'bg-white hover:bg-slate-100 active:bg-slate-200 border-[#cbd5e1] font-medium text-slate-700 hover:border-slate-400'
+                        }`}
+                        style={{
+                          backgroundColor: inc.isBlue ? 'rgba(239, 246, 255, 0.8)' : '#ffffff',
+                          borderColor: inc.isBlue ? '#93c5fd' : '#cbd5e1',
+                          color: inc.isBlue ? '#1d4ed8' : '#334155',
+                        }}
                       >
                         {currency === 'USD' ? `+$${inc.val}` : inc.label}
                       </button>
                     ))}
-                    {amount && (
-                      <button
-                        type="button"
-                        onClick={() => setAmount('')}
-                        className="px-2 py-1 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded text-xs font-mono text-slate-500 hover:text-slate-700 transition"
-                        title="Clear amount"
-                      >
-                        Clear
-                      </button>
-                    )}
                   </div>
 
                   {/* Partial Payments Option */}
-                  <div className="mt-3 pt-2.5 border-t border-slate-200 flex items-center justify-between">
+                  <div className="mt-3 pt-2.5 border-t border-[#e2e8f0] flex items-center justify-between">
                     <label className="inline-flex items-center text-xs text-slate-600 cursor-pointer select-none">
                       <input
-                        className="h-3.5 w-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        className="h-3.5 w-3.5 rounded border-[#cbd5e1] text-blue-600 focus:ring-blue-500"
                         type="checkbox"
                         checked={allowPartial}
                         onChange={(e) => setAllowPartial(e.target.checked)}
                       />
-                      <span className="ml-2 font-mono text-[11px]">Allow customer partial payments or custom installments</span>
+                      <span className="ml-2 font-mono text-[11px] text-slate-600">Allow customer partial payments or custom installments</span>
                     </label>
                     <span className="text-[10px] font-mono text-slate-400 uppercase">Optional</span>
                   </div>
@@ -756,7 +779,8 @@ export default function PaymentLinksRedesign({
                       Purpose / Description <span className="text-rose-500">*</span>
                     </label>
                     <input
-                      className="w-full text-xs font-sans border border-slate-300 rounded-md focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-2xs placeholder-slate-400 text-slate-800 py-2 px-3 outline-none"
+                      className="w-full text-xs font-sans rounded-md focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-2xs placeholder-slate-400 py-2 px-3 outline-none border border-[#cbd5e1]"
+                      style={{ backgroundColor: '#ffffff', color: '#0f172a', borderColor: '#cbd5e1' }}
                       id="payment-purpose"
                       name="purpose"
                       placeholder="e.g. Design Invoice #1029"
@@ -773,13 +797,14 @@ export default function PaymentLinksRedesign({
                       <button
                         type="button"
                         onClick={handleRandomRef}
-                        className="text-[10px] font-mono text-blue-600 hover:text-blue-800 transition"
+                        className="text-[10px] font-mono text-blue-600 hover:text-blue-800 transition font-medium"
                       >
                         ⚡ Auto-Gen
                       </button>
                     </div>
                     <input
-                      className="w-full text-xs font-mono uppercase border border-slate-300 rounded-md focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-2xs placeholder-slate-400 text-slate-800 py-2 px-3 bg-slate-50 outline-none"
+                      className="w-full text-xs font-mono uppercase rounded-md focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-2xs placeholder-slate-400 py-2 px-3 outline-none border border-[#cbd5e1]"
+                      style={{ backgroundColor: '#f8fafc', color: '#0f172a', borderColor: '#cbd5e1' }}
                       id="internal-ref"
                       name="internal_ref"
                       placeholder="REF-XXXX"
@@ -791,7 +816,11 @@ export default function PaymentLinksRedesign({
                 </div>
 
                 {/* Customer Notification Details Box */}
-                <div className="border border-slate-300 rounded-lg p-3.5 bg-white space-y-3" data-purpose="customer-info-box">
+                <div
+                  className="rounded-lg p-3.5 space-y-3 border border-[#cbd5e1]"
+                  style={{ backgroundColor: '#ffffff', borderColor: '#cbd5e1' }}
+                  data-purpose="customer-info-box"
+                >
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
                       <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -807,7 +836,8 @@ export default function PaymentLinksRedesign({
                     <div>
                       <label className="block text-[11px] font-mono text-slate-600 uppercase mb-1" htmlFor="customer-name">Customer Name</label>
                       <input
-                        className="w-full text-xs border border-slate-300 rounded-md focus:border-blue-600 focus:ring-1 focus:ring-blue-600 py-1.5 px-2.5 outline-none"
+                        className="w-full text-xs rounded-md focus:border-blue-600 focus:ring-1 focus:ring-blue-600 py-1.5 px-2.5 outline-none border border-[#cbd5e1]"
+                        style={{ backgroundColor: '#ffffff', color: '#0f172a', borderColor: '#cbd5e1' }}
                         id="customer-name"
                         placeholder="Full name"
                         type="text"
@@ -818,7 +848,8 @@ export default function PaymentLinksRedesign({
                     <div>
                       <label className="block text-[11px] font-mono text-slate-600 uppercase mb-1" htmlFor="customer-contact">Phone or Email</label>
                       <input
-                        className="w-full text-xs font-mono border border-slate-300 rounded-md focus:border-blue-600 focus:ring-1 focus:ring-blue-600 py-1.5 px-2.5 outline-none"
+                        className="w-full text-xs font-mono rounded-md focus:border-blue-600 focus:ring-1 focus:ring-blue-600 py-1.5 px-2.5 outline-none border border-[#cbd5e1]"
+                        style={{ backgroundColor: '#ffffff', color: '#0f172a', borderColor: '#cbd5e1' }}
                         id="customer-contact"
                         placeholder="+91 or name@domain.com"
                         type="text"
@@ -831,13 +862,13 @@ export default function PaymentLinksRedesign({
                     </div>
                   </div>
                   {/* Instant Trigger Flags */}
-                  <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center gap-4 text-xs font-mono text-slate-600">
+                  <div className="pt-2 border-t border-[#f1f5f9] flex flex-wrap items-center gap-4 text-xs font-mono text-slate-600">
                     <label className="inline-flex items-center gap-1.5 cursor-pointer select-none">
                       <input
                         type="checkbox"
                         checked={notifySms}
                         onChange={(e) => setNotifySms(e.target.checked)}
-                        className="h-3.5 w-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        className="h-3.5 w-3.5 rounded border-[#cbd5e1] text-blue-600 focus:ring-blue-500"
                       />
                       <span>Notify via SMS</span>
                     </label>
@@ -846,7 +877,7 @@ export default function PaymentLinksRedesign({
                         type="checkbox"
                         checked={notifyWhatsapp}
                         onChange={(e) => setNotifyWhatsapp(e.target.checked)}
-                        className="h-3.5 w-3.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                        className="h-3.5 w-3.5 rounded border-[#cbd5e1] text-emerald-600 focus:ring-emerald-500"
                       />
                       <span className="flex items-center gap-1 text-slate-800 font-medium">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
@@ -872,8 +903,9 @@ export default function PaymentLinksRedesign({
                     className={`flex items-start justify-between p-3 rounded-lg border-2 cursor-pointer shadow-xs transition ${
                       railUpi
                         ? 'border-blue-600 bg-blue-50/40 hover:bg-blue-50/70'
-                        : 'border-slate-200 bg-white hover:border-slate-300 opacity-80'
+                        : 'border-[#cbd5e1] bg-white hover:border-slate-400 opacity-80'
                     }`}
+                    style={{ backgroundColor: railUpi ? 'rgba(239, 246, 255, 0.5)' : '#ffffff' }}
                     data-purpose="rail-bento-upi"
                   >
                     <div className="flex items-start gap-2.5">
@@ -899,9 +931,10 @@ export default function PaymentLinksRedesign({
                   <label
                     className={`flex items-start justify-between p-3 rounded-lg border cursor-pointer shadow-2xs transition ${
                       railImps
-                        ? 'border-slate-300 bg-white hover:border-slate-400'
-                        : 'border-slate-200 bg-slate-50/60 opacity-80'
+                        ? 'border-[#cbd5e1] bg-white hover:border-slate-400'
+                        : 'border-[#e2e8f0] bg-slate-50/60 opacity-80'
                     }`}
+                    style={{ backgroundColor: railImps ? '#ffffff' : '#f8fafc', borderColor: '#cbd5e1' }}
                     data-purpose="rail-bento-imps"
                   >
                     <div className="flex items-start gap-2.5">
@@ -909,7 +942,7 @@ export default function PaymentLinksRedesign({
                         type="checkbox"
                         checked={railImps}
                         onChange={(e) => setRailImps(e.target.checked)}
-                        className="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        className="mt-0.5 h-4 w-4 rounded border-[#cbd5e1] text-blue-600 focus:ring-blue-500"
                       />
                       <div>
                         <span className="text-xs font-bold text-slate-900">Bank IMPS / NEFT</span>
@@ -925,8 +958,9 @@ export default function PaymentLinksRedesign({
                     className={`flex items-start justify-between p-3 rounded-lg border cursor-pointer shadow-2xs transition ${
                       railCrypto
                         ? 'border-purple-400 bg-purple-50/50'
-                        : 'border-slate-200 bg-slate-50 hover:border-slate-300'
+                        : 'border-[#cbd5e1] bg-slate-50 hover:border-slate-400'
                     }`}
+                    style={{ backgroundColor: railCrypto ? '#faf5ff' : '#f8fafc', borderColor: railCrypto ? '#c084fc' : '#cbd5e1' }}
                     data-purpose="rail-bento-usdt"
                   >
                     <div className="flex items-start gap-2.5">
@@ -934,7 +968,7 @@ export default function PaymentLinksRedesign({
                         type="checkbox"
                         checked={railCrypto}
                         onChange={(e) => setRailCrypto(e.target.checked)}
-                        className="mt-0.5 h-4 w-4 rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+                        className="mt-0.5 h-4 w-4 rounded border-[#cbd5e1] text-purple-600 focus:ring-purple-500"
                       />
                       <div>
                         <div className="flex items-center gap-1.5">
@@ -962,8 +996,13 @@ export default function PaymentLinksRedesign({
                           className={`py-1 px-1 border rounded transition cursor-pointer ${
                             linkValidity === term
                               ? 'border-blue-600 bg-blue-600 font-bold text-white shadow-2xs'
-                              : 'border-slate-200 rounded hover:bg-slate-100 text-slate-600'
+                              : 'border-[#cbd5e1] rounded hover:bg-slate-100 text-slate-600 bg-white'
                           }`}
+                          style={{
+                            backgroundColor: linkValidity === term ? '#2563eb' : '#ffffff',
+                            borderColor: linkValidity === term ? '#2563eb' : '#cbd5e1',
+                            color: linkValidity === term ? '#ffffff' : '#475569',
+                          }}
                         >
                           {term}
                         </button>
@@ -973,51 +1012,58 @@ export default function PaymentLinksRedesign({
                 </div>
 
                 {/* Live Link Output & Submit Button Group */}
-                <div className="space-y-3 pt-3 border-t border-slate-200" data-purpose="output-action-group">
-                  {/* Live Preview Pill Card */}
-                  {generatedLinkData && activeUrl ? (
-                    <div className="p-2.5 rounded-lg border border-slate-300 bg-slate-50 text-xs animate-fade-in">
-                      <div className="flex items-center justify-between text-[10px] font-mono uppercase text-slate-600 mb-1">
-                        <span className="font-bold flex items-center gap-1.5 text-emerald-700">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
-                          Generated Link Preview
+                <div className="space-y-3 pt-3 border-t border-[#e2e8f0]" data-purpose="output-action-group">
+                  {/* Live Preview Pill Card — Matching Image 2 */}
+                  <div
+                    className="p-2.5 rounded-lg border border-[#cbd5e1] text-xs shadow-2xs"
+                    style={{ backgroundColor: '#f8fafc', borderColor: '#cbd5e1' }}
+                  >
+                    <div className="flex items-center justify-between text-[10px] font-mono uppercase text-slate-600 mb-1">
+                      <span className="font-bold flex items-center gap-1.5">
+                        <span className={`w-1.5 h-1.5 rounded-full inline-block ${generatedLinkData ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}></span>
+                        Generated Link Preview
+                      </span>
+                      <span className="text-emerald-700 font-bold">HTTPS SECURE</span>
+                    </div>
+                    <div
+                      className="flex items-center justify-between border border-[#cbd5e1] rounded px-2.5 py-1.5"
+                      style={{ backgroundColor: '#ffffff', borderColor: '#cbd5e1' }}
+                    >
+                      <div className="flex items-center gap-2 truncate pr-2">
+                        <svg className="w-3.5 h-3.5 text-blue-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <path clipRule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" fillRule="evenodd"></path>
+                        </svg>
+                        <span className="font-mono text-[11px] text-slate-700 truncate" id="link-url-display">
+                          {activeUrl || previewUrlDynamic}
                         </span>
-                        <span className="text-emerald-700 font-bold">HTTPS SECURE</span>
                       </div>
-                      <div className="flex items-center justify-between bg-white border border-slate-300 rounded px-2.5 py-1.5">
-                        <div className="flex items-center gap-2 truncate pr-2">
-                          <svg className="w-3.5 h-3.5 text-blue-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                            <path clipRule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" fillRule="evenodd"></path>
-                          </svg>
-                          <span className="font-mono text-[11px] text-slate-700 truncate" id="link-url-display">
-                            {activeUrl}
-                          </span>
-                        </div>
-                        <button
-                          onClick={() => copyText(activeUrl, 'Payment Link')}
-                          className={`shrink-0 inline-flex items-center gap-1 font-mono text-[11px] font-bold border px-2 py-0.5 rounded transition cursor-pointer ${
-                            copiedId === activeUrl
-                              ? 'bg-emerald-100 text-emerald-700 border-emerald-300'
-                              : 'text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 border-blue-200'
-                          }`}
-                          id="copy-link-btn"
-                          type="button"
-                        >
-                          {copiedId === activeUrl ? (
-                            <span>✓ Copied</span>
-                          ) : (
-                            <>
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
-                              </svg>
-                              Copy
-                            </>
-                          )}
-                        </button>
-                      </div>
+                      <button
+                        onClick={() => copyText(activeUrl || previewUrlDynamic, 'Payment Link')}
+                        className={`shrink-0 inline-flex items-center gap-1 font-mono text-[11px] font-bold border px-2 py-0.5 rounded transition cursor-pointer ${
+                          copiedId === (activeUrl || previewUrlDynamic)
+                            ? 'bg-emerald-100 text-emerald-700 border-emerald-300'
+                            : 'text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 border-blue-200'
+                        }`}
+                        style={{ backgroundColor: copiedId === (activeUrl || previewUrlDynamic) ? '#d1fae5' : '#eff6ff' }}
+                        id="copy-link-btn"
+                        type="button"
+                      >
+                        {copiedId === (activeUrl || previewUrlDynamic) ? (
+                          <span>✓ Copied</span>
+                        ) : (
+                          <>
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
+                            </svg>
+                            Copy
+                          </>
+                        )}
+                      </button>
+                    </div>
 
-                      {/* Checkout page link & WhatsApp dispatch buttons */}
-                      <div className="mt-2 pt-2 border-t border-slate-200 flex items-center justify-between gap-2">
+                    {/* Direct action buttons when active link exists */}
+                    {generatedLinkData && (
+                      <div className="mt-2 pt-2 border-t border-[#e2e8f0] flex items-center justify-between gap-2 animate-fade-in">
                         <a
                           href={activeUrl}
                           target="_blank"
@@ -1037,23 +1083,8 @@ export default function PaymentLinksRedesign({
                           <span>WhatsApp</span>
                         </button>
                       </div>
-                    </div>
-                  ) : (
-                    /* STANDBY EMPTY STATE — NO DEFAULT LINK SHOWN AS REQUESTED BY USER */
-                    <div className="p-2.5 rounded-lg border border-dashed border-slate-300 bg-slate-50/70 text-xs">
-                      <div className="flex items-center justify-between text-[10px] font-mono uppercase text-slate-500 mb-1">
-                        <span className="font-bold flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-slate-400 inline-block"></span>
-                          Generated Link Preview
-                        </span>
-                        <span className="text-slate-400 font-mono">STANDBY</span>
-                      </div>
-                      <div className="flex items-center justify-between bg-white/70 border border-slate-200 rounded px-2.5 py-1.5 text-slate-400 text-xs font-mono">
-                        <span className="truncate italic">Click &ldquo;Create &amp; Share Payment Link&rdquo; below to activate...</span>
-                        <span className="text-[10px] font-mono text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded shrink-0 ml-2">Awaiting Input</span>
-                      </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
 
                   {/* Main CTA Trigger Button */}
                   <button
@@ -1062,6 +1093,7 @@ export default function PaymentLinksRedesign({
                     className={`w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-mono font-bold text-xs uppercase tracking-wider py-3 px-4 rounded-lg shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2 group cursor-pointer ${
                       isGenerating ? 'opacity-80 cursor-wait' : ''
                     }`}
+                    style={{ backgroundColor: '#2563eb' }}
                     type="button"
                   >
                     {isGenerating ? (

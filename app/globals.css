@@ -208,6 +208,12 @@ body {
 .delay-400 { animation-delay: 400ms; }
 .delay-500 { animation-delay: 500ms; }
 
+/* Subtle dot grid backdrop pattern */
+.bg-dot-pattern {
+  background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
 /* ─── Clean Card ─────────────────────────────────────────── */
 .glass-card {
   background: var(--bg-card);
