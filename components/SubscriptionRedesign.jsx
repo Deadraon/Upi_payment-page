@@ -235,10 +235,9 @@ export default function SubscriptionRedesign({
     setIsCancelling(true);
     try {
       const { error } = await supabase
-        .from('profiles')
+        .from('merchants')
         .update({
-          subscription_status: 'cancelled',
-          updated_at: new Date().toISOString()
+          subscription_status: 'cancelled'
         })
         .eq('id', profile.id);
 
@@ -274,13 +273,18 @@ export default function SubscriptionRedesign({
       const baseDate = currentExpiry > new Date() ? currentExpiry : new Date();
       const newExpiry = new Date(baseDate.getTime() + selectedPlan.durationDays * 24 * 60 * 60 * 1000);
 
+      const setupProgress = {
+        ...(profile?.setup_progress || {}),
+        plan_type: selectedPlan.id,
+        last_payment_at: new Date().toISOString()
+      };
+
       const { error } = await supabase
-        .from('profiles')
+        .from('merchants')
         .update({
           subscription_status: 'active',
-          subscription_plan: selectedPlan.id,
           subscription_expires_at: newExpiry.toISOString(),
-          updated_at: new Date().toISOString()
+          setup_progress: setupProgress
         })
         .eq('id', profile.id);
 

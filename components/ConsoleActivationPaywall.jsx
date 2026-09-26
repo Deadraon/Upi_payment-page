@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { CONFIG } from '@/lib/config';
+import { supabase } from '@/lib/supabase';
 
 export default function ConsoleActivationPaywall({
   profile,
@@ -23,9 +24,20 @@ export default function ConsoleActivationPaywall({
   const [copiedVpa, setCopiedVpa] = useState(false);
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
   const [statusChecking, setStatusChecking] = useState(false);
+  const [statusMsg, setStatusMsg] = useState('');
   const [language, setLanguage] = useState('en'); // 'en' | 'hi'
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showEnterpriseModal, setShowEnterpriseModal] = useState(false);
+
+  // Auto-poll every 2.5 seconds to detect payment confirmation automatically
+  useEffect(() => {
+    if (!user?.id) return;
+    const pollInterval = setInterval(() => {
+      if (fetchProfile) fetchProfile(user.id);
+      if (fetchSubscriptionHistory) fetchSubscriptionHistory(user.id);
+    }, 2500);
+    return () => clearInterval(pollInterval);
+  }, [user?.id, fetchProfile, fetchSubscriptionHistory]);
 
   // Countdown timer for QR
   useEffect(() => {
@@ -118,15 +130,60 @@ export default function ConsoleActivationPaywall({
 
   const handleRefreshStatus = async () => {
     setStatusChecking(true);
+    setStatusMsg('Checking payment status & active orders…');
     try {
-      if (user?.id) {
-        await fetchProfile(user.id);
+      const merchantUid = user?.id || profile?.id;
+      if (merchantUid) {
+        // Direct safety check on recent orders for this merchant
+        const { data: recentOrders } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('external_ref', merchantUid)
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        if (recentOrders && recentOrders.length > 0) {
+          const verifiedOrder = recentOrders.find(o => o.status === 'verified' || o.status === 'completed' || o.status === 'paid');
+          if (verifiedOrder) {
+            const isTrial = verifiedOrder.note?.includes('Trial');
+            const now = new Date();
+            const expiryDate = new Date(now.getTime() + (isTrial ? 3 : 30) * 24 * 60 * 60 * 1000);
+
+            await supabase
+              .from('merchants')
+              .update({
+                subscription_status: 'active',
+                subscription_expires_at: expiryDate.toISOString(),
+                setup_progress: {
+                  trial_activated_at: isTrial ? now.toISOString() : null,
+                  trial_expires_at: isTrial ? expiryDate.toISOString() : null,
+                  subscription_activated_at: !isTrial ? now.toISOString() : null,
+                  plan_type: isTrial ? 'trial_3day' : 'subscription',
+                  last_payment_at: now.toISOString(),
+                  last_order_id: verifiedOrder.id
+                }
+              })
+              .eq('id', merchantUid);
+
+            setStatusMsg('✓ Payment verified! Console successfully unlocked.');
+            await fetchProfile(merchantUid);
+            return;
+          } else {
+            const pendingOrder = recentOrders[0];
+            setStatusMsg(`Payment pending for Order #${pendingOrder.id?.slice(0, 8)}. If paid via UPI, enter 12-digit UTR on checkout page to verify.`);
+          }
+        } else {
+          setStatusMsg('No recent payments detected yet. Please scan QR or click Pay via UPI.');
+        }
+
+        await fetchProfile(merchantUid);
         if (fetchSubscriptionHistory) {
-          await fetchSubscriptionHistory(user.id);
+          await fetchSubscriptionHistory(merchantUid);
         }
       }
     } catch (err) {
       console.error('Status sync error:', err);
+      setStatusMsg('Status check failed. Please check network connection.');
     } finally {
       setStatusChecking(false);
     }
@@ -438,7 +495,7 @@ export default function ConsoleActivationPaywall({
                 <div className="flex-1 text-center sm:text-left">
                   <div className="inline-flex items-center space-x-1.5 bg-sky-100 text-sky-800 px-2.5 py-0.5 rounded-full text-xs font-semibold mb-1.5">
                     <Clock className="w-3.5 h-3.5" />
-                    <span className="font-mono">QR expires in {formatTime(timeLeft)}</span>
+                    <span>QR expires in {formatTime(timeLeft)}</span>
                   </div>
                   
                   <h4 className="text-sm font-bold text-slate-900">
@@ -449,18 +506,59 @@ export default function ConsoleActivationPaywall({
                     Open Google Pay, PhonePe, Paytm, CRED or BHIM on your phone and point camera to complete activation.
                   </p>
 
-                  <div className="mt-2.5 flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                    <a
-                      href={payUrl}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0284c7] hover:bg-[#0369a1] text-white rounded-lg text-xs font-bold transition-all shadow-xs"
-                    >
-                      <span>Pay {currentPlan.priceText} via UPI</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </a>
+                  <div className="mt-3.5 flex flex-col gap-2.5">
+                    <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
+                      <a
+                        href={payUrl}
+                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#0284c7] hover:bg-[#0369a1] text-white rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer"
+                        id="payViaUpiBtn"
+                      >
+                        <span>Pay {currentPlan.priceText} via UPI</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </a>
 
-                    <div className="inline-flex items-center gap-1 text-[11px] text-emerald-700 font-semibold">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>Instant API unlock</span>
+                      <button
+                        onClick={handleRefreshStatus}
+                        disabled={statusChecking}
+                        type="button"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer disabled:opacity-60 active:scale-95"
+                        id="checkPaymentStatusPaywallBtn"
+                      >
+                        <RefreshCw className={`w-3.5 h-3.5 ${statusChecking ? 'animate-spin' : ''}`} />
+                        <span>{statusChecking ? 'Checking…' : 'Check Payment Status'}</span>
+                      </button>
+
+                      <a
+                        href={payUrl}
+                        className="inline-flex items-center gap-1.5 px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-all border border-slate-300/80 cursor-pointer"
+                        title="Redirect to Main Checkout Page"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
+                        <span>Main Checkout Page</span>
+                      </a>
+                    </div>
+
+                    {statusMsg && (
+                      <div className={`p-2.5 rounded-xl text-xs font-semibold flex items-center justify-between gap-2 ${
+                        statusMsg.startsWith('✓') 
+                          ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' 
+                          : 'bg-sky-50 text-sky-800 border border-sky-200'
+                      }`}>
+                        <span className="flex-1">{statusMsg}</span>
+                        {statusMsg.includes('checkout') && (
+                          <a 
+                            href={payUrl} 
+                            className="text-xs font-bold text-sky-700 hover:underline shrink-0"
+                          >
+                            Open Checkout →
+                          </a>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="inline-flex items-center gap-1 text-[11px] text-emerald-700 font-semibold justify-center sm:justify-start">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span>Instant verification &amp; auto-unlock active</span>
                     </div>
                   </div>
                 </div>
@@ -484,7 +582,7 @@ export default function ConsoleActivationPaywall({
                       Merchant UPI ID / VPA
                     </span>
                     <div className="flex items-center space-x-2 mt-0.5">
-                      <span className="font-mono font-bold text-slate-900 text-sm tracking-wide select-all">
+                      <span className="font-bold text-slate-900 text-sm tracking-wide select-all">
                         {merchantVpa}
                       </span>
                     </div>

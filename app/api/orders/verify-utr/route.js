@@ -7,7 +7,7 @@ import { checkAndProcessSubscription } from '@/lib/adminSettings';
 export async function POST(request) {
   try {
     const clientIp = getClientIp(request);
-    const rateLimit = checkRateLimit(`utr_submit_${clientIp}`, 20, 60 * 1000);
+    const rateLimit = checkRateLimit(`utr_submit_${clientIp}`, 30, 60 * 1000);
     if (!rateLimit.allowed) {
       return NextResponse.json(
         { error: 'Too many verification attempts. Please wait.', code: 'RATE_LIMIT_EXCEEDED' },
@@ -29,7 +29,7 @@ export async function POST(request) {
     // 1. Fetch the order
     const { data: order, error: orderErr } = await supabaseAdmin
       .from('orders')
-      .select('id, amount, status, merchant_id, mode')
+      .select('id, amount, status, merchant_id, mode, note, external_ref')
       .eq('id', order_id)
       .single();
 
@@ -51,6 +51,7 @@ export async function POST(request) {
       .select('id')
       .eq('utr', cleanUtr)
       .eq('status', 'verified')
+      .neq('id', order.id)
       .limit(1);
 
     if (existingUtr && existingUtr.length > 0) {
@@ -60,39 +61,43 @@ export async function POST(request) {
       }, { status: 400 });
     }
 
-    // 3. Save customer_utr on the order for high-priority matching when the email arrives
-    await supabaseAdmin
+    // 3. Mark the order verified with the customer's submitted UTR
+    const { data: updatedOrder, error: updateErr } = await supabaseAdmin
       .from('orders')
-      .update({ customer_utr: cleanUtr })
-      .eq('id', order.id);
+      .update({
+        status: 'verified',
+        utr: cleanUtr,
+        customer_utr: cleanUtr,
+        verified_at: new Date().toISOString()
+      })
+      .eq('id', order.id)
+      .select()
+      .single();
 
-    // 4. In test/sandbox mode, auto-verify for smooth developer testing
-    if (order.mode === 'test') {
-      const { data: updatedOrder } = await supabaseAdmin
-        .from('orders')
-        .update({
-          status: 'verified',
-          utr: cleanUtr,
-          verified_at: new Date().toISOString()
-        })
-        .eq('id', order.id)
-        .select()
-        .single();
+    if (updateErr) {
+      console.error('Error verifying order with UTR:', updateErr);
+      return NextResponse.json({ error: updateErr.message }, { status: 500 });
+    }
 
+    // 4. Trigger subscription activation if this order is a subscription / trial setup order
+    try {
+      await checkAndProcessSubscription(updatedOrder, '');
+    } catch (subErr) {
+      console.error('Subscription process error on UTR verify:', subErr);
+    }
+
+    // 5. Trigger outbound merchant webhook
+    try {
       await triggerMerchantWebhook(order.id);
-
-      return NextResponse.json({
-        success: true,
-        verified: true,
-        message: 'Test order verified successfully!',
-        order: updatedOrder
-      }, { status: 200 });
+    } catch (whErr) {
+      console.error('Webhook error on UTR verify:', whErr);
     }
 
     return NextResponse.json({
       success: true,
-      verified: false,
-      message: 'UTR saved. Automatic verification in progress via bank email alert...'
+      verified: true,
+      message: 'Payment verified successfully!',
+      order: updatedOrder
     }, { status: 200 });
 
   } catch (err) {

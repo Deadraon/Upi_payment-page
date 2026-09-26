@@ -276,23 +276,33 @@ function PayPageContent() {
     }
   }, [paramOrderId, paramAmount]);
 
-  /* ── Real-time order verification polling ── */
+  /* ── Real-time order verification polling (Minimum delay) ── */
   useEffect(() => {
     if (!orderId || confirmed) return;
 
-    const interval = setInterval(async () => {
+    let isMounted = true;
+
+    const checkOrderStatus = async () => {
       try {
         const res = await fetch(`/api/orders?id=${orderId}`);
         if (!res.ok) return;
         const data = await res.json();
-        if (data && (data.status === 'verified' || data.status === 'completed' || data.status === 'paid')) {
-          clearInterval(interval);
+        if (isMounted && data && (data.status === 'verified' || data.status === 'completed' || data.status === 'paid')) {
           handleSuccess();
         }
       } catch {}
-    }, 2000);
+    };
 
-    return () => clearInterval(interval);
+    // Immediate check on mount/ID update
+    checkOrderStatus();
+
+    // Fast polling: check every 1000ms for minimum verification latency
+    const interval = setInterval(checkOrderStatus, 1000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, [orderId, confirmed]);
 
   /* ── Countdown timer ── */
@@ -327,29 +337,31 @@ function PayPageContent() {
     setIsChecking(true);
     setCheckMsg('Checking transaction status…');
 
-    if (orderId) {
-      fetch(`/api/orders?id=${orderId}`)
+    const targetId = orderId || activeId;
+    if (targetId) {
+      fetch(`/api/orders?id=${targetId}`)
         .then(r => r.ok ? r.json() : null)
         .then(d => {
-          if (d?.status === 'verified' || d?.status === 'completed') {
+          setIsChecking(false);
+          if (d?.status === 'verified' || d?.status === 'completed' || d?.status === 'paid') {
+            setCheckMsg('✓ Payment verified! Redirecting…');
             handleSuccess();
           } else {
-            setTimeout(() => {
-              setIsChecking(false);
-              setCheckMsg('No payment found yet. It can take a few seconds, so try again shortly.');
-            }, 1800);
+            setCheckMsg('Payment pending. If already paid via UPI, enter your 12-digit UTR below for instant unlock.');
+            setShowUtr(true);
           }
         })
         .catch(() => {
           setIsChecking(false);
           setCheckMsg('Could not verify status. Please enter your 12-digit UTR below.');
+          setShowUtr(true);
         });
     } else {
-      // Demo simulation
       setTimeout(() => {
         setIsChecking(false);
-        handleSuccess();
-      }, 2000);
+        setCheckMsg('Payment pending. If already paid via UPI, enter your 12-digit UTR below for instant unlock.');
+        setShowUtr(true);
+      }, 600);
     }
   }
 
