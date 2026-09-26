@@ -498,61 +498,22 @@ export default function ConsoleActivationPaywall({
                     Open Google Pay, PhonePe, Paytm, CRED or BHIM on your phone and point camera to complete activation.
                   </p>
 
-                  <div className="mt-3.5 flex flex-col gap-2.5">
-                    <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
-                      <a
-                        href={payUrl}
-                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#0284c7] hover:bg-[#0369a1] text-white rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer"
-                        id="payViaUpiBtn"
-                      >
-                        <span>Pay {currentPlan.priceText} via UPI</span>
-                        <ArrowRight className="w-4 h-4" />
-                      </a>
-
-                      <button
-                        onClick={handleRefreshStatus}
-                        disabled={statusChecking}
-                        type="button"
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer disabled:opacity-60 active:scale-95"
-                        id="checkPaymentStatusPaywallBtn"
-                      >
-                        <RefreshCw className={`w-3.5 h-3.5 ${statusChecking ? 'animate-spin' : ''}`} />
-                        <span>{statusChecking ? 'Checking…' : 'Check Payment Status'}</span>
-                      </button>
-
-                      <a
-                        href={payUrl}
-                        className="inline-flex items-center gap-1.5 px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-all border border-slate-300/80 cursor-pointer"
-                        title="Redirect to Main Checkout Page"
-                      >
-                        <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
-                        <span>Main Checkout Page</span>
-                      </a>
-                    </div>
-
-                    {statusMsg && (
-                      <div className={`p-2.5 rounded-xl text-xs font-semibold flex items-center justify-between gap-2 ${
-                        statusMsg.startsWith('✓') 
-                          ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' 
-                          : 'bg-sky-50 text-sky-800 border border-sky-200'
-                      }`}>
-                        <span className="flex-1">{statusMsg}</span>
-                        {statusMsg.includes('checkout') && (
-                          <a 
-                            href={payUrl} 
-                            className="text-xs font-bold text-sky-700 hover:underline shrink-0"
-                          >
-                            Open Checkout →
-                          </a>
-                        )}
-                      </div>
-                    )}
-
-                    <div className="inline-flex items-center gap-1 text-[11px] text-emerald-700 font-semibold justify-center sm:justify-start">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <div className="mt-3 flex items-center justify-center sm:justify-start">
+                    <div className="inline-flex items-center gap-1.5 text-xs text-emerald-700 font-semibold">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                       <span>Instant verification &amp; auto-unlock active</span>
                     </div>
                   </div>
+
+                  {statusMsg && (
+                    <div className={`mt-2 p-2.5 rounded-xl text-xs font-semibold ${
+                      statusMsg.startsWith('✓') 
+                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' 
+                        : 'bg-sky-50 text-sky-800 border border-sky-200'
+                    }`}>
+                      <span>{statusMsg}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
