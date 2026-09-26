@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import QRCode from 'react-qr-code';
 import {
   Link as LinkIcon,
   Copy,
@@ -27,7 +28,10 @@ import {
   Eye,
   Sliders,
   DollarSign,
-  TrendingUp
+  TrendingUp,
+  Zap,
+  QrCode as QrIcon,
+  RotateCcw
 } from 'lucide-react';
 
 // No default starter links — only show links the merchant actually created
@@ -50,9 +54,10 @@ export default function PaymentLinksRedesign({
   const [showCreateModal, setShowCreateModal] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // Active generated preview link
-  const [activeUrl, setActiveUrl] = useState('https://mymob.tech/pay/pl_98xK29La');
-  const [activeLinkId, setActiveLinkId] = useState('pl_98xK29La');
+  // Active generated preview link (null until user clicks generate)
+  const [activeUrl, setActiveUrl] = useState('');
+  const [activeLinkId, setActiveLinkId] = useState('');
+  const [generatedLinkData, setGeneratedLinkData] = useState(null);
 
   // Filter and Search states
   const [statusFilter, setStatusFilter] = useState('All'); // All, Paid, Pending, Expired
@@ -154,11 +159,25 @@ export default function PaymentLinksRedesign({
       for (let i = 0; i < 8; i++) {
         rand += chars.charAt(Math.floor(Math.random() * chars.length));
       }
-      const newUrl = 'https://mymob.tech/pay/pl_' + rand;
+      const host = typeof window !== 'undefined' ? window.location.origin : 'https://mymob.tech';
+      const mockAmt = amount ? parseFloat(amount) : 100;
+      const mockPur = purpose.trim() || 'Payment for Services';
+      const mockRef = refCode.trim() || `REF-${Math.floor(1000 + Math.random() * 9000)}`;
+      const newUrl = `${host}/pay?order_id=MOCK${rand.slice(0, 4)}&amount=${mockAmt.toFixed(2)}&ref=${mockRef}`;
+      
       setActiveUrl(newUrl);
-      const prevUrlEl = document.getElementById('preview-url');
-      if (prevUrlEl) prevUrlEl.innerText = newUrl;
-      showToast('New Link Generated: ' + newUrl);
+      setActiveLinkId('pl_' + rand);
+      setGeneratedLinkData({
+        url: newUrl,
+        id: 'pl_' + rand,
+        orderId: 'MOCK' + rand.slice(0, 4),
+        amount: mockAmt,
+        purpose: mockPur,
+        ref: mockRef,
+        customerName: customerName.trim(),
+        customerPhone: customerPhone.trim(),
+      });
+      showToast('Quick demo payment link generated!');
     };
   }, []);
 
@@ -342,9 +361,19 @@ export default function PaymentLinksRedesign({
 
     setActiveUrl(generatedUrl);
     setActiveLinkId(linkId);
+    setGeneratedLinkData({
+      url: generatedUrl,
+      id: linkId,
+      orderId: dbOrderId || linkId,
+      amount: effectiveAmount,
+      purpose: effectivePurpose,
+      ref: effectiveRef,
+      customerName: customerName.trim(),
+      customerPhone: customerPhone.trim(),
+    });
     setIsGenerating(false);
 
-    showToast('Payment link generated successfully! Link ready to dispatch.');
+    showToast('Payment link generated successfully! Ready to dispatch.');
 
     // Update DOM preview element if present
     const prevUrl = document.getElementById('preview-url');
@@ -555,21 +584,29 @@ export default function PaymentLinksRedesign({
           ref={createPanelRef}
           className="bg-white border border-slate-200/90 rounded-2xl p-6 lg:p-7 shadow-sm transition-all animate-fade-up"
         >
-          <div className="flex flex-col lg:flex-row items-start justify-between gap-6 pb-6 border-b border-slate-100">
+          {/* Header */}
+          <div className="flex flex-col lg:flex-row items-start justify-between gap-4 pb-6 border-b border-slate-100">
             <div>
-              <div className="flex items-center gap-2">
-                <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center shadow-xs">
                   <Sparkles className="w-4 h-4" />
                 </span>
-                <h2 className="text-lg font-bold text-slate-900">
+                <h2 className="text-lg font-bold text-slate-900 tracking-tight">
                   Instant Link Generator Studio
                 </h2>
-                <span className="text-[11px] font-semibold bg-blue-50 text-blue-700 px-2.5 py-0.5 rounded-full border border-blue-100">
+                <span className="text-[11px] font-bold bg-blue-50 text-blue-700 px-2.5 py-0.5 rounded-full border border-blue-100/80">
                   Direct VPA Routing
+                </span>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                  profile?.sandbox_mode !== false 
+                    ? 'bg-amber-50 text-amber-700 border-amber-200' 
+                    : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                }`}>
+                  {profile?.sandbox_mode !== false ? '⚡ Test Mode' : '● Live Mode'}
                 </span>
               </div>
               <p className="text-xs text-slate-500 mt-1">
-                Configure payment parameters to generate instant UPI deep links and QR codes.
+                Configure payment parameters to generate instant UPI deep links and dynamic QR codes with real-time settlement.
               </p>
             </div>
 
@@ -582,9 +619,9 @@ export default function PaymentLinksRedesign({
                   setRefCode('REF-CH-992');
                   setCustomerName('Rohan Sharma');
                   setCustomerPhone('+91 98765 43210');
-                  showToast('Populated with demo parameters');
+                  showToast('Sample data loaded. Click "Generate Payment Link" to activate.');
                 }}
-                className="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 rounded-lg border border-slate-200 transition-colors"
+                className="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 rounded-lg border border-slate-200 transition-colors cursor-pointer"
               >
                 Load Sample Data
               </button>
@@ -596,8 +633,12 @@ export default function PaymentLinksRedesign({
                   setRefCode('');
                   setCustomerName('');
                   setCustomerPhone('');
+                  setGeneratedLinkData(null);
+                  setActiveUrl('');
+                  setActiveLinkId('');
+                  showToast('Form cleared');
                 }}
-                className="px-3 py-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors"
+                className="px-3 py-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
               >
                 Clear Form
               </button>
@@ -616,7 +657,7 @@ export default function PaymentLinksRedesign({
                   >
                     Amount to Request (INR) *
                   </label>
-                  <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full">
+                  <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
                     Zero MDR • Direct Settled
                   </span>
                 </div>
@@ -647,7 +688,7 @@ export default function PaymentLinksRedesign({
                       key={preset}
                       type="button"
                       onClick={() => setAmount(preset.toString())}
-                      className={`text-xs px-2.5 py-1 rounded-md border font-semibold transition-all ${
+                      className={`text-xs px-2.5 py-1 rounded-md border font-semibold transition-all cursor-pointer ${
                         amount === preset.toString()
                           ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
                           : 'bg-white hover:bg-slate-100 text-slate-600 border-slate-200'
@@ -659,7 +700,7 @@ export default function PaymentLinksRedesign({
                   <button
                     type="button"
                     onClick={() => setAmount('')}
-                    className={`text-xs px-2.5 py-1 rounded-md border font-semibold transition-all ${
+                    className={`text-xs px-2.5 py-1 rounded-md border font-semibold transition-all cursor-pointer ${
                       amount === ''
                         ? 'bg-slate-800 text-white border-slate-800'
                         : 'bg-white hover:bg-slate-100 text-slate-600 border-slate-200'
@@ -687,6 +728,19 @@ export default function PaymentLinksRedesign({
                     onChange={(e) => setPurpose(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors font-medium"
                   />
+                  {/* Suggestion pills */}
+                  <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                    {['Consulting', 'Subscription', 'Invoice Settlement', 'Service Fee'].map((item) => (
+                      <button
+                        key={item}
+                        type="button"
+                        onClick={() => setPurpose(item)}
+                        className="text-[10px] text-slate-500 hover:text-blue-600 bg-slate-100 hover:bg-blue-50 px-2 py-0.5 rounded border border-slate-200/60 transition-colors cursor-pointer font-medium"
+                      >
+                        + {item}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <div>
@@ -700,9 +754,9 @@ export default function PaymentLinksRedesign({
                     <button
                       type="button"
                       onClick={handleRandomRef}
-                      className="text-[10px] text-blue-600 hover:text-blue-700 font-semibold"
+                      className="text-[10px] text-blue-600 hover:text-blue-700 font-bold cursor-pointer"
                     >
-                      Auto-Gen
+                      ⚡ Auto-Gen
                     </button>
                   </div>
                   <input
@@ -720,9 +774,9 @@ export default function PaymentLinksRedesign({
               <button
                 type="button"
                 onClick={() => setShowAdvanced(!showAdvanced)}
-                className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 py-1 transition-colors w-fit select-none"
+                className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 py-1 transition-colors w-fit select-none cursor-pointer"
               >
-                <span>{showAdvanced ? 'Hide customer & expiry options' : '+ Add customer details & notifications (optional)'}</span>
+                <span>{showAdvanced ? 'Hide customer & notification options' : '+ Add customer details & notifications (optional)'}</span>
                 <ChevronDown
                   className={`w-3.5 h-3.5 transition-transform duration-200 ${
                     showAdvanced ? 'rotate-180' : ''
@@ -732,7 +786,7 @@ export default function PaymentLinksRedesign({
 
               {/* Advanced Fields */}
               {showAdvanced && (
-                <div className="bg-slate-50/70 p-4 rounded-xl border border-slate-200/80 space-y-4 animate-fade-in">
+                <div className="bg-slate-50/80 p-4.5 rounded-xl border border-slate-200/80 space-y-4 animate-fade-in">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-[11px] uppercase tracking-wider text-slate-600 font-bold mb-1.5">
@@ -760,7 +814,7 @@ export default function PaymentLinksRedesign({
                     </div>
                   </div>
                   <div className="text-[11px] text-slate-500 flex items-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                     <span>Customer details are auto-encrypted and signed with merchant HMAC SHA-256.</span>
                   </div>
                 </div>
@@ -772,6 +826,7 @@ export default function PaymentLinksRedesign({
                   type="submit"
                   disabled={isGenerating}
                   className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md shadow-blue-500/20 transition-all active:scale-[0.98] disabled:opacity-60 cursor-pointer"
+                  id="generatePaymentLinkBtn"
                 >
                   {isGenerating ? (
                     <>
@@ -791,7 +846,7 @@ export default function PaymentLinksRedesign({
                   onClick={() => {
                     if (window.generateMockLink) window.generateMockLink();
                   }}
-                  className="px-4 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors"
+                  className="px-4 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors cursor-pointer"
                   title="Generate quick random preview link"
                 >
                   Quick Random Link
@@ -801,10 +856,10 @@ export default function PaymentLinksRedesign({
 
             {/* Preview Column (5 cols) */}
             <div className="lg:col-span-5 flex flex-col">
-              <div className="bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col h-full overflow-hidden">
+              <div className="bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col h-full overflow-hidden transition-all">
 
                 {/* Header */}
-                <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+                <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-sm shadow-blue-500/20 shrink-0">
                       {profile?.business_name?.charAt(0)?.toUpperCase() || 'M'}
@@ -817,32 +872,42 @@ export default function PaymentLinksRedesign({
                       <p className="text-xs text-slate-400">Payment Request</p>
                     </div>
                   </div>
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-full whitespace-nowrap">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
-                    Live
-                  </span>
+                  
+                  {generatedLinkData ? (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full animate-fade-in">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      Link Active
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-full">
+                      <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                      Draft Preview
+                    </span>
+                  )}
                 </div>
 
                 {/* Amount Block */}
-                <div className="px-5 py-5 border-b border-slate-100 text-center bg-slate-50/60">
-                  <p className="text-xs text-slate-400 uppercase font-semibold tracking-wider mb-1">Amount Due</p>
+                <div className="px-5 py-5 border-b border-slate-100 text-center bg-gradient-to-b from-slate-50/80 to-white">
+                  <p className="text-[11px] text-slate-400 uppercase font-bold tracking-wider mb-1">
+                    {generatedLinkData ? 'Amount Due' : 'Estimated Amount'}
+                  </p>
                   <p
                     id="preview-amount"
-                    className="text-3xl font-black text-slate-900 tracking-tight tabular-nums"
+                    className="text-3xl lg:text-4xl font-black text-slate-900 tracking-tight tabular-nums"
                   >
                     {previewAmountFormatted}
                   </p>
                   <div className="mt-2 flex items-center justify-center gap-2 flex-wrap">
                     <span
                       id="preview-purpose"
-                      className="text-xs font-semibold text-slate-600 bg-white border border-slate-200 px-2.5 py-0.5 rounded-full truncate max-w-[180px]"
+                      className="text-xs font-semibold text-slate-700 bg-white border border-slate-200/90 shadow-2xs px-2.5 py-0.5 rounded-full truncate max-w-[200px]"
                     >
                       {previewPurposeFormatted}
                     </span>
                     {previewRefFormatted !== 'REF-GEN' && (
                       <span
                         id="preview-ref"
-                        className="text-xs font-mono text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full"
+                        className="text-xs font-mono font-medium text-slate-500 bg-slate-100 border border-slate-200/60 px-2 py-0.5 rounded-full"
                       >
                         {previewRefFormatted}
                       </span>
@@ -852,98 +917,185 @@ export default function PaymentLinksRedesign({
 
                 {/* Customer info (if filled) */}
                 {customerName && (
-                  <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2.5 bg-white">
-                    <div className="w-7 h-7 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs font-bold shrink-0">
+                  <div className="px-5 py-2.5 border-b border-slate-100 flex items-center gap-2.5 bg-blue-50/30">
+                    <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-bold shrink-0">
                       {customerName.charAt(0).toUpperCase()}
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold text-slate-800 truncate">{customerName}</p>
-                      {customerPhone && (
-                        <p className="text-xs text-slate-400 truncate">{customerPhone}</p>
-                      )}
+                    <div className="min-w-0 flex-1 flex items-center justify-between text-xs">
+                      <span className="font-semibold text-slate-800 truncate">{customerName}</span>
+                      {customerPhone && <span className="text-slate-500 font-mono text-[11px]">{customerPhone}</span>}
                     </div>
                   </div>
                 )}
 
-                {/* Payment Link URL */}
-                <div className="px-5 py-4 flex-1 flex flex-col justify-center gap-2">
-                  <p className="text-xs text-slate-400 uppercase font-semibold tracking-wider">Payment Link</p>
-                  <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5">
-                    <LinkIcon className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                    <span
-                      id="preview-url"
-                      className="text-xs font-mono text-blue-600 truncate flex-1"
-                      title={activeUrl}
-                    >
-                      {activeUrl}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => copyText(activeUrl, 'Payment URL')}
-                      className="shrink-0 p-1 hover:bg-slate-200 rounded-lg text-slate-400 hover:text-slate-700 transition-colors"
-                      title="Copy URL"
-                    >
-                      {copiedId === activeUrl ? (
-                        <Check className="w-3.5 h-3.5 text-emerald-500" />
-                      ) : (
-                        <Copy className="w-3.5 h-3.5" />
-                      )}
-                    </button>
-                  </div>
+                {/* DYNAMIC CONTENT: PRE-GENERATION VS POST-GENERATION */}
+                {generatedLinkData ? (
+                  /* ── ACTIVE GENERATED STATE ── */
+                  <div className="p-5 flex-1 flex flex-col justify-between gap-4 animate-fade-in">
+                    {/* Link Box */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+                          <LinkIcon className="w-3.5 h-3.5 text-blue-600" />
+                          Generated Payment Link
+                        </span>
+                        <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+                          Ready to Share
+                        </span>
+                      </div>
 
-                  {/* Trust badges */}
-                  <div className="flex items-center gap-3 mt-1">
-                    <span className="flex items-center gap-1 text-xs text-slate-400">
-                      <ShieldCheck className="w-3 h-3 text-emerald-500" />
-                      256-bit SSL
-                    </span>
-                    <span className="flex items-center gap-1 text-xs text-slate-400">
-                      <CheckCircle className="w-3 h-3 text-blue-500" fill="currentColor" />
-                      NPCI Certified
-                    </span>
-                    <span className="flex items-center gap-1 text-xs text-slate-400">
-                      <Receipt className="w-3 h-3 text-indigo-500" />
-                      T+0 Settlement
-                    </span>
-                  </div>
-                </div>
+                      <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 hover:border-blue-300 transition-colors">
+                        <span
+                          id="preview-url"
+                          className="text-xs font-mono font-medium text-blue-600 truncate flex-1 select-all"
+                          title={activeUrl}
+                        >
+                          {activeUrl}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => copyText(activeUrl, 'Payment Link')}
+                          className="shrink-0 p-1.5 hover:bg-white border border-transparent hover:border-slate-200 rounded-lg text-slate-500 hover:text-blue-600 transition-all cursor-pointer shadow-2xs"
+                          title="Copy URL"
+                        >
+                          {copiedId === activeUrl ? (
+                            <Check className="w-4 h-4 text-emerald-600" />
+                          ) : (
+                            <Copy className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
 
-                {/* CTA Buttons */}
-                <div className="px-5 py-4 border-t border-slate-100 flex flex-col gap-2">
-                  <div className="grid grid-cols-2 gap-2.5">
-                    <button
-                      type="button"
-                      onClick={() => copyText(activeUrl, 'Payment URL')}
-                      className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-sm shadow-blue-500/20 transition-all active:scale-[0.98]"
-                    >
-                      <Copy className="w-3.5 h-3.5" />
-                      Copy Link
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => shareWhatsApp({
-                        customerName: customerName || 'Valued Customer',
-                        customerPhone,
-                        amount: amount || '0',
-                        purpose: purpose || 'Payment',
-                        url: activeUrl,
-                      })}
-                      className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-sm shadow-emerald-500/20 transition-all active:scale-[0.98]"
-                    >
-                      <MessageCircle className="w-3.5 h-3.5" />
-                      WhatsApp
-                    </button>
+                    {/* Themed QR Code Box */}
+                    <div className="bg-gradient-to-br from-slate-50 via-blue-50/20 to-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-center gap-3.5">
+                      <div className="w-16 h-16 bg-white rounded-lg p-1 border border-slate-200 shadow-2xs shrink-0 flex items-center justify-center">
+                        <QRCode
+                          value={activeUrl}
+                          size={56}
+                          level="M"
+                          fgColor="#0f172a"
+                          bgColor="#ffffff"
+                          style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                        />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-bold text-slate-900">Direct UPI QR</span>
+                          <span className="text-[9px] font-bold uppercase tracking-wider text-blue-600 bg-blue-50 border border-blue-100 px-1.5 py-0.5 rounded">Auto</span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                          Customer can scan with Google Pay, PhonePe, Paytm, CRED or any UPI app.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Trust Badges */}
+                    <div className="flex items-center justify-between text-[11px] text-slate-400 px-1">
+                      <span className="flex items-center gap-1">
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                        256-bit SSL
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <CheckCircle className="w-3.5 h-3.5 text-blue-500" fill="currentColor" />
+                        NPCI Rails
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Receipt className="w-3.5 h-3.5 text-indigo-500" />
+                        T+0 Direct Settlement
+                      </span>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="space-y-2 pt-1 border-t border-slate-100">
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => copyText(activeUrl, 'Payment Link')}
+                          className="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs border border-blue-200/80 transition-all active:scale-[0.98] cursor-pointer"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                          Copy Link
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => shareWhatsApp({
+                            customerName: customerName || 'Valued Customer',
+                            customerPhone,
+                            amount: amount || '0',
+                            purpose: purpose || 'Payment',
+                            url: activeUrl,
+                          })}
+                          className="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-all active:scale-[0.98] cursor-pointer"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                          Share WhatsApp
+                        </button>
+                      </div>
+
+                      <a
+                        href={activeUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-sm transition-all active:scale-[0.98] group cursor-pointer"
+                        id="goToCheckoutBtn"
+                      >
+                        <span>Go to Checkout Page</span>
+                        <ExternalLink className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                      </a>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setGeneratedLinkData(null);
+                          setActiveUrl('');
+                          setActiveLinkId('');
+                        }}
+                        className="w-full text-center text-xs font-semibold text-slate-500 hover:text-slate-800 py-1 transition-colors cursor-pointer"
+                      >
+                        + Generate Another Payment Link
+                      </button>
+                    </div>
                   </div>
-                  <a
-                    href={activeUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs shadow-sm transition-all active:scale-[0.98] group"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                    Go to Checkout
-                  </a>
-                </div>
+                ) : (
+                  /* ── DRAFT / PRE-GENERATION STATE (No default link, no active checkout) ── */
+                  <div className="p-6 flex-1 flex flex-col items-center justify-center text-center gap-4 animate-fade-in bg-slate-50/30">
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 flex items-center justify-center text-blue-600 shadow-xs">
+                      <Sparkles className="w-7 h-7" />
+                    </div>
+
+                    <div className="max-w-xs space-y-1.5">
+                      <h4 className="text-sm font-bold text-slate-800">
+                        Payment Link Not Generated Yet
+                      </h4>
+                      <p className="text-xs text-slate-500 leading-relaxed">
+                        Enter the amount and purpose on the left, then click{' '}
+                        <strong className="text-blue-600 font-semibold">&ldquo;Generate Payment Link&rdquo;</strong> to produce your secure checkout URL and QR code.
+                      </p>
+                    </div>
+
+                    {/* Feature Highlights */}
+                    <div className="flex flex-wrap items-center justify-center gap-2 pt-1 text-[11px] text-slate-500">
+                      <span className="inline-flex items-center gap-1 bg-white border border-slate-200/80 px-2.5 py-1 rounded-full shadow-2xs font-medium">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                        Dynamic QR & Deep Link
+                      </span>
+                      <span className="inline-flex items-center gap-1 bg-white border border-slate-200/80 px-2.5 py-1 rounded-full shadow-2xs font-medium">
+                        <ShieldCheck className="w-3 h-3 text-blue-500" />
+                        Zero Gateway Fee
+                      </span>
+                    </div>
+
+                    {/* Disabled Placeholder CTA */}
+                    <div className="w-full pt-3 border-t border-slate-200/60 mt-auto">
+                      <div className="w-full py-2.5 px-4 rounded-xl bg-slate-100 text-slate-400 font-medium text-xs border border-dashed border-slate-200 flex items-center justify-center gap-2 select-none cursor-not-allowed">
+                        <LinkIcon className="w-3.5 h-3.5" />
+                        <span>Generate link to activate checkout options</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
               </div>
             </div>
           </div>
