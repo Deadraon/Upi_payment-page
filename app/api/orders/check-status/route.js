@@ -1,0 +1,194 @@
+import { NextResponse } from 'next/server';
+import { supabaseAdmin } from '@/lib/supabase';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
+import { triggerMerchantWebhook } from '@/lib/webhook';
+import { checkAndProcessSubscription } from '@/lib/adminSettings';
+
+export async function POST(request) {
+  try {
+    const clientIp = getClientIp(request);
+    const rateLimit = checkRateLimit(`check_status_${clientIp}`, 60, 60 * 1000);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many status check requests. Please slow down.', code: 'RATE_LIMIT_EXCEEDED' },
+        { status: 429, headers: { 'Retry-After': rateLimit.resetInSeconds.toString() } }
+      );
+    }
+
+    const { order_id } = await request.json();
+    if (!order_id) {
+      return NextResponse.json({ error: 'Order ID is required' }, { status: 400 });
+    }
+
+    // 1. Fetch order
+    const { data: order, error: orderErr } = await supabaseAdmin
+      .from('orders')
+      .select('id, amount, status, note, created_at, mode, utr, customer_utr, merchant_id, project, callback_url, external_ref')
+      .eq('id', order_id)
+      .single();
+
+    if (orderErr || !order) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    }
+
+    // 2. If already verified, return immediately
+    if (order.status === 'verified' || order.status === 'completed' || order.status === 'paid') {
+      return NextResponse.json({
+        success: true,
+        verified: true,
+        status: order.status,
+        message: 'Payment verified successfully!',
+        order
+      }, { status: 200 });
+    }
+
+    // 3. In Test Mode: Auto-verify when user tests the payment
+    if (order.mode === 'test') {
+      const mockUtr = 'TEST_' + Math.floor(100000000000 + Math.random() * 900000000000);
+      const { data: updatedOrder, error: updateErr } = await supabaseAdmin
+        .from('orders')
+        .update({
+          status: 'verified',
+          utr: mockUtr,
+          customer_utr: mockUtr,
+          verified_at: new Date().toISOString()
+        })
+        .eq('id', order.id)
+        .select()
+        .single();
+
+      if (!updateErr && updatedOrder) {
+        try {
+          await triggerMerchantWebhook(order.id);
+        } catch (whErr) {
+          console.error('Webhook error on test order check-status:', whErr);
+        }
+
+        return NextResponse.json({
+          success: true,
+          verified: true,
+          status: 'verified',
+          mode: 'test',
+          message: 'Test payment verified successfully!',
+          order: updatedOrder
+        }, { status: 200 });
+      }
+    }
+
+    // 4. In Live Mode: Check recent bank email alerts
+    const cleanCustomerUtr = order.customer_utr ? String(order.customer_utr).trim() : null;
+
+    // Check if any recent email matches customer UTR
+    if (cleanCustomerUtr && cleanCustomerUtr.length >= 8) {
+      const { data: matchedEmail } = await supabaseAdmin
+        .from('email_logs')
+        .select('*')
+        .ilike('body_snippet', `%${cleanCustomerUtr}%`)
+        .limit(1);
+
+      if (matchedEmail && matchedEmail.length > 0) {
+        const { data: updatedOrder, error: updateErr } = await supabaseAdmin
+          .from('orders')
+          .update({
+            status: 'verified',
+            utr: cleanCustomerUtr,
+            verified_at: new Date().toISOString()
+          })
+          .eq('id', order.id)
+          .select()
+          .single();
+
+        if (!updateErr && updatedOrder) {
+          try {
+            await checkAndProcessSubscription(updatedOrder, '');
+            await triggerMerchantWebhook(order.id);
+          } catch (e) {
+            console.error('Post-verification tasks error:', e);
+          }
+
+          return NextResponse.json({
+            success: true,
+            verified: true,
+            status: 'verified',
+            message: 'Payment verified by bank credit alert!',
+            order: updatedOrder
+          }, { status: 200 });
+        }
+      }
+    }
+
+    // Check recent parsed emails matching exact amount within 30 minutes
+    const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+    const formattedAmt = parseFloat(order.amount).toFixed(2);
+    
+    const { data: recentEmails } = await supabaseAdmin
+      .from('email_logs')
+      .select('*')
+      .gte('created_at', thirtyMinAgo)
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    if (recentEmails && recentEmails.length > 0) {
+      for (const email of recentEmails) {
+        const snippet = email.body_snippet || '';
+        // Check if snippet contains matching amount
+        if (snippet.includes(`AMT: ${formattedAmt}`) || snippet.includes(`INR ${formattedAmt}`) || snippet.includes(`Rs. ${formattedAmt}`) || snippet.includes(`Rs.${formattedAmt}`)) {
+          // Extract UTR from snippet if present
+          const utrMatch = snippet.match(/UTR:\s*([A-Za-z0-9_]+)/i) || snippet.match(/UPI\/([0-9]{12})/i);
+          const foundUtr = utrMatch ? utrMatch[1] : ('UPI' + Date.now().toString().slice(-10));
+
+          // Check if duplicate UTR
+          const { data: dupCheck } = await supabaseAdmin
+            .from('orders')
+            .select('id')
+            .eq('utr', foundUtr)
+            .neq('id', order.id)
+            .limit(1);
+
+          if (!dupCheck || dupCheck.length === 0) {
+            const { data: updatedOrder, error: updateErr } = await supabaseAdmin
+              .from('orders')
+              .update({
+                status: 'verified',
+                utr: foundUtr,
+                customer_utr: foundUtr,
+                verified_at: new Date().toISOString()
+              })
+              .eq('id', order.id)
+              .select()
+              .single();
+
+            if (!updateErr && updatedOrder) {
+              try {
+                await checkAndProcessSubscription(updatedOrder, '');
+                await triggerMerchantWebhook(order.id);
+              } catch (e) {
+                console.error('Post-verification tasks error:', e);
+              }
+
+              return NextResponse.json({
+                success: true,
+                verified: true,
+                status: 'verified',
+                message: 'Payment confirmed via bank credit match!',
+                order: updatedOrder
+              }, { status: 200 });
+            }
+          }
+        }
+      }
+    }
+
+    // 5. Not verified yet
+    return NextResponse.json({
+      success: true,
+      verified: false,
+      status: order.status,
+      message: 'Payment pending bank confirmation. If you already paid via UPI, enter your 12-digit UTR below to verify.'
+    }, { status: 200 });
+
+  } catch (err) {
+    console.error('check-status error:', err);
+    return NextResponse.json({ error: 'Internal server error', message: err.message }, { status: 500 });
+  }
+}

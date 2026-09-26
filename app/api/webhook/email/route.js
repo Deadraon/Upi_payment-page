@@ -58,11 +58,13 @@ export async function POST(request) {
     const parsed = parseTransactionText(emailBody);
     
     // Helper to log emails to the database
-    const logEmail = async (status) => {
+    const logEmail = async (status, extraInfo = '') => {
+      const summaryPrefix = parsed ? `[UTR: ${parsed.utr} | AMT: ${parsed.amount}] ` : '';
+      const snippet = summaryPrefix + (extraInfo ? `[${extraInfo}] ` : '') + emailBody.substring(0, 1000);
       await supabaseAdmin.from('email_logs').insert({
         merchant_id: merchant.id,
         sender: emailSender || 'Unknown',
-        body_snippet: emailBody.substring(0, 150) + (emailBody.length > 150 ? '...' : ''),
+        body_snippet: snippet,
         status: status
       });
     };
@@ -78,19 +80,22 @@ export async function POST(request) {
 
     const { amount, utr } = parsed;
 
-    // 3. Find matching pending order FOR THIS MERCHANT
+    // 3. Find matching pending order (support platform UPI orders when received by admin/platform merchant)
     let matchedOrder = null;
 
     // 3a. Prioritize exact Customer-submitted UTR match if available
     if (utr && utr !== 'UNKNOWN_REF') {
-      const { data: utrOrder } = await supabaseAdmin
+      let utrQuery = supabaseAdmin
         .from('orders')
         .select('*')
         .eq('status', 'pending')
-        .eq('customer_utr', utr)
-        .eq('merchant_id', merchant.id)
-        .limit(1);
+        .eq('customer_utr', utr);
 
+      if (!isAdminMerchant) {
+        utrQuery = utrQuery.eq('merchant_id', merchant.id);
+      }
+
+      const { data: utrOrder } = await utrQuery.limit(1);
       if (utrOrder && utrOrder.length > 0) {
         matchedOrder = utrOrder[0];
       }
@@ -98,12 +103,17 @@ export async function POST(request) {
 
     // 3b. Fallback: match by exact amount (supported by unique paise offset)
     if (!matchedOrder) {
-      const { data: order, error: findError } = await supabaseAdmin
+      let amountQuery = supabaseAdmin
         .from('orders')
         .select('*')
         .eq('status', 'pending')
-        .eq('amount', amount)
-        .eq('merchant_id', merchant.id)
+        .eq('amount', amount);
+
+      if (!isAdminMerchant) {
+        amountQuery = amountQuery.eq('merchant_id', merchant.id);
+      }
+
+      const { data: orders, error: findError } = await amountQuery
         .order('created_at', { ascending: false })
         .limit(1);
 
@@ -112,17 +122,17 @@ export async function POST(request) {
         return NextResponse.json({ error: findError.message }, { status: 500 });
       }
 
-      if (order && order.length > 0) {
-        matchedOrder = order[0];
+      if (orders && orders.length > 0) {
+        matchedOrder = orders[0];
       }
     }
 
     if (!matchedOrder) {
-      await logEmail('parsed'); // It was parsed, but no matching order found
+      await logEmail('parsed', `No order found for amount ${amount}`); // Parsed, but no matching order found
       return NextResponse.json({
         success: false,
         code: 'ORDER_NOT_FOUND',
-        message: `No matching pending order found for amount ${amount} on this merchant account.`,
+        message: `No matching pending order found for amount ${amount}.`,
         parsed: { amount, utr }
       }, { status: 200 });
     }

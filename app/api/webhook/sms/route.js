@@ -60,7 +60,7 @@ export async function POST(request) {
               isSubActive = false;
           }
        }
-       const isAdminMerchant = merchant.id === '677d9312-a53f-4b96-815f-53e0eee1b292' || apiKey === CONFIG.platformApiKey || secret === CONFIG.platformApiKey;
+       const isAdminMerchant = merchant.id === '677d9312-a53f-4b96-815f-53e0eee1b292' || merchant.id === 'dd45279e-7a2c-413c-9e24-24d88011b680' || apiKey === CONFIG.platformApiKey || secret === CONFIG.platformApiKey;
        if (!isSubActive && !isAdminMerchant) {
          return NextResponse.json({ error: 'Merchant subscription is inactive or expired' }, { status: 403 });
        }
@@ -83,14 +83,16 @@ export async function POST(request) {
 
     const { amount, utr } = parsed;
 
-    // Find the most recent pending order matching the amount (isolated by merchant if authenticated)
+    const isPlatformReceiver = merchant ? (merchant.id === '677d9312-a53f-4b96-815f-53e0eee1b292' || merchant.id === 'dd45279e-7a2c-413c-9e24-24d88011b680' || apiKey === CONFIG.platformApiKey || secret === CONFIG.platformApiKey) : false;
+
+    // Find the most recent pending order matching the amount (isolated by merchant unless platform receiver)
     let orderQuery = supabaseAdmin
       .from('orders')
       .select('*')
       .eq('status', 'pending')
       .eq('amount', amount);
       
-    if (merchant) {
+    if (merchant && !isPlatformReceiver) {
       orderQuery = orderQuery.eq('merchant_id', merchant.id);
     }
 

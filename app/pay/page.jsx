@@ -341,33 +341,49 @@ function PayPageContent() {
   }
 
   /* ── Check Status CTA Handler ── */
-  function triggerChecking() {
+  async function triggerChecking() {
     if (isChecking) return;
     setIsChecking(true);
     setCheckMsg('Checking transaction status…');
 
     const targetId = orderId || activeId;
-    if (targetId) {
-      fetch(`/api/orders?id=${targetId}`)
-        .then(r => r.ok ? r.json() : null)
-        .then(d => {
-          setIsChecking(false);
-          if (d?.status === 'verified' || d?.status === 'completed' || d?.status === 'paid') {
-            setCheckMsg('✓ Payment verified! Redirecting…');
-            handleSuccess();
-          } else {
-            setCheckMsg('Payment pending bank confirmation. If already paid via UPI, enter your 12-digit UTR below.');
-            setShowUtr(true);
-          }
-        })
-        .catch(() => {
-          setIsChecking(false);
-          setCheckMsg('Could not verify status. If already paid, enter your 12-digit UTR below.');
-          setShowUtr(true);
-        });
-    } else {
+    if (!targetId) {
       setIsChecking(false);
       setCheckMsg('Payment session initializing. Please wait a moment.');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/orders/check-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order_id: targetId })
+      });
+
+      const data = await res.json();
+      if (res.ok && data?.verified) {
+        setCheckMsg('✓ Payment verified! Redirecting…');
+        handleSuccess();
+        return;
+      }
+
+      setCheckMsg(data?.message || 'Payment pending bank confirmation. If already paid via UPI, enter your 12-digit UTR below.');
+      setShowUtr(true);
+    } catch (err) {
+      console.error('Status check error:', err);
+      try {
+        const fallbackRes = await fetch(`/api/orders?id=${targetId}`);
+        const fallbackData = await fallbackRes.json();
+        if (fallbackData?.status === 'verified') {
+          setCheckMsg('✓ Payment verified! Redirecting…');
+          handleSuccess();
+          return;
+        }
+      } catch {}
+      setCheckMsg('Payment pending bank confirmation. If already paid via UPI, enter your 12-digit UTR below.');
+      setShowUtr(true);
+    } finally {
+      setIsChecking(false);
     }
   }
 

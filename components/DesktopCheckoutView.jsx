@@ -929,13 +929,17 @@ export default function DesktopCheckoutView({
                         </button>
 
                         {checkMsg && (
-                          <p className="text-center text-xs font-semibold text-on-surface-variant mt-1.5 animate-fade-in">
+                          <div className={`p-2.5 rounded-lg text-xs font-semibold mt-2 text-center leading-relaxed animate-fade-in ${
+                            checkMsg.startsWith('✓') 
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                              : 'bg-blue-50/90 text-blue-900 border border-blue-200/80 shadow-2xs'
+                          }`}>
                             {checkMsg}
-                          </p>
+                          </div>
                         )}
 
                         {/* UTR Verification Drawer */}
-                        <div className="rounded-xl border border-surface-container bg-surface-container-low/70 overflow-hidden mt-2">
+                        <div className={`rounded-xl border transition-all overflow-hidden mt-2 ${showUtr ? 'border-secondary/40 ring-2 ring-secondary/15 bg-surface-container-lowest' : 'border-surface-container bg-surface-container-low/70'}`}>
                           <button
                             type="button"
                             className="w-full px-3.5 py-2.5 flex items-center justify-between text-xs font-semibold text-secondary hover:bg-surface-container-high/50 transition-colors cursor-pointer"
@@ -946,7 +950,7 @@ export default function DesktopCheckoutView({
                               <IconVerified className="w-3.5 h-3.5 text-secondary flex-shrink-0" />
                               <span>Paid via UPI app? Enter 12-digit UTR to verify</span>
                             </span>
-                            <span className={`transform transition-transform text-sm ${showUtr ? 'rotate-90' : ''}`}>›</span>
+                            <span className={`transform transition-transform text-sm font-bold ${showUtr ? 'rotate-90' : ''}`}>›</span>
                           </button>
 
                           {showUtr && (
@@ -960,17 +964,23 @@ export default function DesktopCheckoutView({
                                   placeholder="Enter 12-digit UTR / Ref Number"
                                   value={utr || ''}
                                   onChange={(e) => setUtr && setUtr(e.target.value.replace(/\D/g, '').slice(0, 16))}
-                                  className="flex-1 h-10 px-3 rounded-lg border border-outline-variant/50 text-xs font-mono text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:border-secondary"
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && utr && utr.length >= 8 && !utrBusy) {
+                                      submitUtr(e);
+                                    }
+                                  }}
+                                  autoFocus
+                                  className="flex-1 h-10 px-3 rounded-lg border border-outline-variant/60 text-xs font-mono text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/30"
                                   id="utrInputDesktop"
                                 />
                                 <button
                                   type="button"
                                   disabled={!utr || utr.length < 8 || utrBusy}
                                   onClick={submitUtr}
-                                  className="h-10 px-4 rounded-lg bg-secondary text-on-secondary text-xs font-bold hover:bg-[#0038b7] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center shrink-0"
+                                  className="h-10 px-4 rounded-lg bg-secondary text-on-secondary text-xs font-bold hover:bg-[#0038b7] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center shrink-0 shadow-xs"
                                   id="verifyUtrDesktopBtn"
                                 >
-                                  {utrBusy ? '…' : 'Verify'}
+                                  {utrBusy ? '…' : 'Verify UTR'}
                                 </button>
                               </div>
                               {utrMsg && (
