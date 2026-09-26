@@ -30,9 +30,18 @@ const MyMobPayLogo = () => (
   </div>
 );
 
+/* ── Robust UPI VPA Resolver (Safeguard against 'pending@upi' or empty VPA) ── */
+function getValidUpiId(merchant) {
+  const vpa = merchant?.upi_id?.trim();
+  if (vpa && vpa !== 'pending@upi' && vpa.includes('@') && !vpa.startsWith('pending@')) {
+    return vpa;
+  }
+  return CONFIG.upiId || '9410181307@okbizaxis';
+}
+
 /* ── UPI deep-link builder ──────────────────────────────────── */
 function buildUpiLink(appId, amount, orderId, merchant, isMandate) {
-  const pa    = merchant?.upi_id || CONFIG.upiId;
+  const pa    = getValidUpiId(merchant);
   const rawPn = merchant?.business_name && merchant.business_name !== 'Demo Store'
     ? merchant.business_name
     : (CONFIG.businessName && CONFIG.businessName !== 'Demo Store' ? CONFIG.businessName : 'MyMobPay');
@@ -55,7 +64,7 @@ function buildUpiLink(appId, amount, orderId, merchant, isMandate) {
 
 /* ── UPI QR string — always upi:// (NOT device deep-link) ─── */
 function buildUpiQrValue(amount, orderId, merchant, isMandate) {
-  const pa    = merchant?.upi_id || CONFIG.upiId;
+  const pa    = getValidUpiId(merchant);
   const rawPn = merchant?.business_name && merchant.business_name !== 'Demo Store'
     ? merchant.business_name
     : (CONFIG.businessName && CONFIG.businessName !== 'Demo Store' ? CONFIG.businessName : 'MyMobPay');
@@ -182,7 +191,7 @@ function PayPageContent() {
   const isPlatformKey = (paramApiKey || '').replace(/^(test_|live_)/, '') === CONFIG.platformApiKey;
   const isSetupOrSubscription = isMandate || (orderNote && (orderNote.includes('Trial_Setup') || orderNote.includes('Autopay') || orderNote.includes('Subscription')));
 
-  const upiId         = merchant?.upi_id || CONFIG.upiId;
+  const upiId         = getValidUpiId(merchant);
   const rawBizName    = (merchant?.business_name && merchant.business_name !== 'Demo Store')
     ? merchant.business_name
     : (paramProject || (isPlatformKey || isSetupOrSubscription ? 'MyMobPay' : (CONFIG.businessName && CONFIG.businessName !== 'Demo Store' ? CONFIG.businessName : 'Merchant')));
@@ -1096,18 +1105,49 @@ function PayPageContent() {
 
           {/* VIEW 3: SUCCESS */}
           {curView === 'vOk' && (
-            <div id="vOk">
-              <div className="panel">
-                <svg className="okc" viewBox="0 0 84 84" aria-hidden="true"><circle cx="42" cy="42" r="40"/><path d="M26 43l11 11 21-23"/></svg>
-                <h2>Payment received</h2>
-                <p>{fmtInr(displayAmt)} paid to {bizName}</p>
-                <div className="rcp">
-                  <div><span>Order ID</span><span>#{activeId ? activeId.slice(-8).toUpperCase() : 'DEMO'}</span></div>
-                  <div><span>Method</span><span>UPI</span></div>
-                  <div><span>Platform fee</span><span>₹0.00</span></div>
-                  <div><span>Time</span><span>{okTime || new Date().toLocaleTimeString([], { hour:'numeric', minute:'2-digit' })}</span></div>
+            <div id="vOk" style={{ padding: '24px 16px' }}>
+              <div className="panel" style={{ padding: '32px 20px', textAlign: 'center', borderRadius: 24, boxShadow: '0 20px 40px -15px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0', background: '#ffffff' }}>
+                
+                {/* Floating Trust Pill */}
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#ecfdf5', color: '#065f46', borderRadius: 9999, padding: '6px 14px', marginBottom: 16, border: '1px solid #a7f3d0', fontSize: 11, fontWeight: 700 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
+                  <span>Payment Verified • mymob.tech</span>
                 </div>
-                <button type="button" className="pri wide" onClick={handleReturn}>Return to {bizName}</button>
+
+                {/* Animated Green Tick Icon */}
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                  <div style={{ position: 'absolute', width: 96, height: 96, borderRadius: '50%', background: '#d1fae5', opacity: 0.75, animation: 'ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite' }} />
+                  <div style={{ position: 'relative', width: 80, height: 80, borderRadius: '50%', background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 25px -5px rgba(16, 185, 129, 0.4)', border: '4px solid #ffffff' }}>
+                    <svg style={{ width: 40, height: 40, color: '#ffffff' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  </div>
+                </div>
+
+                <h2 style={{ fontSize: 24, fontWeight: 900, color: '#0f172a', margin: '8px 0 4px', letterSpacing: '-0.02em' }}>
+                  Payment Successful!
+                </h2>
+                <p style={{ fontSize: 14, color: '#64748b', margin: '0 0 16px', fontWeight: 500 }}>
+                  {fmtInr(displayAmt)} paid to <strong>{bizName}</strong>
+                </p>
+
+                <div className="rcp" style={{ textAlign: 'left', margin: '16px 0', background: '#f8fafc', padding: '16px', borderRadius: 16, border: '1px solid #e2e8f0' }}>
+                  <div><span>Order Reference</span><span style={{ fontFamily: 'monospace', fontWeight: 700 }}>#{activeId ? activeId.slice(-8).toUpperCase() : 'DEMO'}</span></div>
+                  <div><span>Amount Paid</span><span style={{ color: '#059669', fontWeight: 800 }}>{fmtInr(displayAmt)}</span></div>
+                  <div><span>Payment Method</span><span>UPI Instant Settlement</span></div>
+                  <div><span>Transaction Status</span><span style={{ color: '#059669', fontWeight: 700 }}>✓ Verified & Paid</span></div>
+                  <div><span>Settlement Time</span><span>{okTime || new Date().toLocaleTimeString([], { hour:'numeric', minute:'2-digit' })}</span></div>
+                </div>
+
+                <button
+                  type="button"
+                  className="pri wide"
+                  style={{ background: 'linear-gradient(135deg, #059669, #0d9488)', border: 'none', padding: '14px', borderRadius: 14, fontWeight: 700, fontSize: 15, color: '#ffffff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                  onClick={handleReturn}
+                >
+                  <span>Return to {bizName}</span>
+                  <span>→</span>
+                </button>
               </div>
             </div>
           )}

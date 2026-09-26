@@ -35,9 +35,13 @@ export async function GET(req) {
     }
 
     // Never return the api_key itself or webhook_urls to the client
+    const safeUpiId = (data.upi_id && data.upi_id !== 'pending@upi' && data.upi_id.includes('@')) 
+      ? data.upi_id 
+      : CONFIG.upiId;
+
     return NextResponse.json({
       business_name: data.business_name,
-      upi_id: data.upi_id,
+      upi_id: safeUpiId,
       theme_color: data.theme_color,
       bank_account_number: data.bank_account_number,
       bank_ifsc: data.bank_ifsc,

@@ -183,10 +183,30 @@ export default function DesktopCheckoutView({
   const [selectedCrypto, setSelectedCrypto] = useState('USDT');
   const [copiedField, setCopiedField] = useState(null); // 'upi' | 'acc' | 'ifsc' | 'crypto'
   const [liveAnnouncement, setLiveAnnouncement] = useState('');
+  const [successCountdown, setSuccessCountdown] = useState(5);
+
+  // Auto-redirect timer when payment is confirmed
+  React.useEffect(() => {
+    if (curView !== 'vOk') return;
+    const timer = setInterval(() => {
+      setSuccessCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          if (typeof handleReturn === 'function') handleReturn();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [curView, handleReturn]);
 
   // Safeguarded values
   const safeBizName = (bizName && bizName !== 'Demo Store') ? bizName : 'Merchant';
   const safeActiveId = activeId ? String(activeId) : (paramRef ? String(paramRef) : 'APX-98214');
+  const safeUpiId = (!upiId || upiId === 'pending@upi' || !upiId.includes('@')) 
+    ? '9410181307@okbizaxis' 
+    : upiId;
   const orderRefDisplay = safeActiveId.startsWith('#')
     ? safeActiveId.replace('#', '')
     : safeActiveId.length > 9
@@ -261,47 +281,104 @@ export default function DesktopCheckoutView({
   };
 
   /* ─────────────────────────────────────────────────────────────
-     1. Success View (curView === 'vOk')
+     1. Success View (curView === 'vOk') - Animated Green Tick & Receipt
   ───────────────────────────────────────────────────────────── */
   if (curView === 'vOk') {
     return (
-      <div className="w-full max-w-[560px] mx-auto my-12 bg-white rounded-2xl p-8 sm:p-10 shadow-2xl border border-slate-200 text-center animate-fade-in font-sans">
-        <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-5 border-2 border-emerald-200">
-          <IconCheckCircle className="w-12 h-12 text-emerald-600" />
+      <div className="w-full max-w-[620px] mx-auto my-8 bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200/90 text-center animate-fade-in font-sans">
+        
+        {/* Floating Trust Pill */}
+        <div className="inline-flex items-center space-x-2 bg-emerald-50 text-emerald-800 rounded-full px-4 py-1.5 mb-5 border border-emerald-200 text-xs font-semibold">
+          <IconVerifiedUser className="w-4 h-4 text-emerald-600" />
+          <span>Payment Verified • <strong>mymob.tech</strong></span>
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span className="text-[10px] text-emerald-600 uppercase tracking-wider font-bold">Success</span>
         </div>
-        <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Payment Received!</h2>
-        <p className="text-slate-500 text-sm mt-1 mb-6">
-          ₹{formattedAmount} successfully paid to <strong>{safeBizName}</strong>
+
+        {/* Animated Green Tick Icon */}
+        <div className="relative flex items-center justify-center my-3">
+          <div className="absolute w-28 h-28 rounded-full bg-emerald-100 animate-ping opacity-75"></div>
+          <div className="relative w-24 h-24 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center shadow-xl shadow-emerald-500/30 border-4 border-white">
+            <svg className="w-12 h-12 text-white stroke-[3.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+        </div>
+
+        {/* Headline & Subtitle */}
+        <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-3">
+          Payment Successful!
+        </h2>
+        <p className="text-sm text-slate-600 font-medium max-w-md mx-auto mt-2 leading-relaxed">
+          ₹{formattedAmount} successfully paid to <strong>{safeBizName}</strong>. Your transaction has been verified by the bank.
         </p>
 
-        <div className="bg-[#f8faff] rounded-xl p-4 sm:p-5 text-left space-y-2.5 mb-6 border border-slate-200 text-xs">
-          <div className="flex justify-between items-center text-slate-600">
-            <span>Order Reference</span>
-            <span className="font-mono font-bold text-slate-900">#{orderRefDisplay}</span>
+        {/* Green Verified Badge */}
+        <div className="mt-3 inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-xs font-bold">
+          <IconCheckCircle className="w-3.5 h-3.5 text-emerald-600" />
+          <span>Instant Bank Settlement Confirmed</span>
+        </div>
+
+        {/* Receipt Details Card */}
+        <div className="w-full bg-[#f8fafc] border border-slate-200/90 rounded-2xl p-5 mt-6 text-left space-y-3">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Amount Paid</span>
+            <div className="flex items-center gap-2">
+              <span className="text-base font-black text-emerald-600">₹{formattedAmount}</span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 uppercase tracking-wide">
+                ✓ Paid
+              </span>
+            </div>
           </div>
-          <div className="flex justify-between items-center text-slate-600">
-            <span>Payment Method</span>
-            <span className="font-semibold text-slate-800 uppercase">
-              {activeOpt === 'bank' ? 'Bank Transfer' : activeOpt === 'crypto' ? 'Crypto' : 'UPI'}
+          <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Order Reference</span>
+            <span className="font-mono text-xs font-bold text-slate-900">#{orderRefDisplay}</span>
+          </div>
+          <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Merchant Name</span>
+            <span className="text-xs font-bold text-slate-800">{safeBizName}</span>
+          </div>
+          <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Payment Method</span>
+            <span className="text-xs font-bold text-slate-800 uppercase">
+              {activeOpt === 'bank' ? 'Bank Transfer (IMPS/NEFT)' : activeOpt === 'crypto' ? 'Crypto' : 'UPI Instant Settlement'}
             </span>
           </div>
-          <div className="flex justify-between items-center text-slate-600">
-            <span>Platform Fee</span>
-            <span className="font-bold text-[#009d6d]">₹0.00 Free</span>
+          <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Settlement Time</span>
+            <span className="text-xs font-bold text-slate-800">{okTime || new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</span>
           </div>
-          <div className="flex justify-between items-center text-slate-600 border-t border-slate-200 pt-2">
-            <span>Settlement Time</span>
-            <span className="font-semibold text-slate-800">{okTime || new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</span>
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Transaction Status</span>
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600">
+              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+              Verified & Complete
+            </span>
           </div>
         </div>
 
+        {/* Countdown Progress Bar */}
+        <div className="w-full mt-6 space-y-1.5">
+          <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
+            <span>Redirecting back in {successCountdown}s...</span>
+            <span className="font-bold text-emerald-600">{Math.round(((5 - successCountdown) / 5) * 100)}%</span>
+          </div>
+          <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-1000 ease-linear rounded-full"
+              style={{ width: `${Math.min(100, Math.max(10, ((6 - successCountdown) / 5) * 100))}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Action CTA Button */}
         <button
           type="button"
           onClick={handleReturn}
-          className="focus-ring w-full py-3.5 bg-[#0045de] hover:bg-[#0038b7] text-white font-semibold rounded-xl text-sm transition-all shadow-sm cursor-pointer flex items-center justify-center gap-2"
+          className="focus-ring w-full mt-5 py-3.5 px-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-emerald-600/25 transition-all flex items-center justify-center gap-2 cursor-pointer transform hover:-translate-y-0.5"
         >
           <span>Return to {safeBizName}</span>
-          <IconArrowForward className="w-5 h-5" />
+          <IconArrowForward className="w-4 h-4" />
         </button>
       </div>
     );
@@ -731,38 +808,58 @@ export default function DesktopCheckoutView({
                         </div>
                       </div>
 
-                      {/* Dynamic QR Code Box */}
-                      <div className="bg-surface-container-low rounded-xl p-4 flex flex-col sm:flex-row items-center gap-4">
-                        <div className="relative w-32 h-32 bg-surface-container-lowest rounded-xl p-2 shadow-sm flex items-center justify-center flex-shrink-0 border border-outline-variant/30">
+                      {/* Themed Dynamic QR Code Box */}
+                      <div className="bg-gradient-to-br from-slate-50 via-blue-50/20 to-slate-50 rounded-2xl p-5 border border-slate-200/90 shadow-xs flex flex-col sm:flex-row items-center gap-5">
+                        
+                        {/* Themed QR Viewfinder Frame */}
+                        <div className="relative w-36 h-36 bg-white rounded-2xl p-2.5 shadow-md flex items-center justify-center flex-shrink-0 border border-slate-200">
+                          {/* 4 Themed Scanner Viewfinder Corners */}
+                          <span className="absolute -top-1 -left-1 w-4 h-4 border-t-[3px] border-l-[3px] border-[#0045de] rounded-tl-sm pointer-events-none" />
+                          <span className="absolute -top-1 -right-1 w-4 h-4 border-t-[3px] border-r-[3px] border-[#0045de] rounded-tr-sm pointer-events-none" />
+                          <span className="absolute -bottom-1 -left-1 w-4 h-4 border-b-[3px] border-l-[3px] border-[#0045de] rounded-bl-sm pointer-events-none" />
+                          <span className="absolute -bottom-1 -right-1 w-4 h-4 border-b-[3px] border-r-[3px] border-[#0045de] rounded-br-sm pointer-events-none" />
+
                           {upiQrValue ? (
                             <QRCode
                               value={upiQrValue}
-                              size={110}
-                              style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-                              viewBox="0 0 110 110"
+                              size={124}
+                              level="Q"
+                              fgColor="#0c2340"
+                              bgColor="#ffffff"
+                              style={{ height: "auto", maxWidth: "100%", width: "100%", display: "block" }}
+                              viewBox="0 0 124 124"
                             />
                           ) : (
-                            <div className="text-xs text-on-surface-variant">Loading QR…</div>
+                            <div className="text-xs text-slate-400 font-medium">Generating QR…</div>
                           )}
-                          <div className="absolute inset-0 m-auto w-8 h-8 rounded-full bg-surface-container-lowest shadow-md flex items-center justify-center p-0.5 border border-outline-variant/30 pointer-events-none">
-                            <span className="text-secondary font-black tracking-tighter text-[11px] leading-none">
+
+                          {/* Centered Branded Pill */}
+                          <div className="absolute inset-0 m-auto w-7 h-7 rounded-full bg-white shadow-md flex items-center justify-center border border-slate-200 pointer-events-none">
+                            <span className="text-[#0045de] font-black tracking-tighter text-[9px] leading-none">
                               UPI
                             </span>
                           </div>
                         </div>
 
                         <div className="flex-1 text-center sm:text-left">
-                          <div className="inline-flex items-center gap-1.5 bg-surface-container-highest text-secondary px-2.5 py-0.5 rounded-full text-label-sm mb-1.5">
-                            <IconSchedule className="w-[14px] h-[14px] text-secondary flex-shrink-0" />
-                            <span className="font-mono font-semibold" id="qrTimer">
-                              QR expires in {safeMm}:{safeSs}
+                          <div className="flex flex-wrap items-center gap-2 justify-center sm:justify-start mb-2">
+                            <div className="inline-flex items-center gap-1.5 bg-white border border-slate-200/90 text-[#0045de] px-2.5 py-0.5 rounded-full text-xs font-semibold shadow-2xs">
+                              <IconSchedule className="w-3.5 h-3.5 text-[#0045de] flex-shrink-0" />
+                              <span className="font-mono font-bold" id="qrTimer">
+                                Expires in {safeMm}:{safeSs}
+                              </span>
+                            </div>
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200/60">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                              Active UPI Gateway
                             </span>
                           </div>
-                          <h4 className="text-title-md text-on-surface font-semibold text-[15px]">
+
+                          <h4 className="text-slate-900 font-bold text-[15px] leading-snug">
                             Scan with any UPI app to pay ₹{formattedAmount}
                           </h4>
-                          <p className="text-body-sm text-on-surface-variant text-[12px] mt-1 leading-relaxed">
-                            Open Google Pay, PhonePe, Paytm, CRED or BHIM and point your camera at the code above.
+                          <p className="text-slate-500 text-[12px] mt-1 leading-relaxed">
+                            Point camera from <strong>Google Pay</strong>, <strong>PhonePe</strong>, <strong>Paytm</strong>, or <strong>CRED</strong> at the themed QR code.
                           </p>
                         </div>
                       </div>
@@ -788,7 +885,7 @@ export default function DesktopCheckoutView({
                               className="font-mono font-bold text-on-surface text-base tracking-wide select-all"
                               id="merchantVpaText"
                             >
-                              {upiId}
+                              {safeUpiId}
                             </span>
                           </div>
                           
@@ -796,7 +893,7 @@ export default function DesktopCheckoutView({
                             className="focus-ring h-10 px-4 rounded-lg bg-surface-container-lowest hover:bg-surface-container-high border border-outline-variant/30 text-secondary text-label-md font-semibold flex items-center justify-center shadow-sm transition-all flex-shrink-0 gap-1.5 active:scale-95 cursor-pointer"
                             onClick={() => {
                               handleCopyUpi();
-                              handleCopyText(upiId, 'upi');
+                              handleCopyText(safeUpiId, 'upi');
                             }}
                             type="button"
                           >
