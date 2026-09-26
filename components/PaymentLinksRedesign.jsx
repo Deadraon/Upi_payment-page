@@ -968,29 +968,40 @@ export default function PaymentLinksRedesign({
                 </div>
 
                 {/* CTA Buttons */}
-                <div className="px-5 py-4 border-t border-slate-100 grid grid-cols-2 gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => copyText(activeUrl, 'Payment URL')}
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-sm shadow-blue-500/20 transition-all active:scale-[0.98]"
+                <div className="px-5 py-4 border-t border-slate-100 flex flex-col gap-2">
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => copyText(activeUrl, 'Payment URL')}
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-sm shadow-blue-500/20 transition-all active:scale-[0.98]"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                      Copy Link
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => shareWhatsApp({
+                        customerName: customerName || 'Valued Customer',
+                        customerPhone,
+                        amount: amount || '0',
+                        purpose: purpose || 'Payment',
+                        url: activeUrl,
+                      })}
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-sm shadow-emerald-500/20 transition-all active:scale-[0.98]"
+                    >
+                      <MessageCircle className="w-3.5 h-3.5" />
+                      WhatsApp
+                    </button>
+                  </div>
+                  <a
+                    href={activeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs shadow-sm transition-all active:scale-[0.98] group"
                   >
-                    <Copy className="w-3.5 h-3.5" />
-                    Copy Link
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => shareWhatsApp({
-                      customerName: customerName || 'Valued Customer',
-                      customerPhone,
-                      amount: amount || '0',
-                      purpose: purpose || 'Payment',
-                      url: activeUrl,
-                    })}
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-sm shadow-emerald-500/20 transition-all active:scale-[0.98]"
-                  >
-                    <MessageCircle className="w-3.5 h-3.5" />
-                    WhatsApp
-                  </button>
+                    <ExternalLink className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                    Go to Checkout
+                  </a>
                 </div>
               </div>
             </div>
