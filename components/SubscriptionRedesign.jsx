@@ -5,7 +5,6 @@ import QRCode from 'react-qr-code';
 import {
   CheckCircle,
   Building2,
-  RefreshCw,
   Zap,
   ShieldCheck,
   X,
@@ -13,7 +12,13 @@ import {
   Download,
   Copy,
   Check,
-  ExternalLink
+  ExternalLink,
+  Info,
+  Calendar,
+  CreditCard,
+  Clock,
+  AlertTriangle,
+  ArrowRight
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { CONFIG } from '@/lib/config';
@@ -26,12 +31,15 @@ export default function SubscriptionRedesign({
   onProfileUpdate,
   setActiveTab
 }) {
-  // ── Plan Selection State ──────────────────────────────────────
+  // ── Modal States ──────────────────────────────────────────────
   const [selectedPlanId, setSelectedPlanId] = useState('1month');
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
   const [showContactSalesModal, setShowContactSalesModal] = useState(false);
   const [invoiceFilter, setInvoiceFilter] = useState('all'); // 'all', 'paid'
   const [isActivating, setIsActivating] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
   const [copiedKey, setCopiedKey] = useState(null);
 
@@ -40,8 +48,9 @@ export default function SubscriptionRedesign({
     const expiresAt = profile?.subscription_expires_at ? new Date(profile.subscription_expires_at) : null;
     const isValidExpiry = expiresAt && !isNaN(expiresAt.getTime());
     const isStillActiveDate = isValidExpiry && expiresAt.getTime() > Date.now();
-    const daysLeft = isValidExpiry ? Math.ceil((expiresAt - new Date()) / 86400000) : 0;
-    const isActive = profile?.subscription_status === 'active' || isStillActiveDate;
+    const daysLeft = isValidExpiry ? Math.max(0, Math.ceil((expiresAt - new Date()) / 86400000)) : 0;
+    const isCancelled = profile?.subscription_status === 'cancelled';
+    const isActive = (profile?.subscription_status === 'active' || isStillActiveDate) && !isCancelled;
     const isTrial = profile?.subscription_plan === 'trial' || profile?.subscription_plan === '3day_trial';
 
     // Format Expiry Date
@@ -54,14 +63,69 @@ export default function SubscriptionRedesign({
       });
     }
 
+    // Purchase / Activation Date
+    let activatedAt = null;
+    if (historyOrders && historyOrders.length > 0 && historyOrders[0]?.created_at) {
+      activatedAt = new Date(historyOrders[0].created_at);
+    } else if (profile?.setup_progress?.subscription_activated_at) {
+      activatedAt = new Date(profile.setup_progress.subscription_activated_at);
+    } else if (profile?.setup_progress?.last_payment_at) {
+      activatedAt = new Date(profile.setup_progress.last_payment_at);
+    } else if (profile?.created_at) {
+      activatedAt = new Date(profile.created_at);
+    }
+
+    let activatedAtStr = 'Active Cycle';
+    if (activatedAt && !isNaN(activatedAt.getTime())) {
+      activatedAtStr = activatedAt.toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      });
+    }
+
+    const totalDays = profile?.subscription_plan === '3months' ? 90 : profile?.subscription_plan === '2months' ? 60 : 30;
+    const percentRemaining = totalDays > 0 ? Math.min(100, Math.max(0, Math.round((daysLeft / totalDays) * 100))) : 0;
+
+    const planTitle = isTrial
+      ? '3-Day Free Trial'
+      : profile?.subscription_plan === '3months'
+      ? '3 Months Plan (Quarterly)'
+      : profile?.subscription_plan === '2months'
+      ? '2 Months Plan (Bi-Monthly)'
+      : 'Standard Plan (1 Month)';
+
+    const planAmount = profile?.subscription_plan === '3months'
+      ? 1497
+      : profile?.subscription_plan === '2months'
+      ? 998
+      : isTrial
+      ? 0
+      : 499;
+
+    const paymentMethodUsed = historyOrders?.[0]?.payment_mode || historyOrders?.[0]?.payment_method || 'Direct UPI Settlement (0% MDR)';
+    const orderRef = historyOrders?.[0]?.id
+      ? `SUB-${historyOrders[0].id.slice(0, 8).toUpperCase()}`
+      : `SUB-${(profile?.id || 'MMP').slice(0, 8).toUpperCase()}`;
+    const utr = historyOrders?.[0]?.utr || 'Bank Rail Verification';
+
     return {
       isActive,
       isTrial,
+      isCancelled,
       daysLeft,
+      totalDays,
+      percentRemaining,
       expiryDateStr,
-      expiresAt
+      expiresAt,
+      activatedAtStr,
+      planTitle,
+      planAmount,
+      paymentMethodUsed,
+      orderRef,
+      utr
     };
-  }, [profile]);
+  }, [profile, historyOrders]);
 
   // ── Real Gateway Fee Saved Computation ────────────────────────
   const totalVerifiedVolume = useMemo(() => {
@@ -157,16 +221,59 @@ export default function SubscriptionRedesign({
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // ── Handle Payment Simulation / Real Activation ───────────────
+  // ── Scroll smoothly to Extend Plan Section ─────────────────────
+  const scrollToPlans = () => {
+    setShowDetailsModal(false);
+    const el = document.getElementById('extend-plan-section');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  // ── Handle Subscription Cancellation ──────────────────────────
+  const handleCancelSubscription = async () => {
+    setIsCancelling(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          subscription_status: 'cancelled',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', profile.id);
+
+      if (error) throw error;
+
+      if (onProfileUpdate) {
+        onProfileUpdate({
+          ...profile,
+          subscription_status: 'cancelled'
+        });
+      }
+
+      if (onRefreshProfile) {
+        await onRefreshProfile();
+      }
+
+      setShowCancelModal(false);
+      setShowDetailsModal(false);
+      triggerToast(`Subscription cancelled. Your license remains active until ${subDetails.expiryDateStr}.`);
+    } catch (err) {
+      console.error('Cancel subscription error:', err);
+      triggerToast(`Failed to cancel subscription: ${err.message || 'Please try again.'}`);
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
+  // ── Handle Payment & Plan Activation ──────────────────────────
   const handleActivatePlan = async () => {
     setIsActivating(true);
     try {
-      // Calculate new expiry date based on existing expiry or now
       const currentExpiry = profile?.subscription_expires_at ? new Date(profile.subscription_expires_at) : new Date();
       const baseDate = currentExpiry > new Date() ? currentExpiry : new Date();
       const newExpiry = new Date(baseDate.getTime() + selectedPlan.durationDays * 24 * 60 * 60 * 1000);
 
-      // Update Supabase profile
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -179,7 +286,6 @@ export default function SubscriptionRedesign({
 
       if (error) throw error;
 
-      // Update local profile state
       if (onProfileUpdate) {
         onProfileUpdate({
           ...profile,
@@ -248,31 +354,13 @@ Official Gateway: https://mymob.tech
       }));
     }
 
-    // If no order history, check if the merchant has an active subscription profile
     if (subDetails.isActive) {
-      const planTitle = profile?.subscription_plan === '3months'
-        ? '3 Months License'
-        : profile?.subscription_plan === '2months'
-        ? '2 Months License'
-        : profile?.subscription_plan === 'trial'
-        ? '3-Day Free Trial'
-        : '1 Month Standard Tier';
-      const planAmount = profile?.subscription_plan === '3months'
-        ? 1497
-        : profile?.subscription_plan === '2months'
-        ? 998
-        : profile?.subscription_plan === 'trial'
-        ? 0
-        : 499;
-
       return [
         {
           ref: `SUB-${(profile?.id || 'ACTIVE').slice(0, 6).toUpperCase()}`,
-          date: profile?.updated_at
-            ? new Date(profile.updated_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
-            : 'Active Cycle',
-          plan: planTitle,
-          amount: planAmount,
+          date: subDetails.activatedAtStr,
+          plan: subDetails.planTitle,
+          amount: subDetails.planAmount,
           status: 'Paid'
         }
       ];
@@ -292,6 +380,7 @@ Official Gateway: https://mymob.tech
   const upiVpa = CONFIG.upiId || '9410181307@okbizaxis';
   const merchantMid = profile?.id ? profile.id.slice(0, 10).toUpperCase() : 'MMP';
   const qrString = `upi://pay?pa=${upiVpa}&pn=MyMobPay+License&am=${selectedPlan.amount}&tn=Sub_${merchantMid}&cu=INR`;
+  const checkoutUrl = `/pay?api_key=${CONFIG.platformApiKey}&amount=${selectedPlan.amount}&ref=${profile?.id || ''}&note=Subscription_${selectedPlan.id}`;
 
   return (
     <div className="flex flex-col max-w-7xl mx-auto w-full pb-8 gap-6 animate-fadeIn font-sans">
@@ -306,10 +395,22 @@ Official Gateway: https://mymob.tech
             <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold border ${
               subDetails.isActive
                 ? 'bg-slate-50 text-[#000d21] border-slate-200'
-                : 'bg-amber-50 text-amber-700 border-amber-200'
+                : subDetails.isCancelled
+                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                : 'bg-slate-100 text-slate-600 border-slate-200'
             }`}>
-              <span className={`w-2 h-2 rounded-full ${subDetails.isActive ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
-              {subDetails.isActive ? (subDetails.isTrial ? 'Trial License' : 'Active License') : 'License Inactive'}
+              <span className={`w-2 h-2 rounded-full ${
+                subDetails.isActive
+                  ? 'bg-emerald-500 animate-pulse'
+                  : subDetails.isCancelled
+                  ? 'bg-amber-500'
+                  : 'bg-slate-400'
+              }`} />
+              {subDetails.isActive
+                ? (subDetails.isTrial ? 'Trial License' : 'Active License')
+                : subDetails.isCancelled
+                ? 'Cancelled (Active until expiry)'
+                : 'License Inactive'}
             </div>
 
             <span className="text-lg font-bold text-[#000d21] tracking-tight">
@@ -323,33 +424,28 @@ Official Gateway: https://mymob.tech
             </span>
 
             <span className="text-lg font-bold text-blue-600">
-              ₹{profile?.subscription_plan === '3months' ? '1,497' : profile?.subscription_plan === '2months' ? '998' : '499'}
+              ₹{subDetails.planAmount}
               <span className="text-xs text-slate-400 font-normal"> / month</span>
-            </span>
-
-            <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">
-              {subDetails.isActive ? 'Auto-renew: Active' : 'Auto-renew: Inactive'}
             </span>
           </div>
 
           <div className="flex items-center gap-2">
+            {subDetails.isActive && !subDetails.isCancelled && (
+              <button
+                onClick={() => setShowCancelModal(true)}
+                type="button"
+                className="text-slate-400 hover:text-red-600 transition-colors text-xs font-semibold px-3 py-1.5 cursor-pointer"
+              >
+                Cancel Subscription
+              </button>
+            )}
             <button
-              onClick={() => triggerToast('Auto-renew preferences updated. Your plan remains active until the current cycle expires.')}
-              type="button"
-              className="text-slate-400 hover:text-slate-700 transition-colors text-xs font-semibold px-3 py-1.5 cursor-pointer"
-            >
-              Cancel Auto-renew
-            </button>
-            <button
-              onClick={() => {
-                setSelectedPlanId('1month');
-                setShowPaymentModal(true);
-              }}
+              onClick={() => setShowDetailsModal(true)}
               type="button"
               className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs shadow-blue-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
             >
-              <RefreshCw className="w-3.5 h-3.5" />
-              Manage Cycle
+              <Info className="w-3.5 h-3.5" />
+              Manage Subscription
             </button>
           </div>
         </div>
@@ -362,18 +458,14 @@ Official Gateway: https://mymob.tech
               Current Plan
             </span>
             <span className="text-sm font-bold text-[#000d21]">
-              {subDetails.isActive
-                ? (subDetails.isTrial
-                    ? '3-Day Free Trial'
-                    : profile?.subscription_plan === '3months'
-                    ? '3 Months Plan'
-                    : profile?.subscription_plan === '2months'
-                    ? '2 Months Plan'
-                    : 'Standard Plan')
-                : 'No Active Plan'}
+              {subDetails.isActive ? subDetails.planTitle : 'No Active Plan'}
             </span>
             <span className="text-[11px] text-slate-500">
-              {profile?.subscription_plan === '3months' ? '90 Days cycle' : profile?.subscription_plan === '2months' ? '60 Days cycle' : '30 Days rolling cycle'}
+              {profile?.subscription_plan === '3months'
+                ? '90 Days cycle'
+                : profile?.subscription_plan === '2months'
+                ? '60 Days cycle'
+                : '30 Days rolling cycle'}
             </span>
           </div>
 
@@ -434,7 +526,7 @@ Official Gateway: https://mymob.tech
       {/* ═══════════════════════════════════════════════════════════
          2. EXTEND OR UPGRADE PLAN SECTION
          ═══════════════════════════════════════════════════════════ */}
-      <div className="flex flex-col gap-4">
+      <div id="extend-plan-section" className="flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <h2 className="text-lg font-bold text-[#000d21] tracking-tight">
@@ -666,20 +758,207 @@ Official Gateway: https://mymob.tech
       </div>
 
       {/* ═══════════════════════════════════════════════════════════
-         DYNAMIC UPI PAYMENT MODAL (RENEWAL MODAL)
+         MODAL 1: MANAGE SUBSCRIPTION (FULL CURRENT DETAILS)
+         ═══════════════════════════════════════════════════════════ */}
+      {showDetailsModal && (
+        <div className="fixed inset-0 z-50 bg-[#000d21]/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden animate-scaleUp">
+            {/* Modal Header */}
+            <div className="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600">
+                  <Info className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-[#000d21]">Current Subscription Details</h3>
+                  <p className="text-[11px] text-slate-400">Live platform license metrics &amp; activation info</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowDetailsModal(false)}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-200/50 transition-colors"
+                type="button"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 flex flex-col gap-5">
+              {/* Primary Status Card */}
+              <div className="p-4 rounded-xl bg-blue-50/60 border border-blue-100 flex items-center justify-between">
+                <div className="flex flex-col">
+                  <span className="text-[10px] uppercase tracking-wider font-semibold text-blue-700">Active Tier</span>
+                  <span className="text-base font-bold text-[#000d21]">{subDetails.planTitle}</span>
+                  <span className="text-xs text-slate-500 mt-0.5">₹{subDetails.planAmount} / cycle · 0% MDR</span>
+                </div>
+                <div className="flex flex-col items-end gap-1">
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
+                    subDetails.isActive
+                      ? 'bg-emerald-100 text-emerald-800'
+                      : subDetails.isCancelled
+                      ? 'bg-amber-100 text-amber-800'
+                      : 'bg-slate-200 text-slate-700'
+                  }`}>
+                    <span className={`w-2 h-2 rounded-full ${subDetails.isActive ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+                    {subDetails.isActive ? 'Active' : subDetails.isCancelled ? 'Cancelled' : 'Expired'}
+                  </span>
+                  <span className="text-[11px] text-blue-700 font-semibold">{subDetails.daysLeft} days remaining</span>
+                </div>
+              </div>
+
+              {/* Validity Progress Meter */}
+              <div className="flex flex-col gap-1.5">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-slate-500">Cycle Duration ({subDetails.totalDays} Days)</span>
+                  <span className="font-semibold text-[#000d21]">{subDetails.daysLeft} days left</span>
+                </div>
+                <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                  <div
+                    className="h-full bg-blue-600 rounded-full transition-all duration-500"
+                    style={{ width: `${subDetails.percentRemaining}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Comprehensive Key-Value Information Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 flex flex-col gap-0.5">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Purchased On</span>
+                  <span className="font-semibold text-[#000d21]">{subDetails.activatedAtStr}</span>
+                </div>
+
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 flex flex-col gap-0.5">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Next Renewal / Expiry</span>
+                  <span className="font-semibold text-[#000d21]">{subDetails.expiryDateStr}</span>
+                </div>
+
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 flex flex-col gap-0.5">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Payment Method Used</span>
+                  <span className="font-semibold text-[#000d21] truncate">{subDetails.paymentMethodUsed}</span>
+                </div>
+
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 flex flex-col gap-0.5">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Amount Paid</span>
+                  <span className="font-bold text-blue-600">₹{subDetails.planAmount}.00 (0% Fee)</span>
+                </div>
+
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 flex flex-col gap-0.5">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Order / Invoice Ref</span>
+                  <span className="font-semibold text-[#000d21] truncate">#{subDetails.orderRef}</span>
+                </div>
+
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 flex flex-col gap-0.5">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Settlement Target</span>
+                  <span className="font-semibold text-[#000d21] truncate">
+                    {profile?.bank_name
+                      ? `${profile.bank_name} •••• ${(profile.bank_account_number || '').slice(-4)}`
+                      : profile?.upi_id || 'Instant Direct UPI'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Modal Action Buttons */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-100">
+                {subDetails.isActive && !subDetails.isCancelled ? (
+                  <button
+                    onClick={() => {
+                      setShowDetailsModal(false);
+                      setShowCancelModal(true);
+                    }}
+                    type="button"
+                    className="text-red-600 hover:text-red-700 hover:underline text-xs font-semibold cursor-pointer py-1"
+                  >
+                    Cancel Subscription
+                  </button>
+                ) : (
+                  <span className="text-xs text-slate-400">Subscription is inactive or cancelled</span>
+                )}
+
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                  <button
+                    onClick={() => setShowDetailsModal(false)}
+                    type="button"
+                    className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
+                  >
+                    Close
+                  </button>
+                  <button
+                    onClick={scrollToPlans}
+                    type="button"
+                    className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs shadow-blue-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    Extend or Upgrade Plan
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════
+         MODAL 2: CANCEL SUBSCRIPTION CONFIRMATION
+         ═══════════════════════════════════════════════════════════ */}
+      {showCancelModal && (
+        <div className="fixed inset-0 z-50 bg-[#000d21]/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden animate-scaleUp">
+            <div className="p-6 flex flex-col gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-red-50 border border-red-100 text-red-600 flex items-center justify-center">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+
+              <div>
+                <h3 className="text-base font-bold text-[#000d21]">Cancel Subscription?</h3>
+                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                  Are you sure you want to cancel your platform license? Your access to live UPI payment rails will remain active until <span className="font-semibold text-[#000d21]">{subDetails.expiryDateStr}</span>, after which automated cycle renewal will stop.
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs flex justify-between items-center">
+                <span className="text-slate-500">Days remaining on current plan:</span>
+                <span className="font-bold text-[#000d21]">{subDetails.daysLeft} Days</span>
+              </div>
+
+              <div className="flex items-center gap-2.5 pt-2">
+                <button
+                  onClick={() => setShowCancelModal(false)}
+                  disabled={isCancelling}
+                  type="button"
+                  className="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
+                >
+                  Keep Subscription
+                </button>
+                <button
+                  onClick={handleCancelSubscription}
+                  disabled={isCancelling}
+                  type="button"
+                  className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-semibold shadow-xs shadow-red-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-60"
+                >
+                  {isCancelling ? 'Cancelling...' : 'Confirm Cancellation'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════
+         MODAL 3: DIRECT UPI RENEWAL CHECKOUT
          ═══════════════════════════════════════════════════════════ */}
       {showPaymentModal && (
-        <div className="fixed inset-0 z-50 bg-[#000d21]/40 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-[#000d21]/50 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden animate-scaleUp">
             {/* Modal Header */}
             <div className="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs font-bold font-sans shadow-xs">
-                  mP
+                <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-xs">
+                  <CreditCard className="w-4 h-4" />
                 </div>
                 <div className="flex flex-col">
                   <span className="text-xs font-bold text-[#000d21]">Direct UPI Checkout</span>
-                  <span className="text-[10px] text-slate-400">mymobpay platform license</span>
+                  <span className="text-[10px] text-slate-400">MyMobPay Platform License</span>
                 </div>
               </div>
               <button
@@ -745,16 +1024,18 @@ Official Gateway: https://mymob.tech
                 </div>
               </div>
 
-              {/* Direct UPI Intent Button (Mobile) */}
+              {/* Go to Website Live Checkout Button */}
               <a
-                href={qrString}
-                className="w-full sm:hidden py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs flex items-center justify-center gap-2 transition-colors"
+                href={checkoutUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs flex items-center justify-center gap-2 transition-colors border border-slate-200"
               >
-                <QrCode className="w-4 h-4 text-blue-600" />
-                Pay via Installed UPI App
+                <ExternalLink className="w-3.5 h-3.5 text-blue-600" />
+                Open Live Checkout Page
               </a>
 
-              {/* Real Instant Activation / Simulation */}
+              {/* Confirm / Activate Button */}
               <button
                 onClick={handleActivatePlan}
                 disabled={isActivating}
@@ -764,18 +1045,18 @@ Official Gateway: https://mymob.tech
                 {isActivating ? (
                   <>
                     <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Parsing Bank UTR Rail...
+                    Verifying &amp; Updating Subscription...
                   </>
                 ) : (
                   <>
                     <CheckCircle className="w-4 h-4" />
-                    Simulate Successful Payment
+                    I Have Paid — Activate Plan
                   </>
                 )}
               </button>
 
               <span className="text-[10px] text-slate-400">
-                Bank SMS &amp; email parsers will auto-detect UTR and activate cycle in &lt; 5 seconds.
+                Instant activation through direct UPI bank settlement.
               </span>
             </div>
           </div>
@@ -783,10 +1064,10 @@ Official Gateway: https://mymob.tech
       )}
 
       {/* ═══════════════════════════════════════════════════════════
-         CONTACT ENTERPRISE SALES MODAL
+         MODAL 4: CONTACT ENTERPRISE SALES MODAL
          ═══════════════════════════════════════════════════════════ */}
       {showContactSalesModal && (
-        <div className="fixed inset-0 z-50 bg-[#000d21]/40 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-[#000d21]/50 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden animate-scaleUp">
             <div className="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
               <h3 className="text-sm font-bold text-[#000d21]">Enterprise &amp; High-Throughput</h3>
