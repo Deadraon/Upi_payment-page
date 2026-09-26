@@ -482,97 +482,7 @@ export default function DashboardOverviewRedesign({
 
       {/* ─── CHART + RIGHT PANEL ─── */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
-        {/* Hourly Payment Chart */}
-        <div className="xl:col-span-2 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 gap-3 border-b border-slate-100">
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-sm font-bold text-slate-900">Hourly Payment Inflow (INR ₹)</h2>
-                <span
-                  className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-bold"
-                  style={{ fontSize: '10px' }}
-                >
-                  Real-Time
-                </span>
-              </div>
-              <p className="text-slate-500 mt-0.5" style={{ fontSize: '11px' }}>
-                Volume spikes during lunch and evening peak hours
-              </p>
-            </div>
-            <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 self-start sm:self-auto">
-              {[{ label: '24H', val: 1 }, { label: '7D', val: 7 }, { label: '30D', val: 30 }].map(({ label, val }) => (
-                <button
-                  key={val}
-                  type="button"
-                  onClick={() => setAnalyticsTimeframe?.(val)}
-                  className={`px-3 py-1 text-xs rounded-md font-semibold transition-all ${
-                    analyticsTimeframe === val
-                      ? 'bg-white text-blue-600 shadow-sm'
-                      : 'text-slate-500 hover:text-slate-900'
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="relative w-full h-56 pt-4">
-            <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 900 200">
-              <defs>
-                <linearGradient id="blueGrad" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0%" stopColor="#2563eb" stopOpacity="0.2" />
-                  <stop offset="100%" stopColor="#2563eb" stopOpacity="0.01" />
-                </linearGradient>
-              </defs>
-              <line stroke="#f1f5f9" strokeDasharray="4 4" strokeWidth="1" x1="0" x2="900" y1="40" y2="40" />
-              <line stroke="#f1f5f9" strokeDasharray="4 4" strokeWidth="1" x1="0" x2="900" y1="90" y2="90" />
-              <line stroke="#f1f5f9" strokeDasharray="4 4" strokeWidth="1" x1="0" x2="900" y1="140" y2="140" />
-              <line stroke="#e2e8f0" strokeWidth="1" x1="0" x2="900" y1="185" y2="185" />
-              <path
-                d="M 0,170 Q 75,160 150,150 T 300,135 T 450,40 T 600,115 T 750,30 T 900,90 L 900,185 L 0,185 Z"
-                fill="url(#blueGrad)"
-              />
-              <path
-                d="M 0,170 Q 75,160 150,150 T 300,135 T 450,40 T 600,115 T 750,30 T 900,90"
-                fill="none"
-                stroke="#2563eb"
-                strokeLinecap="round"
-                strokeWidth="3"
-              />
-              <circle cx="450" cy="40" fill="#fff" r="5" stroke="#2563eb" strokeWidth="3" />
-              <circle cx="750" cy="30" fill="#fff" r="5" stroke="#2563eb" strokeWidth="3" />
-            </svg>
-
-            <div
-              className="absolute left-[47%] top-[10%] -translate-x-1/2 bg-slate-900 text-white px-2 py-1 rounded-md font-semibold shadow-lg pointer-events-none flex items-center gap-1.5 whitespace-nowrap"
-              style={{ fontSize: '11px' }}
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              12:00 PM • ₹62,400
-            </div>
-            <div
-              className="absolute left-[80%] top-[5%] -translate-x-1/2 bg-blue-600 text-white px-2 py-1 rounded-md font-semibold shadow-lg pointer-events-none flex items-center gap-1.5 whitespace-nowrap"
-              style={{ fontSize: '11px' }}
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-white" />
-              08:00 PM • ₹88,290
-            </div>
-          </div>
-
-          <div
-            className="flex justify-between items-center pt-2 px-1 border-t border-slate-100 text-slate-400"
-            style={{ fontSize: '10px' }}
-          >
-            <span>12 AM</span>
-            <span>4 AM</span>
-            <span>8 AM</span>
-            <span className="font-semibold text-blue-600">12 PM</span>
-            <span>4 PM</span>
-            <span className="font-semibold text-blue-600">8 PM</span>
-            <span>12 AM</span>
-          </div>
-        </div>
+        <PaymentChart orders={orders} analyticsTimeframe={analyticsTimeframe} setAnalyticsTimeframe={setAnalyticsTimeframe} />
 
         {/* Right Column */}
         <div className="space-y-5">
@@ -755,6 +665,209 @@ export default function DashboardOverviewRedesign({
         </div>
       </div>
 
+    </div>
+  );
+}
+
+// ─── PaymentChart: builds real chart from orders data ───────────────────────
+function PaymentChart({ orders, analyticsTimeframe, setAnalyticsTimeframe }) {
+  const W = 900, H = 185, PAD = 10;
+
+  // Determine time window
+  const now = new Date();
+  const windowMs = analyticsTimeframe === 1
+    ? 24 * 60 * 60 * 1000
+    : analyticsTimeframe * 24 * 60 * 60 * 1000;
+  const since = new Date(now - windowMs);
+
+  // Filter to successful/completed orders in the window
+  const filtered = (orders || []).filter(o => {
+    if (!o.created_at) return false;
+    if (o.status !== 'success' && o.status !== 'completed' && o.status !== 'paid') return false;
+    return new Date(o.created_at) >= since;
+  });
+
+  // Build buckets
+  let buckets, labels;
+  if (analyticsTimeframe === 1) {
+    // 24 hourly buckets
+    buckets = Array(24).fill(0);
+    filtered.forEach(o => {
+      const h = new Date(o.created_at).getHours();
+      buckets[h] += (o.amount || 0);
+    });
+    labels = ['12 AM', '4 AM', '8 AM', '12 PM', '4 PM', '8 PM', '12 AM'];
+  } else {
+    // daily buckets for last N days
+    const days = analyticsTimeframe;
+    buckets = Array(days).fill(0);
+    filtered.forEach(o => {
+      const diffMs = now - new Date(o.created_at);
+      const daysAgo = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+      if (daysAgo >= 0 && daysAgo < days) buckets[days - 1 - daysAgo] += (o.amount || 0);
+    });
+    if (analyticsTimeframe === 7) {
+      labels = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(now - (6 - i) * 86400000);
+        return d.toLocaleDateString('en-IN', { weekday: 'short' });
+      });
+    } else {
+      labels = ['30d ago', '25d', '20d', '15d', '10d', '5d', 'Today'];
+    }
+  }
+
+  const hasData = buckets.some(v => v > 0);
+  const maxVal = hasData ? Math.max(...buckets) : 1;
+
+  // Build SVG polyline points
+  const n = buckets.length;
+  const points = buckets.map((v, i) => {
+    const x = PAD + (i / Math.max(n - 1, 1)) * (W - PAD * 2);
+    const y = H - PAD - ((v / maxVal) * (H - PAD * 2 - 10));
+    return { x, y, v };
+  });
+
+  // Find top 2 peaks
+  const sorted = [...points].sort((a, b) => b.v - a.v);
+  const peaks = sorted.slice(0, hasData ? 2 : 0);
+
+  const polyStroke = points.map(p => `${p.x},${p.y}`).join(' ');
+  const polyFill = [
+    `${points[0].x},${H}`,
+    ...points.map(p => `${p.x},${p.y}`),
+    `${points[n - 1].x},${H}`
+  ].join(' ');
+
+  const fmtAmt = v => '₹' + v.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+
+  const peakLabel = (pt, idx) => {
+    if (!pt || pt.v === 0) return null;
+    let label = '';
+    if (analyticsTimeframe === 1) {
+      // Find which hour this point is
+      const hi = points.indexOf(pt);
+      const h = hi % 12 || 12;
+      const ampm = hi < 12 ? 'AM' : 'PM';
+      label = `${h}:00 ${ampm}`;
+    } else {
+      const daysAgo = n - 1 - points.indexOf(pt);
+      label = daysAgo === 0 ? 'Today' : `${daysAgo}d ago`;
+    }
+    return `${label} • ${fmtAmt(pt.v)}`;
+  };
+
+  // Percentage position of a point in [0..100]
+  const pctX = pt => `${((pt.x - PAD) / (W - PAD * 2)) * 100}%`;
+  const pctY = pt => `${((pt.y) / H) * 100}%`;
+
+  return (
+    <div className="xl:col-span-2 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 gap-3 border-b border-slate-100">
+        <div>
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-bold text-slate-900">Payment Inflow (INR ₹)</h2>
+            <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-bold" style={{ fontSize: '10px' }}>
+              {hasData ? 'Live' : 'No Data'}
+            </span>
+          </div>
+          <p className="text-slate-500 mt-0.5" style={{ fontSize: '11px' }}>
+            {hasData
+              ? `${filtered.length} successful payments in this period`
+              : 'Successful payments will appear here'}
+          </p>
+        </div>
+        <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 self-start sm:self-auto">
+          {[{ label: '24H', val: 1 }, { label: '7D', val: 7 }, { label: '30D', val: 30 }].map(({ label, val }) => (
+            <button
+              key={val}
+              type="button"
+              onClick={() => setAnalyticsTimeframe?.(val)}
+              className={`px-3 py-1 text-xs rounded-md font-semibold transition-all ${
+                analyticsTimeframe === val ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Chart area */}
+      {hasData ? (
+        <div className="relative w-full mt-4" style={{ height: 180 }}>
+          <svg
+            className="w-full"
+            style={{ height: 160, display: 'block' }}
+            preserveAspectRatio="none"
+            viewBox={`0 0 ${W} ${H}`}
+          >
+            <defs>
+              <linearGradient id="pgGrad" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stopColor="#2563eb" stopOpacity="0.18" />
+                <stop offset="100%" stopColor="#2563eb" stopOpacity="0.01" />
+              </linearGradient>
+            </defs>
+            {/* Grid lines */}
+            {[0.25, 0.5, 0.75].map(f => (
+              <line key={f} stroke="#f1f5f9" strokeDasharray="4 4" strokeWidth="1"
+                x1={0} x2={W} y1={H - f * (H - PAD)} y2={H - f * (H - PAD)} />
+            ))}
+            <line stroke="#e2e8f0" strokeWidth="1" x1={0} x2={W} y1={H} y2={H} />
+            {/* Area fill */}
+            <polygon points={polyFill} fill="url(#pgGrad)" />
+            {/* Line */}
+            <polyline
+              points={polyStroke}
+              fill="none"
+              stroke="#2563eb"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            {/* Peak dots */}
+            {peaks.map((pt, i) => (
+              <circle key={i} cx={pt.x} cy={pt.y} r="5" fill="#fff" stroke="#2563eb" strokeWidth="3" />
+            ))}
+          </svg>
+
+          {/* Peak callout bubbles — positioned absolutely over the SVG */}
+          {peaks[0] && peakLabel(peaks[0], 0) && (
+            <div
+              className="absolute -translate-x-1/2 -translate-y-full mb-1 bg-slate-900 text-white px-2 py-1 rounded-md font-semibold shadow-lg pointer-events-none flex items-center gap-1.5 whitespace-nowrap"
+              style={{ fontSize: '11px', left: pctX(peaks[0]), top: pctY(peaks[0]), marginTop: -6 }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              {peakLabel(peaks[0], 0)}
+            </div>
+          )}
+          {peaks[1] && peaks[1] !== peaks[0] && peakLabel(peaks[1], 1) && (
+            <div
+              className="absolute -translate-x-1/2 -translate-y-full mb-1 bg-blue-600 text-white px-2 py-1 rounded-md font-semibold shadow-lg pointer-events-none flex items-center gap-1.5 whitespace-nowrap"
+              style={{ fontSize: '11px', left: pctX(peaks[1]), top: pctY(peaks[1]), marginTop: -6 }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-white" />
+              {peakLabel(peaks[1], 1)}
+            </div>
+          )}
+
+          {/* Time labels */}
+          <div className="flex justify-between items-center pt-1 px-1 border-t border-slate-100 text-slate-400" style={{ fontSize: '10px' }}>
+            {labels.map((l, i) => (
+              <span key={i} className={l === '12 PM' || l === '8 PM' || l === 'Today' ? 'font-semibold text-blue-600' : ''}>{l}</span>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+          <svg className="w-12 h-12 mb-3 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+              d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+          </svg>
+          <p className="text-sm font-semibold text-slate-500">No payment data yet</p>
+          <p className="text-xs text-slate-400 mt-1">Completed payments will appear here</p>
+        </div>
+      )}
     </div>
   );
 }
