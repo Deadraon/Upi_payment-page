@@ -322,7 +322,7 @@ Official Gateway: https://mymob.tech
                 : 'Standard Tier'}
             </span>
 
-            <span className="text-lg font-bold text-blue-600 font-mono">
+            <span className="text-lg font-bold text-blue-600">
               ₹{profile?.subscription_plan === '3months' ? '1,497' : profile?.subscription_plan === '2months' ? '998' : '499'}
               <span className="text-xs text-slate-400 font-normal"> / month</span>
             </span>
@@ -382,7 +382,7 @@ Official Gateway: https://mymob.tech
             <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
               Next Renewal Date
             </span>
-            <span className="text-sm font-bold text-[#000d21] font-mono">
+            <span className="text-sm font-bold text-[#000d21]">
               {subDetails.expiryDateStr}
             </span>
             <div className="flex items-center gap-1.5 mt-0.5">
@@ -406,7 +406,7 @@ Official Gateway: https://mymob.tech
                   : profile?.upi_id || 'Instant Direct UPI'}
               </span>
             </div>
-            <span className="font-mono text-[10px] text-slate-400 truncate">
+            <span className="text-[10px] text-slate-400 truncate">
               {profile?.upi_id
                 ? profile.upi_id
                 : profile?.bank_account_number
@@ -421,7 +421,7 @@ Official Gateway: https://mymob.tech
               Gateway Fee Saved
             </span>
             <div className="flex items-baseline gap-1">
-              <span className="text-sm font-bold text-blue-600 font-mono">0% MDR</span>
+              <span className="text-sm font-bold text-blue-600">0% MDR</span>
               <span className="text-xs text-slate-400 font-normal">Direct UPI</span>
             </div>
             <span className="text-[11px] text-emerald-600 font-medium">
@@ -481,7 +481,7 @@ Official Gateway: https://mymob.tech
                     <p className="text-xs text-slate-400">{plan.subtitle}</p>
                   </div>
 
-                  <div className="flex items-baseline gap-1 py-1 font-mono">
+                  <div className="flex items-baseline gap-1 py-1">
                     <span className="text-2xl font-bold text-[#000d21]">
                       {plan.isCustom ? 'Custom' : `₹${plan.amount.toLocaleString('en-IN')}`}
                     </span>
@@ -629,7 +629,7 @@ Official Gateway: https://mymob.tech
               ) : (
                 filteredInvoices.map((inv, idx) => (
                   <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
-                    <td className="py-3.5 px-5 font-mono font-semibold text-[#000d21]">
+                    <td className="py-3.5 px-5 font-semibold text-[#000d21]">
                       #{inv.ref}
                     </td>
                     <td className="py-3.5 px-4 text-slate-500">
@@ -638,7 +638,7 @@ Official Gateway: https://mymob.tech
                     <td className="py-3.5 px-4 font-medium text-slate-800">
                       {inv.plan}
                     </td>
-                    <td className="py-3.5 px-4 font-mono font-bold text-[#000d21]">
+                    <td className="py-3.5 px-4 font-bold text-[#000d21]">
                       ₹{Number(inv.amount).toLocaleString('en-IN')}.00
                     </td>
                     <td className="py-3.5 px-4">
@@ -679,7 +679,7 @@ Official Gateway: https://mymob.tech
                 </div>
                 <div className="flex flex-col">
                   <span className="text-xs font-bold text-[#000d21]">Direct UPI Checkout</span>
-                  <span className="text-[10px] text-slate-400 font-mono">mymobpay platform license</span>
+                  <span className="text-[10px] text-slate-400">mymobpay platform license</span>
                 </div>
               </div>
               <button
@@ -697,7 +697,7 @@ Official Gateway: https://mymob.tech
                 <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
                   Amount Due (0% Gateway Fee)
                 </span>
-                <div className="text-3xl font-bold text-[#000d21] font-mono">
+                <div className="text-3xl font-bold text-[#000d21]">
                   ₹{selectedPlan.amount.toLocaleString('en-IN')}.00
                 </div>
                 <span className="text-xs text-blue-600 font-semibold">
@@ -726,7 +726,7 @@ Official Gateway: https://mymob.tech
                 <div className="flex justify-between items-center">
                   <span className="text-slate-400">UPI VPA:</span>
                   <div className="flex items-center gap-1.5">
-                    <span className="font-mono text-slate-800 font-semibold">{upiVpa}</span>
+                    <span className="text-slate-800 font-semibold">{upiVpa}</span>
                     <button
                       onClick={() => handleCopy(upiVpa, 'vpa_copy')}
                       className="text-slate-400 hover:text-slate-700 p-0.5"
@@ -739,7 +739,7 @@ Official Gateway: https://mymob.tech
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-slate-400">Merchant MID:</span>
-                  <span className="font-mono text-slate-800 font-semibold">
+                  <span className="text-slate-800 font-semibold">
                     {merchantMid}
                   </span>
                 </div>
@@ -804,7 +804,7 @@ Official Gateway: https://mymob.tech
               </p>
               <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 flex flex-col gap-2">
                 <span className="font-bold text-blue-900">Direct Enterprise Desk</span>
-                <span className="text-blue-700 font-mono">support@mymob.tech</span>
+                <span className="text-blue-700">support@mymob.tech</span>
                 <span className="text-slate-500">SLA: &lt; 2-hour response guarantee</span>
               </div>
               <a
