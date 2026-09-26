@@ -49,12 +49,11 @@ export default function PaymentLinksRedesign({
   const [amount, setAmount] = useState('2499.00');
   const [currency, setCurrency] = useState('INR'); // 'INR' | 'USD'
   const [purpose, setPurpose] = useState('Software Consulting Retainer / Q1 Sprint');
-  const [refCode, setRefCode] = useState('REF-84920');
+  const [refCode, setRefCode] = useState(() => 'ORD-' + Math.floor(100000 + Math.random() * 900000));
   const [customerName, setCustomerName] = useState('Rohan Sharma');
   const [customerPhone, setCustomerPhone] = useState('+91 98765 43210');
   const [customerContact, setCustomerContact] = useState('+91 98765 43210');
   const [allowPartial, setAllowPartial] = useState(false);
-  const [notifySms, setNotifySms] = useState(true);
   const [notifyWhatsapp, setNotifyWhatsapp] = useState(true);
   const [railUpi, setRailUpi] = useState(true);
   const [railImps, setRailImps] = useState(true);
@@ -258,12 +257,11 @@ export default function PaymentLinksRedesign({
     };
   }, [allLinks]);
 
-  // Generate a random Reference Code if empty
+  // Auto-generate random Order ID helper
+  const generateRandomOrderId = () => `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
+
   const handleRandomRef = () => {
-    const num = Math.floor(1000 + Math.random() * 9000);
-    const prefixes = ['REF-CH', 'APX', 'PO-BL', 'TX-USDT', 'RET-CON', 'INV-MM'];
-    const pfx = prefixes[Math.floor(Math.random() * prefixes.length)];
-    setRefCode(`${pfx}-${num}`);
+    setRefCode(generateRandomOrderId());
   };
 
   // Copy to clipboard helper
@@ -296,7 +294,7 @@ export default function PaymentLinksRedesign({
     const host = typeof window !== 'undefined' ? window.location.origin : 'https://mymob.tech';
     const effectiveAmount = amount ? parseFloat(amount) : null;
     const effectivePurpose = purpose.trim() || 'Payment for Services';
-    const effectiveRef = refCode.trim() || `REF-${Math.floor(1000 + Math.random() * 9000)}`;
+    const effectiveRef = refCode.trim() || generateRandomOrderId();
 
     let generatedUrl = '';
     let dbOrderId = '';
@@ -652,7 +650,7 @@ export default function PaymentLinksRedesign({
                   </div>
 
                   {/* Big Amount Input */}
-                  <div className="relative rounded-2xl bg-slate-50 border border-slate-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
+                  <div className="relative rounded-2xl bg-white border border-slate-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
                     <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-2xl font-bold text-slate-400">{currency === 'USD' ? '$' : '₹'}</span>
                     <input
                       className="block w-full pl-11 pr-20 py-3 bg-transparent text-2xl font-bold text-slate-900 border-0 focus:ring-0 font-mono tracking-tight outline-none"
@@ -700,33 +698,19 @@ export default function PaymentLinksRedesign({
                   </div>
                 </div>
 
-                {/* 2. Purpose & Reference */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500" htmlFor="payment-purpose">Purpose / Description <span className="text-rose-500">*</span></label>
-                    <input
-                      className="w-full text-sm font-medium rounded-xl border border-slate-200 bg-slate-50/50 py-2 px-3 focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
-                      id="payment-purpose"
-                      type="text"
-                      placeholder="e.g. Design Invoice #1029"
-                      value={purpose}
-                      onChange={(e) => setPurpose(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <label className="text-xs font-bold uppercase tracking-wider text-slate-500" htmlFor="internal-ref">Internal Reference / Order ID</label>
-                      <button type="button" onClick={handleRandomRef} className="text-[10px] font-mono text-blue-600 hover:text-blue-800 font-medium transition">⚡ Auto-Gen</button>
-                    </div>
-                    <input
-                      className="w-full text-sm font-mono uppercase rounded-xl border border-slate-200 bg-slate-50/50 py-2 px-3 focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
-                      id="internal-ref"
-                      type="text"
-                      placeholder="REF-XXXX"
-                      value={refCode}
-                      onChange={(e) => setRefCode(e.target.value.toUpperCase())}
-                    />
-                  </div>
+                {/* 2. Purpose / Description (Full width, single line) */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-500 block" htmlFor="payment-purpose">
+                    Purpose / Description <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    className="w-full text-sm font-medium rounded-xl border border-slate-200 bg-white text-slate-900 py-2.5 px-3.5 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all placeholder:text-slate-400 shadow-sm"
+                    id="payment-purpose"
+                    type="text"
+                    placeholder="e.g. Software Consulting Retainer / Q1 Sprint"
+                    value={purpose}
+                    onChange={(e) => setPurpose(e.target.value)}
+                  />
                 </div>
 
                 {/* 3. Customer Contact Details */}
@@ -739,7 +723,7 @@ export default function PaymentLinksRedesign({
                     <div>
                       <label className="block text-[11px] font-medium text-slate-500 mb-1" htmlFor="customer-name">Customer Name</label>
                       <input
-                        className="w-full text-sm rounded-lg border border-slate-200 bg-white py-1.5 px-2.5 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+                        className="w-full text-sm rounded-lg border border-slate-200 bg-white text-slate-900 py-1.5 px-2.5 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-400"
                         id="customer-name"
                         placeholder="e.g. Rohan Sharma"
                         type="text"
@@ -750,7 +734,7 @@ export default function PaymentLinksRedesign({
                     <div>
                       <label className="block text-[11px] font-medium text-slate-500 mb-1" htmlFor="customer-contact">Customer Phone / Email</label>
                       <input
-                        className="w-full text-sm rounded-lg border border-slate-200 bg-white py-1.5 px-2.5 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+                        className="w-full text-sm rounded-lg border border-slate-200 bg-white text-slate-900 py-1.5 px-2.5 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-400"
                         id="customer-contact"
                         placeholder="+91 or email"
                         type="text"
@@ -759,15 +743,16 @@ export default function PaymentLinksRedesign({
                       />
                     </div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-4 pt-1">
-                    <label className="flex items-center space-x-2 text-xs text-slate-700 cursor-pointer">
-                      <input type="checkbox" checked={notifySms} onChange={(e) => setNotifySms(e.target.checked)} className="rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
-                      <span className="font-medium">Notify via SMS</span>
-                    </label>
-                    <label className="flex items-center space-x-2 text-xs text-slate-700 cursor-pointer">
-                      <input type="checkbox" checked={notifyWhatsapp} onChange={(e) => setNotifyWhatsapp(e.target.checked)} className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
-                      <span className="flex items-center gap-1 font-medium">
-                        <svg className="w-3.5 h-3.5 text-emerald-600" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"></path></svg>
+                  <div className="pt-1">
+                    <label className="inline-flex items-center space-x-2 text-xs text-slate-700 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={notifyWhatsapp}
+                        onChange={(e) => setNotifyWhatsapp(e.target.checked)}
+                        className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                      />
+                      <span className="flex items-center gap-1.5 font-medium text-slate-700">
+                        <svg className="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"></path></svg>
                         Share via WhatsApp
                       </span>
                     </label>
@@ -1052,7 +1037,7 @@ export default function PaymentLinksRedesign({
                   setSearchQuery(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="h-9 pl-9 pr-4 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 w-64 transition-colors"
+                className="h-9 pl-9 pr-4 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 w-64 transition-colors"
               />
               {searchQuery && (
                 <button
