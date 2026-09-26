@@ -38,3 +38,6 @@ next-env.d.ts
 # python & temp docs
 __pycache__/
 ~$*
+
+# backup files
+*_backup_*

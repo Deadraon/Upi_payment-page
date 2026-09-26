@@ -57,6 +57,7 @@ import {
 import QRCode from 'react-qr-code';
 import ConsoleActivationPaywall from '@/components/ConsoleActivationPaywall';
 import DashboardOverviewRedesign from '@/components/DashboardOverviewRedesign';
+import PaymentLinksRedesign from '@/components/PaymentLinksRedesign';
 
 
 
@@ -10676,7 +10677,7 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-          <div className="max-w-5xl mx-auto space-y-6">
+          <div className={`${(activeTab === 'overview' || activeTab === 'payment-links') ? 'max-w-[1440px]' : 'max-w-5xl'} mx-auto space-y-6`}>
 
 
 
@@ -10688,6 +10689,7 @@ echo "Order Created: " . $data['orderId'];
 
 
 
+            {activeTab !== 'overview' && activeTab !== 'payment-links' && (
             <div className="mb-6 pt-2 md:pt-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
 
 
@@ -10831,6 +10833,7 @@ echo "Order Created: " . $data['orderId'];
 
 
           </div>
+        )}
 
 
 
@@ -11000,7 +11003,15 @@ echo "Order Created: " . $data['orderId'];
 
             {activeTab === 'setup-guide' && renderSetupGuidePanel()}
 
-            {activeTab === 'payment-links' && renderPaymentLinksPanel()}
+            {activeTab === 'payment-links' && (
+              <PaymentLinksRedesign
+                profile={profile}
+                orders={orders}
+                payLinkHistory={payLinkHistory}
+                setPayLinkHistory={setPayLinkHistory}
+                setActiveTab={setActiveTab}
+              />
+            )}
 
 
 
