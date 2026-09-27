@@ -1659,8 +1659,8 @@ export default function AdminPage() {
                               }}
                               title="Copy full Order ID"
                             >
-                              {order.id.slice(0, 11)}
-                              <Copy className="w-3 h-3 opacity-40 hover:opacity-100" />
+                              {order.id}
+                              <Copy className="w-3 h-3 opacity-40 hover:opacity-100 flex-shrink-0" />
                             </span>
                           </td>
 

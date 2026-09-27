@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import {
   CheckCircle, XCircle, Loader2, IndianRupee,
   Key, Calendar, ShieldCheck, RefreshCw,
-  AlertCircle, ArrowRight, ExternalLink, Check,
+  AlertCircle, ArrowRight, ExternalLink, Check, Clock,
 } from 'lucide-react';
 
 /* ── Animated success check ────────────────────────────────── */
@@ -337,9 +337,57 @@ export default function StatusPage() {
   const isTrialOrSub = order?.note === 'Trial_Setup_3Day' || order?.note === 'Autopay_Setup_3DayTrial' || order?.note?.startsWith('Subscription_');
 
   /* ═══════════════════════════════════════════════════════════
-     VERIFIED
+     VERIFIED (CHECK FOR 24-HOUR EXPIRATION)
   ═══════════════════════════════════════════════════════════ */
   if (order.status === 'verified') {
+    const paidTime = new Date(order.verified_at || order.created_at).getTime();
+    const isPostPaymentExpired = !isNaN(paidTime) && (Date.now() - paidTime) > (24 * 60 * 60 * 1000);
+
+    if (isPostPaymentExpired) {
+      return (
+        <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+          <Header badge={
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-amber-500/15 text-amber-600 border border-amber-500/30">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+              Link Expired
+            </span>
+          } />
+          <main className="flex-1 flex items-center justify-center px-4 py-10">
+            <div className="w-full max-w-sm bg-white rounded-3xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.06)] overflow-hidden animate-scale-up">
+              <div className="p-6 text-center space-y-3">
+                <div className="w-16 h-16 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto text-amber-600">
+                  <Clock className="w-8 h-8 text-amber-600" />
+                </div>
+                <h2 className="text-xl font-bold text-slate-900">Payment Link Expired</h2>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  This transaction link expired 24 hours after completion. The payment was already settled.
+                </p>
+              </div>
+              <div className="px-6 pb-6 space-y-3">
+                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-2">
+                  <Row label="Order ID" value={<span className="font-mono font-bold text-slate-800">{orderId}</span>} />
+                  <Row label="Amount Settled" value={<span className="font-bold text-emerald-600">₹{parseFloat(order.amount).toFixed(2)}</span>} />
+                  <Row label="Settled On" value={fmt(order.verified_at || order.created_at)} />
+                  {order.utr && <Row label="UTR / Ref No." value={<span className="font-mono text-slate-700">{order.utr}</span>} />}
+                  <Row label="Status" value={<span className="inline-flex items-center gap-1 font-semibold text-emerald-600">✓ Paid & Closed</span>} />
+                </div>
+                <p className="text-[11px] text-slate-400 text-center leading-normal pt-1">
+                  🔒 For security, receipt sessions close automatically 24 hours after payment.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleDone}
+                  className="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm transition-all cursor-pointer shadow-sm"
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+          </main>
+        </div>
+      );
+    }
+
     const isCodOrder = order?.utr?.startsWith('COD_') || order?.note?.includes('COD Delivery');
 
     return (

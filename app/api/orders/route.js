@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { supabaseAdmin } from '@/lib/supabase';
 import { CONFIG } from '@/lib/config';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
@@ -106,11 +107,20 @@ export async function POST(request) {
       offset++;
     }
 
-    // 5. Generate a 4-character unique alphanumeric Order ID starting with O (e.g., O1B2)
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let orderId = 'O';
-    for (let i = 0; i < 3; i++) {
-      orderId += chars.charAt(Math.floor(Math.random() * chars.length));
+    // 5. Generate a cryptographically secure Order ID (Razorpay standard: order_ + 14 alphanumeric chars)
+    // E.g. order_NwtL3Z9G48eX2p (high-entropy, unguessable, secure like Razorpay and Amazon)
+    let orderId = '';
+    const requestedOrderId = (body.order_id || body.orderId || '').trim().replace(/^[-#]+/, '');
+    if (requestedOrderId && requestedOrderId.length >= 4) {
+      orderId = requestedOrderId;
+    } else {
+      const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+      const randomBytes = crypto.randomBytes(14);
+      let randPart = '';
+      for (let i = 0; i < 14; i++) {
+        randPart += chars[randomBytes[i] % chars.length];
+      }
+      orderId = `order_${randPart}`;
     }
 
     // 6. Insert order into Supabase linked to the merchant
@@ -161,7 +171,7 @@ export async function GET(request) {
     let order = null;
     const res1 = await supabaseAdmin
       .from('orders')
-      .select('id, amount, status, note, created_at, mode, utr, merchant_id, project, callback_url, external_ref')
+      .select('id, amount, status, note, created_at, verified_at, mode, utr, merchant_id, project, callback_url, external_ref')
       .eq('id', cleanId)
       .maybeSingle();
 
@@ -170,7 +180,7 @@ export async function GET(request) {
     } else if (cleanId !== rawId) {
       const res2 = await supabaseAdmin
         .from('orders')
-        .select('id, amount, status, note, created_at, mode, utr, merchant_id, project, callback_url, external_ref')
+        .select('id, amount, status, note, created_at, verified_at, mode, utr, merchant_id, project, callback_url, external_ref')
         .eq('id', rawId)
         .maybeSingle();
       order = res2.data;
@@ -179,6 +189,11 @@ export async function GET(request) {
     if (!order) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
+
+    const paidTime = new Date(order.verified_at || order.created_at).getTime();
+    const isPostPaymentExpired = (order.status === 'verified' || order.status === 'completed' || order.status === 'paid') &&
+      !isNaN(paidTime) &&
+      (Date.now() - paidTime) > (24 * 60 * 60 * 1000);
 
     // Fetch matching merchant branding settings and UPI ID
     const { data: merchant } = await supabaseAdmin
@@ -203,6 +218,9 @@ export async function GET(request) {
       project: order.project,
       callback_url: order.callback_url,
       external_ref: order.external_ref,
+      verified_at: order.verified_at,
+      created_at: order.created_at,
+      isPostPaymentExpired,
       merchant: merchant || null
     }, { status: 200 });
 

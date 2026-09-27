@@ -163,23 +163,24 @@ export default function PaymentLinksRedesign({
     };
 
     window.generateMockLink = () => {
-      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+      const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
       let rand = '';
-      for (let i = 0; i < 8; i++) {
+      for (let i = 0; i < 14; i++) {
         rand += chars.charAt(Math.floor(Math.random() * chars.length));
       }
       const host = typeof window !== 'undefined' ? window.location.origin : 'https://mymob.tech';
       const mockAmt = amount ? parseFloat(amount) : 100;
       const mockPur = purpose.trim() || 'Payment for Services';
-      const mockRef = refCode.trim() || `REF-${Math.floor(1000 + Math.random() * 9000)}`;
-      const newUrl = `${host}/pay?order_id=MOCK${rand.slice(0, 4)}&amount=${mockAmt.toFixed(2)}&ref=${mockRef}`;
+      const mockRef = refCode.trim() || `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
+      const mockOrderId = `order_${rand}`;
+      const newUrl = `${host}/pay?order_id=${mockOrderId}&amount=${mockAmt.toFixed(2)}&ref=${mockRef}`;
       
       setActiveUrl(newUrl);
-      setActiveLinkId('pl_' + rand);
+      setActiveLinkId('pl_' + rand.slice(0, 8));
       setGeneratedLinkData({
         url: newUrl,
-        id: 'pl_' + rand,
-        orderId: 'MOCK' + rand.slice(0, 4),
+        id: 'pl_' + rand.slice(0, 8),
+        orderId: mockOrderId,
         amount: mockAmt,
         purpose: mockPur,
         ref: mockRef,

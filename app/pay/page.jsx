@@ -137,8 +137,9 @@ function PayPageContent() {
   /* Mobile accordion selection: '' | 'pBank' | 'pUsdt' */
   const [activeAcc,    setActiveAcc]    = useState('');
 
-  /* View navigation: 'vChecking' | 'vPay' | 'vOk' | 'vExp' */
+  /* View navigation: 'vChecking' | 'vPaidExpired' | 'vPay' | 'vOk' | 'vExp' */
   const [curView,      setCurView]      = useState(cleanParamOrderId ? 'vChecking' : 'vPay');
+  const [paidOrderData, setPaidOrderData] = useState(null);
   const [checkMsg,     setCheckMsg]     = useState('');
   const [isChecking,   setIsChecking]   = useState(false);
 
@@ -354,6 +355,11 @@ function PayPageContent() {
         if (!isMounted) return;
         if (data) {
           if (data.status === 'verified' || data.status === 'completed' || data.status === 'paid') {
+            if (data.isPostPaymentExpired) {
+              setPaidOrderData(data);
+              setCurView('vPaidExpired');
+              return;
+            }
             // Already paid! Immediately go to the status screen (Screen 2)
             handleReturn(data.orderId || cleanParamOrderId, data.callback_url);
             return;
@@ -627,6 +633,97 @@ function PayPageContent() {
           </div>
           <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', margin: '0 0 6px' }}>Verifying payment session…</h3>
           <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>Checking order status and security credentials</p>
+        </div>
+      </div>
+    );
+  }
+
+  /* ───────────────────────────────────────────────────────────
+     PAID EXPIRED VIEW (Link expired 24h after settlement)
+  ─────────────────────────────────────────────────────────── */
+  if (curView === 'vPaidExpired') {
+    const paidAmt = paidOrderData?.amount ? parseFloat(paidOrderData.amount).toFixed(2) : displayAmt;
+    const paidDt = paidOrderData?.verified_at || paidOrderData?.created_at;
+    const formattedPaidTime = paidDt
+      ? new Date(paidDt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' })
+      : 'Within 24 hours';
+    const activeOrderId = paidOrderData?.orderId || cleanParamOrderId;
+
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#0b1329', fontFamily: "'Outfit', -apple-system, sans-serif", padding: '24px 16px' }}>
+        <div style={{ background: '#ffffff', borderRadius: 28, padding: '36px 28px', maxWidth: 440, width: '100%', textAlign: 'center', boxShadow: '0 20px 40px -8px rgba(0, 0, 0, 0.35)', border: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
+            <MyMobPayLogo />
+          </div>
+          <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#fffbeb', border: '1px solid #fde68a', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: '#d97706' }}>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+          </div>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 12px', borderRadius: 20, background: '#fef3c7', color: '#b45309', fontSize: 11, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 10 }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#f59e0b' }} />
+            Link Expired
+          </div>
+          <h2 style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', margin: '0 0 6px', letterSpacing: '-0.02em' }}>Payment Link Expired</h2>
+          <p style={{ fontSize: 13, color: '#64748b', margin: '0 0 24px', lineHeight: 1.5 }}>
+            This payment link expired 24 hours after completion. The payment was already settled.
+          </p>
+
+          <div style={{ background: '#f8fafc', borderRadius: 16, border: '1px solid #e2e8f0', padding: '16px 18px', textAlign: 'left', marginBottom: 24, fontSize: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: 10, borderBottom: '1px dashed #e2e8f0' }}>
+              <span style={{ color: '#64748b', fontWeight: 600 }}>Order ID</span>
+              <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#0f172a' }}>{activeOrderId}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px dashed #e2e8f0' }}>
+              <span style={{ color: '#64748b', fontWeight: 600 }}>Amount Settled</span>
+              <span style={{ fontWeight: 800, color: '#059669', fontSize: 13 }}>₹{paidAmt}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px dashed #e2e8f0' }}>
+              <span style={{ color: '#64748b', fontWeight: 600 }}>Settled On</span>
+              <span style={{ color: '#334155', fontWeight: 600 }}>{formattedPaidTime}</span>
+            </div>
+            {paidOrderData?.utr && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 10 }}>
+                <span style={{ color: '#64748b', fontWeight: 600 }}>UTR / Bank Ref</span>
+                <span style={{ fontFamily: 'monospace', color: '#0f172a', fontWeight: 700 }}>{paidOrderData.utr}</span>
+              </div>
+            )}
+          </div>
+
+          <p style={{ fontSize: 11, color: '#94a3b8', margin: '0 0 20px', lineHeight: 1.4 }}>
+            🔒 For security and compliance, completed payment sessions cannot be reopened or re-paid after 24 hours.
+          </p>
+
+          <button
+            type="button"
+            onClick={() => {
+              const cb = paidOrderData?.callback_url || paramCallback;
+              if (cb) {
+                window.location.href = cb;
+                return;
+              }
+              if (typeof window !== 'undefined' && window.history.length > 1) {
+                window.history.back();
+                return;
+              }
+              if (typeof window !== 'undefined') window.close();
+            }}
+            style={{
+              width: '100%',
+              padding: '13px 20px',
+              borderRadius: 14,
+              border: 'none',
+              background: '#0f172a',
+              color: '#ffffff',
+              fontSize: 14,
+              fontWeight: 700,
+              cursor: 'pointer',
+              transition: 'background 0.2s',
+            }}
+          >
+            {paidOrderData?.callback_url ? 'Return to Merchant' : 'Done'}
+          </button>
         </div>
       </div>
     );
