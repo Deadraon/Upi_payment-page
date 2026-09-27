@@ -202,13 +202,9 @@ export default function DesktopCheckoutView({
     : upiId;
   const orderRefDisplay = safeActiveId.startsWith('#')
     ? safeActiveId.replace('#', '')
-    : safeActiveId.length > 9
-      ? safeActiveId.slice(-9).toUpperCase()
-      : safeActiveId.toUpperCase();
+    : safeActiveId;
 
-  const sessionDisplay = safeActiveId.startsWith('MMP_')
-    ? safeActiveId
-    : `MMP_${orderRefDisplay}`;
+  const sessionDisplay = safeActiveId;
 
   const numAmt = typeof displayAmt === 'number' && !isNaN(displayAmt)
     ? displayAmt
@@ -325,7 +321,7 @@ export default function DesktopCheckoutView({
           </div>
           <div className="flex items-center justify-between pb-3 border-b border-slate-200">
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Order Reference</span>
-            <span className="font-mono text-xs font-bold text-slate-900">#{orderRefDisplay}</span>
+            <span className="font-mono text-xs font-bold text-slate-900">{orderRefDisplay}</span>
           </div>
           <div className="flex items-center justify-between pb-3 border-b border-slate-200">
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Merchant Name</span>
@@ -524,7 +520,7 @@ export default function DesktopCheckoutView({
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-primary-fixed-dim text-body-sm mt-0.5">
-                      <span>Order #{orderRefDisplay}</span>
+                      <span>Order {orderRefDisplay.startsWith('MMP_') ? orderRefDisplay : `#${orderRefDisplay}`}</span>
                     </div>
                   </div>
                 </div>

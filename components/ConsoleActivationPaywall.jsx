@@ -235,7 +235,7 @@ export default function ConsoleActivationPaywall({
           .maybeSingle();
 
         if (recentOrder && recentOrder.status === 'pending') {
-          setStatusMsg(`Payment for Order #${recentOrder.id?.slice(0, 8)} is pending bank confirmation. Please wait for bank sync or enter UTR on checkout.`);
+          setStatusMsg(`Payment for Order ${recentOrder.id} is pending bank confirmation. Please wait for bank sync or enter UTR on checkout.`);
         } else if (hasUsedTrial) {
           setStatusMsg(`Your 3-day trial has ended. Please scan the QR code to complete payment of ₹${currentPlan.amount} for ${currentPlan.title} to unlock.`);
         } else {

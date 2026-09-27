@@ -34,6 +34,7 @@ import {
   QrCode as QrIcon,
   RotateCcw
 } from 'lucide-react';
+import { generateOrderId } from '@/lib/orderId';
 
 // No default starter links — only show links the merchant actually created
 const DEFAULT_INITIAL_LINKS = [];
@@ -48,7 +49,7 @@ export default function PaymentLinksRedesign({
   // Form input states (clean and blank by default)
   const [amount, setAmount] = useState('');
   const [purpose, setPurpose] = useState('');
-  const [refCode, setRefCode] = useState(() => 'ORD-' + Math.floor(100000 + Math.random() * 900000));
+  const [refCode, setRefCode] = useState(() => generateOrderId());
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerContact, setCustomerContact] = useState('');
@@ -122,16 +123,24 @@ export default function PaymentLinksRedesign({
 
     // Harmonize status with real database orders if matching
     return list.map((item) => {
+      // ONLY match orders that belong specifically to this payment link by orderId or external_ref
       const matchingOrder = orders.find(
         (o) =>
-          o.external_ref === item.id ||
-          o.external_ref?.startsWith(item.id + ':') ||
-          (o.note && item.purpose && o.note === item.purpose)
+          (item.orderId && o.id === item.orderId) ||
+          (item.id && (o.external_ref === item.id || o.external_ref?.startsWith(item.id + ':'))) ||
+          (item.ref && o.external_ref === item.ref)
       );
 
       if (matchingOrder) {
-        if (matchingOrder.status === 'verified') return { ...item, status: 'Paid' };
-        if (matchingOrder.status === 'failed') return { ...item, status: 'Expired' };
+        if (matchingOrder.status === 'verified' || matchingOrder.status === 'completed' || matchingOrder.status === 'paid') {
+          return { ...item, status: 'Paid', orderId: matchingOrder.id };
+        }
+        if (matchingOrder.status === 'failed' || matchingOrder.status === 'expired') {
+          return { ...item, status: 'Expired', orderId: matchingOrder.id };
+        }
+        if (matchingOrder.status === 'pending') {
+          return { ...item, status: 'Pending', orderId: matchingOrder.id };
+        }
       }
       return item;
     });
@@ -163,29 +172,11 @@ export default function PaymentLinksRedesign({
     };
 
     window.generateMockLink = () => {
-      const now = new Date();
-      const istFormatter = new Intl.DateTimeFormat('en-IN', {
-        timeZone: 'Asia/Kolkata',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      });
-      const parts = istFormatter.formatToParts(now);
-      const y = parts.find(p => p.type === 'year')?.value || String(now.getFullYear());
-      const m = parts.find(p => p.type === 'month')?.value || String(now.getMonth() + 1).padStart(2, '0');
-      const d = parts.find(p => p.type === 'day')?.value || String(now.getDate()).padStart(2, '0');
-      const dateStr = `${y}${m}${d}`;
-
-      const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-      let rand = '';
-      for (let i = 0; i < 12; i++) {
-        rand += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
+      const mockOrderId = generateOrderId();
       const host = typeof window !== 'undefined' ? window.location.origin : 'https://mymob.tech';
       const mockAmt = amount ? parseFloat(amount) : 100;
       const mockPur = purpose.trim() || 'Payment for Services';
-      const mockRef = refCode.trim() || `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
-      const mockOrderId = `MMP_${dateStr}_${rand}`;
+      const mockRef = refCode.trim() || mockOrderId;
       const newUrl = `${host}/pay?order_id=${mockOrderId}&amount=${mockAmt.toFixed(2)}&ref=${mockRef}`;
       
       setActiveUrl(newUrl);
@@ -272,7 +263,7 @@ export default function PaymentLinksRedesign({
   }, [allLinks]);
 
   // Auto-generate random Order ID helper
-  const generateRandomOrderId = () => `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
+  const generateRandomOrderId = () => generateOrderId();
 
   const handleRandomRef = () => {
     setRefCode(generateRandomOrderId());
@@ -1270,7 +1261,7 @@ export default function PaymentLinksRedesign({
                             {link.purpose}
                           </span>
                           <span className="text-[11px] font-mono text-slate-400">
-                            {link.ref || 'REF-GEN'}
+                            {link.orderId || link.ref || link.id}
                           </span>
                         </div>
                       </td>

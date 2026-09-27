@@ -240,7 +240,7 @@ export default function TransactionsRedesign({
       const dt = o.created_at ? new Date(o.created_at) : new Date();
       return [
         `txn_${(o.id || '').slice(0, 8)}`,
-        o.order_id || `ORD-${(o.id || '').slice(0, 6)}`,
+        o.order_id || o.id,
         dt.toLocaleDateString('en-IN'),
         dt.toLocaleTimeString('en-IN'),
         o.amount || '0',

@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { supabaseAdmin } from '@/lib/supabase';
 import { CONFIG } from '@/lib/config';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
+import { generateOrderId } from '@/lib/orderId';
 
 export async function POST(request) {
   try {
@@ -114,26 +115,7 @@ export async function POST(request) {
     if (requestedOrderId && requestedOrderId.length >= 4) {
       orderId = requestedOrderId;
     } else {
-      const now = new Date();
-      const istFormatter = new Intl.DateTimeFormat('en-IN', {
-        timeZone: 'Asia/Kolkata',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      });
-      const parts = istFormatter.formatToParts(now);
-      const y = parts.find(p => p.type === 'year')?.value || String(now.getFullYear());
-      const m = parts.find(p => p.type === 'month')?.value || String(now.getMonth() + 1).padStart(2, '0');
-      const d = parts.find(p => p.type === 'day')?.value || String(now.getDate()).padStart(2, '0');
-      const dateStr = `${y}${m}${d}`;
-
-      const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-      const randomBytes = crypto.randomBytes(12);
-      let randPart = '';
-      for (let i = 0; i < 12; i++) {
-        randPart += chars[randomBytes[i] % chars.length];
-      }
-      orderId = `MMP_${dateStr}_${randPart}`;
+      orderId = generateOrderId();
     }
 
     // 6. Insert order into Supabase linked to the merchant

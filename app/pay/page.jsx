@@ -1467,7 +1467,7 @@ function PayPageContent() {
                 </p>
 
                 <div className="rcp" style={{ textAlign: 'left', margin: '16px 0', background: '#f8fafc', padding: '16px', borderRadius: 16, border: '1px solid #e2e8f0' }}>
-                  <div><span>Order Reference</span><span style={{ fontFamily: 'monospace', fontWeight: 700 }}>#{activeId ? activeId.slice(-8).toUpperCase() : 'DEMO'}</span></div>
+                  <div><span>Order Reference</span><span style={{ fontFamily: 'monospace', fontWeight: 700 }}>{activeId || 'DEMO'}</span></div>
                   <div><span>Amount Paid</span><span style={{ color: '#059669', fontWeight: 800 }}>{fmtInr(displayAmt)}</span></div>
                   <div><span>Payment Method</span><span>UPI Instant Settlement</span></div>
                   <div><span>Transaction Status</span><span style={{ color: '#059669', fontWeight: 700 }}>✓ Verified & Paid</span></div>

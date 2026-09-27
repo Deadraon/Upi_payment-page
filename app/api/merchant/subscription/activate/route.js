@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { sendSubscriptionInvoiceEmail } from '@/lib/mailer';
+import { generateOrderId } from '@/lib/orderId';
 
 export async function POST(req) {
   try {
@@ -58,7 +59,7 @@ export async function POST(req) {
     }
 
     // 4. Create an order record for audit & invoice tracking
-    const orderId = `ORD-SUB-${Date.now().toString().slice(-6)}`;
+    const orderId = generateOrderId();
     const invoiceRef = `INV-${new Date().getFullYear()}-${Date.now().toString().slice(-5)}`;
 
     try {
