@@ -2034,6 +2034,24 @@ export default function DashboardPage() {
               subscription_expires_at: expiryDate.toISOString(),
               setup_progress: updatedProg
             }).eq('id', userId);
+          } else {
+            data.subscription_status = 'expired';
+            data.subscription_expires_at = expiryDate.toISOString();
+            const currProg = data.setup_progress || {};
+            const updatedProg = {
+              ...currProg,
+              trial_activated_at: isTrial ? orderDate.toISOString() : (currProg.trial_activated_at || null),
+              trial_expires_at: isTrial ? expiryDate.toISOString() : (currProg.trial_expires_at || null),
+              trial_expired: isTrial ? true : (currProg.trial_expired || false),
+              plan_type: isTrial ? 'trial_3day' : (currProg.plan_type || 'subscription'),
+              last_order_id: ord.id
+            };
+            data.setup_progress = updatedProg;
+            await supabase.from('merchants').update({
+              subscription_status: 'expired',
+              subscription_expires_at: expiryDate.toISOString(),
+              setup_progress: updatedProg
+            }).eq('id', userId);
           }
         }
       }
