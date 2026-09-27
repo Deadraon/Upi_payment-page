@@ -797,11 +797,11 @@ export default function TransactionsRedesign({
                         <div className="flex flex-col gap-0.5">
                           <div className="flex items-center gap-1.5">
                             <span className="font-mono text-xs font-bold text-[#0c2340] group-hover:text-blue-600 transition-colors">
-                              txn_{(order.id || '').replace('order_', '').slice(0, 8)}
+                              txn_{(order.id || '').replace(/^order_|^MMP_\d{8}_/, '').slice(0, 8)}
                             </span>
                             <span className="text-slate-300">•</span>
                             <span className="text-[11px] font-mono text-slate-500">
-                              {order.order_id || ((order.id || '').startsWith('order_') ? order.id : `ORD-${order.id}`)}
+                              {order.order_id || order.id}
                             </span>
                           </div>
                           <span className="text-[10px] text-slate-400 font-medium">
@@ -1076,7 +1076,7 @@ export default function TransactionsRedesign({
                 <div className="p-3 bg-slate-50/60 rounded-xl border border-slate-100 flex flex-col">
                   <span className="text-[10px] text-slate-400 uppercase font-bold">Order ID</span>
                   <span className="text-xs font-mono font-bold text-slate-800 mt-1">
-                    {selectedOrder.order_id || ((selectedOrder.id || '').startsWith('order_') ? selectedOrder.id : `ORD-${selectedOrder.id}`)}
+                    {selectedOrder.order_id || selectedOrder.id}
                   </span>
                 </div>
                 <div className="p-3 bg-slate-50/60 rounded-xl border border-slate-100 flex flex-col">

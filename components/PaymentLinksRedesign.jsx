@@ -163,16 +163,29 @@ export default function PaymentLinksRedesign({
     };
 
     window.generateMockLink = () => {
+      const now = new Date();
+      const istFormatter = new Intl.DateTimeFormat('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      });
+      const parts = istFormatter.formatToParts(now);
+      const y = parts.find(p => p.type === 'year')?.value || String(now.getFullYear());
+      const m = parts.find(p => p.type === 'month')?.value || String(now.getMonth() + 1).padStart(2, '0');
+      const d = parts.find(p => p.type === 'day')?.value || String(now.getDate()).padStart(2, '0');
+      const dateStr = `${y}${m}${d}`;
+
       const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
       let rand = '';
-      for (let i = 0; i < 14; i++) {
+      for (let i = 0; i < 12; i++) {
         rand += chars.charAt(Math.floor(Math.random() * chars.length));
       }
       const host = typeof window !== 'undefined' ? window.location.origin : 'https://mymob.tech';
       const mockAmt = amount ? parseFloat(amount) : 100;
       const mockPur = purpose.trim() || 'Payment for Services';
       const mockRef = refCode.trim() || `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
-      const mockOrderId = `order_${rand}`;
+      const mockOrderId = `MMP_${dateStr}_${rand}`;
       const newUrl = `${host}/pay?order_id=${mockOrderId}&amount=${mockAmt.toFixed(2)}&ref=${mockRef}`;
       
       setActiveUrl(newUrl);

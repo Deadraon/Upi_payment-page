@@ -107,20 +107,33 @@ export async function POST(request) {
       offset++;
     }
 
-    // 5. Generate a cryptographically secure Order ID (Razorpay standard: order_ + 14 alphanumeric chars)
-    // E.g. order_NwtL3Z9G48eX2p (high-entropy, unguessable, secure like Razorpay and Amazon)
+    // 5. Generate a cryptographically secure Order ID (Format: MMP_<YYYYMMDD>_<12-char random base62>)
+    // E.g. MMP_20260927_8F3kQ9zR2x1A
     let orderId = '';
     const requestedOrderId = (body.order_id || body.orderId || '').trim().replace(/^[-#]+/, '');
     if (requestedOrderId && requestedOrderId.length >= 4) {
       orderId = requestedOrderId;
     } else {
+      const now = new Date();
+      const istFormatter = new Intl.DateTimeFormat('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      });
+      const parts = istFormatter.formatToParts(now);
+      const y = parts.find(p => p.type === 'year')?.value || String(now.getFullYear());
+      const m = parts.find(p => p.type === 'month')?.value || String(now.getMonth() + 1).padStart(2, '0');
+      const d = parts.find(p => p.type === 'day')?.value || String(now.getDate()).padStart(2, '0');
+      const dateStr = `${y}${m}${d}`;
+
       const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-      const randomBytes = crypto.randomBytes(14);
+      const randomBytes = crypto.randomBytes(12);
       let randPart = '';
-      for (let i = 0; i < 14; i++) {
+      for (let i = 0; i < 12; i++) {
         randPart += chars[randomBytes[i] % chars.length];
       }
-      orderId = `order_${randPart}`;
+      orderId = `MMP_${dateStr}_${randPart}`;
     }
 
     // 6. Insert order into Supabase linked to the merchant

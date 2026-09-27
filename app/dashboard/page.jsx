@@ -6689,7 +6689,7 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-                      <p className="text-[10px] font-semibold text-slate-400 mt-0.5">{dateStr} · #{order.id.startsWith('order_') ? order.id : order.id.slice(0, 8).toUpperCase()}</p>
+                      <p className="text-[10px] font-semibold text-slate-400 mt-0.5">{dateStr} · #{order.id}</p>
 
 
 
