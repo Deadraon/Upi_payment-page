@@ -39,6 +39,129 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
+const IFSC_PREFIX_MAP = {
+  'State Bank of India (SBI)': 'SBIN0',
+  'HDFC Bank Ltd.': 'HDFC0',
+  'ICICI Bank Ltd.': 'ICIC0',
+  'Axis Bank Ltd.': 'UTIB0',
+  'Kotak Mahindra Bank': 'KKBK0',
+  'Punjab National Bank (PNB)': 'PUNB0',
+  'Bank of Baroda (BOB)': 'BARB0',
+  'Canara Bank': 'CNRB0',
+  'Union Bank of India': 'UBIN0',
+  'IDBI Bank': 'IBKL0',
+  'IDFC FIRST Bank': 'IDFB0',
+  'IndusInd Bank': 'INDB0',
+  'Yes Bank Ltd.': 'YESB0',
+  'Federal Bank': 'FDRL0',
+  'Bank of India': 'BKID0',
+  'Central Bank of India': 'CBIN0',
+  'Indian Bank': 'IDIB0',
+  'Indian Overseas Bank (IOB)': 'IOBA0',
+  'Punjab & Sind Bank': 'PSIB0',
+  'UCO Bank': 'UCBA0',
+  'Bank of Maharashtra': 'MAHB0',
+  'AU Small Finance Bank': 'AUBL0',
+  'Equitas Small Finance Bank': 'ESFB0',
+  'Airtel Payments Bank': 'AIRP0',
+  'Paytm Payments Bank': 'PYTM0',
+  'India Post Payments Bank (IPPB)': 'IPOS0',
+  'Standard Chartered Bank': 'SCBL0',
+  'Citibank India': 'CITI0',
+  'DBS Bank India': 'DBSS0',
+  'HSBC India': 'HSBC0',
+};
+
+const ALL_INDIAN_BANKS = [
+  'Abhyudaya Co-operative Bank',
+  'Airtel Payments Bank',
+  'Andhra Pradesh Grameena Vikas Bank',
+  'Aryavart Bank',
+  'AU Small Finance Bank',
+  'Axis Bank Ltd.',
+  'Bandhan Bank',
+  'Bank of America',
+  'Bank of Baroda',
+  'Bank of India',
+  'Bank of Maharashtra',
+  'Barclays Bank',
+  'Baroda Gujarat Gramin Bank',
+  'Baroda Rajasthan Kshetriya Gramin Bank',
+  'Bharat Co-operative Bank',
+  'Canara Bank',
+  'Capital Small Finance Bank',
+  'Central Bank of India',
+  'Citibank India',
+  'City Union Bank',
+  'Cosmos Co-operative Bank',
+  'CSB Bank',
+  'DBS Bank India',
+  'DCB Bank',
+  'Deutsche Bank',
+  'Dhanlaxmi Bank',
+  'Equitas Small Finance Bank',
+  'ESAF Small Finance Bank',
+  'Federal Bank',
+  'Fincare Small Finance Bank',
+  'Fino Payments Bank',
+  'HDFC Bank Ltd.',
+  'HSBC India',
+  'ICICI Bank Ltd.',
+  'IDBI Bank',
+  'IDFC FIRST Bank',
+  'India Post Payments Bank (IPPB)',
+  'Indian Bank',
+  'Indian Overseas Bank (IOB)',
+  'IndusInd Bank',
+  'Jammu & Kashmir Bank',
+  'Jana Small Finance Bank',
+  'Jio Payments Bank',
+  'Kalupur Commercial Co-op Bank',
+  'Karnataka Bank',
+  'Karnataka Gramin Bank',
+  'Karur Vysya Bank',
+  'Kerala Gramin Bank',
+  'Kotak Mahindra Bank',
+  'Maharashtra Gramin Bank',
+  'Nainital Bank',
+  'NKGSB Co-operative Bank',
+  'North East Small Finance Bank',
+  'NSDL Payments Bank',
+  'Paytm Payments Bank',
+  'Prathama UP Gramin Bank',
+  'Punjab & Sind Bank',
+  'Punjab Gramin Bank',
+  'Punjab National Bank (PNB)',
+  'RBL Bank',
+  'Saraswat Co-operative Bank',
+  'Shivalik Small Finance Bank',
+  'South Indian Bank',
+  'Standard Chartered Bank',
+  'State Bank of India (SBI)',
+  'Suryoday Small Finance Bank',
+  'SVC Co-operative Bank',
+  'Tamilnad Mercantile Bank',
+  'Telangana Grameena Bank',
+  'TJSB Sahakari Bank',
+  'UCO Bank',
+  'Ujjivan Small Finance Bank',
+  'Union Bank of India',
+  'Unity Small Finance Bank',
+  'Utkarsh Small Finance Bank',
+  'Yes Bank Ltd.',
+  'Other Bank'
+];
+
+const IndianBankOptions = () => (
+  <>
+    {ALL_INDIAN_BANKS.map((bank) => (
+      <option key={bank} value={bank}>
+        {bank}
+      </option>
+    ))}
+  </>
+);
+
 export default function SettingsRedesign({
   profile = {},
   user = null,
@@ -65,6 +188,21 @@ export default function SettingsRedesign({
   });
   const [bankFormError, setBankFormError] = useState('');
   const [bankSuccessMsg, setBankSuccessMsg] = useState('');
+
+  // ── Edit Bank Account State ──────────────────────────────────
+  const [showEditBankModal, setShowEditBankModal] = useState(false);
+  const [editBankForm, setEditBankForm] = useState({
+    id: '',
+    bank_name: 'State Bank of India (SBI)',
+    custom_bank_name: '',
+    bank_account_name: '',
+    bank_account_number: '',
+    confirm_account_number: '',
+    bank_ifsc: '',
+    account_type: 'Current Account',
+    is_primary: false
+  });
+  const [editBankFormError, setEditBankFormError] = useState('');
 
   // ── UPI / VPA Edit Mode & Saving State ─────────────────────────
   const [isEditingVpa, setIsEditingVpa] = useState(false);
@@ -310,7 +448,8 @@ export default function SettingsRedesign({
       return;
     }
 
-    const resolvedBankName = (newBankForm.bank_name === 'Other Commercial / Cooperative Bank' && newBankForm.custom_bank_name?.trim())
+    const isOther = newBankForm.bank_name === 'Other Bank' || newBankForm.bank_name === 'Other Commercial / Cooperative Bank';
+    const resolvedBankName = (isOther && newBankForm.custom_bank_name?.trim())
       ? newBankForm.custom_bank_name.trim()
       : newBankForm.bank_name.trim();
 
@@ -350,6 +489,82 @@ export default function SettingsRedesign({
       account_type: 'Current Account',
       set_primary: true
     });
+  };
+
+  // ── Open Edit Bank Account Modal ──────────────────────────────
+  const handleOpenEditBank = (acc) => {
+    setEditBankFormError('');
+    const isStandard = ALL_INDIAN_BANKS.includes(acc.bank_name) && acc.bank_name !== 'Other Bank';
+
+    setEditBankForm({
+      id: acc.id,
+      bank_name: isStandard ? acc.bank_name : 'Other Bank',
+      custom_bank_name: isStandard ? '' : acc.bank_name,
+      bank_account_name: acc.bank_account_name || '',
+      bank_account_number: acc.bank_account_number || '',
+      confirm_account_number: acc.bank_account_number || '',
+      bank_ifsc: acc.bank_ifsc || '',
+      account_type: acc.account_type || 'Current Account',
+      is_primary: !!acc.is_primary
+    });
+    setShowEditBankModal(true);
+  };
+
+  // ── Handle Update Bank Account ────────────────────────────────
+  const handleUpdateBankAccount = (e) => {
+    e.preventDefault();
+    setEditBankFormError('');
+
+    const isOther = editBankForm.bank_name === 'Other Bank' || editBankForm.bank_name === 'Other Commercial / Cooperative Bank';
+    const resolvedBankName = (isOther && editBankForm.custom_bank_name?.trim())
+      ? editBankForm.custom_bank_name.trim()
+      : editBankForm.bank_name.trim();
+
+    if (!resolvedBankName) {
+      setEditBankFormError('Please enter or select a bank name.');
+      return;
+    }
+    if (!editBankForm.bank_account_name.trim()) {
+      setEditBankFormError('Beneficiary account holder name is required.');
+      return;
+    }
+    if (!editBankForm.bank_account_number.trim() || editBankForm.bank_account_number.length < 8) {
+      setEditBankFormError('Please enter a valid bank account number (at least 8 digits).');
+      return;
+    }
+    if (editBankForm.confirm_account_number && editBankForm.bank_account_number !== editBankForm.confirm_account_number) {
+      setEditBankFormError('Account numbers do not match.');
+      return;
+    }
+    if (!editBankForm.bank_ifsc.trim() || editBankForm.bank_ifsc.length !== 11) {
+      setEditBankFormError('Please enter a valid 11-character bank IFSC code.');
+      return;
+    }
+
+    const updated = bankAccounts.map((acc) => {
+      if (acc.id === editBankForm.id) {
+        return {
+          ...acc,
+          bank_name: resolvedBankName,
+          bank_account_name: editBankForm.bank_account_name.trim(),
+          bank_account_number: editBankForm.bank_account_number.trim(),
+          bank_ifsc: editBankForm.bank_ifsc.trim().toUpperCase(),
+          account_type: editBankForm.account_type || 'Current Account',
+          is_primary: editBankForm.is_primary,
+          updated_at: new Date().toISOString()
+        };
+      }
+      if (editBankForm.is_primary) {
+        return { ...acc, is_primary: false };
+      }
+      return acc;
+    });
+
+    const activePrimary = updated.find((a) => a.is_primary) || updated[0];
+    persistBankAccounts(updated, activePrimary);
+    setShowEditBankModal(false);
+    setBankSuccessMsg(`Updated ${resolvedBankName} details successfully!`);
+    setTimeout(() => setBankSuccessMsg(''), 3500);
   };
 
   // ── UPI / VPA Dedicated Save Handler ──────────────────────────
@@ -841,7 +1056,7 @@ export default function SettingsRedesign({
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1.5">
                             {acc.is_primary ? (
                               <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1">
                                 <CheckCircle className="w-3 h-3 text-emerald-600" />
@@ -856,6 +1071,17 @@ export default function SettingsRedesign({
                                 Set Active
                               </button>
                             )}
+
+                            {/* Edit Bank Option */}
+                            <button
+                              onClick={() => handleOpenEditBank(acc)}
+                              type="button"
+                              title="Edit bank account details"
+                              className="px-2 py-0.5 rounded-full text-slate-600 hover:text-blue-600 bg-white hover:bg-blue-50 border border-slate-200 hover:border-blue-200 transition-colors flex items-center gap-1 text-[11px] font-semibold cursor-pointer"
+                            >
+                              <Edit2 className="w-3 h-3" />
+                              <span>Edit</span>
+                            </button>
 
                             {/* Remove Option */}
                             {bankAccounts.length > 1 && (
@@ -1647,166 +1873,21 @@ export default function SettingsRedesign({
                   value={newBankForm.bank_name}
                   onChange={(e) => {
                     const selected = e.target.value;
-                    const ifscPrefixMap = {
-                      'State Bank of India (SBI)': 'SBIN0',
-                      'HDFC Bank Ltd.': 'HDFC0',
-                      'ICICI Bank Ltd.': 'ICIC0',
-                      'Axis Bank Ltd.': 'UTIB0',
-                      'Kotak Mahindra Bank': 'KKBK0',
-                      'Punjab National Bank (PNB)': 'PUNB0',
-                      'Bank of Baroda (BOB)': 'BARB0',
-                      'Canara Bank': 'CNRB0',
-                      'Union Bank of India': 'UBIN0',
-                      'IDBI Bank': 'IBKL0',
-                      'IDFC FIRST Bank': 'IDFB0',
-                      'IndusInd Bank': 'INDB0',
-                      'Yes Bank Ltd.': 'YESB0',
-                      'Federal Bank': 'FDRL0',
-                      'Bank of India': 'BKID0',
-                      'Central Bank of India': 'CBIN0',
-                      'Indian Bank': 'IDIB0',
-                      'Indian Overseas Bank (IOB)': 'IOBA0',
-                      'Punjab & Sind Bank': 'PSIB0',
-                      'UCO Bank': 'UCBA0',
-                      'Bank of Maharashtra': 'MAHB0',
-                      'AU Small Finance Bank': 'AUBL0',
-                      'Equitas Small Finance Bank': 'ESFB0',
-                      'Airtel Payments Bank': 'AIRP0',
-                      'Paytm Payments Bank': 'PYTM0',
-                      'India Post Payments Bank (IPPB)': 'IPOS0',
-                      'Standard Chartered Bank': 'SCBL0',
-                      'Citibank India': 'CITI0',
-                      'DBS Bank India': 'DBSS0',
-                      'HSBC India': 'HSBC0',
-                    };
-                    const autoIfsc = ifscPrefixMap[selected] || '';
+                    const autoIfsc = IFSC_PREFIX_MAP[selected] || '';
                     setNewBankForm(prev => ({
                       ...prev,
                       bank_name: selected,
-                      bank_ifsc: (!prev.bank_ifsc || Object.values(ifscPrefixMap).some(p => prev.bank_ifsc.startsWith(p))) ? autoIfsc : prev.bank_ifsc
+                      bank_ifsc: (!prev.bank_ifsc || Object.values(IFSC_PREFIX_MAP).some(p => prev.bank_ifsc.startsWith(p))) ? autoIfsc : prev.bank_ifsc
                     }));
                   }}
                   className="h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
                 >
-                  <optgroup label="🌟 Most Popular Indian Banks">
-                    <option value="State Bank of India (SBI)">State Bank of India (SBI)</option>
-                    <option value="HDFC Bank Ltd.">HDFC Bank Ltd.</option>
-                    <option value="ICICI Bank Ltd.">ICICI Bank Ltd.</option>
-                    <option value="Axis Bank Ltd.">Axis Bank Ltd.</option>
-                    <option value="Kotak Mahindra Bank">Kotak Mahindra Bank</option>
-                    <option value="Punjab National Bank (PNB)">Punjab National Bank (PNB)</option>
-                    <option value="Bank of Baroda (BOB)">Bank of Baroda (BOB)</option>
-                    <option value="Canara Bank">Canara Bank</option>
-                    <option value="Union Bank of India">Union Bank of India</option>
-                    <option value="IDFC FIRST Bank">IDFC FIRST Bank</option>
-                    <option value="IndusInd Bank">IndusInd Bank</option>
-                    <option value="Yes Bank Ltd.">Yes Bank Ltd.</option>
-                    <option value="Federal Bank">Federal Bank</option>
-                    <option value="IDBI Bank">IDBI Bank</option>
-                  </optgroup>
-
-                  <optgroup label="🏛️ Public Sector Banks (PSBs)">
-                    <option value="Bank of Baroda (BOB)">Bank of Baroda (BOB)</option>
-                    <option value="Bank of India">Bank of India</option>
-                    <option value="Bank of Maharashtra">Bank of Maharashtra</option>
-                    <option value="Canara Bank">Canara Bank</option>
-                    <option value="Central Bank of India">Central Bank of India</option>
-                    <option value="Indian Bank">Indian Bank</option>
-                    <option value="Indian Overseas Bank (IOB)">Indian Overseas Bank (IOB)</option>
-                    <option value="Punjab National Bank (PNB)">Punjab National Bank (PNB)</option>
-                    <option value="Punjab & Sind Bank">Punjab &amp; Sind Bank</option>
-                    <option value="State Bank of India (SBI)">State Bank of India (SBI)</option>
-                    <option value="UCO Bank">UCO Bank</option>
-                    <option value="Union Bank of India">Union Bank of India</option>
-                  </optgroup>
-
-                  <optgroup label="🏢 Private Sector Banks">
-                    <option value="Axis Bank Ltd.">Axis Bank Ltd.</option>
-                    <option value="Bandhan Bank">Bandhan Bank</option>
-                    <option value="City Union Bank">City Union Bank</option>
-                    <option value="CSB Bank">CSB Bank (Catholic Syrian)</option>
-                    <option value="DCB Bank">DCB Bank</option>
-                    <option value="Dhanlaxmi Bank">Dhanlaxmi Bank</option>
-                    <option value="Federal Bank">Federal Bank</option>
-                    <option value="HDFC Bank Ltd.">HDFC Bank Ltd.</option>
-                    <option value="ICICI Bank Ltd.">ICICI Bank Ltd.</option>
-                    <option value="IDBI Bank">IDBI Bank</option>
-                    <option value="IDFC FIRST Bank">IDFC FIRST Bank</option>
-                    <option value="IndusInd Bank">IndusInd Bank</option>
-                    <option value="Jammu & Kashmir Bank">Jammu &amp; Kashmir Bank (J&amp;K)</option>
-                    <option value="Karnataka Bank">Karnataka Bank</option>
-                    <option value="Karur Vysya Bank">Karur Vysya Bank</option>
-                    <option value="Kotak Mahindra Bank">Kotak Mahindra Bank</option>
-                    <option value="Nainital Bank">Nainital Bank</option>
-                    <option value="RBL Bank">RBL Bank (Ratnakar)</option>
-                    <option value="South Indian Bank">South Indian Bank</option>
-                    <option value="Tamilnad Mercantile Bank">Tamilnad Mercantile Bank (TMB)</option>
-                    <option value="Yes Bank Ltd.">Yes Bank Ltd.</option>
-                  </optgroup>
-
-                  <optgroup label="📱 Payments Banks (RBI Licensed)">
-                    <option value="Airtel Payments Bank">Airtel Payments Bank</option>
-                    <option value="Fino Payments Bank">Fino Payments Bank</option>
-                    <option value="India Post Payments Bank (IPPB)">India Post Payments Bank (IPPB)</option>
-                    <option value="Jio Payments Bank">Jio Payments Bank</option>
-                    <option value="NSDL Payments Bank">NSDL Payments Bank</option>
-                    <option value="Paytm Payments Bank">Paytm Payments Bank</option>
-                  </optgroup>
-
-                  <optgroup label="⚡ Small Finance Banks (SFBs)">
-                    <option value="AU Small Finance Bank">AU Small Finance Bank</option>
-                    <option value="Capital Small Finance Bank">Capital Small Finance Bank</option>
-                    <option value="Equitas Small Finance Bank">Equitas Small Finance Bank</option>
-                    <option value="ESAF Small Finance Bank">ESAF Small Finance Bank</option>
-                    <option value="Fincare Small Finance Bank">Fincare Small Finance Bank</option>
-                    <option value="Jana Small Finance Bank">Jana Small Finance Bank</option>
-                    <option value="North East Small Finance Bank">North East Small Finance Bank</option>
-                    <option value="Shivalik Small Finance Bank">Shivalik Small Finance Bank</option>
-                    <option value="Suryoday Small Finance Bank">Suryoday Small Finance Bank</option>
-                    <option value="Ujjivan Small Finance Bank">Ujjivan Small Finance Bank</option>
-                    <option value="Unity Small Finance Bank">Unity Small Finance Bank</option>
-                    <option value="Utkarsh Small Finance Bank">Utkarsh Small Finance Bank</option>
-                  </optgroup>
-
-                  <optgroup label="🌐 Foreign Banks Operating in India">
-                    <option value="Bank of America">Bank of America</option>
-                    <option value="Barclays Bank">Barclays Bank</option>
-                    <option value="Citibank India">Citibank India</option>
-                    <option value="DBS Bank India">DBS Bank India</option>
-                    <option value="Deutsche Bank">Deutsche Bank</option>
-                    <option value="HSBC India">HSBC India</option>
-                    <option value="Standard Chartered Bank">Standard Chartered Bank</option>
-                  </optgroup>
-
-                  <optgroup label="🤝 Cooperative & Regional Rural Banks (RRBs)">
-                    <option value="Abhyudaya Co-operative Bank">Abhyudaya Co-operative Bank</option>
-                    <option value="Andhra Pradesh Grameena Vikas Bank">Andhra Pradesh Grameena Vikas Bank</option>
-                    <option value="Aryavart Bank">Aryavart Bank</option>
-                    <option value="Baroda Gujarat Gramin Bank">Baroda Gujarat Gramin Bank</option>
-                    <option value="Baroda Rajasthan Kshetriya Gramin Bank">Baroda Rajasthan Kshetriya Gramin Bank</option>
-                    <option value="Bharat Co-operative Bank">Bharat Co-operative Bank</option>
-                    <option value="Cosmos Co-operative Bank">Cosmos Co-operative Bank</option>
-                    <option value="Kalupur Commercial Co-op Bank">Kalupur Commercial Co-op Bank</option>
-                    <option value="Karnataka Gramin Bank">Karnataka Gramin Bank</option>
-                    <option value="Kerala Gramin Bank">Kerala Gramin Bank</option>
-                    <option value="Maharashtra Gramin Bank">Maharashtra Gramin Bank</option>
-                    <option value="NKGSB Co-operative Bank">NKGSB Co-operative Bank</option>
-                    <option value="Prathama UP Gramin Bank">Prathama UP Gramin Bank</option>
-                    <option value="Punjab Gramin Bank">Punjab Gramin Bank</option>
-                    <option value="Saraswat Co-operative Bank">Saraswat Co-operative Bank</option>
-                    <option value="SVC Co-operative Bank">SVC Co-operative Bank (Shamrao Vithal)</option>
-                    <option value="Telangana Grameena Bank">Telangana Grameena Bank</option>
-                    <option value="TJSB Sahakari Bank">TJSB Sahakari Bank</option>
-                  </optgroup>
-
-                  <optgroup label="Other">
-                    <option value="Other Commercial / Cooperative Bank">Other Commercial / Cooperative Bank</option>
-                  </optgroup>
+                  <IndianBankOptions />
                 </select>
               </div>
 
-              {/* If "Other Commercial / Cooperative Bank" selected, provide custom name input */}
-              {newBankForm.bank_name === 'Other Commercial / Cooperative Bank' && (
+              {/* If "Other Bank" selected, provide custom name input */}
+              {(newBankForm.bank_name === 'Other Bank' || newBankForm.bank_name === 'Other Commercial / Cooperative Bank') && (
                 <div className="flex flex-col gap-1.5 animate-fadeIn">
                   <label className="text-xs font-bold text-slate-700">Specify Bank Name</label>
                   <input
@@ -1917,6 +1998,176 @@ export default function SettingsRedesign({
                 >
                   <Check className="w-4 h-4" />
                   <span>Verify & Add Bank</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ─── EDIT BANK ACCOUNT MODAL ─── */}
+      {showEditBankModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-6 shadow-2xl flex flex-col gap-4 relative max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                  <Edit2 className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">Edit Settlement Bank Account</h3>
+                  <p className="text-[11px] text-slate-500">Update beneficiary bank and account credentials</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowEditBankModal(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateBankAccount} className="flex flex-col gap-4">
+              {editBankFormError && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs font-semibold rounded-xl flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                  <span>{editBankFormError}</span>
+                </div>
+              )}
+
+              {/* Bank Name */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-slate-700">Bank Name</label>
+                <select
+                  value={editBankForm.bank_name}
+                  onChange={(e) => {
+                    const selected = e.target.value;
+                    const autoIfsc = IFSC_PREFIX_MAP[selected] || '';
+                    setEditBankForm((prev) => ({
+                      ...prev,
+                      bank_name: selected,
+                      bank_ifsc: (!prev.bank_ifsc || Object.values(IFSC_PREFIX_MAP).some(p => prev.bank_ifsc.startsWith(p))) ? autoIfsc : prev.bank_ifsc
+                    }));
+                  }}
+                  className="h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                >
+                  <IndianBankOptions />
+                </select>
+              </div>
+
+              {/* If "Other Bank" selected */}
+              {(editBankForm.bank_name === 'Other Bank' || editBankForm.bank_name === 'Other Commercial / Cooperative Bank') && (
+                <div className="flex flex-col gap-1.5 animate-fadeIn">
+                  <label className="text-xs font-bold text-slate-700">Specify Bank Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={editBankForm.custom_bank_name || ''}
+                    onChange={(e) => setEditBankForm({ ...editBankForm, custom_bank_name: e.target.value })}
+                    placeholder="Enter your bank name"
+                    className="h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                  />
+                </div>
+              )}
+
+              {/* Beneficiary Name */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-slate-700">Account Beneficiary Name (Legal / GST Registered)</label>
+                <input
+                  type="text"
+                  required
+                  value={editBankForm.bank_account_name}
+                  onChange={(e) => setEditBankForm({ ...editBankForm, bank_account_name: e.target.value })}
+                  placeholder="e.g. MyMobPay Technologies Pvt Ltd"
+                  className="h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                />
+              </div>
+
+              {/* Account Number & Confirm */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-slate-700">Account Number</label>
+                  <input
+                    type="password"
+                    required
+                    value={editBankForm.bank_account_number}
+                    onChange={(e) => setEditBankForm({ ...editBankForm, bank_account_number: e.target.value })}
+                    placeholder="Enter account number"
+                    className="h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-slate-700">Confirm Account Number</label>
+                  <input
+                    type="text"
+                    required
+                    value={editBankForm.confirm_account_number}
+                    onChange={(e) => setEditBankForm({ ...editBankForm, confirm_account_number: e.target.value })}
+                    placeholder="Re-enter to verify"
+                    className="h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* IFSC & Account Type */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-slate-700">IFSC Code</label>
+                  <input
+                    type="text"
+                    required
+                    value={editBankForm.bank_ifsc}
+                    onChange={(e) => setEditBankForm({ ...editBankForm, bank_ifsc: e.target.value.toUpperCase() })}
+                    placeholder="e.g. HDFC0000060"
+                    className="h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold uppercase text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-slate-700">Account Type</label>
+                  <select
+                    value={editBankForm.account_type}
+                    onChange={(e) => setEditBankForm({ ...editBankForm, account_type: e.target.value })}
+                    className="h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                  >
+                    <option value="Current Account">Current Account</option>
+                    <option value="Savings Account">Savings Account</option>
+                    <option value="Cash Credit Account">Cash Credit (CC)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Set Primary Checkbox */}
+              <label className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={editBankForm.is_primary}
+                  onChange={(e) => setEditBankForm({ ...editBankForm, is_primary: e.target.checked })}
+                  className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
+                />
+                <div className="flex flex-col text-xs">
+                  <span className="font-bold text-slate-800">Set as Primary Settlement Account</span>
+                  <span className="text-[11px] text-slate-500">Incoming UPI settlements will be credited directly to this account.</span>
+                </div>
+              </label>
+
+              {/* Modal Actions */}
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowEditBankModal(false)}
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-md shadow-blue-500/20 flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Save Bank Changes</span>
                 </button>
               </div>
             </form>
