@@ -107,7 +107,7 @@ function PayPageContent() {
   const paramApiKey   = searchParams.get('api_key') || searchParams.get('key') || '';
   const paramAmount   = searchParams.get('amount')   || '';
   const paramProject  = searchParams.get('project')  || searchParams.get('merchant') || searchParams.get('biz') || searchParams.get('business_name') || searchParams.get('store') || '';
-  const paramCallback = searchParams.get('callback') || '';
+  const paramCallback = searchParams.get('callback') || searchParams.get('callback_url') || searchParams.get('redirect_url') || searchParams.get('return_url') || searchParams.get('redirect') || '';
   const paramName     = searchParams.get('name')     || '';
   const paramPhone    = searchParams.get('phone')    || '';
   const paramRef      = searchParams.get('ref')      || '';
@@ -538,12 +538,36 @@ function PayPageContent() {
   };
 
   const handleReturn = () => {
-    const cb = typeof window !== 'undefined' ? (localStorage.getItem(`callback_${activeId}`) || paramCallback) : '';
+    let cb = typeof window !== 'undefined' ? (localStorage.getItem(`callback_${activeId}`) || paramCallback) : '';
     if (cb) {
-      window.location.href = cb + (cb.includes('?') ? '&' : '?') + `order_id=${activeId}&status=verified`;
-    } else {
-      router.push(`/status/${activeId}`);
+      let resolved = cb.trim();
+      if (!/^https?:\/\//i.test(resolved) && !resolved.startsWith('/')) {
+        resolved = `https://${resolved}`;
+      }
+      try {
+        const url = new URL(resolved, window.location.origin);
+        url.searchParams.set('order_id', activeId);
+        url.searchParams.set('status', 'verified');
+        window.location.href = url.toString();
+        return;
+      } catch {
+        window.location.href = cb + (cb.includes('?') ? '&' : '?') + `order_id=${activeId}&status=verified`;
+        return;
+      }
     }
+
+    // Check external referrer before pushing to status
+    if (typeof document !== 'undefined' && document.referrer) {
+      try {
+        const refUrl = new URL(document.referrer);
+        if (refUrl.origin !== window.location.origin) {
+          window.location.href = document.referrer;
+          return;
+        }
+      } catch {}
+    }
+
+    router.push(`/status/${activeId}`);
   };
 
   /* ───────────────────────────────────────────────────────────

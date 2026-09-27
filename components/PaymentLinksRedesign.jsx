@@ -58,6 +58,7 @@ export default function PaymentLinksRedesign({
   const [railImps, setRailImps] = useState(true);
   const [railCrypto, setRailCrypto] = useState(false);
   const [linkValidity, setLinkValidity] = useState('7d');
+  const [redirectUrl, setRedirectUrl]   = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -305,6 +306,8 @@ export default function PaymentLinksRedesign({
           ? (profile.sandbox_mode !== false ? 'test_' : 'live_') + profile.api_key
           : 'live_mymob_demo_key';
 
+        const finalCallbackUrl = redirectUrl.trim() || profile?.webhook_url || null;
+
         const res = await fetch('/api/orders', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -317,6 +320,7 @@ export default function PaymentLinksRedesign({
             external_ref: linkId,
             project: profile?.business_name || 'MyMobPay Merchant',
             method: 'LINK',
+            callback_url: finalCallbackUrl,
           }),
         });
 
@@ -328,6 +332,7 @@ export default function PaymentLinksRedesign({
           params.set('key', apiKey);
           params.set('amount', effectiveAmount.toFixed(2));
           if (effectiveRef) params.set('ref', effectiveRef);
+          if (finalCallbackUrl) params.set('callback', finalCallbackUrl);
           generatedUrl = `${host}/pay?${params.toString()}`;
         }
       } catch (err) {
@@ -336,6 +341,7 @@ export default function PaymentLinksRedesign({
     }
 
     if (!generatedUrl) {
+      const finalCallbackUrl = redirectUrl.trim() || profile?.webhook_url || null;
       const params = new URLSearchParams();
       if (profile?.api_key) params.set('key', profile.api_key);
       if (effectiveAmount) params.set('amount', effectiveAmount.toFixed(2));
@@ -344,6 +350,7 @@ export default function PaymentLinksRedesign({
       if (effectiveRef) params.set('ref', effectiveRef);
       if (customerName) params.set('name', customerName);
       if (customerPhone) params.set('phone', customerPhone);
+      if (finalCallbackUrl) params.set('callback', finalCallbackUrl);
       generatedUrl = `${host}/pay?${params.toString()}`;
     }
 
@@ -879,6 +886,23 @@ export default function PaymentLinksRedesign({
                         </button>
                       ))}
                     </div>
+                  </div>
+
+                  {/* Return / Redirect URL */}
+                  <div className="pt-2">
+                    <label className="text-xs text-slate-600 font-semibold block mb-1">
+                      Return / Redirect URL <span className="font-normal text-slate-400">(Optional)</span>
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://your-website.com/payment/success"
+                      value={redirectUrl}
+                      onChange={(e) => setRedirectUrl(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    />
+                    <span className="text-[10px] text-slate-400 mt-1 block">
+                      Where customers are redirected after clicking &quot;Done&quot;. Defaults to your website or webhook domain.
+                    </span>
                   </div>
                 </div>
 

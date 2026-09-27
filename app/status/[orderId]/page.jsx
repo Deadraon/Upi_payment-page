@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import {
   CheckCircle, XCircle, Loader2, IndianRupee,
   Key, Calendar, ShieldCheck, RefreshCw,
-  AlertCircle, ArrowRight, ExternalLink,
+  AlertCircle, ArrowRight, ExternalLink, Check,
 } from 'lucide-react';
 
 /* ── Animated success check ────────────────────────────────── */
@@ -88,19 +88,34 @@ export default function StatusPage() {
   const router = useRouter();
   const orderId = params.orderId;
 
-  const [order, setOrder]     = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState('');
-  const [mounted, setMounted] = useState(false);
+  const [order, setOrder]                 = useState(null);
+  const [merchant, setMerchant]           = useState(null);
+  const [loading, setLoading]             = useState(true);
+  const [error, setError]                 = useState('');
+  const [mounted, setMounted]             = useState(false);
 
   const [utrInput, setUtrInput]           = useState('');
   const [submittingUtr, setSubmittingUtr] = useState(false);
   const [utrError, setUtrError]           = useState('');
   const [utrSuccess, setUtrSuccess]       = useState('');
   const [redirecting, setRedirecting]     = useState(false);
+  const [completedNotice, setCompletedNotice] = useState(false);
   const redirectTriggeredRef             = useRef(false);
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => { 
+    setMounted(true); 
+    if (typeof document !== 'undefined' && document.referrer) {
+      try {
+        const refUrl = new URL(document.referrer);
+        if (refUrl.origin !== window.location.origin) {
+          localStorage.setItem('last_external_referrer', document.referrer);
+          if (orderId) {
+            localStorage.setItem(`ref_origin_${orderId}`, document.referrer);
+          }
+        }
+      } catch {}
+    }
+  }, [orderId]);
 
   useEffect(() => {
     if (!orderId) return;
@@ -111,6 +126,17 @@ export default function StatusPage() {
         if (dbErr) throw dbErr;
         setOrder(data);
         setError('');
+
+        if (data?.merchant_id) {
+          supabase
+            .from('merchants')
+            .select('business_name, webhook_url')
+            .eq('id', data.merchant_id)
+            .single()
+            .then(({ data: mData }) => {
+              if (mData) setMerchant(mData);
+            });
+        }
       } catch {
         setError('Could not locate this transaction.');
       } finally {
@@ -122,15 +148,47 @@ export default function StatusPage() {
     return () => clearInterval(interval);
   }, [orderId]);
 
-  const executeRedirect = (targetCallback) => {
-    let cb = targetCallback || (typeof window !== 'undefined' && localStorage.getItem(`callback_${orderId}`)) || order?.callback_url;
-    
-    // Automatic fallback for Trial and Subscription payments
-    if (!cb && (order?.note === 'Trial_Setup_3Day' || order?.note === 'Autopay_Setup_3DayTrial' || order?.note?.startsWith('Subscription_'))) {
-      cb = typeof window !== 'undefined' ? `${window.location.origin}/dashboard` : '/dashboard';
+  /* Resolve the original app return URL from order, merchant, or referrer */
+  const resolveRedirectUrl = () => {
+    // 1. Direct explicit callback from order or localStorage
+    let target = (typeof window !== 'undefined' && localStorage.getItem(`callback_${orderId}`)) || order?.callback_url;
+
+    // 2. Automatic fallback for Trial and Subscription payments
+    if (!target && (order?.note === 'Trial_Setup_3Day' || order?.note === 'Autopay_Setup_3DayTrial' || order?.note?.startsWith('Subscription_'))) {
+      target = typeof window !== 'undefined' ? `${window.location.origin}/dashboard` : '/dashboard';
     }
-    
-    if (!cb) return;
+
+    // 3. Fallback to merchant webhook domain / website
+    if (!target && merchant?.webhook_url) {
+      try {
+        const u = new URL(merchant.webhook_url);
+        target = u.origin;
+      } catch {}
+    }
+
+    // 4. Fallback to external document referrer if arriving from an external site/app
+    if (!target && typeof document !== 'undefined' && document.referrer) {
+      try {
+        const refUrl = new URL(document.referrer);
+        if (refUrl.origin !== window.location.origin) {
+          target = document.referrer;
+        }
+      } catch {}
+    }
+
+    // 5. Fallback to stored external referrer in localStorage
+    if (!target && typeof window !== 'undefined') {
+      const storedRef = localStorage.getItem(`ref_origin_${orderId}`) || localStorage.getItem('last_external_referrer');
+      if (storedRef) target = storedRef;
+    }
+
+    return target || null;
+  };
+
+  const executeRedirect = (targetCallback) => {
+    const cb = targetCallback || resolveRedirectUrl();
+    if (!cb) return false;
+
     const externalRef = (typeof window !== 'undefined' && localStorage.getItem(`ref_${orderId}`)) || order?.external_ref;
     try {
       let resolvedUrl = cb.trim();
@@ -144,29 +202,61 @@ export default function StatusPage() {
       if (order?.utr) url.searchParams.set('utr', order.utr);
       if (externalRef) url.searchParams.set('ref', externalRef);
       window.location.href = url.toString();
+      return true;
     } catch (e) {
       console.error('Redirect URL parsing failed:', e);
       window.location.href = cb;
+      return true;
     }
+  };
+
+  /* Done button handler — returns to original redirect app, parent window, or history */
+  const handleDone = () => {
+    const target = resolveRedirectUrl();
+    if (target) {
+      executeRedirect(target);
+      return;
+    }
+
+    // If opened in popup / webview with opener, close window to return to parent app
+    if (typeof window !== 'undefined' && window.opener && !window.opener.closed) {
+      window.close();
+      return;
+    }
+
+    // If browser has history from the originating site/app, navigate back
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      window.history.back();
+      setTimeout(() => {
+        if (typeof window !== 'undefined') {
+          window.close();
+        }
+      }, 500);
+      return;
+    }
+
+    // Try closing window directly (works in mobile webviews / in-app browsers)
+    if (typeof window !== 'undefined') {
+      window.close();
+    }
+
+    // If browser blocks closing, show clear reassurance that payment is complete
+    setCompletedNotice(true);
   };
 
   useEffect(() => {
     if (!order || order.status !== 'verified' || redirectTriggeredRef.current) return;
     
-    let cb = (typeof window !== 'undefined' && localStorage.getItem(`callback_${orderId}`)) || order.callback_url;
-    if (!cb && (order.note === 'Trial_Setup_3Day' || order.note === 'Autopay_Setup_3DayTrial' || order.note?.startsWith('Subscription_'))) {
-      cb = typeof window !== 'undefined' ? `${window.location.origin}/dashboard` : '/dashboard';
-    }
-
+    const cb = resolveRedirectUrl();
     if (cb) {
       redirectTriggeredRef.current = true;
       setRedirecting(true);
       const timer = setTimeout(() => {
         executeRedirect(cb);
-      }, 1200);
+      }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [order?.status, orderId]);
+  }, [order?.status, orderId, merchant?.webhook_url]);
 
   const handleUtrSubmit = async (e) => {
     e.preventDefault();
@@ -219,9 +309,9 @@ export default function StatusPage() {
           <h2 className="text-lg font-bold text-slate-900">Order Not Found</h2>
           <p className="text-xs text-slate-500 mt-1">We couldn&apos;t find a transaction matching this ID.</p>
         </div>
-        <button onClick={() => router.push('/pay')}
-          className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-900 font-semibold text-sm transition-all">
-          Back to Payment
+        <button onClick={() => typeof window !== 'undefined' && window.history.length > 1 ? window.history.back() : (window.close && window.close())}
+          className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-900 font-semibold text-sm transition-all cursor-pointer">
+          Return to App
         </button>
       </div>
     </div>
@@ -281,35 +371,37 @@ export default function StatusPage() {
                 {order.customer_name && <Row label="Customer" value={order.customer_name} />}
               </div>
               <div className="px-5 pb-6 space-y-2.5">
-              {callback ? (
-                <>
-                  <button 
-                    onClick={() => executeRedirect(callback)} 
-                    className="w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-98 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 transition-all cursor-pointer"
-                  >
-                    {redirecting ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin text-white" />
-                        <span>Redirecting to {order.project || (isTrialOrSub ? 'Dashboard' : 'your app')}... (Click to skip)</span>
-                      </>
-                    ) : (
-                      <>
-                        <ExternalLink className="w-4 h-4" /> 
-                        <span>Return to {order.project || (isTrialOrSub ? 'Dashboard' : 'App')}</span>
-                      </>
-                    )}
-                  </button>
-                  <p className="text-[11px] text-center text-slate-400 font-medium">
-                    Redirecting automatically. If stuck, <button type="button" onClick={() => executeRedirect(callback)} className="text-blue-600 hover:underline font-bold cursor-pointer">click here</button>.
-                  </p>
-                </>
-              ) : (
-                <button onClick={() => router.push('/pay')}
-                  className="w-full py-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-sm flex items-center justify-center gap-2 transition-all">
-                  Done · New Payment
+                <button 
+                  type="button"
+                  onClick={handleDone} 
+                  className="w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-98 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+                >
+                  {redirecting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin text-white" />
+                      <span>Redirecting to {order.project || merchant?.business_name || (isTrialOrSub ? 'Dashboard' : 'App')}...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-4.5 h-4.5 stroke-[2.5]" />
+                      <span>Done</span>
+                    </>
+                  )}
                 </button>
-              )}
-            </div>
+                {redirecting && (
+                  <p className="text-[11px] text-center text-slate-400 font-medium">
+                    Redirecting automatically to your app. If stuck, <button type="button" onClick={handleDone} className="text-blue-600 hover:underline font-bold cursor-pointer">click here</button>.
+                  </p>
+                )}
+                {completedNotice && !redirecting && (
+                  <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200/60 text-center animate-fade-in">
+                    <p className="text-xs text-emerald-800 font-bold">✓ Payment Complete</p>
+                    <p className="text-[11px] text-slate-600 mt-0.5">
+                      You can safely return to your app or close this browser tab.
+                    </p>
+                  </div>
+                )}
+              </div>
           </div>
         </div>
       </main>
@@ -370,9 +462,9 @@ export default function StatusPage() {
                   <ExternalLink className="w-4 h-4" /> Return to {order.project || 'App'}
                 </button>
               ) : (
-                <button onClick={() => router.push('/pay')}
-                  className="w-full py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white-pure font-bold text-sm flex items-center justify-center gap-2 transition-all">
-                  <RefreshCw className="w-4 h-4" /> Try Again
+                <button onClick={() => typeof window !== 'undefined' && window.history.length > 1 ? window.history.back() : (window.close && window.close())}
+                  className="w-full py-3.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer">
+                  Return to App
                 </button>
               )}
             </div>
