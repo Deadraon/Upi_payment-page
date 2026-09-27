@@ -54,11 +54,12 @@ export default function SettingsRedesign({
   const [showAddBankModal, setShowAddBankModal] = useState(false);
   const [showSwitchBankDropdown, setShowSwitchBankDropdown] = useState(false);
   const [newBankForm, setNewBankForm] = useState({
-    bank_name: 'HDFC Bank Ltd.',
+    bank_name: 'State Bank of India (SBI)',
+    custom_bank_name: '',
     bank_account_name: '',
     bank_account_number: '',
     confirm_account_number: '',
-    bank_ifsc: 'HDFC0000060',
+    bank_ifsc: '',
     account_type: 'Current Account',
     set_primary: true
   });
@@ -309,9 +310,13 @@ export default function SettingsRedesign({
       return;
     }
 
+    const resolvedBankName = (newBankForm.bank_name === 'Other Commercial / Cooperative Bank' && newBankForm.custom_bank_name?.trim())
+      ? newBankForm.custom_bank_name.trim()
+      : newBankForm.bank_name.trim();
+
     const newAcc = {
       id: `acc_${Date.now()}`,
-      bank_name: newBankForm.bank_name.trim(),
+      bank_name: resolvedBankName,
       bank_account_name: newBankForm.bank_account_name.trim(),
       bank_account_number: newBankForm.bank_account_number.trim(),
       bank_ifsc: newBankForm.bank_ifsc.trim().toUpperCase(),
@@ -336,11 +341,12 @@ export default function SettingsRedesign({
 
     // Reset form
     setNewBankForm({
-      bank_name: 'HDFC Bank Ltd.',
+      bank_name: 'State Bank of India (SBI)',
+      custom_bank_name: '',
       bank_account_name: '',
       bank_account_number: '',
       confirm_account_number: '',
-      bank_ifsc: 'HDFC0000060',
+      bank_ifsc: '',
       account_type: 'Current Account',
       set_primary: true
     });
@@ -1639,20 +1645,180 @@ export default function SettingsRedesign({
                 <label className="text-xs font-bold text-slate-700">Bank Name</label>
                 <select
                   value={newBankForm.bank_name}
-                  onChange={(e) => setNewBankForm({ ...newBankForm, bank_name: e.target.value })}
+                  onChange={(e) => {
+                    const selected = e.target.value;
+                    const ifscPrefixMap = {
+                      'State Bank of India (SBI)': 'SBIN0',
+                      'HDFC Bank Ltd.': 'HDFC0',
+                      'ICICI Bank Ltd.': 'ICIC0',
+                      'Axis Bank Ltd.': 'UTIB0',
+                      'Kotak Mahindra Bank': 'KKBK0',
+                      'Punjab National Bank (PNB)': 'PUNB0',
+                      'Bank of Baroda (BOB)': 'BARB0',
+                      'Canara Bank': 'CNRB0',
+                      'Union Bank of India': 'UBIN0',
+                      'IDBI Bank': 'IBKL0',
+                      'IDFC FIRST Bank': 'IDFB0',
+                      'IndusInd Bank': 'INDB0',
+                      'Yes Bank Ltd.': 'YESB0',
+                      'Federal Bank': 'FDRL0',
+                      'Bank of India': 'BKID0',
+                      'Central Bank of India': 'CBIN0',
+                      'Indian Bank': 'IDIB0',
+                      'Indian Overseas Bank (IOB)': 'IOBA0',
+                      'Punjab & Sind Bank': 'PSIB0',
+                      'UCO Bank': 'UCBA0',
+                      'Bank of Maharashtra': 'MAHB0',
+                      'AU Small Finance Bank': 'AUBL0',
+                      'Equitas Small Finance Bank': 'ESFB0',
+                      'Airtel Payments Bank': 'AIRP0',
+                      'Paytm Payments Bank': 'PYTM0',
+                      'India Post Payments Bank (IPPB)': 'IPOS0',
+                      'Standard Chartered Bank': 'SCBL0',
+                      'Citibank India': 'CITI0',
+                      'DBS Bank India': 'DBSS0',
+                      'HSBC India': 'HSBC0',
+                    };
+                    const autoIfsc = ifscPrefixMap[selected] || '';
+                    setNewBankForm(prev => ({
+                      ...prev,
+                      bank_name: selected,
+                      bank_ifsc: (!prev.bank_ifsc || Object.values(ifscPrefixMap).some(p => prev.bank_ifsc.startsWith(p))) ? autoIfsc : prev.bank_ifsc
+                    }));
+                  }}
                   className="h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
                 >
-                  <option value="HDFC Bank Ltd.">HDFC Bank Ltd.</option>
-                  <option value="ICICI Bank Ltd.">ICICI Bank Ltd.</option>
-                  <option value="State Bank of India">State Bank of India (SBI)</option>
-                  <option value="Axis Bank Ltd.">Axis Bank Ltd.</option>
-                  <option value="Kotak Mahindra Bank">Kotak Mahindra Bank</option>
-                  <option value="Punjab National Bank">Punjab National Bank</option>
-                  <option value="Bank of Baroda">Bank of Baroda</option>
-                  <option value="IDFC FIRST Bank">IDFC FIRST Bank</option>
-                  <option value="Other Commercial Bank">Other Commercial Bank</option>
+                  <optgroup label="🌟 Most Popular Indian Banks">
+                    <option value="State Bank of India (SBI)">State Bank of India (SBI)</option>
+                    <option value="HDFC Bank Ltd.">HDFC Bank Ltd.</option>
+                    <option value="ICICI Bank Ltd.">ICICI Bank Ltd.</option>
+                    <option value="Axis Bank Ltd.">Axis Bank Ltd.</option>
+                    <option value="Kotak Mahindra Bank">Kotak Mahindra Bank</option>
+                    <option value="Punjab National Bank (PNB)">Punjab National Bank (PNB)</option>
+                    <option value="Bank of Baroda (BOB)">Bank of Baroda (BOB)</option>
+                    <option value="Canara Bank">Canara Bank</option>
+                    <option value="Union Bank of India">Union Bank of India</option>
+                    <option value="IDFC FIRST Bank">IDFC FIRST Bank</option>
+                    <option value="IndusInd Bank">IndusInd Bank</option>
+                    <option value="Yes Bank Ltd.">Yes Bank Ltd.</option>
+                    <option value="Federal Bank">Federal Bank</option>
+                    <option value="IDBI Bank">IDBI Bank</option>
+                  </optgroup>
+
+                  <optgroup label="🏛️ Public Sector Banks (PSBs)">
+                    <option value="Bank of Baroda (BOB)">Bank of Baroda (BOB)</option>
+                    <option value="Bank of India">Bank of India</option>
+                    <option value="Bank of Maharashtra">Bank of Maharashtra</option>
+                    <option value="Canara Bank">Canara Bank</option>
+                    <option value="Central Bank of India">Central Bank of India</option>
+                    <option value="Indian Bank">Indian Bank</option>
+                    <option value="Indian Overseas Bank (IOB)">Indian Overseas Bank (IOB)</option>
+                    <option value="Punjab National Bank (PNB)">Punjab National Bank (PNB)</option>
+                    <option value="Punjab & Sind Bank">Punjab &amp; Sind Bank</option>
+                    <option value="State Bank of India (SBI)">State Bank of India (SBI)</option>
+                    <option value="UCO Bank">UCO Bank</option>
+                    <option value="Union Bank of India">Union Bank of India</option>
+                  </optgroup>
+
+                  <optgroup label="🏢 Private Sector Banks">
+                    <option value="Axis Bank Ltd.">Axis Bank Ltd.</option>
+                    <option value="Bandhan Bank">Bandhan Bank</option>
+                    <option value="City Union Bank">City Union Bank</option>
+                    <option value="CSB Bank">CSB Bank (Catholic Syrian)</option>
+                    <option value="DCB Bank">DCB Bank</option>
+                    <option value="Dhanlaxmi Bank">Dhanlaxmi Bank</option>
+                    <option value="Federal Bank">Federal Bank</option>
+                    <option value="HDFC Bank Ltd.">HDFC Bank Ltd.</option>
+                    <option value="ICICI Bank Ltd.">ICICI Bank Ltd.</option>
+                    <option value="IDBI Bank">IDBI Bank</option>
+                    <option value="IDFC FIRST Bank">IDFC FIRST Bank</option>
+                    <option value="IndusInd Bank">IndusInd Bank</option>
+                    <option value="Jammu & Kashmir Bank">Jammu &amp; Kashmir Bank (J&amp;K)</option>
+                    <option value="Karnataka Bank">Karnataka Bank</option>
+                    <option value="Karur Vysya Bank">Karur Vysya Bank</option>
+                    <option value="Kotak Mahindra Bank">Kotak Mahindra Bank</option>
+                    <option value="Nainital Bank">Nainital Bank</option>
+                    <option value="RBL Bank">RBL Bank (Ratnakar)</option>
+                    <option value="South Indian Bank">South Indian Bank</option>
+                    <option value="Tamilnad Mercantile Bank">Tamilnad Mercantile Bank (TMB)</option>
+                    <option value="Yes Bank Ltd.">Yes Bank Ltd.</option>
+                  </optgroup>
+
+                  <optgroup label="📱 Payments Banks (RBI Licensed)">
+                    <option value="Airtel Payments Bank">Airtel Payments Bank</option>
+                    <option value="Fino Payments Bank">Fino Payments Bank</option>
+                    <option value="India Post Payments Bank (IPPB)">India Post Payments Bank (IPPB)</option>
+                    <option value="Jio Payments Bank">Jio Payments Bank</option>
+                    <option value="NSDL Payments Bank">NSDL Payments Bank</option>
+                    <option value="Paytm Payments Bank">Paytm Payments Bank</option>
+                  </optgroup>
+
+                  <optgroup label="⚡ Small Finance Banks (SFBs)">
+                    <option value="AU Small Finance Bank">AU Small Finance Bank</option>
+                    <option value="Capital Small Finance Bank">Capital Small Finance Bank</option>
+                    <option value="Equitas Small Finance Bank">Equitas Small Finance Bank</option>
+                    <option value="ESAF Small Finance Bank">ESAF Small Finance Bank</option>
+                    <option value="Fincare Small Finance Bank">Fincare Small Finance Bank</option>
+                    <option value="Jana Small Finance Bank">Jana Small Finance Bank</option>
+                    <option value="North East Small Finance Bank">North East Small Finance Bank</option>
+                    <option value="Shivalik Small Finance Bank">Shivalik Small Finance Bank</option>
+                    <option value="Suryoday Small Finance Bank">Suryoday Small Finance Bank</option>
+                    <option value="Ujjivan Small Finance Bank">Ujjivan Small Finance Bank</option>
+                    <option value="Unity Small Finance Bank">Unity Small Finance Bank</option>
+                    <option value="Utkarsh Small Finance Bank">Utkarsh Small Finance Bank</option>
+                  </optgroup>
+
+                  <optgroup label="🌐 Foreign Banks Operating in India">
+                    <option value="Bank of America">Bank of America</option>
+                    <option value="Barclays Bank">Barclays Bank</option>
+                    <option value="Citibank India">Citibank India</option>
+                    <option value="DBS Bank India">DBS Bank India</option>
+                    <option value="Deutsche Bank">Deutsche Bank</option>
+                    <option value="HSBC India">HSBC India</option>
+                    <option value="Standard Chartered Bank">Standard Chartered Bank</option>
+                  </optgroup>
+
+                  <optgroup label="🤝 Cooperative & Regional Rural Banks (RRBs)">
+                    <option value="Abhyudaya Co-operative Bank">Abhyudaya Co-operative Bank</option>
+                    <option value="Andhra Pradesh Grameena Vikas Bank">Andhra Pradesh Grameena Vikas Bank</option>
+                    <option value="Aryavart Bank">Aryavart Bank</option>
+                    <option value="Baroda Gujarat Gramin Bank">Baroda Gujarat Gramin Bank</option>
+                    <option value="Baroda Rajasthan Kshetriya Gramin Bank">Baroda Rajasthan Kshetriya Gramin Bank</option>
+                    <option value="Bharat Co-operative Bank">Bharat Co-operative Bank</option>
+                    <option value="Cosmos Co-operative Bank">Cosmos Co-operative Bank</option>
+                    <option value="Kalupur Commercial Co-op Bank">Kalupur Commercial Co-op Bank</option>
+                    <option value="Karnataka Gramin Bank">Karnataka Gramin Bank</option>
+                    <option value="Kerala Gramin Bank">Kerala Gramin Bank</option>
+                    <option value="Maharashtra Gramin Bank">Maharashtra Gramin Bank</option>
+                    <option value="NKGSB Co-operative Bank">NKGSB Co-operative Bank</option>
+                    <option value="Prathama UP Gramin Bank">Prathama UP Gramin Bank</option>
+                    <option value="Punjab Gramin Bank">Punjab Gramin Bank</option>
+                    <option value="Saraswat Co-operative Bank">Saraswat Co-operative Bank</option>
+                    <option value="SVC Co-operative Bank">SVC Co-operative Bank (Shamrao Vithal)</option>
+                    <option value="Telangana Grameena Bank">Telangana Grameena Bank</option>
+                    <option value="TJSB Sahakari Bank">TJSB Sahakari Bank</option>
+                  </optgroup>
+
+                  <optgroup label="Other">
+                    <option value="Other Commercial / Cooperative Bank">Other Commercial / Cooperative Bank</option>
+                  </optgroup>
                 </select>
               </div>
+
+              {/* If "Other Commercial / Cooperative Bank" selected, provide custom name input */}
+              {newBankForm.bank_name === 'Other Commercial / Cooperative Bank' && (
+                <div className="flex flex-col gap-1.5 animate-fadeIn">
+                  <label className="text-xs font-bold text-slate-700">Specify Bank Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={newBankForm.custom_bank_name || ''}
+                    onChange={(e) => setNewBankForm({ ...newBankForm, custom_bank_name: e.target.value })}
+                    placeholder="Enter your bank name"
+                    className="h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                  />
+                </div>
+              )}
 
               {/* Account Beneficiary Name */}
               <div className="flex flex-col gap-1.5">
