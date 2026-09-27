@@ -275,6 +275,22 @@ function PayPageContent() {
     const cleanId = (targetId || '').trim().replace(/^[-#]+/, '');
     let cb = explicitCallback || (typeof window !== 'undefined' ? (localStorage.getItem(`callback_${cleanId}`) || localStorage.getItem(`callback_${targetId}`) || paramCallback) : '');
 
+    // Persist callback URL for the status receipt screen so the Done button can return the user
+    if (cb && cleanId && typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(`callback_${cleanId}`, cb);
+      } catch {}
+    }
+
+    // If order is paid/confirmed, ALWAYS navigate to the payment success details screen
+    if (confirmed || curView === 'vOk' || explicitId) {
+      if (cleanId) {
+        router.replace(`/status/${cleanId}`);
+        return;
+      }
+    }
+
+    // If user clicked close/cancel before paying:
     if (cb) {
       let resolved = cb.trim();
       if (!/^https?:\/\//i.test(resolved) && !resolved.startsWith('/')) {
@@ -282,29 +298,25 @@ function PayPageContent() {
       }
       try {
         const url = new URL(resolved, window.location.origin);
-        url.searchParams.set('order_id', cleanId);
-        url.searchParams.set('status', 'verified');
+        url.searchParams.set('status', 'cancelled');
         window.location.href = url.toString();
         return;
       } catch {
-        window.location.href = cb + (cb.includes('?') ? '&' : '?') + `order_id=${cleanId}&status=verified`;
+        window.location.href = cb;
         return;
       }
     }
 
-    // Check external referrer before pushing to status
-    if (typeof document !== 'undefined' && document.referrer) {
-      try {
-        const refUrl = new URL(document.referrer);
-        if (refUrl.origin !== window.location.origin) {
-          window.location.href = document.referrer;
-          return;
-        }
-      } catch {}
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      window.history.back();
+      return;
     }
 
-    // Single screen direct navigation: goes straight to Screen 2 (/status/OOFR)!
-    router.replace(`/status/${cleanId}`);
+    if (cleanId) {
+      router.replace(`/status/${cleanId}`);
+    } else {
+      router.replace('/');
+    }
   };
 
   /* ── Success Handler (Directly transitions to Screen 2 status page) ── */
@@ -313,8 +325,16 @@ function PayPageContent() {
     setOkTime(new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }));
     const targetId = verifiedId || orderId || activeId;
     const cleanId = (targetId || '').trim().replace(/^[-#]+/, '');
+    const cb = verifiedCallback || (typeof window !== 'undefined' ? (localStorage.getItem(`callback_${cleanId}`) || localStorage.getItem(`callback_${targetId}`) || paramCallback) : '');
+    if (cb && cleanId && typeof window !== 'undefined') {
+      try { localStorage.setItem(`callback_${cleanId}`, cb); } catch {}
+    }
     try { navigator.vibrate?.(40); } catch {}
-    handleReturn(cleanId, verifiedCallback);
+    if (cleanId) {
+      router.replace(`/status/${cleanId}`);
+    } else {
+      handleReturn(cleanId, verifiedCallback);
+    }
   }
 
   /* ── Auto-create / Hydrate order ── */

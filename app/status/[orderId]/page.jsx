@@ -208,7 +208,8 @@ export default function StatusPage() {
         resolvedUrl = `https://${resolvedUrl}`;
       }
       const url = new URL(resolvedUrl, typeof window !== 'undefined' ? window.location.origin : 'https://mymob.tech');
-      url.searchParams.set('status', 'success');
+      url.searchParams.set('status', 'verified');
+      url.searchParams.set('order_id', orderId);
       url.searchParams.set('gateway_id', orderId);
       url.searchParams.set('orderId', orderId);
       if (order?.utr) url.searchParams.set('utr', order.utr);
@@ -226,6 +227,7 @@ export default function StatusPage() {
   const handleDone = () => {
     const target = resolveRedirectUrl();
     if (target) {
+      setRedirecting(true);
       executeRedirect(target);
       return;
     }
@@ -255,20 +257,6 @@ export default function StatusPage() {
     // If browser blocks closing, show clear reassurance that payment is complete
     setCompletedNotice(true);
   };
-
-  useEffect(() => {
-    if (!order || order.status !== 'verified' || redirectTriggeredRef.current) return;
-    
-    const cb = resolveRedirectUrl();
-    if (cb) {
-      redirectTriggeredRef.current = true;
-      setRedirecting(true);
-      const timer = setTimeout(() => {
-        executeRedirect(cb);
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [order?.status, orderId, merchant?.webhook_url]);
 
   const handleUtrSubmit = async (e) => {
     e.preventDefault();
@@ -439,18 +427,18 @@ export default function StatusPage() {
                   {redirecting ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin text-white" />
-                      <span>Redirecting to {order.project || merchant?.business_name || (isTrialOrSub ? 'Dashboard' : 'App')}...</span>
+                      <span>Returning to {order.project || merchant?.business_name || (isTrialOrSub ? 'Dashboard' : 'Merchant')}...</span>
                     </>
                   ) : (
                     <>
                       <Check className="w-4.5 h-4.5 stroke-[2.5]" />
-                      <span>Done</span>
+                      <span>Done • Return to {order.project || merchant?.business_name || (isTrialOrSub ? 'Dashboard' : 'Merchant')}</span>
                     </>
                   )}
                 </button>
                 {redirecting && (
                   <p className="text-[11px] text-center text-slate-400 font-medium">
-                    Redirecting automatically to your app. If stuck, <button type="button" onClick={handleDone} className="text-blue-600 hover:underline font-bold cursor-pointer">click here</button>.
+                    Returning to your store. If stuck, <button type="button" onClick={handleDone} className="text-blue-600 hover:underline font-bold cursor-pointer">click here</button>.
                   </p>
                 )}
                 {completedNotice && !redirecting && (
