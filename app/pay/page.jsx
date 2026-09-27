@@ -729,24 +729,28 @@ function PayPageContent() {
           Mobile checkout with circular timer ring & bottom bar
       ═════════════════════════════════════════════════════════ */}
       <div className="mobile-checkout-view app">
-        {/* ── HEADER ── */}
-        <div className="hd">
-          <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-            <MyMobPayLogo />
-          </Link>
-          <div className="sec">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="5" y="11" width="14" height="10" rx="2"/>
-              <path d="M8 11V8a4 4 0 018 0v3"/>
-            </svg>
-            Secure checkout
-          </div>
-        </div>
+        {/* ── HEADER (Shown only on non-vPay views to keep vPay clean like mockup) ── */}
+        {curView !== 'vPay' && (
+          <>
+            <div className="hd">
+              <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+                <MyMobPayLogo />
+              </Link>
+              <div className="sec">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="5" y="11" width="14" height="10" rx="2"/>
+                  <path d="M8 11V8a4 4 0 018 0v3"/>
+                </svg>
+                Secure checkout
+              </div>
+            </div>
 
-        {/* ── PROGRESS BAR ── */}
-        <div className={`prog ${isTimerLow ? 'low' : ''}`}>
-          <div style={{ width: `${timerPct}%` }} />
-        </div>
+            {/* ── PROGRESS BAR ── */}
+            <div className={`prog ${isTimerLow ? 'low' : ''}`}>
+              <div style={{ width: `${timerPct}%` }} />
+            </div>
+          </>
+        )}
 
         {/* ── SCROLLABLE BODY ── */}
         <div className="scr">
@@ -758,8 +762,8 @@ function PayPageContent() {
             </div>
           )}
 
-          {/* Amount card with circular timer ring */}
-          {(curView === 'vPay' || curView === 'vWait') && (
+          {/* Amount card with circular timer ring (Shown on waiting/checking view) */}
+          {curView === 'vWait' && (
             <div className="sum">
               <div className="top">
                 <div className="mer">
@@ -814,102 +818,143 @@ function PayPageContent() {
             </div>
           )}
 
-          {/* VIEW 1: PAY */}
+          {/* VIEW 1: PAY — Matches Reference Design (Phone dot + Pristine White Card + Themed QR Stand) */}
           {curView === 'vPay' && (
             <div id="vPay">
-              <div className="gh">Pay with UPI</div>
-              <div className="card" id="pUpi">
-                <div className="pc">
-                  <p className="tip" style={{ textAlign: 'center', margin: '0 0 10px' }}>
-                    Scan with any UPI app, or pay to the UPI ID
-                  </p>
+              {/* Subtle top camera dot (mockup aesthetic) */}
+              <div className="mob-phone-dot" aria-hidden="true" />
 
-                  {/* TOTAL: ₹ display right above the QR frame just like in user's image */}
-                  <div style={{ textAlign: 'center', fontSize: 13, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--head)', marginBottom: 6, fontFamily: 'monospace' }}>
-                    TOTAL : <span style={{ fontSize: 16, fontFamily: '"DM Sans", sans-serif', color: 'var(--head)' }}>{fmtInr(displayAmt)}</span>
+              {/* Main Pristine White Payment Card */}
+              <div className="mob-checkout-card">
+                {/* 1. Centered Brand Header: Blue/Orange M Logo + MyMobPay */}
+                <div className="mob-brand-header">
+                  <svg width="32" height="28" viewBox="0 0 38 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M 6.5 28.5 V 13 C 6.5 7.2 11.5 5 15.5 8.2 L 19 18.5"
+                      stroke="#0284C7"
+                      strokeWidth="5.2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M 19 18.5 L 22.5 8.2 C 26.5 5 31.5 7.2 31.5 13 V 28.5"
+                      stroke="#FF7800"
+                      strokeWidth="5.2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <span className="mob-brand-title">MyMobPay</span>
+                </div>
+
+                {/* 2. Total Amount Display */}
+                <div className="mob-total-display">
+                  TOTAL: {fmtInr(displayAmt)}
+                </div>
+
+                {/* 3. Timer Pill: Clock icon + Expires in: mm:ss */}
+                <div className="mob-timer-pill-wrap">
+                  <div className={`mob-timer-pill ${isTimerLow ? 'low' : ''}`}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                    <span className="mob-timer-label">Expires in:</span>
+                    <span className="mob-timer-digits">{mm}:{ss}</span>
                   </div>
+                </div>
 
-                  <div className="qrf">
-                    <i /><i /><i /><i />
-                    <div className="qrbox" style={{ position: 'relative' }}>
+                {/* 4. Themed QR Frame with 4 Orange Corners and Center M Badge */}
+                <div className="mob-qr-container">
+                  <div className="mob-qr-frame">
+                    <span className="mob-corner mob-corner-tl" />
+                    <span className="mob-corner mob-corner-tr" />
+                    <span className="mob-corner mob-corner-bl" />
+                    <span className="mob-corner mob-corner-br" />
+
+                    <div className="mob-qr-inner">
                       {upiQrValue ? (
                         <>
                           <QRCode
                             value={upiQrValue}
-                            size={166}
+                            size={196}
                             level="Q"
-                            fgColor="#101828"
+                            fgColor="#0f172a"
                             bgColor="#ffffff"
                             style={{ display: 'block', width: '100%', height: 'auto' }}
                           />
-                          {/* Centered QR Badge with Blue & Orange M Logo */}
-                          <div style={{
-                            position: 'absolute',
-                            inset: 0,
-                            margin: 'auto',
-                            width: 36,
-                            height: 36,
-                            borderRadius: 10,
-                            background: '#ffffff',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            border: '1px solid #e2e8f0',
-                            pointerEvents: 'none'
-                          }}>
-                            <svg width="22" height="20" viewBox="0 0 38 34" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M 7 28.5 V 13.5 C 7 7.5 12 5.5 16 8.5 L 19 19" stroke="#0284C7" strokeWidth="5.2" strokeLinecap="round" strokeLinejoin="round"/>
-                              <path d="M 19 19 L 22 8.5 C 26 5.5 31 7.5 31 13.5 V 28.5" stroke="#FF7800" strokeWidth="5.2" strokeLinecap="round" strokeLinejoin="round"/>
+                          {/* Centered QR Badge with Dual-color M Logo */}
+                          <div className="mob-qr-center-pill">
+                            <svg width="24" height="22" viewBox="0 0 38 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path
+                                d="M 6.5 28.5 V 13 C 6.5 7.2 11.5 5 15.5 8.2 L 19 18.5"
+                                stroke="#0284C7"
+                                strokeWidth="5.2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M 19 18.5 L 22.5 8.2 C 26.5 5 31.5 7.2 31.5 13 V 28.5"
+                                stroke="#FF7800"
+                                strokeWidth="5.2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
                             </svg>
                           </div>
                         </>
                       ) : (
-                        <div style={{ width: 166, height: 166, display: 'grid', placeItems: 'center', color: 'var(--mut)', fontSize: 13 }}>
+                        <div style={{ width: 196, height: 196, display: 'grid', placeItems: 'center', color: '#64748b', fontSize: 13 }}>
                           Generating QR…
                         </div>
                       )}
                     </div>
                   </div>
+                </div>
 
-                  <div className="cap">Pay {fmtInr(displayAmt)}</div>
+                {/* 5. Verified Merchant Pill */}
+                <div className="mob-merchant-badge">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 2l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V5z"/>
+                    <path d="M9 12l2 2 4-4"/>
+                  </svg>
+                  <span>Verified Merchant &bull; {bizName}</span>
+                </div>
 
-                  <div className="id">
-                    <span>{upiId}</span>
-                    <button
-                      type="button"
-                      className={`cp ${copyFeedback ? 'done' : ''}`}
-                      onClick={handleCopyUpi}
-                    >
-                      {copyFeedback ? 'Copied' : 'Copy'}
-                    </button>
+                {/* 6. Quick Tap-to-Pay UPI App Launcher Chips */}
+                <div className="mob-upi-apps-row">
+                  <p className="mob-action-hint">Tap to pay with any UPI app</p>
+                  <div className="mob-chips-grid">
+                    {UPI_CHIPS.map(app => (
+                      <button
+                        key={app.id}
+                        type="button"
+                        onClick={() => {
+                          if (!displayAmt) return;
+                          window.location.href = buildUpiLink(app.id, displayAmt, activeId, merchant, isMandate);
+                        }}
+                        className="mob-app-chip"
+                        title={`Pay with ${app.label}`}
+                      >
+                        <img src={app.logo} alt={app.label} style={{ maxHeight: app.h, maxWidth: '85%', width: 'auto', height: 'auto', display: 'block', objectFit: 'contain' }} />
+                      </button>
+                    ))}
                   </div>
+                </div>
 
-                  <ol className="how">
-                    <li>On this phone? Copy the UPI ID above</li>
-                    <li>Pay {fmtInr(displayAmt)} in any UPI app</li>
-                    <li>Come back here and tap &quot;I&apos;ve paid&quot;</li>
-                  </ol>
-
-                  <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px dashed var(--line)' }}>
-                    <p style={{ margin: '0 0 10px', fontSize: 12, color: 'var(--mut)', textAlign: 'center', fontWeight: 600 }}>Or pay directly using your UPI app</p>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
-                      {UPI_CHIPS.map(app => (
-                        <button
-                          key={app.id}
-                          type="button"
-                          onClick={() => {
-                            if (!displayAmt) return;
-                            window.location.href = buildUpiLink(app.id, displayAmt, activeId, merchant, isMandate);
-                          }}
-                          style={{ all: 'unset', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 40, padding: '6px 8px', border: '1px solid var(--line)', borderRadius: 12, background: '#fff', boxShadow: '0 1px 2px rgba(16,24,40,.04)' }}
-                          title={`Pay with ${app.label}`}
-                        >
-                          <img src={app.logo} alt={app.label} style={{ maxHeight: app.h, maxWidth: '85%', width: 'auto', height: 'auto', display: 'block', objectFit: 'contain' }} />
-                        </button>
-                      ))}
-                    </div>
+                {/* 7. Copyable UPI ID Bar */}
+                <div className="mob-upi-id-bar">
+                  <div className="mob-upi-id-left">
+                    <span className="mob-upi-id-label">UPI ID</span>
+                    <span className="mob-upi-id-val">{upiId}</span>
                   </div>
+                  <button
+                    type="button"
+                    className={`mob-copy-btn ${copyFeedback ? 'done' : ''}`}
+                    onClick={handleCopyUpi}
+                  >
+                    {copyFeedback ? 'Copied ✓' : 'Copy'}
+                  </button>
                 </div>
               </div>
 
@@ -1349,7 +1394,7 @@ export default function PayPage() {
             min-height: 100dvh;
             display: flex;
             flex-direction: column;
-            background: var(--page);
+            background: #f4f6fa;
           }
 
           .hd {
@@ -1394,7 +1439,290 @@ export default function PayPage() {
             flex: 1;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
-            padding: 16px 16px 90px;
+            padding: 12px 16px 90px;
+          }
+
+          /* ── Mockup Phone Punch Hole / Camera Dot ── */
+          .mob-phone-dot {
+            width: 8px;
+            height: 8px;
+            background: #94a3b8;
+            border-radius: 50%;
+            margin: 4px auto 14px;
+            opacity: 0.85;
+          }
+
+          /* ── Mobile Checkout Pure Solid White Card ── */
+          .mob-checkout-card {
+            background: #ffffff;
+            border-radius: 28px;
+            border: 1.5px solid #edf2f7;
+            box-shadow: 0 10px 30px -4px rgba(16, 24, 40, 0.08), 0 4px 12px -2px rgba(16, 24, 40, 0.04);
+            padding: 26px 18px 22px;
+            text-align: center;
+            margin-bottom: 16px;
+          }
+
+          /* ── Brand Header (M Mark + MyMobPay) ── */
+          .mob-brand-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            user-select: none;
+          }
+
+          .mob-brand-title {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-weight: 800;
+            font-size: 26px;
+            color: #1e293b;
+            letter-spacing: -0.02em;
+            line-height: 1;
+          }
+
+          /* ── TOTAL: ₹1,250.00 ── */
+          .mob-total-display {
+            font-size: 23px;
+            font-weight: 800;
+            color: #1e293b;
+            letter-spacing: 0.03em;
+            margin-bottom: 12px;
+            line-height: 1.2;
+            text-transform: uppercase;
+          }
+
+          /* ── Pill: Expires in: mm:ss ── */
+          .mob-timer-pill-wrap {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 22px;
+          }
+
+          .mob-timer-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            padding: 5px 16px;
+            border-radius: 9999px;
+            font-size: 13px;
+            box-shadow: 0 1px 2px rgba(16, 24, 40, 0.03);
+          }
+
+          .mob-timer-pill.low {
+            background: #fef3c7;
+            border-color: #fde68a;
+          }
+
+          .mob-timer-label {
+            color: #64748b;
+            font-weight: 500;
+            font-size: 12.5px;
+          }
+
+          .mob-timer-digits {
+            color: #0f172a;
+            font-weight: 700;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            letter-spacing: 0.03em;
+          }
+
+          .mob-timer-pill.low .mob-timer-label,
+          .mob-timer-pill.low .mob-timer-digits {
+            color: #b45309;
+          }
+
+          /* ── Themed QR Stand with Orange Corners ── */
+          .mob-qr-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 18px;
+          }
+
+          .mob-qr-frame {
+            position: relative;
+            padding: 14px;
+            background: #ffffff;
+            display: inline-block;
+          }
+
+          .mob-corner {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border: 3.5px solid #e07a27;
+            pointer-events: none;
+          }
+
+          .mob-corner-tl {
+            top: 0;
+            left: 0;
+            border-right: none;
+            border-bottom: none;
+            border-top-left-radius: 12px;
+          }
+
+          .mob-corner-tr {
+            top: 0;
+            right: 0;
+            border-left: none;
+            border-bottom: none;
+            border-top-right-radius: 12px;
+          }
+
+          .mob-corner-bl {
+            bottom: 0;
+            left: 0;
+            border-right: none;
+            border-top: none;
+            border-bottom-left-radius: 12px;
+          }
+
+          .mob-corner-br {
+            bottom: 0;
+            right: 0;
+            border-left: none;
+            border-top: none;
+            border-bottom-right-radius: 12px;
+          }
+
+          .mob-qr-inner {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #ffffff;
+          }
+
+          .mob-qr-center-pill {
+            position: absolute;
+            inset: 0;
+            margin: auto;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: #ffffff;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1.5px solid #f1f5f9;
+            pointer-events: none;
+          }
+
+          /* ── Verified Merchant Badge ── */
+          .mob-merchant-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #ecfdf5;
+            border: 1px solid #d1fae5;
+            color: #065f46;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            margin-bottom: 4px;
+          }
+
+          /* ── Direct UPI App Launcher Row ── */
+          .mob-upi-apps-row {
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px dashed #e2e8f0;
+          }
+
+          .mob-action-hint {
+            margin: 0 0 10px;
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 600;
+            text-align: center;
+          }
+
+          .mob-chips-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+          }
+
+          .mob-app-chip {
+            all: unset;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 44px;
+            padding: 6px 8px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background: #ffffff;
+            box-shadow: 0 1px 3px rgba(16, 24, 40, 0.04);
+            transition: transform 0.15s, border-color 0.15s;
+          }
+
+          .mob-app-chip:active {
+            transform: scale(0.96);
+          }
+
+          /* ── UPI ID Copy Bar ── */
+          .mob-upi-id-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 8px 8px 8px 14px;
+            margin-top: 14px;
+            text-align: left;
+          }
+
+          .mob-upi-id-left {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+          }
+
+          .mob-upi-id-label {
+            font-size: 10.5px;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+          }
+
+          .mob-upi-id-val {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: #0f172a;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+
+          .mob-copy-btn {
+            border: 0;
+            background: #eaf2fe;
+            color: #1c6ee0;
+            font-weight: 700;
+            font-size: 13px;
+            padding: 0 16px;
+            min-height: 38px;
+            border-radius: 10px;
+            cursor: pointer;
+            flex: none;
+            transition: all 0.15s;
+          }
+
+          .mob-copy-btn.done {
+            background: #dcfce7;
+            color: #15803d;
           }
 
           .sum {
