@@ -86,7 +86,8 @@ const Header = ({ badge }) => (
 export default function StatusPage() {
   const params = useParams();
   const router = useRouter();
-  const orderId = params.orderId;
+  const rawOrderId = params.orderId;
+  const orderId = (rawOrderId || '').trim().replace(/^[-#]+/, '');
 
   const [order, setOrder]                 = useState(null);
   const [merchant, setMerchant]           = useState(null);
@@ -118,12 +119,23 @@ export default function StatusPage() {
   }, [orderId]);
 
   useEffect(() => {
-    if (!orderId) return;
+    if (!orderId && !rawOrderId) return;
     const fetchOrder = async () => {
       try {
-        const { data, error: dbErr } = await supabase
-          .from('orders').select('*').eq('id', orderId).single();
-        if (dbErr) throw dbErr;
+        let data = null;
+        let dbErr = null;
+        const res1 = await supabase.from('orders').select('*').eq('id', orderId).maybeSingle();
+        if (res1.data) {
+          data = res1.data;
+        } else if (rawOrderId && rawOrderId !== orderId) {
+          const res2 = await supabase.from('orders').select('*').eq('id', rawOrderId).maybeSingle();
+          data = res2.data;
+          dbErr = res2.error;
+        } else {
+          dbErr = res1.error;
+        }
+
+        if (!data) throw dbErr || new Error('Not found');
         setOrder(data);
         setError('');
 
@@ -146,7 +158,7 @@ export default function StatusPage() {
     fetchOrder();
     const interval = setInterval(fetchOrder, 2000);
     return () => clearInterval(interval);
-  }, [orderId]);
+  }, [orderId, rawOrderId]);
 
   /* Resolve the original app return URL from order, merchant, or referrer */
   const resolveRedirectUrl = () => {

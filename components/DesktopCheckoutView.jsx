@@ -186,20 +186,12 @@ export default function DesktopCheckoutView({
   const [liveAnnouncement, setLiveAnnouncement] = useState('');
   const [successCountdown, setSuccessCountdown] = useState(5);
 
-  // Auto-redirect timer when payment is confirmed
+  // Auto-redirect immediately when payment is confirmed (bypass Screen 1 delay)
   React.useEffect(() => {
     if (curView !== 'vOk') return;
-    const timer = setInterval(() => {
-      setSuccessCountdown(prev => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          if (typeof handleReturn === 'function') handleReturn();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(timer);
+    if (typeof handleReturn === 'function') {
+      handleReturn();
+    }
   }, [curView, handleReturn]);
 
   // Safeguarded values

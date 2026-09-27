@@ -114,10 +114,11 @@ function PayPageContent() {
   const paramNote     = searchParams.get('note')     || '';
   const paramLid      = searchParams.get('lid')      || '';
   const paramOrderId  = searchParams.get('order_id') || searchParams.get('id') || '';
+  const cleanParamOrderId = (paramOrderId || '').trim().replace(/^[-#]+/, '');
 
   /* Core state */
   const [merchant,     setMerchant]     = useState(null);
-  const [orderId,      setOrderId]      = useState(paramOrderId || null);
+  const [orderId,      setOrderId]      = useState(cleanParamOrderId || null);
   const [orderAmount,  setOrderAmount]  = useState(paramAmount ? parseFloat(paramAmount) : null);
   const [orderMode,    setOrderMode]    = useState('live');
   const [orderNote,    setOrderNote]    = useState(paramNote);
@@ -136,8 +137,8 @@ function PayPageContent() {
   /* Mobile accordion selection: '' | 'pBank' | 'pUsdt' */
   const [activeAcc,    setActiveAcc]    = useState('');
 
-  /* View navigation: 'vPay' | 'vWait' | 'vOk' | 'vExp' */
-  const [curView,      setCurView]      = useState('vPay');
+  /* View navigation: 'vChecking' | 'vPay' | 'vOk' | 'vExp' */
+  const [curView,      setCurView]      = useState(cleanParamOrderId ? 'vChecking' : 'vPay');
   const [checkMsg,     setCheckMsg]     = useState('');
   const [isChecking,   setIsChecking]   = useState(false);
 
@@ -196,7 +197,7 @@ function PayPageContent() {
   /* Derived values */
   const isMandate     = orderNote === 'Trial_Setup_3Day' || orderNote === 'Autopay_Setup_3DayTrial';
   const displayAmt    = orderAmount ?? (amount ? parseFloat(amount) : null);
-  const activeId      = orderId || tempId;
+  const activeId      = (orderId || cleanParamOrderId || tempId).replace(/^[-#]+/, '');
   const isPlatformKey = (paramApiKey || '').replace(/^(test_|live_)/, '') === CONFIG.platformApiKey;
   const isSetupOrSubscription = isMandate || (orderNote && (orderNote.includes('Trial_Setup') || orderNote.includes('Autopay') || orderNote.includes('Subscription')));
 
@@ -267,15 +268,63 @@ function PayPageContent() {
       });
   }, [paramApiKey]);
 
+  /* ── Return / Navigation Handler (Direct to final status screen or merchant callback) ── */
+  const handleReturn = (explicitId, explicitCallback) => {
+    const targetId = explicitId || orderId || activeId;
+    const cleanId = (targetId || '').trim().replace(/^[-#]+/, '');
+    let cb = explicitCallback || (typeof window !== 'undefined' ? (localStorage.getItem(`callback_${cleanId}`) || localStorage.getItem(`callback_${targetId}`) || paramCallback) : '');
+
+    if (cb) {
+      let resolved = cb.trim();
+      if (!/^https?:\/\//i.test(resolved) && !resolved.startsWith('/')) {
+        resolved = `https://${resolved}`;
+      }
+      try {
+        const url = new URL(resolved, window.location.origin);
+        url.searchParams.set('order_id', cleanId);
+        url.searchParams.set('status', 'verified');
+        window.location.href = url.toString();
+        return;
+      } catch {
+        window.location.href = cb + (cb.includes('?') ? '&' : '?') + `order_id=${cleanId}&status=verified`;
+        return;
+      }
+    }
+
+    // Check external referrer before pushing to status
+    if (typeof document !== 'undefined' && document.referrer) {
+      try {
+        const refUrl = new URL(document.referrer);
+        if (refUrl.origin !== window.location.origin) {
+          window.location.href = document.referrer;
+          return;
+        }
+      } catch {}
+    }
+
+    // Single screen direct navigation: goes straight to Screen 2 (/status/OOFR)!
+    router.replace(`/status/${cleanId}`);
+  };
+
+  /* ── Success Handler (Directly transitions to Screen 2 status page) ── */
+  function handleSuccess(verifiedId, verifiedCallback) {
+    setConfirmed(true);
+    setOkTime(new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }));
+    const targetId = verifiedId || orderId || activeId;
+    const cleanId = (targetId || '').trim().replace(/^[-#]+/, '');
+    try { navigator.vibrate?.(40); } catch {}
+    handleReturn(cleanId, verifiedCallback);
+  }
+
   /* ── Auto-create / Hydrate order ── */
   useEffect(() => {
     if (autoCreated.current) return;
 
-    if (paramOrderId) {
+    if (cleanParamOrderId) {
       autoCreated.current = true;
-      setOrderId(paramOrderId);
+      setOrderId(cleanParamOrderId);
       if (paramAmount) setOrderAmount(parseFloat(paramAmount));
-      if (paramCallback) localStorage.setItem(`callback_${paramOrderId}`, paramCallback);
+      if (paramCallback) localStorage.setItem(`callback_${cleanParamOrderId}`, paramCallback);
       return;
     }
 
@@ -292,27 +341,58 @@ function PayPageContent() {
         paramLid
       );
     }
-  }, [paramOrderId, paramAmount]);
+  }, [cleanParamOrderId, paramAmount]);
+
+  /* ── Immediate Status Check for Existing Order (Prevent showing checkout for already-paid links) ── */
+  useEffect(() => {
+    if (!cleanParamOrderId) return;
+
+    let isMounted = true;
+    fetch(`/api/orders?id=${encodeURIComponent(cleanParamOrderId)}`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (!isMounted) return;
+        if (data) {
+          if (data.status === 'verified' || data.status === 'completed' || data.status === 'paid') {
+            // Already paid! Immediately go to the status screen (Screen 2)
+            handleReturn(data.orderId || cleanParamOrderId, data.callback_url);
+            return;
+          }
+          if (data.status === 'expired') {
+            setCurView('vExp');
+            return;
+          }
+          if (data.amount != null) setOrderAmount(parseFloat(data.amount));
+          if (data.note) setOrderNote(data.note);
+          if (data.mode) setOrderMode(data.mode);
+          if (data.merchant) setMerchant(prev => ({ ...prev, ...data.merchant }));
+        }
+        setCurView('vPay');
+      })
+      .catch(() => {
+        if (isMounted) setCurView('vPay');
+      });
+
+    return () => { isMounted = false; };
+  }, [cleanParamOrderId]);
 
   /* ── Real-time order verification polling (Minimum delay) ── */
   useEffect(() => {
-    if (!orderId || confirmed) return;
+    const activeTarget = orderId || cleanParamOrderId;
+    if (!activeTarget || confirmed) return;
 
     let isMounted = true;
 
     const checkOrderStatus = async () => {
       try {
-        const res = await fetch(`/api/orders?id=${orderId}`);
+        const res = await fetch(`/api/orders?id=${encodeURIComponent(activeTarget)}`);
         if (!res.ok) return;
         const data = await res.json();
         if (isMounted && data && (data.status === 'verified' || data.status === 'completed' || data.status === 'paid')) {
-          handleSuccess();
+          handleSuccess(data.orderId || activeTarget, data.callback_url);
         }
       } catch {}
     };
-
-    // Immediate check on mount/ID update
-    checkOrderStatus();
 
     // Fast polling: check every 1000ms for minimum verification latency
     const interval = setInterval(checkOrderStatus, 1000);
@@ -321,7 +401,7 @@ function PayPageContent() {
       isMounted = false;
       clearInterval(interval);
     };
-  }, [orderId, confirmed]);
+  }, [orderId, cleanParamOrderId, confirmed]);
 
   /* ── Countdown timer ── */
   useEffect(() => {
@@ -340,14 +420,6 @@ function PayPageContent() {
 
     return () => clearInterval(timer);
   }, [curView]);
-
-  /* ── Success Handler ── */
-  function handleSuccess() {
-    setConfirmed(true);
-    setOkTime(new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }));
-    setCurView('vOk');
-    try { navigator.vibrate?.(40); } catch {}
-  }
 
   /* ── Check Status CTA Handler ── */
   async function triggerChecking() {
@@ -537,38 +609,28 @@ function PayPageContent() {
     }
   };
 
-  const handleReturn = () => {
-    let cb = typeof window !== 'undefined' ? (localStorage.getItem(`callback_${activeId}`) || paramCallback) : '';
-    if (cb) {
-      let resolved = cb.trim();
-      if (!/^https?:\/\//i.test(resolved) && !resolved.startsWith('/')) {
-        resolved = `https://${resolved}`;
-      }
-      try {
-        const url = new URL(resolved, window.location.origin);
-        url.searchParams.set('order_id', activeId);
-        url.searchParams.set('status', 'verified');
-        window.location.href = url.toString();
-        return;
-      } catch {
-        window.location.href = cb + (cb.includes('?') ? '&' : '?') + `order_id=${activeId}&status=verified`;
-        return;
-      }
-    }
-
-    // Check external referrer before pushing to status
-    if (typeof document !== 'undefined' && document.referrer) {
-      try {
-        const refUrl = new URL(document.referrer);
-        if (refUrl.origin !== window.location.origin) {
-          window.location.href = document.referrer;
-          return;
-        }
-      } catch {}
-    }
-
-    router.push(`/status/${activeId}`);
-  };
+  /* ───────────────────────────────────────────────────────────
+     CHECKING SESSION VIEW (Fast loader while verifying if already paid)
+  ─────────────────────────────────────────────────────────── */
+  if (curView === 'vChecking') {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f4f6fa', fontFamily: "'Outfit', -apple-system, sans-serif", padding: 20 }}>
+        <div style={{ background: '#fff', borderRadius: 24, padding: '36px 28px', maxWidth: 400, width: '100%', textAlign: 'center', boxShadow: '0 10px 30px -4px rgba(16, 24, 40, 0.08)', border: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
+            <MyMobPayLogo />
+          </div>
+          <div style={{ position: 'relative', width: 48, height: 48, margin: '0 auto 16px' }}>
+            <svg width="48" height="48" viewBox="0 0 48 48" style={{ animation: 'spin 0.8s linear infinite' }}>
+              <circle cx="24" cy="24" r="20" stroke="#e2e8f0" strokeWidth="4" fill="none" />
+              <circle cx="24" cy="24" r="20" stroke="#0284C7" strokeWidth="4" strokeLinecap="round" fill="none" strokeDasharray="32 94" />
+            </svg>
+          </div>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', margin: '0 0 6px' }}>Verifying payment session…</h3>
+          <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>Checking order status and security credentials</p>
+        </div>
+      </div>
+    );
+  }
 
   /* ───────────────────────────────────────────────────────────
      ENTRY FORM (when loaded with no amount / order ID)

@@ -150,19 +150,33 @@ export async function POST(request) {
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
+    const rawId = searchParams.get('id');
 
-    if (!id) {
+    if (!rawId) {
       return NextResponse.json({ error: 'Order ID is required' }, { status: 400 });
     }
 
-    const { data: order, error } = await supabaseAdmin
+    const cleanId = rawId.trim().replace(/^[-#]+/, '');
+
+    let order = null;
+    const res1 = await supabaseAdmin
       .from('orders')
       .select('id, amount, status, note, created_at, mode, utr, merchant_id, project, callback_url, external_ref')
-      .eq('id', id)
-      .single();
+      .eq('id', cleanId)
+      .maybeSingle();
 
-    if (error || !order) {
+    if (res1.data) {
+      order = res1.data;
+    } else if (cleanId !== rawId) {
+      const res2 = await supabaseAdmin
+        .from('orders')
+        .select('id, amount, status, note, created_at, mode, utr, merchant_id, project, callback_url, external_ref')
+        .eq('id', rawId)
+        .maybeSingle();
+      order = res2.data;
+    }
+
+    if (!order) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
