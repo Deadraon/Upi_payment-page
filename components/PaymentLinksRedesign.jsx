@@ -45,13 +45,13 @@ export default function PaymentLinksRedesign({
   setPayLinkHistory,
   setActiveTab,
 }) {
-  // Form input states
-  const [amount, setAmount] = useState('2499.00');
-  const [purpose, setPurpose] = useState('Software Consulting Retainer / Q1 Sprint');
+  // Form input states (clean and blank by default)
+  const [amount, setAmount] = useState('');
+  const [purpose, setPurpose] = useState('');
   const [refCode, setRefCode] = useState(() => 'ORD-' + Math.floor(100000 + Math.random() * 900000));
-  const [customerName, setCustomerName] = useState('Rohan Sharma');
-  const [customerPhone, setCustomerPhone] = useState('+91 98765 43210');
-  const [customerContact, setCustomerContact] = useState('+91 98765 43210');
+  const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [customerContact, setCustomerContact] = useState('');
   const [allowPartial, setAllowPartial] = useState(false);
   const [notifyWhatsapp, setNotifyWhatsapp] = useState(true);
   const [railUpi, setRailUpi] = useState(true);
@@ -705,7 +705,7 @@ export default function PaymentLinksRedesign({
                     className="w-full text-sm font-medium rounded-xl border border-slate-200 bg-white text-slate-900 py-2.5 px-3.5 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all placeholder:text-slate-400 shadow-sm"
                     id="payment-purpose"
                     type="text"
-                    placeholder="e.g. Software Consulting Retainer / Q1 Sprint"
+                    placeholder="Enter payment purpose or description (e.g. Services, Order #123)"
                     value={purpose}
                     onChange={(e) => setPurpose(e.target.value)}
                   />
@@ -723,7 +723,7 @@ export default function PaymentLinksRedesign({
                       <input
                         className="w-full text-sm rounded-lg border border-slate-200 bg-white text-slate-900 py-1.5 px-2.5 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-400"
                         id="customer-name"
-                        placeholder="e.g. Rohan Sharma"
+                        placeholder="Customer Name (optional)"
                         type="text"
                         value={customerName}
                         onChange={(e) => setCustomerName(e.target.value)}
@@ -734,7 +734,7 @@ export default function PaymentLinksRedesign({
                       <input
                         className="w-full text-sm rounded-lg border border-slate-200 bg-white text-slate-900 py-1.5 px-2.5 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-400"
                         id="customer-contact"
-                        placeholder="+91 or email"
+                        placeholder="+91 Phone or email (optional)"
                         type="text"
                         value={customerContact}
                         onChange={(e) => { setCustomerContact(e.target.value); setCustomerPhone(e.target.value); }}
