@@ -786,61 +786,6 @@ function PayPageContent() {
             </div>
           )}
 
-          {/* Amount card with circular timer ring (Shown on waiting/checking view) */}
-          {curView === 'vWait' && (
-            <div className="sum">
-              <div className="top">
-                <div className="mer">
-                  <div className="av">{bizName.charAt(0).toUpperCase()}</div>
-                  <div>
-                    <b>{bizName}</b>
-                    <small>
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/>
-                        <path d="M9 12l2 2 4-4"/>
-                      </svg>
-                      Verified merchant
-                    </small>
-                  </div>
-                </div>
-                <div className={`ringw ${isTimerLow ? 'low' : ''}`} role="timer" aria-label="Session time left">
-                  <svg viewBox="0 0 60 60" aria-hidden="true">
-                    <circle className="rg-bg" cx="30" cy="30" r="26" fill="none" strokeWidth="4"/>
-                    <circle
-                      className="rg-fg"
-                      cx="30"
-                      cy="30"
-                      r="26"
-                      fill="none"
-                      strokeWidth="4"
-                      strokeLinecap="round"
-                      pathLength="100"
-                      strokeDasharray="100"
-                      strokeDashoffset={strokeOffset}
-                      transform="rotate(-90 30 30)"
-                    />
-                  </svg>
-                  <span className="tm">{mm}:{ss}</span>
-                </div>
-              </div>
-
-              <p className="lab">Amount to pay</p>
-              <div className="amt">
-                ₹{amtWhole}<s>{amtFrac}</s>
-              </div>
-
-              <div className="meta">
-                <div>
-                  <small>Order ID</small>
-                  <b>#{activeId ? activeId.slice(-8).toUpperCase() : 'DEMO'}</b>
-                </div>
-                <div>
-                  <small>Platform fee</small>
-                  <b>₹0.00<span className="free">Free</span></b>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* VIEW 1: PAY — Matches Reference Design (Phone dot + Pristine White Card + Themed QR Stand) */}
           {curView === 'vPay' && (
@@ -980,6 +925,122 @@ function PayPageContent() {
                     {copyFeedback ? 'Copied ✓' : 'Copy'}
                   </button>
                 </div>
+
+                {/* 8. Live Real-Time Verification Status & UTR Drawer (Stays on same screen!) */}
+                {(isChecking || checkMsg || showUtr) ? (
+                  <div style={{
+                    marginTop: 12,
+                    background: checkMsg?.startsWith('✓') ? '#ecfdf5' : '#f8fafc',
+                    border: `1.5px solid ${checkMsg?.startsWith('✓') ? '#a7f3d0' : '#e2e8f0'}`,
+                    borderRadius: 14,
+                    padding: '12px 14px',
+                    textAlign: 'left'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      {isChecking ? (
+                        <svg width="20" height="20" viewBox="0 0 48 48" style={{ animation: 'spin 0.8s linear infinite', flexShrink: 0 }}>
+                          <circle cx="24" cy="24" r="20" stroke="#cbd5e1" strokeWidth="5" fill="none" />
+                          <circle cx="24" cy="24" r="20" stroke="#0284C7" strokeWidth="5" strokeLinecap="round" fill="none" strokeDasharray="32 94" />
+                        </svg>
+                      ) : (
+                        <span style={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: '50%',
+                          background: checkMsg?.startsWith('✓') ? '#10b981' : '#f59e0b',
+                          display: 'inline-block',
+                          flexShrink: 0
+                        }} />
+                      )}
+                      <div style={{ flex: 1 }}>
+                        <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: checkMsg?.startsWith('✓') ? '#065f46' : '#0f172a' }}>
+                          {isChecking ? 'Checking transaction status…' : (checkMsg?.startsWith('✓') ? 'Payment Verified!' : 'Payment Pending Confirmation')}
+                        </p>
+                        <p style={{ margin: '2px 0 0', fontSize: 11.5, color: checkMsg?.startsWith('✓') ? '#047857' : '#64748b', lineHeight: 1.4 }}>
+                          {checkMsg || 'Connecting to bank network to confirm your UPI transfer…'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* UTR Input Section */}
+                    {showUtr && !checkMsg?.startsWith('✓') && (
+                      <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid #e2e8f0' }}>
+                        <label style={{ display: 'block', fontSize: 10.5, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 }}>
+                          Already paid? Verify 12-digit UTR now:
+                        </label>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <input
+                            inputMode="numeric"
+                            maxLength={12}
+                            placeholder="12-digit UTR reference"
+                            value={utr}
+                            onChange={e => { setUtr(e.target.value.replace(/\D/g, '').slice(0, 12)); setUtrMsg(''); }}
+                            style={{
+                              flex: 1,
+                              minHeight: 40,
+                              border: '1px solid #cbd5e1',
+                              borderRadius: 10,
+                              padding: '0 10px',
+                              fontSize: 13,
+                              fontFamily: "'IBM Plex Mono', monospace",
+                              background: '#fff',
+                              outline: 'none',
+                              color: '#0f172a'
+                            }}
+                          />
+                          <button
+                            type="button"
+                            disabled={utr.length !== 12 || utrBusy}
+                            onClick={submitUtr}
+                            style={{
+                              minHeight: 40,
+                              padding: '0 14px',
+                              border: 0,
+                              borderRadius: 10,
+                              background: '#0284C7',
+                              color: '#fff',
+                              fontWeight: 700,
+                              fontSize: 12,
+                              cursor: utr.length === 12 && !utrBusy ? 'pointer' : 'not-allowed',
+                              opacity: utr.length === 12 && !utrBusy ? 1 : 0.5,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 6
+                            }}
+                          >
+                            {utrBusy ? '…' : 'Verify'}
+                          </button>
+                        </div>
+                        {utrMsg && (
+                          <p style={{ margin: '6px 0 0', fontSize: 11.5, fontWeight: 600, color: utrMsg.startsWith('✓') ? '#059669' : '#dc2626' }}>
+                            {utrMsg}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setShowUtr(true)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#0284C7',
+                      fontSize: 11.5,
+                      fontWeight: 600,
+                      marginTop: 8,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      padding: 0
+                    }}
+                  >
+                    <span>Paid via UPI app? Enter 12-digit UTR to verify</span>
+                    <span>›</span>
+                  </button>
+                )}
               </div>
 
               {/* Other ways to pay accordion */}
@@ -1181,49 +1242,6 @@ function PayPageContent() {
             </div>
           )}
 
-          {/* VIEW 2: WAIT / CHECKING */}
-          {curView === 'vWait' && (
-            <div id="vWait">
-              <div className="gh" style={{ marginTop: 16 }}>Payment status</div>
-              <div className="panel">
-                <div className="sp-wrap" style={{ margin: '0 auto 16px', display: 'flex', justifyContent: 'center' }}>
-                  <svg className="sp-spinner" width="48" height="48" viewBox="0 0 48 48">
-                    <circle cx="24" cy="24" r="20" stroke="var(--tint)" strokeWidth="4.5" fill="none" />
-                    <circle cx="24" cy="24" r="20" stroke="var(--brand)" strokeWidth="4.5" strokeLinecap="round" fill="none" strokeDasharray="32 94" />
-                  </svg>
-                </div>
-                <h2>Checking your payment</h2>
-                <p>{checkMsg || 'Hang on, this takes a few seconds.'}</p>
-                <div style={{ marginTop: 18, background: 'var(--soft)', border: '1px solid var(--line)', borderRadius: 14, padding: 12, textAlign: 'left' }}>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--mut)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 }}>
-                    Already paid? Verify 12-digit UTR now:
-                  </label>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <input
-                      inputMode="numeric"
-                      maxLength={12}
-                      placeholder="12-digit UTR reference"
-                      value={utr}
-                      onChange={e => setUtr(e.target.value.replace(/\D/g, '').slice(0, 12))}
-                      style={{ flex: 1, minHeight: 44, border: '1px solid #d0d5dd', borderRadius: 10, padding: '0 12px', fontSize: 14, fontFamily: "'IBM Plex Mono', monospace", background: '#fff', outline: 'none' }}
-                    />
-                    <button
-                      type="button"
-                      disabled={utr.length !== 12 || utrBusy}
-                      onClick={submitUtr}
-                      style={{ minHeight: 44, padding: '0 16px', border: 0, borderRadius: 10, background: 'var(--brand)', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
-                    >
-                      {utrBusy ? '…' : 'Verify'}
-                    </button>
-                  </div>
-                  {utrMsg && <p style={{ margin: '6px 0 0', fontSize: 12, fontWeight: 600, color: utrMsg.startsWith('✓') ? 'var(--ok)' : '#c0392b' }}>{utrMsg}</p>}
-                </div>
-                <div style={{ marginTop: 14 }}>
-                  <button type="button" className="ghost" onClick={() => setCurView('vPay')}>Back to payment options</button>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* VIEW 3: SUCCESS */}
           {curView === 'vOk' && (
@@ -1298,12 +1316,28 @@ function PayPageContent() {
               type="button"
               className="pri"
               id="paid"
-              onClick={() => {
-                setCurView('vWait');
-                triggerChecking();
+              disabled={isChecking}
+              onClick={triggerChecking}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                transition: 'all 0.2s',
+                opacity: isChecking ? 0.85 : 1
               }}
             >
-              I&apos;ve paid
+              {isChecking ? (
+                <>
+                  <svg width="16" height="16" viewBox="0 0 48 48" style={{ animation: 'spin 0.8s linear infinite' }}>
+                    <circle cx="24" cy="24" r="20" stroke="rgba(255,255,255,0.3)" strokeWidth="5" fill="none" />
+                    <circle cx="24" cy="24" r="20" stroke="#fff" strokeWidth="5" strokeLinecap="round" fill="none" strokeDasharray="32 94" />
+                  </svg>
+                  <span>Checking…</span>
+                </>
+              ) : (
+                <>I&apos;ve paid</>
+              )}
             </button>
           </div>
         )}
