@@ -703,8 +703,11 @@ export default function ConsoleActivationPaywall({
                     style={{ height: "auto", maxWidth: "100%", width: "100%" }}
                     viewBox={`0 0 110 110`}
                   />
-                  <div className="absolute inset-0 m-auto w-7 h-7 rounded-full bg-white shadow-md flex items-center justify-center p-0.5 border border-slate-200 pointer-events-none">
-                    <span className="text-[#0284c7] font-black tracking-tighter text-[10px] leading-none">UPI</span>
+                  <div className="absolute inset-0 m-auto w-7 h-7 rounded-xl bg-white shadow-md flex items-center justify-center p-0.5 border border-slate-100 pointer-events-none">
+                    <svg width="18" height="16" viewBox="0 0 38 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M 7 28.5 V 13.5 C 7 7.5 12 5.5 16 8.5 L 19 19" stroke="#0284C7" strokeWidth="5.2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M 19 19 L 22 8.5 C 26 5.5 31 7.5 31 13.5 V 28.5" stroke="#FF7800" strokeWidth="5.2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
                   </div>
                 </div>
 

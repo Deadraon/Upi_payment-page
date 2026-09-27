@@ -78,45 +78,36 @@ import {
 
 
 const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = 'var(--text-primary)' }) => (
-
-
-
-  <svg viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
-
-
-
-    {/* Single unified wordmark with unique mixed fonts */}
-
-
-
-    <text x="2" y="42" letterSpacing="0">
-
-
-
-      {/* MyMob */}
-
-
-
-      <tspan fontFamily="'Outfit', sans-serif" fontWeight="800" fontSize="36" fill={textColor}>MyMob</tspan>
-
-
-
-      {/* Pay */}
-
-
-
-      <tspan fontFamily="'Orbitron', sans-serif" fontWeight="900" fontStyle="italic" fontSize="36" fill="var(--accent)" dx="3">Pay</tspan>
-
-
-
+  <svg viewBox="0 0 220 40" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${className} transition-transform duration-300 hover:scale-[1.02]`}>
+    {/* Dual-Color M Mark (Blue Left, Orange Right) */}
+    <g transform="translate(4, 3)">
+      <path
+        d="M 7 28.5 V 13.5 C 7 7.5 12 5.5 16 8.5 L 19 19"
+        stroke="#0284C7"
+        strokeWidth="5.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M 19 19 L 22 8.5 C 26 5.5 31 7.5 31 13.5 V 28.5"
+        stroke="#FF7800"
+        strokeWidth="5.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </g>
+    <text
+      x="46"
+      y="27"
+      fontFamily="'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+      fontWeight="800"
+      fontSize="26"
+      fill={textColor}
+      letterSpacing="-0.5"
+    >
+      MyMobPay
     </text>
-
-
-
   </svg>
-
-
-
 );
 
 
@@ -8226,7 +8217,15 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-                  <QRCode value={payLinkGeneratedUrl} size={150} level="H" fgColor="#0f172a" bgColor="#FFFFFF" />
+                  <div className="relative p-2 bg-white rounded-2xl shadow-sm border border-slate-100">
+                    <QRCode value={payLinkGeneratedUrl} size={150} level="H" fgColor="#0f172a" bgColor="#FFFFFF" />
+                    <div className="absolute inset-0 m-auto w-9 h-9 rounded-xl bg-white shadow-md flex items-center justify-center border border-slate-100 p-1 pointer-events-none">
+                      <svg width="22" height="20" viewBox="0 0 38 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M 7 28.5 V 13.5 C 7 7.5 12 5.5 16 8.5 L 19 19" stroke="#0284C7" strokeWidth="5.2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M 19 19 L 22 8.5 C 26 5.5 31 7.5 31 13.5 V 28.5" stroke="#FF7800" strokeWidth="5.2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                  </div>
 
 
 

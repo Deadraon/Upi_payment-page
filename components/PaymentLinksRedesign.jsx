@@ -964,15 +964,22 @@ export default function PaymentLinksRedesign({
 
                   {/* QR Code & Settlement Info */}
                   <div className="p-5 flex flex-col items-center justify-center bg-white space-y-4">
-                    {/* Live QR Code */}
-                    <div className="p-3 bg-white rounded-2xl border-2 border-slate-100 shadow-sm cursor-pointer">
+                    {/* Live QR Code with Center Dual-Color M Logo */}
+                    <div className="relative p-3 bg-white rounded-2xl border-2 border-slate-100 shadow-sm cursor-pointer">
                       <QRCode
                         value={activeUrl || previewUrlDynamic}
                         size={140}
                         bgColor="#ffffff"
                         fgColor="#0f172a"
-                        level="M"
+                        level="Q"
                       />
+                      {/* Centered QR Badge with Blue & Orange M Logo */}
+                      <div className="absolute inset-0 m-auto w-8 h-8 rounded-xl bg-white shadow-md flex items-center justify-center border border-slate-100 p-1 pointer-events-none">
+                        <svg width="20" height="18" viewBox="0 0 38 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M 7 28.5 V 13.5 C 7 7.5 12 5.5 16 8.5 L 19 19" stroke="#0284C7" strokeWidth="5.2" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M 19 19 L 22 8.5 C 26 5.5 31 7.5 31 13.5 V 28.5" stroke="#FF7800" strokeWidth="5.2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </div>
                       <div className="text-center mt-1.5">
                         <span className="text-[10px] font-medium text-slate-400">Scan with any UPI App</span>
                       </div>

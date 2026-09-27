@@ -8,25 +8,34 @@ import { CONFIG } from '@/lib/config';
 import { supabase } from '@/lib/supabase';
 import DesktopCheckoutView from '@/components/DesktopCheckoutView';
 
-/* ── Original MyMobPay Website Logo (Outfit 800 + Orbitron 900 italic #3B82F6) ── */
+/* ── Original MyMobPay Website Logo (Dual-color Blue/Orange M mark + MyMobPay) ── */
 const MyMobPayLogo = () => (
-  <div style={{ display: 'flex', alignItems: 'center', gap: 0, lineHeight: 1, userSelect: 'none' }}>
+  <div style={{ display: 'flex', alignItems: 'center', gap: 8, lineHeight: 1, userSelect: 'none' }}>
+    <svg width="28" height="25" viewBox="0 0 38 34" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+      {/* Left Blue Stroke */}
+      <path
+        d="M 7 28.5 V 13.5 C 7 7.5 12 5.5 16 8.5 L 19 19"
+        stroke="#0284C7"
+        strokeWidth="5.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {/* Right Orange Stroke */}
+      <path
+        d="M 19 19 L 22 8.5 C 26 5.5 31 7.5 31 13.5 V 28.5"
+        stroke="#FF7800"
+        strokeWidth="5.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
     <span style={{
-      fontFamily: "'Outfit', sans-serif",
+      fontFamily: "'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
       fontWeight: 800,
-      fontSize: 26,
+      fontSize: 24,
       color: 'var(--head)',
       letterSpacing: '-0.02em',
-    }}>MyMob</span>
-    <span style={{
-      fontFamily: "'Orbitron', sans-serif",
-      fontWeight: 900,
-      fontStyle: 'italic',
-      fontSize: 26,
-      color: '#3B82F6',
-      letterSpacing: '-0.01em',
-      marginLeft: 4,
-    }}>Pay</span>
+    }}>MyMobPay</span>
   </div>
 );
 
@@ -811,22 +820,50 @@ function PayPageContent() {
               <div className="gh">Pay with UPI</div>
               <div className="card" id="pUpi">
                 <div className="pc">
-                  <p className="tip" style={{ textAlign: 'center', margin: '0 0 14px' }}>
+                  <p className="tip" style={{ textAlign: 'center', margin: '0 0 10px' }}>
                     Scan with any UPI app, or pay to the UPI ID
                   </p>
 
+                  {/* TOTAL: ₹ display right above the QR frame just like in user's image */}
+                  <div style={{ textAlign: 'center', fontSize: 13, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--head)', marginBottom: 6, fontFamily: 'monospace' }}>
+                    TOTAL : <span style={{ fontSize: 16, fontFamily: '"DM Sans", sans-serif', color: 'var(--head)' }}>{fmtInr(displayAmt)}</span>
+                  </div>
+
                   <div className="qrf">
                     <i /><i /><i /><i />
-                    <div className="qrbox">
+                    <div className="qrbox" style={{ position: 'relative' }}>
                       {upiQrValue ? (
-                        <QRCode
-                          value={upiQrValue}
-                          size={166}
-                          level="M"
-                          fgColor="#101828"
-                          bgColor="#ffffff"
-                          style={{ display: 'block', width: '100%', height: 'auto' }}
-                        />
+                        <>
+                          <QRCode
+                            value={upiQrValue}
+                            size={166}
+                            level="Q"
+                            fgColor="#101828"
+                            bgColor="#ffffff"
+                            style={{ display: 'block', width: '100%', height: 'auto' }}
+                          />
+                          {/* Centered QR Badge with Blue & Orange M Logo */}
+                          <div style={{
+                            position: 'absolute',
+                            inset: 0,
+                            margin: 'auto',
+                            width: 36,
+                            height: 36,
+                            borderRadius: 10,
+                            background: '#ffffff',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            border: '1px solid #e2e8f0',
+                            pointerEvents: 'none'
+                          }}>
+                            <svg width="22" height="20" viewBox="0 0 38 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M 7 28.5 V 13.5 C 7 7.5 12 5.5 16 8.5 L 19 19" stroke="#0284C7" strokeWidth="5.2" strokeLinecap="round" strokeLinejoin="round"/>
+                              <path d="M 19 19 L 22 8.5 C 26 5.5 31 7.5 31 13.5 V 28.5" stroke="#FF7800" strokeWidth="5.2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          </div>
+                        </>
                       ) : (
                         <div style={{ width: 166, height: 166, display: 'grid', placeItems: 'center', color: 'var(--mut)', fontSize: 13 }}>
                           Generating QR…
@@ -1618,7 +1655,7 @@ export default function PayPage() {
             position: absolute;
             width: 18px;
             height: 18px;
-            border: 3px solid var(--brand);
+            border: 3.5px solid #ff7800;
             border-radius: 6px;
           }
 

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 38 34" fill="none">
+  <!-- Left Blue Stroke -->
+  <path
+    d="M 7 28.5 V 13.5 C 7 7.5 12 5.5 16 8.5 L 19 19"
+    stroke="#0284C7"
+    stroke-width="5.2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <!-- Right Orange Stroke -->
+  <path
+    d="M 19 19 L 22 8.5 C 26 5.5 31 7.5 31 13.5 V 28.5"
+    stroke="#FF7800"
+    stroke-width="5.2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>

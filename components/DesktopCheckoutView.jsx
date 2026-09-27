@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import QRCode from 'react-qr-code';
+import { MyMobPayLogo, MyMobPayMark } from '@/components/MyMobPayLogo';
 
 /* ── Instant Inline Vector Icons (0ms render time, no font loading delays, no text ligatures) ── */
 const IconVerifiedUser = ({ className = "w-[18px] h-[18px]" }) => (
@@ -500,14 +501,17 @@ export default function DesktopCheckoutView({
               </div>
             )}
 
-            {/* 1. Floating Trust Pill on Top */}
-            <div className="flex items-center gap-2 bg-surface-container-lowest shadow-sm rounded-full px-4 py-1.5 mb-4 border border-outline-variant/30">
-              <IconVerifiedUser className="w-[18px] h-[18px] text-secondary flex-shrink-0" />
-              <span className="text-label-md text-on-surface">
-                Encrypted checkout · <strong>mymob.tech</strong>
-              </span>
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-on-tertiary-container"></span>
-              <span className="text-label-sm text-on-tertiary-container font-semibold">Live</span>
+            {/* 1. Floating Brand Logo & Encrypted Trust Pill on Top */}
+            <div className="flex items-center justify-between w-full mb-4 px-1">
+              <MyMobPayLogo className="h-7 w-auto" textColor="#0c2340" />
+              <div className="flex items-center gap-2 bg-surface-container-lowest shadow-sm rounded-full px-3.5 py-1.5 border border-outline-variant/30">
+                <IconVerifiedUser className="w-[18px] h-[18px] text-secondary flex-shrink-0" />
+                <span className="text-label-md text-on-surface">
+                  Encrypted checkout
+                </span>
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                <span className="text-label-sm text-emerald-700 font-semibold">Live</span>
+              </div>
             </div>
 
             {/* 2. Main Hosted Modal Card */}
@@ -813,11 +817,11 @@ export default function DesktopCheckoutView({
                         
                         {/* Themed QR Viewfinder Frame */}
                         <div className="relative w-36 h-36 bg-white rounded-2xl p-2.5 shadow-md flex items-center justify-center flex-shrink-0 border border-slate-200">
-                          {/* 4 Themed Scanner Viewfinder Corners */}
-                          <span className="absolute -top-1 -left-1 w-4 h-4 border-t-[3px] border-l-[3px] border-[#0045de] rounded-tl-sm pointer-events-none" />
-                          <span className="absolute -top-1 -right-1 w-4 h-4 border-t-[3px] border-r-[3px] border-[#0045de] rounded-tr-sm pointer-events-none" />
-                          <span className="absolute -bottom-1 -left-1 w-4 h-4 border-b-[3px] border-l-[3px] border-[#0045de] rounded-bl-sm pointer-events-none" />
-                          <span className="absolute -bottom-1 -right-1 w-4 h-4 border-b-[3px] border-r-[3px] border-[#0045de] rounded-br-sm pointer-events-none" />
+                          {/* 4 Themed Scanner Viewfinder Corners in vibrant Orange */}
+                          <span className="absolute -top-1 -left-1 w-4 h-4 border-t-[3px] border-l-[3px] border-[#ff7800] rounded-tl-sm pointer-events-none" />
+                          <span className="absolute -top-1 -right-1 w-4 h-4 border-t-[3px] border-r-[3px] border-[#ff7800] rounded-tr-sm pointer-events-none" />
+                          <span className="absolute -bottom-1 -left-1 w-4 h-4 border-b-[3px] border-l-[3px] border-[#ff7800] rounded-bl-sm pointer-events-none" />
+                          <span className="absolute -bottom-1 -right-1 w-4 h-4 border-b-[3px] border-r-[3px] border-[#ff7800] rounded-br-sm pointer-events-none" />
 
                           {upiQrValue ? (
                             <QRCode
@@ -833,15 +837,19 @@ export default function DesktopCheckoutView({
                             <div className="text-xs text-slate-400 font-medium">Generating QR…</div>
                           )}
 
-                          {/* Centered Branded Pill */}
-                          <div className="absolute inset-0 m-auto w-7 h-7 rounded-full bg-white shadow-md flex items-center justify-center border border-slate-200 pointer-events-none">
-                            <span className="text-[#0045de] font-black tracking-tighter text-[9px] leading-none">
-                              UPI
-                            </span>
+                          {/* Centered Branded Badge with Blue/Orange M Logo */}
+                          <div className="absolute inset-0 m-auto w-8 h-8 rounded-xl bg-white shadow-md flex items-center justify-center border border-slate-100 p-1 pointer-events-none">
+                            <MyMobPayMark className="w-5 h-5" />
                           </div>
                         </div>
 
                         <div className="flex-1 text-center sm:text-left">
+                          {/* TOTAL amount banner matching reference layout */}
+                          <div className="text-[12px] font-black tracking-wider uppercase text-slate-700 font-mono mb-1.5 flex items-center justify-center sm:justify-start gap-1.5">
+                            <span className="text-slate-400 font-bold">TOTAL :</span>
+                            <span className="text-slate-900 font-extrabold text-sm font-sans">₹{formattedAmount}</span>
+                          </div>
+
                           <div className="flex flex-wrap items-center gap-2 justify-center sm:justify-start mb-2">
                             <div className="inline-flex items-center gap-1.5 bg-white border border-slate-200/90 text-[#0045de] px-2.5 py-0.5 rounded-full text-xs font-semibold shadow-2xs">
                               <IconSchedule className="w-3.5 h-3.5 text-[#0045de] flex-shrink-0" />
@@ -1191,7 +1199,7 @@ export default function DesktopCheckoutView({
                     </div>
                     <div className="flex items-center gap-1.5 text-label-sm text-on-surface-variant">
                       <span>Powered by</span>
-                      <span className="font-bold text-secondary text-[13px] tracking-tight">mymob.tech</span>
+                      <MyMobPayLogo className="h-4.5 w-auto" textColor="#0c2340" />
                     </div>
                   </div>
 
