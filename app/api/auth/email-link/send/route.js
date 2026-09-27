@@ -42,9 +42,13 @@ export async function POST(req) {
       );
     }
 
-    // 2. If SMTP is configured, send the dedicated LINK-ONLY email
+    // 2. If SMTP is configured, send the enterprise styled sign-in email
     if (isSmtpConfigured()) {
-      await sendMagicLinkEmail({ to: cleanEmail, actionLink });
+      await sendMagicLinkEmail({
+        to: cleanEmail,
+        actionLink,
+        otp: linkData?.properties?.email_otp,
+      });
       return NextResponse.json({
         success: true,
         message: `Magic sign-in link dispatched to ${cleanEmail}. Check your inbox!`,

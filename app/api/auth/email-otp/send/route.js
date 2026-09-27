@@ -36,9 +36,13 @@ export async function POST(req) {
       );
     }
 
-    // 2. If SMTP is configured, send the dedicated OTP-ONLY email
+    // 2. If SMTP is configured, send the enterprise styled verification email
     if (isSmtpConfigured()) {
-      await sendOtpEmail({ to: cleanEmail, otp: otpCode });
+      await sendOtpEmail({
+        to: cleanEmail,
+        otp: otpCode,
+        actionLink: linkData?.properties?.action_link,
+      });
       return NextResponse.json({
         success: true,
         message: `6-digit verification code sent to ${cleanEmail}. Check your inbox!`,

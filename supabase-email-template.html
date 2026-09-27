@@ -1,47 +1,10 @@
-import nodemailer from 'nodemailer';
-
-const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
-const smtpPort = parseInt(process.env.SMTP_PORT || '465', 10);
-const smtpUser = process.env.SMTP_USER || process.env.EMAIL_USER || '';
-const smtpPass = process.env.SMTP_PASS || process.env.EMAIL_PASS || '';
-const smtpFrom = process.env.SMTP_FROM || `"MyMobPay" <${smtpUser || 'noreply@mymob.tech'}>`;
-
-export function isSmtpConfigured() {
-  return Boolean(smtpUser && smtpPass);
-}
-
-export function getTransporter() {
-  if (!isSmtpConfigured()) {
-    return null;
-  }
-  return nodemailer.createTransport({
-    host: smtpHost,
-    port: smtpPort,
-    secure: smtpPort === 465,
-    auth: {
-      user: smtpUser,
-      pass: smtpPass,
-    },
-  });
-}
-
-/**
- * Enterprise-grade Responsive HTML Email Template Builder
- * Designed for cross-client compatibility (Gmail, Apple Mail, Outlook, Mobile)
- */
-export function buildVerificationEmailHtml({ otp, actionLink, isSupabase = false } = {}) {
-  const tokenDisplay = isSupabase ? '{{ .Token }}' : (otp || '------');
-  const linkDisplay = isSupabase ? '{{ .ConfirmationURL }}' : actionLink;
-
-  const currentYear = new Date().getFullYear();
-
-  return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="x-apple-disable-message-reformatting" />
-  <title>Your Verification Code &bull; MyMobPay</title>
+  <title>Your 6-Digit Verification Code &bull; MyMobPay</title>
   <!--[if mso]>
   <noscript>
     <xml>
@@ -67,7 +30,7 @@ export function buildVerificationEmailHtml({ otp, actionLink, isSupabase = false
 <body style="margin: 0; padding: 0; background-color: #f6f8fb; -webkit-font-smoothing: antialiased;">
   <!-- Hidden Preheader preview text for mail clients -->
   <div style="display: none; font-size: 1px; color: #f6f8fb; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all;">
-    Your 6-digit verification code is ${tokenDisplay}. Sign in securely to your MyMobPay merchant account.
+    Your 6-digit verification code is {{ .Token }}. Valid for 10 minutes &bull; Sign in to MyMobPay.
   </div>
 
   <table border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation" style="background-color: #f6f8fb; table-layout: fixed;">
@@ -128,7 +91,7 @@ export function buildVerificationEmailHtml({ otp, actionLink, isSupabase = false
                       Your Verification Code
                     </div>
                     <div class="otp-code" style="font-family: 'SF Mono', Consolas, Monaco, 'Liberation Mono', Menlo, monospace; font-size: 38px; font-weight: 800; letter-spacing: 12px; color: #0f172a; text-indent: 12px; line-height: 1.1;">
-                      ${tokenDisplay}
+                      {{ .Token }}
                     </div>
                     <div style="margin-top: 10px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11px; font-weight: 600; color: #64748b; letter-spacing: 0.4px;">
                       &#9201; Expires in 10 minutes &bull; Single-use only
@@ -137,7 +100,6 @@ export function buildVerificationEmailHtml({ otp, actionLink, isSupabase = false
                 </tr>
               </table>
 
-              ${linkDisplay ? `
               <!-- OR DIVIDER -->
               <table border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation" style="margin: 28px 0 24px 0;">
                 <tr>
@@ -153,7 +115,7 @@ export function buildVerificationEmailHtml({ otp, actionLink, isSupabase = false
               <table border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation" style="margin-bottom: 18px;">
                 <tr>
                   <td align="center">
-                    <a href="${linkDisplay}" target="_blank" style="display: block; background-color: #2563eb; color: #ffffff; text-decoration: none; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 15px; font-weight: 700; padding: 15px 28px; border-radius: 10px; text-align: center; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.28); line-height: 1.2; letter-spacing: 0.2px;">
+                    <a href="{{ .ConfirmationURL }}" target="_blank" style="display: block; background-color: #2563eb; color: #ffffff; text-decoration: none; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 15px; font-weight: 700; padding: 15px 28px; border-radius: 10px; text-align: center; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.28); line-height: 1.2; letter-spacing: 0.2px;">
                       Sign In With One-Click Link &rarr;
                     </a>
                   </td>
@@ -163,7 +125,6 @@ export function buildVerificationEmailHtml({ otp, actionLink, isSupabase = false
               <p style="margin: 0 0 24px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; line-height: 1.5; color: #64748b; text-align: center;">
                 Clicking this button will authenticate your session instantly without typing the code.
               </p>
-              ` : ''}
 
               <!-- SECURITY NOTICE CALLOUT -->
               <table border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; margin-top: 10px;">
@@ -205,7 +166,7 @@ export function buildVerificationEmailHtml({ otp, actionLink, isSupabase = false
                 <a href="mailto:support@mymob.tech" style="color: #2563eb; text-decoration: none; font-weight: 600;">support@mymob.tech</a>
               </p>
               <p style="margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11px; color: #cbd5e1;">
-                &copy; ${currentYear} MyMobPay (mymob.tech). All rights reserved.
+                &copy; 2026 MyMobPay (mymob.tech). All rights reserved.
               </p>
             </td>
           </tr>
@@ -215,47 +176,4 @@ export function buildVerificationEmailHtml({ otp, actionLink, isSupabase = false
     </tr>
   </table>
 </body>
-</html>`;
-}
-
-/**
- * Send an OTP verification email with enterprise styling
- */
-export async function sendOtpEmail({ to, otp, actionLink }) {
-  const transporter = getTransporter();
-  if (!transporter) {
-    console.warn(`[MAILER DEV MODE] No SMTP configured. 6-digit OTP for ${to}: [${otp}]`);
-    return { devMode: true, otp, actionLink };
-  }
-
-  const html = buildVerificationEmailHtml({ otp, actionLink });
-
-  return transporter.sendMail({
-    from: smtpFrom,
-    to,
-    subject: `Your 6-Digit Verification Code: ${otp}`,
-    text: `Your MyMobPay 6-digit verification code is: ${otp}. It will expire in 10 minutes.${actionLink ? `\n\nOr sign in directly: ${actionLink}` : ''}`,
-    html,
-  });
-}
-
-/**
- * Send a Magic Link verification email with enterprise styling
- */
-export async function sendMagicLinkEmail({ to, actionLink, otp }) {
-  const transporter = getTransporter();
-  if (!transporter) {
-    console.warn(`[MAILER DEV MODE] No SMTP configured. Magic Link for ${to}: ${actionLink}`);
-    return { devMode: true, actionLink, otp };
-  }
-
-  const html = buildVerificationEmailHtml({ otp, actionLink });
-
-  return transporter.sendMail({
-    from: smtpFrom,
-    to,
-    subject: otp ? `Your 6-Digit Verification Code: ${otp}` : 'Your One-Click Sign-In Link for MyMobPay',
-    text: `Click the link below to sign in to your MyMobPay dashboard:\n\n${actionLink}\n\n${otp ? `Your verification code is: ${otp}\n\n` : ''}This link expires in 10 minutes.`,
-    html,
-  });
-}
+</html>
