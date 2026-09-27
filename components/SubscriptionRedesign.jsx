@@ -35,11 +35,9 @@ export default function SubscriptionRedesign({
   const [selectedPlanId, setSelectedPlanId] = useState('1month');
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [showCancelModal, setShowCancelModal] = useState(false);
   const [showContactSalesModal, setShowContactSalesModal] = useState(false);
   const [invoiceFilter, setInvoiceFilter] = useState('all'); // 'all', 'paid'
   const [isActivating, setIsActivating] = useState(false);
-  const [isCancelling, setIsCancelling] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
   const [copiedKey, setCopiedKey] = useState(null);
 
@@ -230,38 +228,123 @@ export default function SubscriptionRedesign({
     }
   };
 
-  // ── Handle Subscription Cancellation ──────────────────────────
-  const handleCancelSubscription = async () => {
-    setIsCancelling(true);
-    try {
-      const { error } = await supabase
-        .from('merchants')
-        .update({
-          subscription_status: 'cancelled'
-        })
-        .eq('id', profile.id);
+  // ── Handle Download GST Tax Invoice ──────────────────────────
+  const handleDownloadInvoice = (inv) => {
+    const invNumber = inv?.ref ? `MMP-INV-${inv.ref}` : `MMP-INV-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
+    const invoiceDate = inv?.date ? new Date(inv.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    const businessName = profile?.business_name || profile?.owner_name || 'MyMobPay Merchant';
+    const gstin = profile?.gstin || '27AADCB2230M1Z2';
+    const planName = inv?.plan || subDetails?.planTitle || 'Pro Merchant License';
+    const amount = inv?.amount || subDetails?.planAmount || 499;
+    const cgst = (amount * 0.09).toFixed(2);
+    const sgst = (amount * 0.09).toFixed(2);
+    const total = (amount * 1.18).toFixed(2);
 
-      if (error) throw error;
+    const invoiceHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Tax Invoice - ${invNumber}</title>
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px; color: #0f172a; max-width: 800px; margin: 0 auto; line-height: 1.5; }
+          .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #e2e8f0; padding-bottom: 24px; margin-bottom: 24px; }
+          .logo { font-size: 24px; font-weight: 900; color: #0c2340; }
+          .logo span { color: #2563eb; }
+          .badge { display: inline-block; padding: 4px 12px; background: #ecfdf5; color: #065f46; font-size: 11px; font-weight: 700; border-radius: 9999px; border: 1px solid #a7f3d0; text-transform: uppercase; margin-top: 6px; }
+          .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; font-size: 13px; }
+          .grid h4 { margin: 0 0 8px 0; color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 32px; font-size: 13px; }
+          th { text-align: left; padding: 12px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; color: #475569; font-weight: 600; }
+          td { padding: 12px; border-bottom: 1px solid #f1f5f9; }
+          .total-row td { font-weight: 700; border-top: 2px solid #e2e8f0; font-size: 15px; color: #0c2340; }
+          .footer { text-align: center; color: #94a3b8; font-size: 11px; border-top: 1px solid #e2e8f0; padding-top: 20px; }
+          @media print { .no-print { display: none; } body { padding: 0; } }
+        </style>
+      </head>
+      <body>
+        <div class="no-print" style="margin-bottom: 20px; text-align: right;">
+          <button onclick="window.print()" style="padding: 10px 20px; background: #2563eb; color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Print / Save as PDF</button>
+        </div>
+        <div class="header">
+          <div>
+            <div class="logo">mymob<span>pay</span></div>
+            <div style="font-size: 12px; color: #64748b; margin-top: 4px;">MyMobPay Technologies Private Limited</div>
+            <div style="font-size: 11px; color: #94a3b8;">CIN: U72900MH2023PTC402190 • GSTIN: 27AADCB2230M1Z2</div>
+            <div style="font-size: 11px; color: #94a3b8;">402 Tech Park, Bandra West, Mumbai 400050</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 20px; font-weight: 800; color: #0c2340;">TAX INVOICE</div>
+            <div style="font-size: 12px; font-family: monospace; color: #475569; margin-top: 4px;">${invNumber}</div>
+            <div class="badge">Paid • Direct Settlement</div>
+          </div>
+        </div>
 
-      if (onProfileUpdate) {
-        onProfileUpdate({
-          ...profile,
-          subscription_status: 'cancelled'
-        });
-      }
+        <div class="grid">
+          <div>
+            <h4>Billed To (Merchant)</h4>
+            <div style="font-weight: 700; font-size: 14px;">${businessName}</div>
+            <div style="color: #64748b;">${profile?.email || 'merchant@mymobpay.tech'}</div>
+            <div style="color: #64748b;">GSTIN: ${gstin}</div>
+            <div style="color: #64748b;">MID: ${profile?.id ? profile.id.slice(0, 8).toUpperCase() : 'MMP884920'}</div>
+          </div>
+          <div style="text-align: right;">
+            <h4>Invoice Details</h4>
+            <div><strong>Invoice Date:</strong> ${invoiceDate}</div>
+            <div><strong>Due Date:</strong> Immediate (Prepaid)</div>
+            <div><strong>Settlement Rail:</strong> NPCI UPI / IMPS Auto-Clear</div>
+          </div>
+        </div>
 
-      if (onRefreshProfile) {
-        await onRefreshProfile();
-      }
+        <table>
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th>HSN/SAC</th>
+              <th>Qty</th>
+              <th>Rate (₹)</th>
+              <th style="text-align: right;">Amount (₹)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>${planName}</strong><br><span style="font-size: 11px; color: #64748b;">UPI Direct-to-Bank Gateway Platform Fee (Monthly Access)</span></td>
+              <td>998313</td>
+              <td>1</td>
+              <td>₹${amount}</td>
+              <td style="text-align: right;">₹${amount}</td>
+            </tr>
+            <tr>
+              <td colspan="4" style="text-align: right; color: #64748b;">Central GST (CGST 9%):</td>
+              <td style="text-align: right;">₹${cgst}</td>
+            </tr>
+            <tr>
+              <td colspan="4" style="text-align: right; color: #64748b;">State GST (SGST 9%):</td>
+              <td style="text-align: right;">₹${sgst}</td>
+            </tr>
+            <tr class="total-row">
+              <td colspan="4" style="text-align: right;">Total Amount Paid:</td>
+              <td style="text-align: right;">₹${total}</td>
+            </tr>
+          </tbody>
+        </table>
 
-      setShowCancelModal(false);
-      setShowDetailsModal(false);
-      triggerToast(`Subscription cancelled. Your license remains active until ${subDetails.expiryDateStr}.`);
-    } catch (err) {
-      console.error('Cancel subscription error:', err);
-      triggerToast(`Failed to cancel subscription: ${err.message || 'Please try again.'}`);
-    } finally {
-      setIsCancelling(false);
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; margin-bottom: 24px; font-size: 12px; color: #475569;">
+          <strong>Zero Escrow Confirmation:</strong> This platform fee entitles the merchant to direct peer-to-peer settlement via NPCI clearing rails without aggregator holding periods.
+        </div>
+
+        <div class="footer">
+          This is a computer-generated tax invoice and requires no physical signature. Thank you for choosing MyMobPay.
+        </div>
+      </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(invoiceHtml);
+      printWindow.document.close();
+    } else {
+      triggerToast('Invoice ready! Please allow popups to view and print.');
     }
   };
 
@@ -313,36 +396,7 @@ export default function SubscriptionRedesign({
     }
   };
 
-  // ── Invoice Text/PDF Download Handler ─────────────────────────
-  const handleDownloadInvoice = (inv) => {
-    triggerToast(`Downloading GST-compliant tax invoice for #${inv.ref}...`);
-    const receiptContent = `
-========================================
-MYMOBPAY PLATFORM TAX INVOICE
-========================================
-Invoice Reference : #${inv.ref}
-Merchant MID      : ${profile?.id ? profile.id.slice(0, 10).toUpperCase() : 'MMP'}
-Business Name     : ${profile?.business_name || profile?.owner_name || 'Merchant Account'}
-Settlement Date   : ${inv.date}
-Plan Description  : ${inv.plan}
-Amount Paid       : ₹${inv.amount}.00
-GST / Taxes       : Included (0% Gateway MDR)
-Payment Rail      : Direct UPI Settlement
-Status            : Settled & Active
-========================================
-Thank you for using MyMobPay!
-Official Gateway: https://mymob.tech
-    `.trim();
 
-    const blob = new Blob([receiptContent], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Invoice_${inv.ref}.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
   // ── 100% Real Invoices Data (Zero Fake Info) ─────────────────
   const invoiceList = useMemo(() => {
@@ -434,15 +488,14 @@ Official Gateway: https://mymob.tech
           </div>
 
           <div className="flex items-center gap-2">
-            {subDetails.isActive && !subDetails.isCancelled && (
-              <button
-                onClick={() => setShowCancelModal(true)}
-                type="button"
-                className="text-slate-400 hover:text-red-600 transition-colors text-xs font-semibold px-3 py-1.5 cursor-pointer"
-              >
-                Cancel Subscription
-              </button>
-            )}
+            <button
+              onClick={handleDownloadInvoice}
+              type="button"
+              className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold border border-slate-200 shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <Download className="w-3.5 h-3.5 text-blue-600" />
+              Download Invoice
+            </button>
             <button
               onClick={() => setShowDetailsModal(true)}
               type="button"
@@ -864,20 +917,14 @@ Official Gateway: https://mymob.tech
 
               {/* Modal Action Buttons */}
               <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-100">
-                {subDetails.isActive && !subDetails.isCancelled ? (
-                  <button
-                    onClick={() => {
-                      setShowDetailsModal(false);
-                      setShowCancelModal(true);
-                    }}
-                    type="button"
-                    className="text-red-600 hover:text-red-700 hover:underline text-xs font-semibold cursor-pointer py-1"
-                  >
-                    Cancel Subscription
-                  </button>
-                ) : (
-                  <span className="text-xs text-slate-400">Subscription is inactive or cancelled</span>
-                )}
+                <button
+                  onClick={handleDownloadInvoice}
+                  type="button"
+                  className="text-blue-600 hover:text-blue-700 text-xs font-semibold cursor-pointer py-1 flex items-center gap-1"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  Download GST Tax Invoice
+                </button>
 
                 <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                   <button
@@ -902,51 +949,7 @@ Official Gateway: https://mymob.tech
         </div>
       )}
 
-      {/* ═══════════════════════════════════════════════════════════
-         MODAL 2: CANCEL SUBSCRIPTION CONFIRMATION
-         ═══════════════════════════════════════════════════════════ */}
-      {showCancelModal && (
-        <div className="fixed inset-0 z-50 bg-[#000d21]/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden animate-scaleUp">
-            <div className="p-6 flex flex-col gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-red-50 border border-red-100 text-red-600 flex items-center justify-center">
-                <AlertTriangle className="w-6 h-6" />
-              </div>
 
-              <div>
-                <h3 className="text-base font-bold text-[#000d21]">Cancel Subscription?</h3>
-                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                  Are you sure you want to cancel your platform license? Your access to live UPI payment rails will remain active until <span className="font-semibold text-[#000d21]">{subDetails.expiryDateStr}</span>, after which automated cycle renewal will stop.
-                </p>
-              </div>
-
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs flex justify-between items-center">
-                <span className="text-slate-500">Days remaining on current plan:</span>
-                <span className="font-bold text-[#000d21]">{subDetails.daysLeft} Days</span>
-              </div>
-
-              <div className="flex items-center gap-2.5 pt-2">
-                <button
-                  onClick={() => setShowCancelModal(false)}
-                  disabled={isCancelling}
-                  type="button"
-                  className="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
-                >
-                  Keep Subscription
-                </button>
-                <button
-                  onClick={handleCancelSubscription}
-                  disabled={isCancelling}
-                  type="button"
-                  className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-semibold shadow-xs shadow-red-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-60"
-                >
-                  {isCancelling ? 'Cancelling...' : 'Confirm Cancellation'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ═══════════════════════════════════════════════════════════
          MODAL 3: DIRECT UPI RENEWAL CHECKOUT

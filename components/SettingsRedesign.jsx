@@ -29,7 +29,13 @@ import {
   CheckCircle2,
   ExternalLink,
   RotateCcw,
-  ArrowRight
+  ArrowRight,
+  Plus,
+  Trash2,
+  Edit2,
+  X,
+  CreditCard,
+  Building
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
@@ -43,6 +49,28 @@ export default function SettingsRedesign({
   const [activeCategory, setActiveCategory] = useState('banking');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // ── Multiple Bank Accounts State ──────────────────────────────
+  const [bankAccounts, setBankAccounts] = useState([]);
+  const [showAddBankModal, setShowAddBankModal] = useState(false);
+  const [showSwitchBankDropdown, setShowSwitchBankDropdown] = useState(false);
+  const [newBankForm, setNewBankForm] = useState({
+    bank_name: 'HDFC Bank Ltd.',
+    bank_account_name: '',
+    bank_account_number: '',
+    confirm_account_number: '',
+    bank_ifsc: 'HDFC0000060',
+    account_type: 'Current Account',
+    set_primary: true
+  });
+  const [bankFormError, setBankFormError] = useState('');
+  const [bankSuccessMsg, setBankSuccessMsg] = useState('');
+
+  // ── UPI / VPA Edit Mode & Saving State ─────────────────────────
+  const [isEditingVpa, setIsEditingVpa] = useState(false);
+  const [vpaInputValue, setVpaInputValue] = useState('');
+  const [isSavingVpa, setIsSavingVpa] = useState(false);
+  const [vpaSuccessMsg, setVpaSuccessMsg] = useState(false);
+
   // Form State initialized from profile
   const [formData, setFormData] = useState({
     business_name: '',
@@ -52,11 +80,6 @@ export default function SettingsRedesign({
     gstin: '',
     business_address: '',
     upi_id: '',
-    bank_name: 'ICICI Bank Ltd.',
-    bank_account_name: '',
-    bank_account_number: '',
-    bank_ifsc: 'ICIC0000004',
-    enable_bank_transfer: true,
     theme_color: '#3B82F6',
     webhook_url: '',
     zero_hold_sweep: true,
@@ -70,6 +93,55 @@ export default function SettingsRedesign({
   // Keep track of original data to determine if dirty
   const [originalData, setOriginalData] = useState({});
 
+  // Status & interactive UI states
+  const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [revealedSk, setRevealedSk] = useState(false);
+  const [maskedAccountIds, setMaskedAccountIds] = useState({});
+  const [copiedKey, setCopiedKey] = useState(null);
+
+  // Webhook ping simulation state
+  const [pingStatus, setPingStatus] = useState('idle'); // 'idle' | 'testing' | 'success' | 'error'
+  const [pingLatency, setPingLatency] = useState('142ms');
+
+  // Initialize multiple bank accounts from profile or localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined' && user?.id) {
+      const storageKey = `mymobpay_bank_accounts_${user.id}`;
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setBankAccounts(parsed);
+            return;
+          }
+        } catch (e) {
+          console.error('Error reading saved bank accounts:', e);
+        }
+      }
+    }
+
+    // Default seed accounts
+    const initialSeed = [
+      {
+        id: 'acc_primary_1',
+        bank_name: profile?.bank_name || 'ICICI Bank Ltd.',
+        bank_account_name: profile?.bank_account_name || profile?.business_name || 'MyMobPay Technologies Private Limited',
+        bank_account_number: profile?.bank_account_number || '50200049284092',
+        bank_ifsc: profile?.bank_ifsc || 'ICIC0000004',
+        account_type: 'Current Account',
+        is_primary: true,
+        verified: true,
+        created_at: new Date().toISOString()
+      }
+    ];
+    setBankAccounts(initialSeed);
+  }, [profile, user]);
+
+  // Sync working form data with profile
   useEffect(() => {
     if (profile) {
       const initial = {
@@ -80,11 +152,6 @@ export default function SettingsRedesign({
         gstin: profile.gstin || '',
         business_address: profile.business_address || '',
         upi_id: profile.upi_id || 'merchant@icici',
-        bank_name: profile.bank_name || 'ICICI Bank Ltd.',
-        bank_account_name: profile.bank_account_name || profile.business_name || 'MyMobPay Technologies Private Limited',
-        bank_account_number: profile.bank_account_number || '••••••••4092',
-        bank_ifsc: profile.bank_ifsc || 'ICIC0000004',
-        enable_bank_transfer: profile.enable_bank_transfer ?? true,
         theme_color: profile.theme_color || '#3B82F6',
         webhook_url: profile.webhook_url || 'https://api.mymobpay.tech/v2/webhooks/incoming',
         zero_hold_sweep: true,
@@ -96,21 +163,21 @@ export default function SettingsRedesign({
       };
       setFormData(initial);
       setOriginalData(initial);
+      setVpaInputValue(profile.upi_id || 'merchant@icici');
     }
   }, [profile]);
 
-  // Status & interactive UI states
-  const [saving, setSaving] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
-  const [statusMessage, setStatusMessage] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
-  const [revealedSk, setRevealedSk] = useState(false);
-  const [showMaskedAccount, setShowMaskedAccount] = useState(false);
-  const [copiedKey, setCopiedKey] = useState(null);
-
-  // Webhook ping simulation state
-  const [pingStatus, setPingStatus] = useState('idle'); // 'idle' | 'testing' | 'success' | 'error'
-  const [pingLatency, setPingLatency] = useState('142ms');
+  // Find active primary bank account
+  const primaryBankAccount = useMemo(() => {
+    return bankAccounts.find((b) => b.is_primary) || bankAccounts[0] || {
+      id: 'fallback',
+      bank_name: 'ICICI Bank Ltd.',
+      bank_account_name: 'MyMobPay Tech',
+      bank_account_number: '••••••••4092',
+      bank_ifsc: 'ICIC0000004',
+      is_primary: true
+    };
+  }, [bankAccounts]);
 
   // Check if modified
   const isDirty = useMemo(() => {
@@ -132,17 +199,6 @@ export default function SettingsRedesign({
     return 'mmp_live_sk_8920b7a44f910029381c392f';
   }, [profile]);
 
-  // Display masked bank account
-  const displayAccount = useMemo(() => {
-    const raw = formData.bank_account_number || '';
-    if (!raw) return '••••••••4092';
-    if (showMaskedAccount) return raw;
-    if (raw.length > 4) {
-      return '••••••••' + raw.slice(-4);
-    }
-    return raw;
-  }, [formData.bank_account_number, showMaskedAccount]);
-
   // Handle Copy helper
   const handleCopy = (text, keyName) => {
     if (!text) return;
@@ -156,11 +212,175 @@ export default function SettingsRedesign({
   // Revert changes
   const handleRevert = () => {
     setFormData({ ...originalData });
+    setVpaInputValue(originalData.upi_id || '');
     setErrorMessage('');
     setStatusMessage('');
   };
 
-  // Save Settings to Supabase
+  // ── Bank Account Actions: Set Primary, Add, Remove ─────────────
+  const persistBankAccounts = async (updatedAccounts, newPrimary) => {
+    setBankAccounts(updatedAccounts);
+    if (typeof window !== 'undefined' && user?.id) {
+      localStorage.setItem(`mymobpay_bank_accounts_${user.id}`, JSON.stringify(updatedAccounts));
+    }
+
+    if (newPrimary && user?.id) {
+      try {
+        const payload = {
+          bank_name: newPrimary.bank_name,
+          bank_account_name: newPrimary.bank_account_name,
+          bank_account_number: newPrimary.bank_account_number,
+          bank_ifsc: newPrimary.bank_ifsc,
+          enable_bank_transfer: true
+        };
+        await supabase
+          .from('merchants')
+          .update(payload)
+          .eq('id', user.id);
+
+        if (onProfileUpdate) {
+          onProfileUpdate({ ...profile, ...payload });
+        }
+      } catch (err) {
+        console.error('Failed to sync primary bank account to database:', err);
+      }
+    }
+  };
+
+  const handleSetPrimaryBank = (accountId) => {
+    const updated = bankAccounts.map((acc) => ({
+      ...acc,
+      is_primary: acc.id === accountId
+    }));
+    const newPrimary = updated.find((acc) => acc.id === accountId);
+    persistBankAccounts(updated, newPrimary);
+    setBankSuccessMsg(`Switched active settlement account to ${newPrimary?.bank_name}.`);
+    setShowSwitchBankDropdown(false);
+    setTimeout(() => setBankSuccessMsg(''), 3000);
+  };
+
+  const handleRemoveBankAccount = (accountId, e) => {
+    if (e) e.stopPropagation();
+    if (bankAccounts.length <= 1) {
+      alert('You must maintain at least one verified settlement bank account.');
+      return;
+    }
+    const target = bankAccounts.find((b) => b.id === accountId);
+    const confirmed = window.confirm(`Are you sure you want to remove ${target?.bank_name} (${target?.bank_account_number.slice(-4)})?`);
+    if (!confirmed) return;
+
+    const remaining = bankAccounts.filter((b) => b.id !== accountId);
+    // If we removed the primary account, designate the first remaining account as primary
+    let newPrimary = null;
+    if (target?.is_primary && remaining.length > 0) {
+      remaining[0].is_primary = true;
+      newPrimary = remaining[0];
+    } else {
+      newPrimary = remaining.find((b) => b.is_primary) || remaining[0];
+    }
+
+    persistBankAccounts(remaining, newPrimary);
+    setBankSuccessMsg(`Removed bank account successfully.`);
+    setTimeout(() => setBankSuccessMsg(''), 3000);
+  };
+
+  const handleCreateBankAccount = (e) => {
+    e.preventDefault();
+    setBankFormError('');
+
+    if (!newBankForm.bank_name.trim()) {
+      setBankFormError('Please enter or select a bank name.');
+      return;
+    }
+    if (!newBankForm.bank_account_name.trim()) {
+      setBankFormError('Beneficiary account holder name is required.');
+      return;
+    }
+    if (!newBankForm.bank_account_number.trim() || newBankForm.bank_account_number.length < 8) {
+      setBankFormError('Please enter a valid bank account number (at least 8 digits).');
+      return;
+    }
+    if (newBankForm.confirm_account_number && newBankForm.bank_account_number !== newBankForm.confirm_account_number) {
+      setBankFormError('Account numbers do not match.');
+      return;
+    }
+    if (!newBankForm.bank_ifsc.trim() || newBankForm.bank_ifsc.length !== 11) {
+      setBankFormError('Please enter a valid 11-character bank IFSC code.');
+      return;
+    }
+
+    const newAcc = {
+      id: `acc_${Date.now()}`,
+      bank_name: newBankForm.bank_name.trim(),
+      bank_account_name: newBankForm.bank_account_name.trim(),
+      bank_account_number: newBankForm.bank_account_number.trim(),
+      bank_ifsc: newBankForm.bank_ifsc.trim().toUpperCase(),
+      account_type: newBankForm.account_type || 'Current Account',
+      is_primary: newBankForm.set_primary || bankAccounts.length === 0,
+      verified: true,
+      created_at: new Date().toISOString()
+    };
+
+    let updated = [];
+    if (newAcc.is_primary) {
+      updated = bankAccounts.map((b) => ({ ...b, is_primary: false }));
+      updated.push(newAcc);
+    } else {
+      updated = [...bankAccounts, newAcc];
+    }
+
+    persistBankAccounts(updated, newAcc.is_primary ? newAcc : null);
+    setShowAddBankModal(false);
+    setBankSuccessMsg(`Added and verified ${newAcc.bank_name} successfully!`);
+    setTimeout(() => setBankSuccessMsg(''), 3500);
+
+    // Reset form
+    setNewBankForm({
+      bank_name: 'HDFC Bank Ltd.',
+      bank_account_name: '',
+      bank_account_number: '',
+      confirm_account_number: '',
+      bank_ifsc: 'HDFC0000060',
+      account_type: 'Current Account',
+      set_primary: true
+    });
+  };
+
+  // ── UPI / VPA Dedicated Save Handler ──────────────────────────
+  const handleSaveVpa = async () => {
+    if (!vpaInputValue.trim()) {
+      alert('Please enter a valid UPI VPA handle.');
+      return;
+    }
+    setIsSavingVpa(true);
+    try {
+      if (user?.id) {
+        const { error } = await supabase
+          .from('merchants')
+          .update({ upi_id: vpaInputValue.trim() })
+          .eq('id', user.id);
+
+        if (error) throw error;
+      }
+
+      setFormData((prev) => ({ ...prev, upi_id: vpaInputValue.trim() }));
+      setOriginalData((prev) => ({ ...prev, upi_id: vpaInputValue.trim() }));
+      if (onProfileUpdate) {
+        onProfileUpdate({ ...profile, upi_id: vpaInputValue.trim() });
+      }
+
+      setIsEditingVpa(false);
+      setVpaSuccessMsg(true);
+      setTimeout(() => setVpaSuccessMsg(false), 3000);
+    } catch (err) {
+      console.error('Error saving UPI VPA:', err);
+      alert('Failed to save UPI ID: ' + (err.message || 'Please try again.'));
+    } finally {
+      setIsSavingVpa(false);
+    }
+  };
+
+  // Save All Settings to Supabase
   const handleSave = async () => {
     setSaving(true);
     setErrorMessage('');
@@ -169,14 +389,14 @@ export default function SettingsRedesign({
     try {
       const updatePayload = {
         business_name: formData.business_name,
-        upi_id: formData.upi_id,
+        upi_id: vpaInputValue || formData.upi_id,
         theme_color: formData.theme_color,
         webhook_url: formData.webhook_url,
-        bank_name: formData.bank_name,
-        bank_account_name: formData.bank_account_name,
-        bank_account_number: formData.bank_account_number,
-        bank_ifsc: formData.bank_ifsc,
-        enable_bank_transfer: formData.enable_bank_transfer,
+        bank_name: primaryBankAccount.bank_name,
+        bank_account_name: primaryBankAccount.bank_account_name,
+        bank_account_number: primaryBankAccount.bank_account_number,
+        bank_ifsc: primaryBankAccount.bank_ifsc,
+        enable_bank_transfer: true,
         owner_name: formData.owner_name,
         phone_number: formData.phone_number,
         business_category: formData.business_category,
@@ -197,7 +417,7 @@ export default function SettingsRedesign({
       if (onProfileUpdate) {
         onProfileUpdate(updatedProfile);
       }
-      setOriginalData({ ...formData });
+      setOriginalData({ ...formData, upi_id: vpaInputValue || formData.upi_id });
       setSaveSuccess(true);
       setStatusMessage('Settings saved successfully!');
       setTimeout(() => {
@@ -220,7 +440,6 @@ export default function SettingsRedesign({
     }
     setPingStatus('testing');
     try {
-      // Send real test webhook via API or mock response
       const startTime = performance.now();
       const res = await fetch('/api/merchant/test-webhook', {
         method: 'POST',
@@ -239,7 +458,6 @@ export default function SettingsRedesign({
       if (res && res.ok) {
         setPingStatus('success');
       } else {
-        // Fallback simulation
         setTimeout(() => {
           setPingStatus('success');
           setTimeout(() => setPingStatus('idle'), 3500);
@@ -261,10 +479,10 @@ export default function SettingsRedesign({
     {
       id: 'banking',
       label: 'Banking & Settlement',
-      subtitle: `${formData.bank_name.split(' ')[0]} A/C ${formData.bank_account_number ? formData.bank_account_number.slice(-4) : '4092'}`,
+      subtitle: `${primaryBankAccount.bank_name.split(' ')[0]} A/C ${primaryBankAccount.bank_account_number ? primaryBankAccount.bank_account_number.slice(-4) : '4092'}`,
       icon: Landmark,
-      badge: 'Verified',
-      badgeColor: 'text-emerald-700 bg-emerald-50 border-emerald-200/60'
+      badge: `${bankAccounts.length} Connected`,
+      badgeColor: 'text-emerald-700 bg-emerald-50 border-emerald-200'
     },
     {
       id: 'business',
@@ -279,7 +497,7 @@ export default function SettingsRedesign({
       subtitle: 'Credentials & endpoints',
       icon: Key,
       badge: 'v2.1',
-      badgeColor: 'bg-slate-100 text-slate-600'
+      badgeColor: 'bg-slate-100 text-slate-600 border-slate-200'
     },
     {
       id: 'routing',
@@ -287,7 +505,7 @@ export default function SettingsRedesign({
       subtitle: 'Zero-hold sweep & fallback',
       icon: Sliders,
       badge: 'Active',
-      badgeColor: 'text-blue-700 bg-blue-50 border-blue-200/60'
+      badgeColor: 'text-blue-700 bg-blue-50 border-blue-200'
     },
     {
       id: 'security',
@@ -304,20 +522,25 @@ export default function SettingsRedesign({
   ];
 
   // Filtered categories based on search
-  const filteredCategories = categories.filter(c =>
+  const filteredCategories = categories.filter((c) =>
     c.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
     c.subtitle.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
-    <div className="w-full max-w-[1440px] mx-auto pb-16 animate-fadeIn">
+    <div className="w-full max-w-[1520px] mx-auto pb-16 animate-fadeIn">
       {/* ═══════════════════════════════════════════════════════════
-          HEADER BANNER WITH BREADCRUMB & TOP ACTIONS (Stitch Style)
+          HEADER BANNER (Clean, Solid White, Single Bottom Header)
           ═══════════════════════════════════════════════════════════ */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200/90 mb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200 mb-6 bg-white rounded-2xl p-6 shadow-xs">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
-            <span className="hover:text-slate-600 transition-colors cursor-pointer" onClick={() => setActiveTab && setActiveTab('overview')}>Console</span>
+            <span
+              className="hover:text-slate-600 transition-colors cursor-pointer"
+              onClick={() => setActiveTab && setActiveTab('overview')}
+            >
+              Console
+            </span>
             <ChevronRight className="w-3 h-3 text-slate-400" />
             <span className="text-slate-500">Configuration</span>
             <ChevronRight className="w-3 h-3 text-slate-400" />
@@ -365,11 +588,17 @@ export default function SettingsRedesign({
         </div>
       </div>
 
-      {/* Global Toast / Error messages */}
+      {/* Global Toast / Feedback */}
       {statusMessage && (
         <div className="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2 animate-fadeIn">
           <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
           <span>{statusMessage}</span>
+        </div>
+      )}
+      {bankSuccessMsg && (
+        <div className="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2 animate-fadeIn">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          <span>{bankSuccessMsg}</span>
         </div>
       )}
       {errorMessage && (
@@ -380,11 +609,11 @@ export default function SettingsRedesign({
       )}
 
       {/* ═══════════════════════════════════════════════════════════
-          MASTER-DETAIL SPLIT VIEWPORT (Stitch 260px Split Pane)
+          MASTER-DETAIL SPLIT VIEWPORT (Solid White Panels)
           ═══════════════════════════════════════════════════════════ */}
       <div className="flex flex-col lg:flex-row items-start gap-6 w-full">
-        {/* ─── LEFT MASTER NAVIGATION (260px) ─── */}
-        <aside className="w-full lg:w-[260px] shrink-0 bg-white rounded-2xl border border-slate-200/90 shadow-sm flex flex-col p-3.5 gap-4">
+        {/* ─── LEFT MASTER NAVIGATION (260px, Solid White) ─── */}
+        <aside className="w-full lg:w-[260px] shrink-0 bg-white rounded-2xl border border-slate-200 shadow-xs flex flex-col p-3.5 gap-4">
           {/* Sub-menu Search */}
           <div className="relative">
             <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" />
@@ -393,7 +622,7 @@ export default function SettingsRedesign({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search settings..."
-              className="w-full h-8 pl-8 pr-3 bg-slate-50 hover:bg-slate-100/70 focus:bg-white rounded-lg text-xs text-slate-800 placeholder:text-slate-400 border border-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium"
+              className="w-full h-8 pl-8 pr-3 bg-slate-50 hover:bg-slate-100 focus:bg-white rounded-lg text-xs text-slate-800 placeholder:text-slate-400 border border-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium"
             />
           </div>
 
@@ -414,7 +643,7 @@ export default function SettingsRedesign({
                   type="button"
                   className={`flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-xs font-medium group text-left w-full cursor-pointer ${
                     isActive
-                      ? 'bg-blue-50 text-blue-600 font-semibold shadow-xs border border-blue-100/60'
+                      ? 'bg-blue-50 text-blue-600 font-semibold shadow-xs border border-blue-100'
                       : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent'
                   }`}
                 >
@@ -445,7 +674,7 @@ export default function SettingsRedesign({
 
           {/* Micro Status Widget at Bottom of Left Master Panel */}
           <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
-            <div className="bg-slate-50 border border-slate-200/80 p-3 rounded-xl flex items-center justify-between">
+            <div className="bg-slate-50 border border-slate-200 p-3 rounded-xl flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
                 <span className="text-xs text-slate-700 font-semibold">API Live Rails</span>
@@ -462,26 +691,26 @@ export default function SettingsRedesign({
           </div>
         </aside>
 
-        {/* ─── RIGHT DETAILED CONFIGURATION PANES (Fills Remaining Space) ─── */}
+        {/* ─── RIGHT DETAILED CONFIGURATION PANES (Solid White) ─── */}
         <div className="flex-1 w-full flex flex-col gap-6">
 
           {/* ═══════════════════════════════════════════════════════════
-              PANEL 1: BANKING & SETTLEMENT
+              PANEL 1: BANKING & SETTLEMENT (Multiple Accounts + UPI Edit/Save)
               ═══════════════════════════════════════════════════════════ */}
           {activeCategory === 'banking' && (
             <div className="flex flex-col gap-6 animate-fadeIn">
-              {/* Floating Quick Actions Banner Card */}
-              <div className="bg-gradient-to-r from-[#0c2340] to-[#1e293b] rounded-2xl p-5 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-lg shadow-slate-900/10 border border-slate-800">
+              {/* Floating Quick Actions Banner Card (Solid Navy background) */}
+              <div className="bg-[#0c2340] rounded-2xl p-5 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-md border border-slate-800 relative">
                 <div className="flex items-center gap-3.5">
-                  <div className="w-11 h-11 rounded-xl bg-blue-600/30 border border-blue-400/30 flex items-center justify-center text-blue-400 shrink-0">
+                  <div className="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm">
                     <Wallet className="w-6 h-6" />
                   </div>
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <h2 className="text-sm md:text-base font-bold text-white tracking-tight">
-                        Direct Settlement Account Active: {formData.bank_name} (..{formData.bank_account_number ? formData.bank_account_number.slice(-4) : '4092'})
+                        Direct Settlement Account Active: {primaryBankAccount.bank_name} (..{primaryBankAccount.bank_account_number ? primaryBankAccount.bank_account_number.slice(-4) : '4092'})
                       </h2>
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-500/30">
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-bold">
                         Verified
                       </span>
                     </div>
@@ -491,175 +720,273 @@ export default function SettingsRedesign({
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+                <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 relative">
+                  {/* Switch Active Account Button */}
+                  {bankAccounts.length > 1 && (
+                    <div className="relative">
+                      <button
+                        onClick={() => setShowSwitchBankDropdown(!showSwitchBankDropdown)}
+                        type="button"
+                        className="h-8 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-medium text-xs transition-colors flex items-center gap-1.5 border border-slate-700 cursor-pointer shadow-xs"
+                      >
+                        <span>Switch Account</span>
+                        <ChevronRight className={`w-3 h-3 transition-transform ${showSwitchBankDropdown ? 'rotate-90' : ''}`} />
+                      </button>
+
+                      {showSwitchBankDropdown && (
+                        <div className="absolute right-0 mt-2 w-72 bg-white text-slate-800 border border-slate-200 rounded-xl shadow-xl z-50 p-2 flex flex-col gap-1 animate-scaleUp">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 py-1">
+                            Select Settlement Destination
+                          </span>
+                          {bankAccounts.map((acc) => (
+                            <button
+                              key={acc.id}
+                              onClick={() => handleSetPrimaryBank(acc.id)}
+                              type="button"
+                              className={`flex items-center justify-between p-2 rounded-lg text-xs font-semibold transition-colors text-left w-full cursor-pointer ${
+                                acc.is_primary ? 'bg-blue-50 text-blue-600' : 'hover:bg-slate-50 text-slate-700'
+                              }`}
+                            >
+                              <div className="flex flex-col">
+                                <span>{acc.bank_name}</span>
+                                <span className="text-[10px] text-slate-400 font-mono">..{acc.bank_account_number.slice(-4)}</span>
+                              </div>
+                              {acc.is_primary && (
+                                <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
+                                  Active
+                                </span>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Add Bank Button */}
                   <button
-                    onClick={() => {
-                      const newBank = prompt('Enter Bank Name:', formData.bank_name) || formData.bank_name;
-                      setFormData({ ...formData, bank_name: newBank });
-                    }}
+                    onClick={() => setShowAddBankModal(true)}
                     type="button"
-                    className="h-8 px-3 rounded-lg bg-white/10 hover:bg-white/20 text-white font-medium text-xs transition-colors flex items-center gap-1.5 border border-white/15 cursor-pointer"
+                    className="h-8 px-3.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
                   >
-                    <span>Change Bank</span>
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Bank</span>
                   </button>
                 </div>
               </div>
 
-              {/* Banking & Direct Settlement Form Card */}
-              <div className="bg-white rounded-2xl border border-slate-200/90 p-6 flex flex-col gap-6 shadow-xs">
+              {/* Multiple Bank Accounts List Card (Solid White) */}
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col gap-6 shadow-xs">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold border border-emerald-100/70">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold border border-emerald-100">
                       <Landmark className="w-5 h-5" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
                         <h3 className="text-base text-[#0c2340] font-bold tracking-tight">
-                          Settlement Bank Account Configuration
+                          Settlement Bank Accounts ({bankAccounts.length})
                         </h3>
-                        <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200/60">
-                          Penny-Drop Verified
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">
+                          Direct IMPS Active
                         </span>
                       </div>
                       <p className="text-xs text-slate-500 mt-0.5">
-                        Primary bank destination where customer UPI payments are credited instantly.
+                        Add multiple settlement accounts, designate your primary receiving destination, and remove unused accounts.
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                    <HelpCircle className="w-3.5 h-3.5 text-blue-600" />
-                    <span className="text-[11px]">NPCI Direct Settlement Circular compliance</span>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddBankModal(true)}
+                    className="h-8 px-3 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 font-semibold text-xs transition-colors flex items-center gap-1.5 shadow-2xs self-start sm:self-auto cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Another Account</span>
+                  </button>
                 </div>
 
-                {/* Form Grid */}
+                {/* Multiple Accounts Cards Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Bank Name */}
-                  <div className="flex flex-col gap-1.5 p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/80">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                      Bank Name
-                    </span>
-                    <input
-                      type="text"
-                      value={formData.bank_name}
-                      onChange={(e) => setFormData({ ...formData, bank_name: e.target.value })}
-                      placeholder="e.g. ICICI Bank Ltd."
-                      className="bg-transparent text-xs text-slate-800 font-bold focus:outline-none focus:bg-white rounded px-1.5 py-1 border border-transparent focus:border-blue-400 transition-all"
-                    />
-                    <span className="text-[10px] font-medium text-slate-400 px-1.5">Scheduled Commercial Bank</span>
-                  </div>
+                  {bankAccounts.map((acc, index) => {
+                    const isMasked = maskedAccountIds[acc.id] !== true;
+                    const displayNum = isMasked
+                      ? '••••••••' + (acc.bank_account_number ? acc.bank_account_number.slice(-4) : '4092')
+                      : acc.bank_account_number;
 
-                  {/* Beneficiary Name */}
-                  <div className="flex flex-col gap-1.5 p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/80">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                        Account Beneficiary Name
-                      </span>
-                      <span className="text-[10px] font-medium text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
-                        Matches GST
-                      </span>
-                    </div>
-                    <input
-                      type="text"
-                      value={formData.bank_account_name}
-                      onChange={(e) => setFormData({ ...formData, bank_account_name: e.target.value })}
-                      placeholder="e.g. MyMobPay Technologies Pvt Ltd"
-                      className="bg-transparent text-xs text-slate-800 font-bold focus:outline-none focus:bg-white rounded px-1.5 py-1 border border-transparent focus:border-blue-400 transition-all"
-                    />
-                  </div>
-
-                  {/* Account Number */}
-                  <div className="flex flex-col gap-1.5 p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/80">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                        Account Number
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setShowMaskedAccount(!showMaskedAccount)}
-                        className="text-[10px] text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 cursor-pointer"
+                    return (
+                      <div
+                        key={acc.id || index}
+                        className={`p-4 rounded-xl border transition-all flex flex-col justify-between gap-3 ${
+                          acc.is_primary
+                            ? 'bg-blue-50/40 border-blue-300 shadow-xs'
+                            : 'bg-white border-slate-200 hover:border-slate-300'
+                        }`}
                       >
-                        {showMaskedAccount ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-                        <span>{showMaskedAccount ? 'Mask' : 'Reveal'}</span>
-                      </button>
-                    </div>
-                    <div className="flex items-center gap-2 px-1">
-                      <Lock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      <input
-                        type={showMaskedAccount ? "text" : "password"}
-                        value={formData.bank_account_number}
-                        onChange={(e) => setFormData({ ...formData, bank_account_number: e.target.value })}
-                        placeholder="e.g. 50200012345678"
-                        className="bg-transparent font-mono text-xs text-slate-800 font-bold focus:outline-none focus:bg-white rounded px-1.5 py-1 border border-transparent focus:border-blue-400 transition-all w-full"
-                      />
-                    </div>
-                  </div>
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-9 h-9 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center font-black text-xs border border-slate-200">
+                              {acc.bank_name.slice(0, 2).toUpperCase()}
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-xs font-bold text-slate-800">{acc.bank_name}</span>
+                              <span className="text-[10px] text-slate-400 font-medium">{acc.account_type || 'Current Account'}</span>
+                            </div>
+                          </div>
 
-                  {/* IFSC Code */}
-                  <div className="flex flex-col gap-1.5 p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/80">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                      IFSC Code
-                    </span>
-                    <input
-                      type="text"
-                      value={formData.bank_ifsc}
-                      onChange={(e) => setFormData({ ...formData, bank_ifsc: e.target.value.toUpperCase() })}
-                      placeholder="e.g. ICIC0000004"
-                      className="bg-transparent font-mono text-xs uppercase text-slate-800 font-bold focus:outline-none focus:bg-white rounded px-1.5 py-1 border border-transparent focus:border-blue-400 transition-all"
-                    />
-                    <span className="text-[10px] font-medium text-slate-400 px-1.5">Auto-validated RTGS/NEFT Node</span>
-                  </div>
+                          <div className="flex items-center gap-1">
+                            {acc.is_primary ? (
+                              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                <CheckCircle className="w-3 h-3 text-emerald-600" />
+                                Primary
+                              </span>
+                            ) : (
+                              <button
+                                onClick={() => handleSetPrimaryBank(acc.id)}
+                                type="button"
+                                className="text-[11px] font-bold text-blue-600 hover:text-blue-700 bg-white hover:bg-blue-50 border border-slate-200 hover:border-blue-200 px-2.5 py-0.5 rounded-full transition-all cursor-pointer"
+                              >
+                                Set Active
+                              </button>
+                            )}
+
+                            {/* Remove Option */}
+                            {bankAccounts.length > 1 && (
+                              <button
+                                onClick={(e) => handleRemoveBankAccount(acc.id, e)}
+                                type="button"
+                                title="Remove bank account"
+                                className="p-1 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Account Details Row */}
+                        <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-200 flex flex-col gap-1.5 text-xs">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Beneficiary</span>
+                            <span className="font-semibold text-slate-800 truncate max-w-[170px]">{acc.bank_account_name}</span>
+                          </div>
+
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">A/C Number</span>
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-mono font-bold text-slate-800">{displayNum}</span>
+                              <button
+                                type="button"
+                                onClick={() => setMaskedAccountIds((prev) => ({ ...prev, [acc.id]: !prev[acc.id] }))}
+                                className="text-slate-400 hover:text-slate-600 cursor-pointer"
+                              >
+                                {isMasked ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">IFSC</span>
+                            <span className="font-mono font-bold text-slate-700">{acc.bank_ifsc}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
 
-                {/* Direct UPI / VPA Smart Routing Section */}
-                <div className="pt-4 border-t border-slate-100 flex flex-col gap-3">
+                {/* ─── DIRECT UPI / VPA SECTION (Edit/Save Button, No Copy) ─── */}
+                <div className="pt-5 border-t border-slate-100 flex flex-col gap-3">
                   <div className="flex items-center justify-between">
                     <div>
                       <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                        Direct UPI VPA Smart Routing Address
+                        Direct UPI / VPA Smart Routing Address
                       </span>
                       <p className="text-[11px] text-slate-500 mt-0.5">
                         Customer deposits will land straight in this UPI handle without third-party wallet detention.
                       </p>
                     </div>
-                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60">
+                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                       Zero Escrow
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2 bg-slate-50/70 rounded-xl border border-slate-200/90 p-2 pl-3">
+                  {/* UPI VPA Input with Edit & Save button (NO COPY OPTION) */}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-slate-50 rounded-xl border border-slate-200 p-2 pl-3">
                     <Smartphone className="w-4 h-4 text-blue-600 shrink-0" />
                     <input
                       type="text"
-                      value={formData.upi_id}
-                      onChange={(e) => setFormData({ ...formData, upi_id: e.target.value })}
+                      value={vpaInputValue}
+                      onChange={(e) => {
+                        setVpaInputValue(e.target.value);
+                        if (!isEditingVpa) setIsEditingVpa(true);
+                      }}
                       placeholder="merchant@icici"
                       className="w-full bg-transparent font-mono text-xs text-slate-800 font-bold focus:outline-none"
                     />
-                    <button
-                      type="button"
-                      onClick={() => handleCopy(formData.upi_id, 'vpa')}
-                      className="h-8 px-3 rounded-lg bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold transition-colors flex items-center gap-1.5 border border-slate-200 shrink-0 cursor-pointer shadow-2xs"
-                    >
-                      {copiedKey === 'vpa' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                      <span>{copiedKey === 'vpa' ? 'Copied' : 'Copy'}</span>
-                    </button>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      {isEditingVpa ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setVpaInputValue(formData.upi_id || '');
+                              setIsEditingVpa(false);
+                            }}
+                            className="h-8 px-2.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-medium transition-colors cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleSaveVpa}
+                            disabled={isSavingVpa}
+                            className="h-8 px-3.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-all flex items-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-50"
+                          >
+                            {isSavingVpa ? (
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <Check className="w-3.5 h-3.5" />
+                            )}
+                            <span>{isSavingVpa ? 'Saving...' : 'Save UPI'}</span>
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setIsEditingVpa(true)}
+                          className="h-8 px-3.5 rounded-lg bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold transition-colors flex items-center gap-1.5 border border-slate-200 shadow-2xs cursor-pointer"
+                        >
+                          <Edit2 className="w-3.5 h-3.5 text-blue-600" />
+                          <span>Edit UPI</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200/60 rounded-lg p-2.5 flex items-center gap-2">
+
+                  {vpaSuccessMsg && (
+                    <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-1.5 animate-fadeIn">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <span>UPI VPA address updated successfully across all checkout rails!</span>
+                    </div>
+                  )}
+
+                  <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2.5 flex items-center gap-2">
                     <AlertCircle className="w-4 h-4 shrink-0 text-amber-600" />
                     <span>Updating this VPA will dynamically refresh all active payment links and instant QR codes across customer sessions.</span>
                   </p>
                 </div>
 
-                {/* NPCI Routing Rules Toggles with Inline Tooltips (from Stitch) */}
+                {/* NPCI Routing Rules Toggles with Inline Tooltips */}
                 <div className="flex flex-col gap-3 pt-3 border-t border-slate-100">
                   <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                     Settlement Dispatch Rules
                   </span>
 
                   {/* Toggle 1: Zero-Hold Real-Time Sweep */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-xl bg-slate-50 border border-slate-200/70 gap-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-xl bg-slate-50 border border-slate-200 gap-3">
                     <div className="flex items-center gap-3">
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input
@@ -685,13 +1012,13 @@ export default function SettingsRedesign({
                         </span>
                       </div>
                     </div>
-                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded-md self-start sm:self-auto">
+                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md self-start sm:self-auto">
                       Instant Active
                     </span>
                   </div>
 
                   {/* Toggle 2: NPCI BharatQR Intent Fallback */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-xl bg-slate-50 border border-slate-200/70 gap-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-xl bg-slate-50 border border-slate-200 gap-3">
                     <div className="flex items-center gap-3">
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input
@@ -717,7 +1044,7 @@ export default function SettingsRedesign({
                         </span>
                       </div>
                     </div>
-                    <span className="text-[10px] font-bold text-blue-700 bg-blue-100/70 px-2 py-0.5 rounded-md self-start sm:self-auto">
+                    <span className="text-[10px] font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-md self-start sm:self-auto">
                       Recommended
                     </span>
                   </div>
@@ -727,14 +1054,14 @@ export default function SettingsRedesign({
           )}
 
           {/* ═══════════════════════════════════════════════════════════
-              PANEL 2: BUSINESS & STORE IDENTITY
+              PANEL 2: BUSINESS & STORE IDENTITY (Solid White)
               ═══════════════════════════════════════════════════════════ */}
           {activeCategory === 'business' && (
             <div className="flex flex-col gap-6 animate-fadeIn">
-              <div className="bg-white rounded-2xl border border-slate-200/90 p-6 flex flex-col gap-6 shadow-xs">
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col gap-6 shadow-xs">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold border border-blue-100/70">
+                    <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold border border-blue-100">
                       <Building2 className="w-5 h-5" />
                     </div>
                     <div>
@@ -742,7 +1069,7 @@ export default function SettingsRedesign({
                         <h3 className="text-base text-[#0c2340] font-bold tracking-tight">
                           Business Profile & Storefront Branding
                         </h3>
-                        <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-bold border border-blue-200/60">
+                        <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-bold border border-blue-200">
                           Live Storefront
                         </span>
                       </div>
@@ -755,7 +1082,7 @@ export default function SettingsRedesign({
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Business Name */}
-                  <div className="flex flex-col gap-1.5 p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/80">
+                  <div className="flex flex-col gap-1.5 p-3.5 rounded-xl bg-slate-50 border border-slate-200">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                       Business Legal Name
                     </label>
@@ -769,7 +1096,7 @@ export default function SettingsRedesign({
                   </div>
 
                   {/* Owner Name */}
-                  <div className="flex flex-col gap-1.5 p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/80">
+                  <div className="flex flex-col gap-1.5 p-3.5 rounded-xl bg-slate-50 border border-slate-200">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                       Authorized Representative / Owner
                     </label>
@@ -783,7 +1110,7 @@ export default function SettingsRedesign({
                   </div>
 
                   {/* Phone Number */}
-                  <div className="flex flex-col gap-1.5 p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/80">
+                  <div className="flex flex-col gap-1.5 p-3.5 rounded-xl bg-slate-50 border border-slate-200">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                       Primary Contact Phone
                     </label>
@@ -797,7 +1124,7 @@ export default function SettingsRedesign({
                   </div>
 
                   {/* Business Category */}
-                  <div className="flex flex-col gap-1.5 p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/80">
+                  <div className="flex flex-col gap-1.5 p-3.5 rounded-xl bg-slate-50 border border-slate-200">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                       Merchant Category (MCC)
                     </label>
@@ -815,7 +1142,7 @@ export default function SettingsRedesign({
                   </div>
 
                   {/* GSTIN */}
-                  <div className="flex flex-col gap-1.5 p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/80">
+                  <div className="flex flex-col gap-1.5 p-3.5 rounded-xl bg-slate-50 border border-slate-200">
                     <div className="flex items-center justify-between">
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                         GSTIN Number
@@ -832,7 +1159,7 @@ export default function SettingsRedesign({
                   </div>
 
                   {/* Registered Address */}
-                  <div className="flex flex-col gap-1.5 p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/80">
+                  <div className="flex flex-col gap-1.5 p-3.5 rounded-xl bg-slate-50 border border-slate-200">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                       Business Operating Address
                     </label>
@@ -864,7 +1191,6 @@ export default function SettingsRedesign({
                   </div>
 
                   <div className="flex flex-wrap items-center gap-3">
-                    {/* Native Picker */}
                     <div className="flex items-center gap-2 p-1.5 bg-slate-50 rounded-xl border border-slate-200">
                       <input
                         type="color"
@@ -880,7 +1206,6 @@ export default function SettingsRedesign({
                       />
                     </div>
 
-                    {/* Presets */}
                     <div className="flex items-center gap-2">
                       {[
                         { name: 'Razor Blue', color: '#2563EB' },
@@ -911,14 +1236,14 @@ export default function SettingsRedesign({
           )}
 
           {/* ═══════════════════════════════════════════════════════════
-              PANEL 3: API KEYS & WEBHOOKS (from Stitch Variant 2)
+              PANEL 3: API KEYS & WEBHOOKS (Solid White)
               ═══════════════════════════════════════════════════════════ */}
           {activeCategory === 'api' && (
             <div className="flex flex-col gap-6 animate-fadeIn">
-              <div className="bg-white rounded-2xl border border-slate-200/90 p-6 flex flex-col gap-6 shadow-xs">
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col gap-6 shadow-xs">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold border border-blue-100/70">
+                    <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold border border-blue-100">
                       <Key className="w-5 h-5" />
                     </div>
                     <div>
@@ -939,17 +1264,17 @@ export default function SettingsRedesign({
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Live Publishable Key */}
-                  <div className="flex flex-col gap-2 p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/80">
+                  <div className="flex flex-col gap-2 p-3.5 rounded-xl bg-slate-50 border border-slate-200">
                     <div className="flex items-center justify-between">
                       <label className="text-xs text-slate-700 font-bold uppercase tracking-wider flex items-center gap-1.5">
                         <Globe className="w-3.5 h-3.5 text-blue-600" />
                         Live Publishable Key
                       </label>
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200/60">
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200">
                         Public Safe
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 bg-white rounded-xl border border-slate-200 p-1 pl-3 shadow-inner">
+                    <div className="flex items-center gap-2 bg-white rounded-xl border border-slate-200 p-1 pl-3 shadow-2xs">
                       <input
                         type="text"
                         readOnly
@@ -968,17 +1293,17 @@ export default function SettingsRedesign({
                   </div>
 
                   {/* Live Secret Key */}
-                  <div className="flex flex-col gap-2 p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/80">
+                  <div className="flex flex-col gap-2 p-3.5 rounded-xl bg-slate-50 border border-slate-200">
                     <div className="flex items-center justify-between">
                       <label className="text-xs text-slate-700 font-bold uppercase tracking-wider flex items-center gap-1.5">
                         <Lock className="w-3.5 h-3.5 text-amber-500" />
                         Live Secret Key
                       </label>
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-red-50 text-red-700 font-semibold border border-red-200/60">
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-red-50 text-red-700 font-semibold border border-red-200">
                         Server-Side Only
                       </span>
                     </div>
-                    <div className="flex items-center gap-1.5 bg-white rounded-xl border border-slate-200 p-1 pl-3 shadow-inner">
+                    <div className="flex items-center gap-1.5 bg-white rounded-xl border border-slate-200 p-1 pl-3 shadow-2xs">
                       <input
                         type={revealedSk ? 'text' : 'password'}
                         readOnly
@@ -1004,7 +1329,7 @@ export default function SettingsRedesign({
                   </div>
                 </div>
 
-                {/* Webhook Endpoint (Stitch Variant 2) */}
+                {/* Webhook Endpoint */}
                 <div className="flex flex-col gap-2 pt-2 border-t border-slate-100">
                   <div className="flex items-center justify-between">
                     <label className="text-xs text-slate-700 font-bold uppercase tracking-wider flex items-center gap-1.5">
@@ -1023,13 +1348,13 @@ export default function SettingsRedesign({
                       value={formData.webhook_url}
                       onChange={(e) => setFormData({ ...formData, webhook_url: e.target.value })}
                       placeholder="https://api.yourdomain.com/v2/webhooks"
-                      className="flex-1 h-10 px-3.5 bg-slate-50/70 hover:bg-white focus:bg-white rounded-xl font-mono text-xs text-slate-800 font-medium border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all shadow-xs"
+                      className="flex-1 h-10 px-3.5 bg-slate-50 hover:bg-white focus:bg-white rounded-xl font-mono text-xs text-slate-800 font-medium border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all shadow-2xs"
                     />
                     <button
                       type="button"
                       onClick={handleTestPing}
                       disabled={pingStatus === 'testing'}
-                      className={`h-10 px-4 rounded-xl font-semibold text-xs transition-colors flex items-center gap-1.5 whitespace-nowrap shadow-xs border cursor-pointer ${
+                      className={`h-10 px-4 rounded-xl font-semibold text-xs transition-colors flex items-center gap-1.5 whitespace-nowrap shadow-2xs border cursor-pointer ${
                         pingStatus === 'success'
                           ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                           : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
@@ -1062,14 +1387,14 @@ export default function SettingsRedesign({
           )}
 
           {/* ═══════════════════════════════════════════════════════════
-              PANEL 4: ROUTING & DISPATCH RULES
+              PANEL 4: ROUTING & DISPATCH RULES (Solid White)
               ═══════════════════════════════════════════════════════════ */}
           {activeCategory === 'routing' && (
             <div className="flex flex-col gap-6 animate-fadeIn">
-              <div className="bg-white rounded-2xl border border-slate-200/90 p-6 flex flex-col gap-6 shadow-xs">
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col gap-6 shadow-xs">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold border border-purple-100/70">
+                    <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold border border-purple-100">
                       <Sliders className="w-5 h-5" />
                     </div>
                     <div>
@@ -1077,7 +1402,7 @@ export default function SettingsRedesign({
                         <h3 className="text-base text-[#0c2340] font-bold tracking-tight">
                           Payment Collection Rules & Session Expiry
                         </h3>
-                        <span className="px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 text-[10px] font-bold border border-purple-200/60">
+                        <span className="px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 text-[10px] font-bold border border-purple-200">
                           Gateway Policies
                         </span>
                       </div>
@@ -1089,8 +1414,7 @@ export default function SettingsRedesign({
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Min Amount */}
-                  <div className="flex flex-col gap-1.5 p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/80">
+                  <div className="flex flex-col gap-1.5 p-3.5 rounded-xl bg-slate-50 border border-slate-200">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                       Minimum Ticket Amount (₹)
                     </span>
@@ -1102,8 +1426,7 @@ export default function SettingsRedesign({
                     />
                   </div>
 
-                  {/* Max Amount */}
-                  <div className="flex flex-col gap-1.5 p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/80">
+                  <div className="flex flex-col gap-1.5 p-3.5 rounded-xl bg-slate-50 border border-slate-200">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                       Maximum Single Ticket Amount (₹)
                     </span>
@@ -1116,7 +1439,6 @@ export default function SettingsRedesign({
                   </div>
                 </div>
 
-                {/* Expiry Selector */}
                 <div className="pt-2 border-t border-slate-100 flex flex-col gap-3">
                   <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                     Dynamic QR & Intent Session Expiry Window
@@ -1143,14 +1465,14 @@ export default function SettingsRedesign({
           )}
 
           {/* ═══════════════════════════════════════════════════════════
-              PANEL 5: SECURITY & AUDIT LOGS
+              PANEL 5: SECURITY & AUDIT LOGS (Solid White)
               ═══════════════════════════════════════════════════════════ */}
           {activeCategory === 'security' && (
             <div className="flex flex-col gap-6 animate-fadeIn">
-              <div className="bg-white rounded-2xl border border-slate-200/90 p-6 flex flex-col gap-6 shadow-xs">
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col gap-6 shadow-xs">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold border border-amber-100/70">
+                    <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold border border-amber-100">
                       <Shield className="w-5 h-5" />
                     </div>
                     <div>
@@ -1158,7 +1480,7 @@ export default function SettingsRedesign({
                         <h3 className="text-base text-[#0c2340] font-bold tracking-tight">
                           Merchant Security & Session Controls
                         </h3>
-                        <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[10px] font-bold border border-amber-200/60">
+                        <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[10px] font-bold border border-amber-200">
                           Active Protection
                         </span>
                       </div>
@@ -1170,7 +1492,7 @@ export default function SettingsRedesign({
                 </div>
 
                 <div className="flex flex-col gap-3">
-                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
                     <div>
                       <span className="text-xs font-bold text-slate-800 block">Current Authenticated Session</span>
                       <span className="text-[11px] text-slate-500">Chrome on Windows • Logged in as {user?.email || 'Authorized Merchant'}</span>
@@ -1180,7 +1502,7 @@ export default function SettingsRedesign({
                     </span>
                   </div>
 
-                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
                     <div>
                       <span className="text-xs font-bold text-slate-800 block">Encrypted Secret Key Salt</span>
                       <span className="text-[11px] text-slate-500">PBKDF2 SHA-256 multi-round key derivation active</span>
@@ -1195,14 +1517,14 @@ export default function SettingsRedesign({
           )}
 
           {/* ═══════════════════════════════════════════════════════════
-              PANEL 6: INVOICES & BILLING DEFAULTS
+              PANEL 6: INVOICES & BILLING DEFAULTS (Solid White)
               ═══════════════════════════════════════════════════════════ */}
           {activeCategory === 'invoicing' && (
             <div className="flex flex-col gap-6 animate-fadeIn">
-              <div className="bg-white rounded-2xl border border-slate-200/90 p-6 flex flex-col gap-6 shadow-xs">
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col gap-6 shadow-xs">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold border border-indigo-100/70">
+                    <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold border border-indigo-100">
                       <FileText className="w-5 h-5" />
                     </div>
                     <div>
@@ -1210,7 +1532,7 @@ export default function SettingsRedesign({
                         <h3 className="text-base text-[#0c2340] font-bold tracking-tight">
                           GST Compliant Invoicing & Advice
                         </h3>
-                        <span className="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-bold border border-indigo-200/60">
+                        <span className="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-bold border border-indigo-200">
                           B2B Ready
                         </span>
                       </div>
@@ -1242,9 +1564,9 @@ export default function SettingsRedesign({
           )}
 
           {/* ═══════════════════════════════════════════════════════════
-              BOTTOM ACTION BAR (Stitch Variant 2)
+              BOTTOM ACTION BAR (Solid White)
               ═══════════════════════════════════════════════════════════ */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-white border border-slate-200 shadow-xs">
             <span className="text-xs text-slate-400">
               All changes take effect immediately on live transaction rails.
             </span>
@@ -1276,6 +1598,165 @@ export default function SettingsRedesign({
 
         </div>
       </div>
+
+      {/* ═══════════════════════════════════════════════════════════
+          MODAL: ADD NEW BANK ACCOUNT (Solid White, No Blur)
+          ═══════════════════════════════════════════════════════════ */}
+      {showAddBankModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 animate-fadeIn">
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden animate-scaleUp">
+            {/* Modal Header */}
+            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-white">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold border border-blue-100">
+                  <Landmark className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-[#0c2340]">Add Bank Account</h3>
+                  <p className="text-xs text-slate-500">Configure new direct IMPS/UPI deposit destination</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAddBankModal(false)}
+                type="button"
+                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Form Body */}
+            <form onSubmit={handleCreateBankAccount} className="p-6 flex flex-col gap-4 bg-white">
+              {bankFormError && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs font-semibold rounded-xl flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                  <span>{bankFormError}</span>
+                </div>
+              )}
+
+              {/* Bank Name */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-slate-700">Bank Name</label>
+                <select
+                  value={newBankForm.bank_name}
+                  onChange={(e) => setNewBankForm({ ...newBankForm, bank_name: e.target.value })}
+                  className="h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                >
+                  <option value="HDFC Bank Ltd.">HDFC Bank Ltd.</option>
+                  <option value="ICICI Bank Ltd.">ICICI Bank Ltd.</option>
+                  <option value="State Bank of India">State Bank of India (SBI)</option>
+                  <option value="Axis Bank Ltd.">Axis Bank Ltd.</option>
+                  <option value="Kotak Mahindra Bank">Kotak Mahindra Bank</option>
+                  <option value="Punjab National Bank">Punjab National Bank</option>
+                  <option value="Bank of Baroda">Bank of Baroda</option>
+                  <option value="IDFC FIRST Bank">IDFC FIRST Bank</option>
+                  <option value="Other Commercial Bank">Other Commercial Bank</option>
+                </select>
+              </div>
+
+              {/* Account Beneficiary Name */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-slate-700">Account Beneficiary Name (Matches GST / Legal Name)</label>
+                <input
+                  type="text"
+                  required
+                  value={newBankForm.bank_account_name}
+                  onChange={(e) => setNewBankForm({ ...newBankForm, bank_account_name: e.target.value })}
+                  placeholder="e.g. MyMobPay Technologies Pvt Ltd"
+                  className="h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                />
+              </div>
+
+              {/* Account Number & Confirm */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-slate-700">Account Number</label>
+                  <input
+                    type="password"
+                    required
+                    value={newBankForm.bank_account_number}
+                    onChange={(e) => setNewBankForm({ ...newBankForm, bank_account_number: e.target.value })}
+                    placeholder="Enter account number"
+                    className="h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-slate-700">Confirm Account Number</label>
+                  <input
+                    type="text"
+                    required
+                    value={newBankForm.confirm_account_number}
+                    onChange={(e) => setNewBankForm({ ...newBankForm, confirm_account_number: e.target.value })}
+                    placeholder="Re-enter to verify"
+                    className="h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* IFSC & Account Type */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-slate-700">IFSC Code</label>
+                  <input
+                    type="text"
+                    required
+                    value={newBankForm.bank_ifsc}
+                    onChange={(e) => setNewBankForm({ ...newBankForm, bank_ifsc: e.target.value.toUpperCase() })}
+                    placeholder="e.g. HDFC0000060"
+                    className="h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold uppercase text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-slate-700">Account Type</label>
+                  <select
+                    value={newBankForm.account_type}
+                    onChange={(e) => setNewBankForm({ ...newBankForm, account_type: e.target.value })}
+                    className="h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                  >
+                    <option value="Current Account">Current Account</option>
+                    <option value="Savings Account">Savings Account</option>
+                    <option value="Cash Credit Account">Cash Credit (CC)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Set Primary Checkbox */}
+              <label className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={newBankForm.set_primary}
+                  onChange={(e) => setNewBankForm({ ...newBankForm, set_primary: e.target.checked })}
+                  className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
+                />
+                <div className="flex flex-col text-xs">
+                  <span className="font-bold text-slate-800">Set as Primary Settlement Account</span>
+                  <span className="text-[11px] text-slate-500">Incoming UPI payments will be automatically credited to this account.</span>
+                </div>
+              </label>
+
+              {/* Modal Actions */}
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowAddBankModal(false)}
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-md shadow-blue-500/20 flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Verify & Add Bank</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

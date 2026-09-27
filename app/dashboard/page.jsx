@@ -9299,7 +9299,7 @@ echo "Order Created: " . $data['orderId'];
                         {/* ═══════════════════════════════════════════════════════════
            HEADER (Unified Single Top Bar with Notifications Flyout)
            ═══════════════════════════════════════════════════════════ */}
-        <header className="fixed top-0 left-0 md:left-64 right-0 bg-white/95 backdrop-blur-md border-b border-slate-200/80 z-40 flex items-center justify-between px-4 sm:px-6 lg:px-8 shadow-[0_1px_3px_0_rgba(0,0,0,0.02)] h-20">
+        <header className="fixed top-0 left-0 md:left-64 right-0 bg-white border-b border-slate-200 z-40 flex items-center justify-between px-4 sm:px-6 lg:px-8 shadow-[0_1px_3px_0_rgba(0,0,0,0.02)] h-20">
           <div className="flex items-center gap-3 sm:gap-6">
             {/* Mobile Hamburger Toggle */}
             <button
@@ -10127,7 +10127,7 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-          <div className={`${(activeTab === 'overview' || activeTab === 'payment-links' || activeTab === 'transactions' || activeTab === 'subscription') ? 'max-w-[1520px]' : 'max-w-5xl'} mx-auto space-y-6`}>
+          <div className={`${(activeTab === 'overview' || activeTab === 'payment-links' || activeTab === 'transactions' || activeTab === 'subscription' || activeTab === 'settings') ? 'max-w-[1520px]' : 'max-w-5xl'} mx-auto space-y-6`}>
             {/* Activation Success Celebration Banner */}
             {activationDismissed && (
               <div className="bg-gradient-to-r from-emerald-500/10 via-emerald-50 to-teal-50 border border-emerald-200/90 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm animate-fade-in">
@@ -10165,7 +10165,7 @@ echo "Order Created: " . $data['orderId'];
 
 
 
-            {activeTab !== 'overview' && activeTab !== 'payment-links' && activeTab !== 'transactions' && activeTab !== 'subscription' && (
+            {activeTab !== 'overview' && activeTab !== 'payment-links' && activeTab !== 'transactions' && activeTab !== 'subscription' && activeTab !== 'settings' && (
             <div className="mb-6 pt-2 md:pt-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
 
 
