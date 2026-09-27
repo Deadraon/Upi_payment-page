@@ -163,6 +163,7 @@ export default function DashboardPage() {
   const [copied, setCopied] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+  const [settingsCategory, setSettingsCategory] = useState('banking');
 
 
 
@@ -9212,26 +9213,16 @@ echo "Order Created: " . $data['orderId'];
               Playground
             </button>
 
-            <button
-              onClick={() => setActiveTab('api')}
-              type="button"
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all text-left font-medium ${
-                activeTab === 'api'
-                  ? 'bg-blue-50 text-blue-600 font-bold border border-blue-100 shadow-2xs'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-              }`}
-            >
-              <Key className={`w-4 h-4 shrink-0 ${activeTab === 'api' ? 'text-blue-600' : 'text-slate-400'}`} />
-              API Keys
-            </button>
-
             {/* Category: Settings */}
             <p className="px-3 pt-3 pb-1 text-[10px] font-black text-slate-400 uppercase tracking-wider">
               Settings
             </p>
 
             <button
-              onClick={() => setActiveTab('settings')}
+              onClick={() => {
+                setSettingsCategory('banking');
+                setActiveTab('settings');
+              }}
               type="button"
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all text-left font-medium ${
                 activeTab === 'settings'
@@ -9560,12 +9551,13 @@ echo "Order Created: " . $data['orderId'];
                   <button
                     onClick={() => {
                       setIsProfileDropdownOpen(false);
-                      setActiveTab('api');
+                      setSettingsCategory('api');
+                      setActiveTab('settings');
                     }}
                     className="w-full text-left px-4 py-2.5 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 font-medium transition-colors"
                   >
                     <Key className="w-4 h-4 text-slate-400" />
-                    API Keys &amp; Credentials
+                    API Keys &amp; Webhooks
                   </button>
                   <button
                     onClick={() => {
@@ -9616,7 +9608,6 @@ echo "Order Created: " . $data['orderId'];
                     { id: 'connections', label: 'Connections', icon: LinkIcon },
                     { id: 'developer', label: 'Developer API', icon: BookOpen },
                     { id: 'playground', label: 'Playground', icon: Sparkles },
-                    { id: 'api', label: 'API Keys', icon: Key },
                     { id: 'settings', label: 'Settings', icon: Briefcase },
                     { id: 'setup-guide', label: 'Setup Guide', icon: BookOpen },
                     { id: 'subscription', label: 'Subscription', icon: Crown }
@@ -9895,10 +9886,6 @@ echo "Order Created: " . $data['orderId'];
 
 
                 { id: 'playground', label: 'Playground', icon: Sparkles },
-
-
-
-                { id: 'api', label: 'API Keys', icon: Key },
 
 
 
@@ -17232,158 +17219,13 @@ async function checkOrderStatus(orderId) {
 
 
             {activeTab === 'api' && (
-              <div className="space-y-6 animate-fadeIn">
-                {/* 1. Main credentials container */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* LIVE CARD */}
-                  <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
-                    <div>
-                      <h3 className="text-xs font-black uppercase tracking-wider mb-1 text-blue-600 flex items-center gap-1.5 select-none">
-                        <Key className="w-3.5 h-3.5" /> Live Private API Key
-                      </h3>
-                      <p className="text-[11px] text-slate-500 font-semibold leading-relaxed">
-                        Authorizes production checkout creations and matches live bank credits. Keep it strictly private.
-                      </p>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <code className="flex-1 bg-slate-50 border border-slate-200 px-3.5 py-2.5 rounded-xl text-xs font-mono break-all text-slate-700 font-bold select-all">
-                          {showApiKey ? `live_${profile?.api_key || 'Loading...'}` : `live_••••••••-••••-••••-••••-••••••••${profile?.api_key?.slice(-4) || '••••'}`}
-                        </code>
-                        <button
-                          onClick={() => setShowApiKey(!showApiKey)}
-                          className="p-2.5 bg-slate-50 hover:bg-slate-100 text-slate-500 rounded-xl transition-all border border-slate-200 cursor-pointer"
-                          title={showApiKey ? "Hide Key" : "Reveal Key"}
-                        >
-                          {showApiKey ? (
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
-                            </svg>
-                          ) : (
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                          )}
-                        </button>
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(`live_${profile?.api_key}`);
-                            setCopied(true);
-                            setTimeout(() => setCopied(false), 2000);
-                          }}
-                          className="p-2.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl transition-all border border-blue-200 cursor-pointer"
-                          title="Copy API Key"
-                        >
-                          {copied ? <CheckCircle className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-                        </button>
-                      </div>
-
-                      <div className="flex items-center justify-between text-[10px] text-slate-400 font-bold uppercase select-none">
-                        <span>Last Used: {profile?.sandbox_mode === false ? 'Active 2 min ago' : 'No recent activity'}</span>
-                        <button
-                          onClick={regenerateApiKey}
-                          className="text-[10px] font-black text-rose-600 hover:text-rose-800 hover:underline tracking-wider uppercase transition-all cursor-pointer"
-                        >
-                          Rotate Key ↺
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* SANDBOX/TEST CARD */}
-                  <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
-                    <div>
-                      <h3 className="text-xs font-black uppercase tracking-wider mb-1 text-amber-500 flex items-center gap-1.5 select-none">
-                        <Key className="w-3.5 h-3.5" /> Sandbox Private API Key
-                      </h3>
-                      <p className="text-[11px] text-slate-500 font-semibold leading-relaxed">
-                        Authorizes simulated checkout creations in our playground environment. Isolated from real bank logs.
-                      </p>
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <code className="flex-1 bg-slate-50 border border-slate-200 px-3.5 py-2.5 rounded-xl text-xs font-mono break-all text-slate-700 font-bold select-all">
-                          {showApiKey ? `test_${profile?.api_key || 'Loading...'}` : `test_••••••••-••••-••••-••••-••••••••${profile?.api_key?.slice(-4) || '••••'}`}
-                        </code>
-                        <button
-                          onClick={() => setShowApiKey(!showApiKey)}
-                          className="p-2.5 bg-slate-50 hover:bg-slate-100 text-slate-500 rounded-xl transition-all border border-slate-200 cursor-pointer"
-                          title={showApiKey ? "Hide Key" : "Reveal Key"}
-                        >
-                          {showApiKey ? (
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
-                            </svg>
-                          ) : (
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                          )}
-                        </button>
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(`test_${profile?.api_key}`);
-                            setCopied(true);
-                            setTimeout(() => setCopied(false), 2000);
-                          }}
-                          className="p-2.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl transition-all border border-blue-200 cursor-pointer"
-                          title="Copy API Key"
-                        >
-                          {copied ? <CheckCircle className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-                        </button>
-                      </div>
-
-                      <div className="flex items-center justify-between text-[10px] text-slate-400 font-bold uppercase select-none">
-                        <span>Last Used: {profile?.sandbox_mode !== false ? 'Active now (Simulator)' : 'Yesterday'}</span>
-                        <button
-                          onClick={regenerateApiKey}
-                          className="text-[10px] font-black text-rose-600 hover:text-rose-800 hover:underline tracking-wider uppercase transition-all cursor-pointer"
-                        >
-                          Rotate Key ↺
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 2. Key usage stats card */}
-                <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 select-none">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-500">API Gateway Performance & Usage (Last 24h)</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Total API Calls</p>
-                      <p className="text-xl font-black text-slate-800">2,481</p>
-                      <p className="text-[8px] text-emerald-600 font-bold mt-0.5">↑ 12.4% vs yesterday</p>
-                    </div>
-                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Active Integrations</p>
-                      <p className="text-xl font-black text-slate-800">3</p>
-                      <p className="text-[8px] text-slate-400 font-bold mt-0.5">Web app, Android SDK, Cron</p>
-                    </div>
-                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Avg Response Latency</p>
-                      <p className="text-xl font-black text-slate-800">42ms</p>
-                      <p className="text-[8px] text-emerald-600 font-bold mt-0.5">✓ 99th percentile: 85ms</p>
-                    </div>
-                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">API Error Rate</p>
-                      <p className="text-xl font-black text-emerald-600">0.00%</p>
-                      <p className="text-[8px] text-emerald-600 font-bold mt-0.5">✓ Zero timeouts detected</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 3. Security recommendation banner */}
-                <div className="p-4 bg-blue-50 border border-blue-100 rounded-2xl text-[11px] text-blue-800 font-semibold space-y-1 select-none leading-normal">
-                  <p className="font-bold flex items-center gap-1.5 uppercase text-[9.5px] tracking-wider text-blue-700">🛡️ Platform Credential Compliance Checklist</p>
-                  <p>• Avoid saving raw API keys directly to repository configuration files. Always supply secrets dynamically through verified build environment variables.</p>
-                  <p>• Rotating your credentials immediately renders the previous API key invalid. Pre-scheduled cron triggers and active user checkouts using the retired token will experience authentication failures until redeployed.</p>
-                </div>
-              </div>
+              <SettingsRedesign
+                profile={profile}
+                user={user}
+                onProfileUpdate={setProfile}
+                setActiveTab={setActiveTab}
+                initialCategory="api"
+              />
             )}
 
 
@@ -21422,6 +21264,7 @@ async function checkOrderStatus(orderId) {
                 user={user}
                 onProfileUpdate={setProfile}
                 setActiveTab={setActiveTab}
+                initialCategory={settingsCategory}
               />
             )}
 
