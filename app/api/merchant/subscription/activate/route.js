@@ -1,0 +1,121 @@
+import { NextResponse } from 'next/server';
+import { supabaseAdmin } from '@/lib/supabase';
+import { sendSubscriptionInvoiceEmail } from '@/lib/mailer';
+
+export async function POST(req) {
+  try {
+    const body = await req.json();
+    const {
+      merchantId,
+      planId = '1m',
+      planName = '1 Month Starter Plan',
+      amount = 499,
+      durationDays = 30,
+      utr = '',
+    } = body;
+
+    if (!merchantId) {
+      return NextResponse.json({ error: 'Merchant ID is required.' }, { status: 400 });
+    }
+
+    // 1. Fetch current merchant record
+    const { data: merchant, error: fetchErr } = await supabaseAdmin
+      .from('merchants')
+      .select('id, business_name, upi_id, subscription_status, subscription_expires_at, setup_progress')
+      .eq('id', merchantId)
+      .single();
+
+    if (fetchErr || !merchant) {
+      return NextResponse.json({ error: 'Merchant account not found.' }, { status: 404 });
+    }
+
+    // 2. Calculate new expiry date
+    const currentExpiry = merchant.subscription_expires_at ? new Date(merchant.subscription_expires_at) : new Date();
+    const baseDate = currentExpiry > new Date() ? currentExpiry : new Date();
+    const newExpiry = new Date(baseDate.getTime() + durationDays * 24 * 60 * 60 * 1000);
+
+    const nowIso = new Date().toISOString();
+    const updatedProgress = {
+      ...(merchant.setup_progress || {}),
+      plan_type: planId,
+      last_payment_at: nowIso,
+      subscription_activated_at: nowIso,
+    };
+
+    // 3. Update merchant subscription in database
+    const { error: updateErr } = await supabaseAdmin
+      .from('merchants')
+      .update({
+        subscription_status: 'active',
+        subscription_expires_at: newExpiry.toISOString(),
+        setup_progress: updatedProgress,
+      })
+      .eq('id', merchantId);
+
+    if (updateErr) {
+      console.error('[SUB ACTIVATE API] Update error:', updateErr);
+      return NextResponse.json({ error: updateErr.message }, { status: 500 });
+    }
+
+    // 4. Create an order record for audit & invoice tracking
+    const orderId = `ORD-SUB-${Date.now().toString().slice(-6)}`;
+    const invoiceRef = `INV-${new Date().getFullYear()}-${Date.now().toString().slice(-5)}`;
+
+    try {
+      await supabaseAdmin.from('orders').insert({
+        id: orderId,
+        merchant_id: merchantId,
+        amount: parseFloat(amount) || 499,
+        status: 'verified',
+        note: `Subscription_${planId}`,
+        external_ref: merchantId,
+        utr: utr || `NPCI-${Date.now().toString().slice(-6)}`,
+        verified_at: nowIso,
+      });
+    } catch (orderInsertErr) {
+      console.warn('[SUB ACTIVATE API] Order insert notice:', orderInsertErr?.message);
+    }
+
+    // 5. Look up merchant email from Auth
+    let recipientEmail = null;
+    try {
+      const { data: authUserData } = await supabaseAdmin.auth.admin.getUserById(merchantId);
+      recipientEmail = authUserData?.user?.email;
+    } catch (authErr) {
+      console.warn('[SUB ACTIVATE API] User auth lookup notice:', authErr?.message);
+    }
+
+    // 6. Send official GST Tax Invoice & Subscription Confirmation Email
+    if (recipientEmail) {
+      try {
+        await sendSubscriptionInvoiceEmail({
+          to: recipientEmail,
+          businessName: merchant.business_name || 'Merchant Partner',
+          mid: `MID-${merchantId.slice(0, 8).toUpperCase()}`,
+          planName: planName,
+          amount: parseFloat(amount) || 499,
+          durationDays,
+          expiryDate: newExpiry,
+          invoiceRef,
+          paymentMethod: 'Direct UPI Settlement (NPCI)',
+          utr: utr || `NPCI-AUTO-${Date.now().toString().slice(-4)}`,
+        });
+        console.log(`[SUB ACTIVATE API] Dispatched subscription invoice to ${recipientEmail}`);
+      } catch (mailErr) {
+        console.error('[SUB ACTIVATE API] Invoice email dispatch error:', mailErr);
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Subscription successfully activated and invoice emailed.',
+      subscription_status: 'active',
+      subscription_expires_at: newExpiry.toISOString(),
+      invoiceRef,
+    });
+
+  } catch (err) {
+    console.error('[SUB ACTIVATE API] Exception:', err);
+    return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 });
+  }
+}

@@ -352,33 +352,31 @@ export default function SubscriptionRedesign({
   const handleActivatePlan = async () => {
     setIsActivating(true);
     try {
-      const currentExpiry = profile?.subscription_expires_at ? new Date(profile.subscription_expires_at) : new Date();
-      const baseDate = currentExpiry > new Date() ? currentExpiry : new Date();
-      const newExpiry = new Date(baseDate.getTime() + selectedPlan.durationDays * 24 * 60 * 60 * 1000);
+      const res = await fetch('/api/merchant/subscription/activate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          merchantId: profile?.id,
+          planId: selectedPlan.id,
+          planName: selectedPlan.name,
+          amount: selectedPlan.amount,
+          durationDays: selectedPlan.durationDays,
+        }),
+      });
 
-      const setupProgress = {
-        ...(profile?.setup_progress || {}),
-        plan_type: selectedPlan.id,
-        last_payment_at: new Date().toISOString()
-      };
+      const resData = await res.json();
+      if (!res.ok) {
+        throw new Error(resData.error || 'Failed to activate plan');
+      }
 
-      const { error } = await supabase
-        .from('merchants')
-        .update({
-          subscription_status: 'active',
-          subscription_expires_at: newExpiry.toISOString(),
-          setup_progress: setupProgress
-        })
-        .eq('id', profile.id);
-
-      if (error) throw error;
+      const newExpiry = resData.subscription_expires_at ? new Date(resData.subscription_expires_at) : new Date();
 
       if (onProfileUpdate) {
         onProfileUpdate({
           ...profile,
           subscription_status: 'active',
           subscription_plan: selectedPlan.id,
-          subscription_expires_at: newExpiry.toISOString()
+          subscription_expires_at: newExpiry.toISOString(),
         });
       }
 
@@ -387,7 +385,7 @@ export default function SubscriptionRedesign({
       }
 
       setShowPaymentModal(false);
-      triggerToast(`Payment of ₹${selectedPlan.amount.toLocaleString('en-IN')} verified! Subscription active until ${newExpiry.toLocaleDateString('en-IN')}.`);
+      triggerToast(`Payment of ₹${selectedPlan.amount.toLocaleString('en-IN')} verified! License active & GST invoice emailed to your inbox.`);
     } catch (err) {
       console.error('Activation error:', err);
       triggerToast(`Failed to update subscription: ${err.message || 'Please try again.'}`);

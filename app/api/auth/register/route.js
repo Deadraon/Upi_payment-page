@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { sendWelcomeEmail } from '@/lib/mailer';
 
 export async function POST(req) {
   try {
@@ -71,6 +72,19 @@ export async function POST(req) {
 
       if (merchantError) {
         console.error('[REGISTER API] Merchant profile upsert warning:', merchantError);
+      }
+
+      // 3. Dispatch Welcome & Merchant Credentials Email
+      try {
+        const mid = `MID-${userId.slice(0, 8).toUpperCase()}`;
+        await sendWelcomeEmail({
+          to: cleanEmail,
+          businessName: businessName.trim(),
+          upiId: upiId.trim(),
+          mid,
+        });
+      } catch (welcomeErr) {
+        console.warn('[REGISTER API] Welcome email send notice:', welcomeErr?.message);
       }
     }
 
