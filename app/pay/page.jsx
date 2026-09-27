@@ -890,6 +890,22 @@ function PayPageContent() {
                   <span>Verified Merchant &bull; {bizName}</span>
                 </div>
 
+                {/* 5b. Payment Verification Advisory Line (Mobile) */}
+                <div className="mob-verify-notice">
+                  <div className="mob-verify-icon-box">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                    <span className="mob-verify-ping" />
+                    <span className="mob-verify-dot" />
+                  </div>
+                  <div className="mob-verify-text">
+                    <strong className="mob-verify-title">Payment verification may take up to 60 seconds.</strong>{' '}
+                    <span className="mob-verify-desc">Please wait and do not close or refresh this screen.</span>
+                  </div>
+                </div>
+
                 {/* 6. Quick Tap-to-Pay UPI App Launcher Chips */}
                 <div className="mob-upi-apps-row">
                   <p className="mob-action-hint">Tap to pay with any UPI app</p>
@@ -957,7 +973,7 @@ function PayPageContent() {
                           {isChecking ? 'Checking transaction status…' : (checkMsg?.startsWith('✓') ? 'Payment Verified!' : 'Payment Pending Confirmation')}
                         </p>
                         <p style={{ margin: '2px 0 0', fontSize: 11.5, color: checkMsg?.startsWith('✓') ? '#047857' : '#64748b', lineHeight: 1.4 }}>
-                          {checkMsg || 'Connecting to bank network to confirm your UPI transfer…'}
+                          {checkMsg || 'Connecting to bank network to confirm your UPI transfer… Payment verification may take up to 60 seconds. Please do not close or refresh this screen.'}
                         </p>
                       </div>
                     </div>
@@ -1684,6 +1700,81 @@ export default function PayPage() {
             padding: 4px 12px;
             border-radius: 9999px;
             margin-bottom: 4px;
+          }
+
+          /* ── Payment Verification Advisory Line ── */
+          .mob-verify-notice {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #fffbeb;
+            border: 1px solid #fef08a;
+            border-radius: 14px;
+            padding: 8px 12px;
+            margin: 10px 0 4px;
+            text-align: left;
+            box-shadow: 0 1px 3px rgba(245, 158, 11, 0.06);
+          }
+
+          .mob-verify-icon-box {
+            position: relative;
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: #fef3c7;
+            border: 1px solid #fde68a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: #b45309;
+          }
+
+          .mob-verify-ping {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #f59e0b;
+            animation: mob-ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+          }
+
+          .mob-verify-dot {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #d97706;
+          }
+
+          @keyframes mob-ping {
+            75%, 100% {
+              transform: scale(2.2);
+              opacity: 0;
+            }
+          }
+
+          .mob-verify-text {
+            flex: 1;
+            font-size: 11.5px;
+            line-height: 1.4;
+            color: #78350f;
+          }
+
+          .mob-verify-title {
+            font-weight: 700;
+            color: #92400e;
+            display: inline;
+          }
+
+          .mob-verify-desc {
+            font-weight: 500;
+            color: #b45309;
+            display: inline;
           }
 
           /* ── Direct UPI App Launcher Row ── */

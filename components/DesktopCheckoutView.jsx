@@ -872,6 +872,27 @@ export default function DesktopCheckoutView({
                         </div>
                       </div>
 
+                      {/* Payment Verification Advisory Notice (Desktop/PC) */}
+                      <div className="flex items-center gap-3 p-3 px-3.5 rounded-xl bg-amber-50/90 border border-amber-200/90 text-amber-950 text-xs shadow-2xs">
+                        <div className="relative flex items-center justify-center flex-shrink-0 w-7 h-7 rounded-lg bg-amber-100/90 border border-amber-300/60 text-amber-800">
+                          <IconSchedule className="w-4 h-4 text-amber-800 flex-shrink-0" />
+                          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-600" />
+                        </div>
+                        <div className="flex-1 leading-snug">
+                          <span className="font-bold text-amber-950 block sm:inline">
+                            {lang === 'hi' 
+                              ? 'भुगतान सत्यापन में 60 सेकंड तक का समय लग सकता है।' 
+                              : 'Payment verification may take up to 60 seconds.'}
+                          </span>{' '}
+                          <span className="text-amber-900/90 font-medium">
+                            {lang === 'hi'
+                              ? 'कृपया प्रतीक्षा करें और इस स्क्रीन को बंद या रीफ़्रेश न करें।'
+                              : 'Please wait and do not close or refresh this screen.'}
+                          </span>
+                        </div>
+                      </div>
+
                       {/* Pay directly to merchant VPA */}
                       <div className="space-y-2.5">
                         <div className="flex items-center justify-between">
@@ -1020,6 +1041,27 @@ export default function DesktopCheckoutView({
                         <span className="px-2 py-0.5 rounded text-label-sm bg-tertiary-fixed text-on-tertiary-fixed-variant font-bold">Zero fees</span>
                       </div>
 
+                      {/* Payment Verification Advisory Notice (Bank Transfer) */}
+                      <div className="flex items-center gap-3 p-3 px-3.5 rounded-xl bg-amber-50/90 border border-amber-200/90 text-amber-950 text-xs shadow-2xs">
+                        <div className="relative flex items-center justify-center flex-shrink-0 w-7 h-7 rounded-lg bg-amber-100/90 border border-amber-300/60 text-amber-800">
+                          <IconSchedule className="w-4 h-4 text-amber-800 flex-shrink-0" />
+                          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-600" />
+                        </div>
+                        <div className="flex-1 leading-snug">
+                          <span className="font-bold text-amber-950 block sm:inline">
+                            {lang === 'hi' 
+                              ? 'भुगतान सत्यापन में 60 सेकंड तक का समय लग सकता है।' 
+                              : 'Payment verification may take up to 60 seconds.'}
+                          </span>{' '}
+                          <span className="text-amber-900/90 font-medium">
+                            {lang === 'hi'
+                              ? 'कृपया प्रतीक्षा करें और इस स्क्रीन को बंद या रीफ़्रेश न करें।'
+                              : 'Please wait and do not close or refresh this screen.'}
+                          </span>
+                        </div>
+                      </div>
+
                       <div className="p-3.5 rounded-xl bg-surface-container-low space-y-3">
                         <div className="flex items-center justify-between border-b border-surface-container pb-2">
                           <span className="text-label-sm text-on-surface-variant">Beneficiary name</span>
@@ -1149,6 +1191,27 @@ export default function DesktopCheckoutView({
                           <span className="font-bold text-[#627eea] text-sm">ETH</span>
                           <span className="text-label-sm text-on-surface-variant mt-0.5 text-[11px]">Ethereum mainnet</span>
                         </button>
+                      </div>
+
+                      {/* Payment Verification Advisory Notice (Crypto) */}
+                      <div className="flex items-center gap-3 p-3 px-3.5 rounded-xl bg-amber-50/90 border border-amber-200/90 text-amber-950 text-xs shadow-2xs">
+                        <div className="relative flex items-center justify-center flex-shrink-0 w-7 h-7 rounded-lg bg-amber-100/90 border border-amber-300/60 text-amber-800">
+                          <IconSchedule className="w-4 h-4 text-amber-800 flex-shrink-0" />
+                          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-600" />
+                        </div>
+                        <div className="flex-1 leading-snug">
+                          <span className="font-bold text-amber-950 block sm:inline">
+                            {lang === 'hi' 
+                              ? 'भुगतान सत्यापन में 60 सेकंड तक का समय लग सकता है।' 
+                              : 'Payment verification may take up to 60 seconds.'}
+                          </span>{' '}
+                          <span className="text-amber-900/90 font-medium">
+                            {lang === 'hi'
+                              ? 'कृपया प्रतीक्षा करें और इस स्क्रीन को बंद या रीफ़्रेश न करें।'
+                              : 'Please wait and do not close or refresh this screen.'}
+                          </span>
+                        </div>
                       </div>
 
                       <div className="p-3.5 rounded-xl bg-surface-container-low space-y-2.5">
