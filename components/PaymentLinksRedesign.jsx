@@ -56,6 +56,7 @@ export default function PaymentLinksRedesign({
   const [notifyWhatsapp, setNotifyWhatsapp] = useState(true);
   const [railUpi, setRailUpi] = useState(true);
   const [railImps, setRailImps] = useState(true);
+  const [railCrypto, setRailCrypto] = useState(false);
   const [linkValidity, setLinkValidity] = useState('7d');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(true);
@@ -777,7 +778,7 @@ export default function PaymentLinksRedesign({
                     <label className="text-xs font-bold uppercase tracking-wider text-slate-500 block">Accepted Rails &amp; Expiry</label>
                     <span className="text-[10px] font-mono text-slate-400">SELECT MULTIPLE</span>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     {/* UPI Rail */}
                     <label className={`relative flex flex-col p-3.5 rounded-xl border-2 cursor-pointer transition-all ${railUpi ? 'border-blue-500 bg-blue-50/30' : 'border-slate-200 bg-white hover:border-slate-300'}`}>
                       <div className="absolute top-3.5 right-3.5">
@@ -805,6 +806,7 @@ export default function PaymentLinksRedesign({
                       <span className="text-[11px] text-emerald-600 font-semibold mt-0.5">Zero MDR • 100% Instant</span>
                       <span className="text-[10px] text-slate-400 mt-2">GPay, PhonePe, Paytm, BHIM</span>
                     </label>
+
                     {/* Bank IMPS/NEFT Rail */}
                     <label className={`relative flex flex-col p-3.5 rounded-xl border-2 cursor-pointer transition-all ${railImps ? 'border-blue-500 bg-blue-50/30' : 'border-slate-200 bg-white hover:border-slate-300'}`}>
                       <div className="absolute top-3.5 right-3.5">
@@ -831,6 +833,34 @@ export default function PaymentLinksRedesign({
                       <span className="font-bold text-xs text-slate-900 pr-6">Bank IMPS / NEFT</span>
                       <span className="text-[11px] text-emerald-600 font-semibold mt-0.5">Virtual A/C Direct</span>
                       <span className="text-[10px] text-slate-400 mt-2">RTGS &gt;₹2,00,000</span>
+                    </label>
+
+                    {/* Crypto USDT Rail */}
+                    <label className={`relative flex flex-col p-3.5 rounded-xl border-2 cursor-pointer transition-all ${railCrypto ? 'border-purple-500 bg-purple-50/30' : 'border-slate-200 bg-white hover:border-slate-300'}`}>
+                      <div className="absolute top-3.5 right-3.5">
+                        <input
+                          type="checkbox"
+                          checked={railCrypto}
+                          onChange={(e) => setRailCrypto(e.target.checked)}
+                          className="sr-only"
+                        />
+                        <div
+                          className={`w-4 h-4 rounded border transition-all flex items-center justify-center bg-white ${
+                            railCrypto
+                              ? 'border-2 border-purple-600 text-purple-600 shadow-xs'
+                              : 'border border-slate-300'
+                          }`}
+                        >
+                          {railCrypto && (
+                            <svg className="w-3 h-3 text-purple-600 stroke-[2.5]" viewBox="0 0 16 16" fill="none" stroke="currentColor">
+                              <path d="M3.5 8.5L6.5 11.5L12.5 4.5" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+                      <span className="font-bold text-xs text-slate-900 pr-6">Crypto (USDT)</span>
+                      <span className="text-[11px] text-purple-600 font-semibold mt-0.5">Polygon Mainnet</span>
+                      <span className="text-[10px] text-slate-400 mt-2">Realtime conversion</span>
                     </label>
                   </div>
 
