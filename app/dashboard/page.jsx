@@ -57,6 +57,7 @@ import DashboardOverviewRedesign from '@/components/DashboardOverviewRedesign';
 import PaymentLinksRedesign from '@/components/PaymentLinksRedesign';
 import TransactionsRedesign from '@/components/TransactionsRedesign';
 import SubscriptionRedesign from '@/components/SubscriptionRedesign';
+import SettingsRedesign from '@/components/SettingsRedesign';
 
 
 
@@ -21417,93 +21418,12 @@ async function checkOrderStatus(orderId) {
 
 
             {activeTab === 'settings' && (
-              <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm pb-12 mb-8 animate-fadeIn">
-                <h2 className="text-lg font-bold mb-6 flex items-center gap-2 border-b border-slate-100 pb-4 text-slate-900">
-                  <Briefcase className="w-5 h-5 text-blue-600" /> Business Profile
-                </h2>
-                
-                <div className="space-y-6 font-medium text-xs text-slate-700">
-                  
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-2">Business Name</label>
-                    <input 
-                      type="text" 
-                      value={profile?.business_name || ''} 
-                      onChange={(e) => setProfile({...profile, business_name: e.target.value})}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 focus:border-blue-500 focus:outline-none transition-all text-sm font-semibold text-slate-900 shadow-xs"
-                      placeholder="e.g. My Awesome Store"
-                    />
-                    <p className="text-xs text-slate-400 mt-1.5 font-medium">This brand name appears on public scanning gateways.</p>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-2">UPI ID (VPA)</label>
-                    <input 
-                      type="text" 
-                      value={profile?.upi_id || ''} 
-                      onChange={(e) => setProfile({...profile, upi_id: e.target.value})}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 focus:border-blue-500 focus:outline-none font-mono text-sm font-semibold text-slate-900 shadow-xs"
-                      placeholder="Enter UPI ID"
-                    />
-                    <p className="text-xs text-slate-400 mt-1.5 font-medium">UPI deposits will be directly routed to this bank VPA account instantly.</p>
-                    <p className="text-[10px] text-amber-600 font-extrabold mt-1.5 flex items-center gap-1 leading-normal select-none">
-                      ⚠️ Changing your VPA will immediately break all active payment links and integrations!
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-2">Custom Brand Theme Color</label>
-                    <div className="flex items-center gap-3 w-full">
-                      <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-slate-250 flex-shrink-0 cursor-pointer shadow-xs">
-                        <input 
-                          type="color" 
-                          value={profile?.theme_color || '#be38f3'} 
-                          onChange={(e) => setProfile({...profile, theme_color: e.target.value})}
-                          className="absolute inset-0 w-[200%] h-[200%] -translate-x-1/4 -translate-y-1/4 cursor-pointer border-0 p-0"
-                        />
-                      </div>
-                      <input 
-                        type="text" 
-                        value={profile?.theme_color || '#be38f3'} 
-                        onChange={(e) => setProfile({...profile, theme_color: e.target.value})}
-                        className="flex-1 bg-white border border-slate-250 rounded-xl py-3 px-4 focus:border-blue-600 focus:outline-none font-mono text-sm font-semibold text-slate-900 shadow-xs focus:ring-1 focus:ring-blue-600"
-                        placeholder="#be38f3"
-                      />
-                    </div>
-                    <p className="text-xs text-slate-400 mt-1.5 font-medium">This color will be used as the theme for your public payment scanning page.</p>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-2 flex items-center gap-2">
-                      Webhook URL <span className="text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded font-bold uppercase">Optional</span>
-                    </label>
-                    <input 
-                      type="url" 
-                      value={profile?.webhook_url || ''} 
-                      onChange={(e) => setProfile({...profile, webhook_url: e.target.value})}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 focus:border-blue-500 focus:outline-none font-mono text-sm font-semibold text-slate-900 placeholder-slate-400 shadow-xs"
-                      placeholder="https://your-website.com/api/webhook"
-                    />
-                    <p className="text-xs text-slate-400 mt-1.5 font-medium">We will fire a POST request to this exact URL carrying HMAC signatures when a customer payment succeeds.</p>
-                  </div>
-
-                  <div className="pt-4 border-t border-slate-100 flex items-center gap-4">
-                    <button 
-                      onClick={handleSave}
-                      disabled={saving}
-                      className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white-pure font-bold rounded-xl transition-all disabled:opacity-50 flex items-center gap-2 shadow-sm shadow-blue-500/20 cursor-pointer"
-                    >
-                      {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
-                      {saving ? 'Saving Profile...' : 'Save Profile'}
-                    </button>
-                    {message && (
-                      <span className="text-sm font-bold text-emerald-600 flex items-center gap-1.5">
-                        <CheckCircle className="w-4 h-4" /> {message}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
+              <SettingsRedesign
+                profile={profile}
+                user={user}
+                onProfileUpdate={setProfile}
+                setActiveTab={setActiveTab}
+              />
             )}
 
 
