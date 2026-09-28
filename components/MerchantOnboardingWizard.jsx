@@ -347,36 +347,61 @@ export default function MerchantOnboardingWizard({
               </h3>
             </div>
 
-            {/* Vertical Stepper Timeline */}
+            {/* Vertical Stepper Timeline with Connected Fade Lines */}
             <div className="space-y-0 relative">
               {TIMELINE_STEPS.map((step, idx) => {
                 const isActive = currentStep === step.num;
                 const isCompleted = currentStep > step.num;
                 const isLast = idx === TIMELINE_STEPS.length - 1;
 
+                // Connecting line styles between this step and the next
+                let lineBarClass = 'bg-white/10';
+                let lineGlowClass = null;
+
+                if (isCompleted) {
+                  if (currentStep === step.num + 1) {
+                    // Completed step transitioning into currently active step
+                    lineBarClass = 'bg-gradient-to-b from-emerald-500 via-emerald-400 to-amber-400';
+                    lineGlowClass = 'bg-gradient-to-b from-emerald-500/40 via-emerald-400/30 to-amber-400/30';
+                  } else {
+                    // Completed step to completed step
+                    lineBarClass = 'bg-gradient-to-b from-emerald-400 to-emerald-500';
+                    lineGlowClass = 'bg-emerald-500/30';
+                  }
+                } else if (isActive) {
+                  // Active step trailing down to next step with smooth golden fade
+                  lineBarClass = 'bg-gradient-to-b from-amber-400 via-amber-400/40 to-white/5';
+                  lineGlowClass = 'bg-gradient-to-b from-amber-400/60 via-amber-400/20 to-transparent';
+                }
+
                 return (
                   <div key={step.num} className="relative flex items-start gap-3.5 pb-6 last:pb-0">
-                    {/* Connecting vertical line */}
+                    {/* Connecting vertical luminous fade line */}
                     {!isLast && (
-                      <div
-                        className={`absolute left-[13px] top-7 bottom-0 w-0.5 transition-colors duration-300 ${
-                          isCompleted ? 'bg-emerald-500/80' : 'bg-white/10'
-                        }`}
-                      />
+                      <>
+                        {lineGlowClass && (
+                          <div
+                            className={`absolute left-[14px] top-8 bottom-0 w-1 ${lineGlowClass} blur-[2px] pointer-events-none transition-all duration-300`}
+                          />
+                        )}
+                        <div
+                          className={`absolute left-[15px] top-8 bottom-0 w-[2px] ${lineBarClass} transition-all duration-300`}
+                        />
+                      </>
                     )}
 
-                    {/* Step indicator circle */}
+                    {/* Step indicator squircle / badge */}
                     <div className="relative z-10 shrink-0">
                       {isCompleted ? (
-                        <div className="w-7 h-7 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center font-black text-xs shadow-md shadow-emerald-500/30">
+                        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-500 text-slate-950 flex items-center justify-center font-black text-xs shadow-md shadow-emerald-500/30">
                           <Check className="w-4 h-4 stroke-[3]" />
                         </div>
                       ) : isActive ? (
-                        <div className="w-7 h-7 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center font-black text-xs shadow-lg shadow-amber-400/40 ring-4 ring-amber-400/20">
+                        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-amber-500 text-slate-950 flex items-center justify-center font-black text-xs shadow-lg shadow-amber-400/40 ring-4 ring-amber-400/20">
                           {step.num}
                         </div>
                       ) : (
-                        <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 text-slate-400 flex items-center justify-center font-bold text-xs">
+                        <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 text-slate-400 flex items-center justify-center font-bold text-xs">
                           {step.num}
                         </div>
                       )}
@@ -498,15 +523,15 @@ export default function MerchantOnboardingWizard({
 
                     {/* ─── TERMINAL STYLE CODE ENCLOSURE INPUT ─── */}
                     <div className="rounded-2xl bg-[#0f1013] border border-slate-800 p-3.5 sm:p-4 shadow-xl space-y-2.5">
-                      {/* Terminal window top header */}
+                      {/* Terminal window top header with Mac 3 traffic dots */}
                       <div className="flex items-center justify-between border-b border-white/5 pb-2 text-[10px] font-mono text-slate-400">
                         <div className="flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full bg-amber-500/80" />
-                          <span className="w-2 h-2 rounded-full bg-amber-400/50" />
-                          <span className="w-2 h-2 rounded-full bg-amber-300/30" />
-                          <span className="ml-2 text-slate-400">terminal://settlement-vpa</span>
+                          <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f56] border border-[#e0443e]/50 shadow-xs" />
+                          <span className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e] border border-[#dea123]/50 shadow-xs" />
+                          <span className="w-2.5 h-2.5 rounded-full bg-[#27c93f] border border-[#1aab29]/50 shadow-xs" />
+                          <span className="ml-2 text-slate-400 font-mono">terminal://settlement-vpa</span>
                         </div>
-                        <span className="text-emerald-400 font-bold flex items-center gap-1">
+                        <span className="text-emerald-400 font-bold flex items-center gap-1 font-mono">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                           NPCI / UPI Direct
                         </span>
@@ -634,29 +659,29 @@ export default function MerchantOnboardingWizard({
                   </p>
                 </div>
 
-                {/* Terminal Address Box */}
+                {/* Terminal Address Box with Mac 3 traffic dots */}
                 <div className="rounded-2xl bg-[#0f1013] border border-slate-800 p-3.5 sm:p-4 shadow-xl space-y-2.5">
                   <div className="flex items-center justify-between border-b border-white/5 pb-2 text-[10px] font-mono text-slate-400">
                     <div className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-amber-500/80" />
-                      <span className="w-2 h-2 rounded-full bg-amber-400/50" />
-                      <span className="w-2 h-2 rounded-full bg-amber-300/30" />
-                      <span className="ml-2 text-slate-400">terminal://cloud-email-pipeline</span>
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f56] border border-[#e0443e]/50 shadow-xs" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e] border border-[#dea123]/50 shadow-xs" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#27c93f] border border-[#1aab29]/50 shadow-xs" />
+                      <span className="ml-2 text-slate-400 font-mono">terminal://cloud-email-pipeline</span>
                     </div>
-                    <span className="text-emerald-400 font-bold flex items-center gap-1">
+                    <span className="text-emerald-400 font-bold flex items-center gap-1 font-mono">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                       Cloudflare Serverless
                     </span>
                   </div>
 
                   <div className="flex items-center gap-2 pt-0.5">
-                    <div className="flex-1 px-3 py-2 rounded-xl bg-white/5 border border-white/10 font-mono text-xs font-bold text-amber-300 select-all truncate">
+                    <div className="flex-1 h-11 px-3.5 rounded-xl bg-white/5 border border-white/10 font-mono text-xs sm:text-sm font-bold text-amber-300 flex items-center select-all truncate">
                       {forwardingEmail}
                     </div>
                     <button
                       type="button"
                       onClick={() => copyToClipboard(forwardingEmail, setCopiedEmail)}
-                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 active:scale-95 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow-md shadow-amber-500/20 transition-all cursor-pointer shrink-0"
+                      className="h-11 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 active:scale-95 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow-md shadow-amber-500/20 transition-all cursor-pointer shrink-0"
                     >
                       {copiedEmail ? <Check className="w-4 h-4 stroke-[3]" /> : <Copy className="w-4 h-4" />}
                       <span>{copiedEmail ? 'Copied' : 'Copy'}</span>
@@ -705,7 +730,7 @@ export default function MerchantOnboardingWizard({
                       Google Verification Listener:
                     </span>
                     {gmailIntercept ? (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
                         <CheckCircle2 className="w-3.5 h-3.5" /> Intercepted
                       </span>
                     ) : (
@@ -799,16 +824,17 @@ export default function MerchantOnboardingWizard({
                   </p>
                 </div>
 
-                <form onSubmit={handleSaveBank} className="space-y-3 pt-1">
+                <form onSubmit={handleSaveBank} className="space-y-3.5 pt-1">
                   {bankError && (
                     <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-semibold flex items-center gap-1.5 animate-in fade-in">
                       <AlertCircle className="w-4 h-4 shrink-0" /> {bankError}
                     </div>
                   )}
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* ── Prominent, high-contrast, clearly visible input fields ── */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
-                      <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      <label className="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">
                         Bank Name
                       </label>
                       <input
@@ -816,12 +842,12 @@ export default function MerchantOnboardingWizard({
                         value={bankName}
                         onChange={(e) => setBankName(e.target.value)}
                         placeholder="e.g. HDFC Bank, ICICI Bank, SBI"
-                        className="w-full h-10 px-3.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs font-semibold focus:bg-white focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                        className="w-full h-11 sm:h-12 px-4 rounded-xl border-2 border-slate-300 hover:border-slate-400 bg-slate-50/90 text-slate-900 font-bold text-xs sm:text-sm placeholder:text-slate-400 placeholder:font-normal focus:bg-white focus:border-amber-500 focus:outline-none focus:ring-4 focus:ring-amber-500/15 shadow-xs transition-all"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      <label className="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">
                         Account Holder Name
                       </label>
                       <input
@@ -829,14 +855,14 @@ export default function MerchantOnboardingWizard({
                         value={bankAccName}
                         onChange={(e) => setBankAccName(e.target.value)}
                         placeholder="e.g. Rahul Sharma or Store Pvt Ltd"
-                        className="w-full h-10 px-3.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs font-semibold focus:bg-white focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                        className="w-full h-11 sm:h-12 px-4 rounded-xl border-2 border-slate-300 hover:border-slate-400 bg-slate-50/90 text-slate-900 font-bold text-xs sm:text-sm placeholder:text-slate-400 placeholder:font-normal focus:bg-white focus:border-amber-500 focus:outline-none focus:ring-4 focus:ring-amber-500/15 shadow-xs transition-all"
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
-                      <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      <label className="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">
                         Account Number
                       </label>
                       <input
@@ -844,12 +870,12 @@ export default function MerchantOnboardingWizard({
                         value={bankAccNum}
                         onChange={(e) => setBankAccNum(e.target.value.replace(/\D/g, ''))}
                         placeholder="Enter bank account number"
-                        className="w-full h-10 px-3.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 font-mono text-xs font-semibold focus:bg-white focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                        className="w-full h-11 sm:h-12 px-4 rounded-xl border-2 border-slate-300 hover:border-slate-400 bg-slate-50/90 text-slate-900 font-mono font-bold text-xs sm:text-sm tracking-wider placeholder:text-slate-400 placeholder:font-normal focus:bg-white focus:border-amber-500 focus:outline-none focus:ring-4 focus:ring-amber-500/15 shadow-xs transition-all"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      <label className="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">
                         Confirm Account Number
                       </label>
                       <input
@@ -857,13 +883,13 @@ export default function MerchantOnboardingWizard({
                         value={bankAccNumConfirm}
                         onChange={(e) => setBankAccNumConfirm(e.target.value.replace(/\D/g, ''))}
                         placeholder="Re-enter bank account number"
-                        className="w-full h-10 px-3.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 font-mono text-xs font-semibold focus:bg-white focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                        className="w-full h-11 sm:h-12 px-4 rounded-xl border-2 border-slate-300 hover:border-slate-400 bg-slate-50/90 text-slate-900 font-mono font-bold text-xs sm:text-sm tracking-wider placeholder:text-slate-400 placeholder:font-normal focus:bg-white focus:border-amber-500 focus:outline-none focus:ring-4 focus:ring-amber-500/15 shadow-xs transition-all"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    <label className="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">
                       IFSC Code
                     </label>
                     <input
@@ -872,7 +898,7 @@ export default function MerchantOnboardingWizard({
                       value={bankIfsc}
                       onChange={(e) => setBankIfsc(e.target.value.toUpperCase().trim())}
                       placeholder="e.g. HDFC0001234"
-                      className="w-full h-10 px-3.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 font-mono text-xs uppercase font-semibold focus:bg-white focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                      className="w-full h-11 sm:h-12 px-4 rounded-xl border-2 border-slate-300 hover:border-slate-400 bg-slate-50/90 text-slate-900 font-mono font-bold text-xs sm:text-sm uppercase tracking-widest placeholder:text-slate-400 placeholder:font-normal focus:bg-white focus:border-amber-500 focus:outline-none focus:ring-4 focus:ring-amber-500/15 shadow-xs transition-all"
                     />
                   </div>
 
@@ -891,7 +917,7 @@ export default function MerchantOnboardingWizard({
                       <button
                         type="button"
                         onClick={handleSkipBank}
-                        className="px-3.5 py-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs transition-colors cursor-pointer"
+                        className="px-4 py-2.5 rounded-xl border-2 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-bold text-xs transition-all cursor-pointer"
                       >
                         Skip & Add Later
                       </button>
