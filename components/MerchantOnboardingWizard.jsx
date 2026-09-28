@@ -13,12 +13,11 @@ import {
   Building2,
   Smartphone,
   Mail,
-  HelpCircle,
   AlertCircle,
   RefreshCw,
   Sparkles,
   X,
-  CreditCard,
+  Lock,
   ChevronRight
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
@@ -97,7 +96,7 @@ export default function MerchantOnboardingWizard({
 
     const checkGmailCode = async () => {
       try {
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from('merchants')
           .select('gmail_verification_code')
           .eq('id', profile.id)
@@ -142,7 +141,7 @@ export default function MerchantOnboardingWizard({
       return;
     }
     if (!cleanUpi.includes('@') || cleanUpi.startsWith('@') || cleanUpi.endsWith('@')) {
-      setUpiError('Invalid UPI ID format. Must include username and bank handle (e.g., yourname@okhdfcbank).');
+      setUpiError('Invalid format. Must include handle (e.g. yourname@okhdfcbank or 9876543210@paytm).');
       return;
     }
 
@@ -165,7 +164,7 @@ export default function MerchantOnboardingWizard({
       setTimeout(() => {
         setUpiSaved(false);
         setCurrentStep(2);
-      }, 400);
+      }, 350);
     } catch (err) {
       setUpiError(err.message || 'Failed to save UPI ID. Please try again.');
     } finally {
@@ -173,13 +172,12 @@ export default function MerchantOnboardingWizard({
     }
   };
 
-  // Quick handle appender
   const handleAppendHandle = (handle) => {
     const raw = upiId.split('@')[0].trim();
     if (raw) {
       setUpiId(raw + handle);
     } else {
-      setUpiId('username' + handle);
+      setUpiId('merchant' + handle);
     }
     setUpiError('');
   };
@@ -226,7 +224,7 @@ export default function MerchantOnboardingWizard({
       if (cleanAcc !== cleanConfirm) return setBankError('Account numbers do not match.');
       if (!cleanIfsc) return setBankError('Please enter IFSC code.');
       if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(cleanIfsc)) {
-        return setBankError('Invalid IFSC code format (e.g., HDFC0001234, SBIN0004567).');
+        return setBankError('Invalid IFSC code format (e.g. HDFC0001234, SBIN0004567).');
       }
 
       setBankSaving(true);
@@ -253,7 +251,6 @@ export default function MerchantOnboardingWizard({
         setBankSaving(false);
       }
     } else {
-      // User didn't fill anything and clicked next
       setCurrentStep(4);
     }
   };
@@ -299,26 +296,35 @@ export default function MerchantOnboardingWizard({
 
   const gmailIntercept = isLinkOrCode(gmailCode);
 
+  const STEPS = [
+    { num: 1, label: 'Receiving UPI', desc: 'Settle direct to your account' },
+    { num: 2, label: 'Auto-Verify', desc: 'Cloud email forwarding' },
+    { num: 3, label: 'Bank Details', desc: 'Net Banking (Optional)' },
+    { num: 4, label: 'Live Ready', desc: 'Review & test payment' }
+  ];
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl shadow-slate-900/15 border border-slate-200/90 overflow-hidden flex flex-col max-h-[92vh]">
         
-        {/* Top Header & Progress Indicator */}
-        <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 px-6 py-5 text-white shrink-0">
+        {/* ─── ELEGANT LIGHT HEADER ─── */}
+        <div className="bg-white border-b border-slate-100 px-6 sm:px-8 py-5 shrink-0">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-blue-400">
-                <Sparkles className="w-4 h-4" />
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0 shadow-xs">
+                <Sparkles className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-bold text-base tracking-tight text-white flex items-center gap-2">
-                  Merchant Setup Wizard
-                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-extrabold text-base text-slate-900 tracking-tight">
+                    Merchant Setup Wizard
+                  </h3>
+                  <span className="text-[11px] font-bold text-blue-700 bg-blue-50 border border-blue-200/80 px-2 py-0.5 rounded-full">
                     Step {currentStep} of 4
                   </span>
-                </h3>
-                <p className="text-xs text-slate-300">
-                  Configure direct settlements and auto-verification rails
+                </div>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                  Complete setup to activate direct UPI settlement & auto-verification
                 </p>
               </div>
             </div>
@@ -326,72 +332,76 @@ export default function MerchantOnboardingWizard({
             <button
               type="button"
               onClick={onClose}
-              className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors"
+              className="text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100 transition-colors"
               title="Close wizard"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          {/* Stepper Progress Bar */}
-          <div className="grid grid-cols-4 gap-2">
-            {[
-              { num: 1, label: 'Receiving UPI' },
-              { num: 2, label: 'Auto-Verify' },
-              { num: 3, label: 'Bank Details' },
-              { num: 4, label: 'Ready' }
-            ].map(step => (
-              <div key={step.num} className="space-y-1">
-                <div className="h-1.5 rounded-full overflow-hidden bg-white/15">
-                  <div
-                    className={`h-full transition-all duration-300 ${
-                      currentStep > step.num
-                        ? 'bg-emerald-400 w-full'
-                        : currentStep === step.num
-                        ? 'bg-blue-400 w-full'
-                        : 'w-0'
-                    }`}
-                  />
+          {/* ─── MODERN STEP TRACKER ─── */}
+          <div className="grid grid-cols-4 gap-2 pt-1">
+            {STEPS.map(step => {
+              const isDone = currentStep > step.num;
+              const isActive = currentStep === step.num;
+              return (
+                <div key={step.num} className="space-y-1.5">
+                  <div className="h-1.5 rounded-full overflow-hidden bg-slate-100">
+                    <div
+                      className={`h-full transition-all duration-300 ${
+                        isDone
+                          ? 'bg-emerald-500 w-full'
+                          : isActive
+                          ? 'bg-blue-600 w-full'
+                          : 'w-0'
+                      }`}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className={`font-semibold tracking-tight ${
+                      isActive ? 'text-blue-700' : isDone ? 'text-emerald-700' : 'text-slate-400'
+                    }`}>
+                      {step.num}. {step.label}
+                    </span>
+                    {isDone && <Check className="w-3 h-3 text-emerald-600 shrink-0" />}
+                  </div>
                 </div>
-                <div className="flex items-center justify-between text-[11px]">
-                  <span className={`font-semibold ${currentStep === step.num ? 'text-white' : currentStep > step.num ? 'text-emerald-300' : 'text-slate-400'}`}>
-                    {step.num}. {step.label}
-                  </span>
-                  {currentStep > step.num && (
-                    <Check className="w-3 h-3 text-emerald-400" />
-                  )}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
-        {/* Modal Scrollable Body */}
-        <div className="p-6 overflow-y-auto space-y-6 flex-1">
+        {/* ─── SCROLLABLE FORM BODY ─── */}
+        <div className="p-6 sm:p-8 overflow-y-auto space-y-6 flex-1 bg-white">
 
           {/* ══════════════════════════════════════════════════════════
               STEP 1: RECEIVING UPI ID (MANDATORY)
           ══════════════════════════════════════════════════════════ */}
           {currentStep === 1 && (
             <div className="space-y-5 animate-in fade-in duration-200">
-              <div className="space-y-1.5">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold">
-                  <Smartphone className="w-3.5 h-3.5" /> Mandatory Setup
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 border border-blue-200/80 text-blue-700 text-[11px] font-bold">
+                  <Smartphone className="w-3.5 h-3.5" /> Essential Setup
                 </div>
-                <h4 className="text-lg font-bold text-slate-900">
+                <h4 className="text-xl font-extrabold text-slate-900 tracking-tight pt-1">
                   Where should customer payments go?
                 </h4>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Enter your business or personal UPI ID. 100% of customer payments will settle directly and instantly into this account on T+0 rails with 0% gateway deductions.
+                <p className="text-xs text-slate-500 leading-relaxed font-medium">
+                  Enter your business or personal UPI ID. 100% of customer payments settle directly and instantly into this account on NPCI rails with 0% gateway commission.
                 </p>
               </div>
 
               <form onSubmit={handleSaveUpi} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                    Your Primary UPI ID / VPA <span className="text-red-500">*</span>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                    Primary Receiving UPI ID / VPA <span className="text-rose-500">*</span>
                   </label>
+                  
+                  {/* High contrast, pristine light input */}
                   <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                      <span className="font-mono text-sm font-bold">@</span>
+                    </div>
                     <input
                       type="text"
                       value={upiId}
@@ -400,26 +410,27 @@ export default function MerchantOnboardingWizard({
                         setUpiError('');
                       }}
                       placeholder="e.g. yourname@okhdfcbank or 9876543210@paytm"
-                      className="w-full h-12 px-4 rounded-xl border border-slate-300 text-slate-900 font-mono text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      className="w-full h-12 pl-9 pr-24 rounded-2xl border-2 border-slate-200 bg-slate-50/70 text-slate-900 font-mono text-sm font-semibold placeholder:text-slate-400 placeholder:font-normal focus:bg-white focus:border-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all shadow-xs"
                       autoFocus
                     />
                     {upiSaved && (
-                      <span className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center gap-1 text-emerald-600 font-bold text-xs">
-                        <CheckCircle2 className="w-4 h-4" /> Saved
+                      <span className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center gap-1 text-emerald-600 font-bold text-xs bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Saved
                       </span>
                     )}
                   </div>
+
                   {upiError && (
-                    <p className="mt-1.5 text-xs text-red-600 font-semibold flex items-center gap-1">
+                    <p className="mt-2 text-xs text-rose-600 font-semibold flex items-center gap-1.5 animate-in fade-in">
                       <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {upiError}
                     </p>
                   )}
                 </div>
 
-                {/* Common Handles Quick Select */}
+                {/* Quick Handle Shortcuts */}
                 <div>
-                  <span className="block text-[11px] font-semibold text-slate-500 mb-2">
-                    Quick Bank Handle Shortcuts:
+                  <span className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+                    Common Bank Handle Shortcuts:
                   </span>
                   <div className="flex flex-wrap gap-1.5">
                     {COMMON_UPI_HANDLES.map(handle => (
@@ -427,7 +438,7 @@ export default function MerchantOnboardingWizard({
                         key={handle}
                         type="button"
                         onClick={() => handleAppendHandle(handle)}
-                        className="px-2.5 py-1 text-xs font-mono font-medium rounded-lg bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-700 border border-slate-200 transition-colors"
+                        className="px-3 py-1.5 text-xs font-mono font-semibold rounded-xl bg-slate-50 hover:bg-blue-50 hover:text-blue-700 text-slate-700 border border-slate-200/90 hover:border-blue-300 transition-all shadow-2xs active:scale-95 cursor-pointer"
                       >
                         {handle}
                       </button>
@@ -435,22 +446,22 @@ export default function MerchantOnboardingWizard({
                   </div>
                 </div>
 
-                {/* Info Callout */}
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 space-y-1">
-                  <div className="flex items-center gap-1.5 font-bold text-slate-800">
-                    <ShieldCheck className="w-4 h-4 text-emerald-600" /> Direct Passthrough Rail
+                {/* Direct Passthrough Callout Card */}
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-50/70 via-slate-50 to-blue-50/40 border border-emerald-200/70 text-xs text-slate-700 space-y-1.5 shadow-xs">
+                  <div className="flex items-center gap-2 font-bold text-slate-900">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" /> Direct Passthrough Rail (Zero Escrow)
                   </div>
-                  <p className="text-[11.5px] leading-relaxed text-slate-500">
-                    MyMobPay never holds customer funds in escrow. All QR scans transfer money straight to this UPI address. You can update this anytime from Settings.
+                  <p className="text-[11.5px] leading-relaxed text-slate-600 font-medium">
+                    MyMobPay never holds customer funds in escrow. All QR scans transfer money straight to this UPI address. You can update or switch this anytime from Settings.
                   </p>
                 </div>
 
-                {/* Submit Action */}
-                <div className="pt-2 flex justify-end">
+                {/* Bottom Action Footer */}
+                <div className="pt-3 flex justify-end">
                   <button
                     type="submit"
                     disabled={upiSaving || !upiId.trim()}
-                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md shadow-blue-500/20 disabled:opacity-50 transition-all cursor-pointer"
+                    className="inline-flex items-center gap-2 px-7 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold text-sm shadow-md shadow-blue-600/20 disabled:opacity-50 transition-all cursor-pointer"
                   >
                     <span>{upiSaving ? 'Saving…' : 'Save & Continue'}</span>
                     <ArrowRight className="w-4 h-4" />
@@ -465,145 +476,152 @@ export default function MerchantOnboardingWizard({
           ══════════════════════════════════════════════════════════ */}
           {currentStep === 2 && (
             <div className="space-y-5 animate-in fade-in duration-200">
-              <div className="space-y-1.5">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold">
-                  <Zap className="w-3.5 h-3.5" /> Zero-Hardware Auto Verification
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-700 text-[11px] font-bold">
+                  <Zap className="w-3.5 h-3.5" /> 100% Cloud Auto-Verification
                 </div>
-                <h4 className="text-lg font-bold text-slate-900">
+                <h4 className="text-xl font-extrabold text-slate-900 tracking-tight pt-1">
                   Connect Bank Email for Automated Verification
                 </h4>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Whenever a customer pays, your bank emails you a credit alert. By forwarding this email to your personal MyMobPay address, our server automatically parses the UTR and marks orders as paid in seconds.
+                <p className="text-xs text-slate-500 leading-relaxed font-medium">
+                  Whenever a customer pays, your bank emails you a credit notification. By forwarding this alert to your dedicated MyMobPay cloud address, our parser automatically matches the UTR and confirms the transaction in real-time.
                 </p>
               </div>
 
-              {/* Dedicated Forwarding Address Box */}
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50/50 border border-blue-200 space-y-2.5">
-                <span className="text-[11px] font-extrabold uppercase tracking-wider text-blue-900">
-                  Your Dedicated Cloud Forwarding Address:
-                </span>
+              {/* Dedicated Cloud Forwarding Address Box */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-blue-50/70 via-indigo-50/40 to-slate-50 border border-blue-200/90 space-y-3 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-extrabold uppercase tracking-wider text-blue-900 flex items-center gap-1.5">
+                    <Mail className="w-3.5 h-3.5 text-blue-600" />
+                    Your Dedicated Forwarding Address:
+                  </span>
+                  <span className="text-[10.5px] font-bold text-blue-700 bg-blue-100/70 px-2 py-0.5 rounded-full">
+                    Private Cloud Pipeline
+                  </span>
+                </div>
+
                 <div className="flex items-center gap-2">
                   <input
                     type="text"
                     readOnly
                     value={forwardingEmail}
-                    className="flex-1 h-11 px-3.5 rounded-xl bg-white border border-blue-300 font-mono text-xs font-bold text-slate-900 select-all shadow-sm"
+                    className="flex-1 h-11 px-3.5 rounded-xl bg-white border border-blue-300 font-mono text-xs font-bold text-slate-900 select-all shadow-xs"
                   />
                   <button
                     type="button"
                     onClick={() => copyToClipboard(forwardingEmail, setCopiedEmail)}
-                    className="h-11 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all"
+                    className="h-11 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm shadow-blue-500/20 transition-all cursor-pointer"
                   >
                     {copiedEmail ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                     <span>{copiedEmail ? 'Copied' : 'Copy'}</span>
                   </button>
                 </div>
-                <p className="text-[11px] text-blue-700/80">
-                  Emails sent to this address trigger our Cloudflare email parser automatically.
+                <p className="text-[11.5px] text-slate-600 font-medium">
+                  Any UPI credit alert forwarded to this address is processed instantly by your gateway.
                 </p>
               </div>
 
-              {/* 3 Step Visual Instructions */}
+              {/* 3 Step Visual Guide */}
               <div className="space-y-2.5">
                 <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                   How to setup in Gmail (takes 45 seconds):
                 </span>
                 
                 <div className="space-y-2 text-xs text-slate-600">
-                  <div className="flex items-start gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200">
-                    <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[11px] font-bold shrink-0 mt-0.5">
+                  <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                    <span className="w-6 h-6 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xs font-extrabold shrink-0 mt-0.5 shadow-xs">
                       1
                     </span>
                     <div className="space-y-1">
-                      <p className="font-semibold text-slate-800">
+                      <p className="font-bold text-slate-900 text-xs">
                         Open Gmail Forwarding Settings
                       </p>
                       <a
                         href="https://mail.google.com/mail/u/0/#settings/fwdandpop"
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 font-bold text-xs"
+                        className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-800 font-bold text-xs"
                       >
-                        <span>Open Gmail Forwarding Settings</span>
+                        <span>Open Gmail Settings Tab</span>
                         <ExternalLink className="w-3.5 h-3.5" />
                       </a>
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200">
-                    <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[11px] font-bold shrink-0 mt-0.5">
+                  <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                    <span className="w-6 h-6 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xs font-extrabold shrink-0 mt-0.5 shadow-xs">
                       2
                     </span>
                     <div>
-                      <p className="font-semibold text-slate-800">
+                      <p className="font-bold text-slate-900 text-xs">
                         Add Forwarding Address
                       </p>
-                      <p className="text-slate-500 mt-0.5">
-                        Click <strong className="text-slate-700">&quot;Add a forwarding address&quot;</strong> and paste your dedicated address above.
+                      <p className="text-slate-500 mt-0.5 font-medium leading-relaxed">
+                        Click <strong className="text-slate-800">&quot;Add a forwarding address&quot;</strong> and paste your dedicated address shown above.
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200">
-                    <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[11px] font-bold shrink-0 mt-0.5">
+                  <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                    <span className="w-6 h-6 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xs font-extrabold shrink-0 mt-0.5 shadow-xs">
                       3
                     </span>
                     <div>
-                      <p className="font-semibold text-slate-800">
+                      <p className="font-bold text-slate-900 text-xs">
                         Confirm Google Verification
                       </p>
-                      <p className="text-slate-500 mt-0.5">
-                        Google will send an email to verify. Our cloud engine intercepts this email automatically so you can confirm it below!
+                      <p className="text-slate-500 mt-0.5 font-medium leading-relaxed">
+                        Google will send an email with a verification link. Our webhook intercepts it automatically so you can confirm it right below!
                       </p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Intercepted Gmail Verification Code Box */}
-              <div className="p-4 rounded-2xl border border-slate-200 bg-slate-50 space-y-2">
+              {/* Intercepted Gmail Verification Card */}
+              <div className="p-4 rounded-2xl border-2 border-slate-200 bg-slate-50/70 space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <span className="text-xs font-bold text-slate-800 flex items-center gap-2">
                     {pollingGmail && (
                       <RefreshCw className="w-3.5 h-3.5 animate-spin text-blue-600" />
                     )}
-                    Google Verification Status:
+                    Google Verification Listener:
                   </span>
                   {gmailIntercept ? (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-                      <CheckCircle2 className="w-3 h-3" /> Intercepted
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Intercepted
                     </span>
                   ) : (
-                    <span className="text-[11px] text-slate-500 italic">
-                      Listening for incoming Google verification…
+                    <span className="text-[11px] text-slate-500 font-medium italic">
+                      Waiting for Google verification email…
                     </span>
                   )}
                 </div>
 
                 {gmailIntercept ? (
-                  <div className="p-3 bg-emerald-50/80 border border-emerald-200 rounded-xl space-y-2">
-                    <p className="text-xs text-emerald-900 font-semibold">
-                      🎉 Google forwarded the verification email to your gateway address!
+                  <div className="p-3.5 bg-emerald-50/90 border border-emerald-200 rounded-xl space-y-2 animate-in zoom-in-95">
+                    <p className="text-xs text-emerald-900 font-bold flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-emerald-600" /> Verification email successfully captured!
                     </p>
                     {gmailIntercept.type === 'link' ? (
                       <a
                         href={gmailIntercept.url}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-all"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-all"
                       >
                         <span>Confirm Forwarding in Google (1-Click)</span>
                         <ExternalLink className="w-3.5 h-3.5" />
                       </a>
                     ) : (
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-sm font-bold bg-white px-2.5 py-1 rounded border border-emerald-300 text-emerald-900">
+                        <span className="font-mono text-sm font-extrabold bg-white px-3 py-1.5 rounded-lg border border-emerald-300 text-emerald-900">
                           {gmailIntercept.code}
                         </span>
                         <button
                           type="button"
                           onClick={() => copyToClipboard(gmailIntercept.code, setCopiedCode)}
-                          className="px-2.5 py-1 rounded bg-white hover:bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-300"
+                          className="px-3 py-1.5 rounded-lg bg-white hover:bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-300 transition-colors"
                         >
                           {copiedCode ? 'Copied ✓' : 'Copy Code'}
                         </button>
@@ -611,27 +629,27 @@ export default function MerchantOnboardingWizard({
                     )}
                   </div>
                 ) : (
-                  <div className="text-[11.5px] text-slate-500 bg-white p-3 rounded-xl border border-slate-200">
-                    Once you submit the forwarding address in Gmail, Google will send the verification email here within 30–60 seconds.
+                  <div className="text-[11.5px] text-slate-500 bg-white p-3 rounded-xl border border-slate-200 font-medium">
+                    Once you submit the address in Gmail, Google will send the confirmation email here within 30–60 seconds.
                   </div>
                 )}
               </div>
 
               {/* Navigation Action Buttons */}
-              <div className="pt-2 flex items-center justify-between">
+              <div className="pt-3 flex items-center justify-between">
                 <button
                   type="button"
                   onClick={() => setCurrentStep(1)}
-                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-slate-600 hover:text-slate-900 font-semibold text-xs transition-colors"
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-slate-600 hover:text-slate-900 font-bold text-xs transition-colors cursor-pointer"
                 >
                   <ArrowLeft className="w-4 h-4" />
-                  <span>Back to UPI</span>
+                  <span>Back</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={handleCompleteEmailStep}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+                  className="inline-flex items-center gap-2 px-7 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold text-sm shadow-md shadow-blue-600/20 transition-all cursor-pointer"
                 >
                   <span>Continue to Bank Details</span>
                   <ArrowRight className="w-4 h-4" />
@@ -645,28 +663,28 @@ export default function MerchantOnboardingWizard({
           ══════════════════════════════════════════════════════════ */}
           {currentStep === 3 && (
             <div className="space-y-5 animate-in fade-in duration-200">
-              <div className="space-y-1.5">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-xs font-bold">
-                  <Building2 className="w-3.5 h-3.5" /> Optional Step
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-bold">
+                  <Building2 className="w-3.5 h-3.5" /> Optional Payout Channel
                 </div>
-                <h4 className="text-lg font-bold text-slate-900">
+                <h4 className="text-xl font-extrabold text-slate-900 tracking-tight pt-1">
                   Add Bank Account for Net Banking (Optional)
                 </h4>
-                <p className="text-xs text-slate-500 leading-relaxed">
+                <p className="text-xs text-slate-500 leading-relaxed font-medium">
                   Allow your customers to pay via direct IMPS / NEFT Net Banking in addition to UPI QR. You can fill this now, or skip and add it anytime from Settings.
                 </p>
               </div>
 
-              <form onSubmit={handleSaveBank} className="space-y-3.5">
+              <form onSubmit={handleSaveBank} className="space-y-4">
                 {bankError && (
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-semibold flex items-center gap-1.5">
+                  <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-semibold flex items-center gap-1.5 animate-in fade-in">
                     <AlertCircle className="w-4 h-4 shrink-0" /> {bankError}
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                       Bank Name
                     </label>
                     <input
@@ -674,12 +692,12 @@ export default function MerchantOnboardingWizard({
                       value={bankName}
                       onChange={e => setBankName(e.target.value)}
                       placeholder="e.g. HDFC Bank, ICICI Bank, SBI"
-                      className="w-full h-10 px-3 rounded-xl border border-slate-300 text-slate-900 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      className="w-full h-11 px-3.5 rounded-xl border border-slate-200 bg-slate-50/70 text-slate-900 text-xs font-semibold focus:bg-white focus:border-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-xs"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                       Account Holder Name
                     </label>
                     <input
@@ -687,14 +705,14 @@ export default function MerchantOnboardingWizard({
                       value={bankAccName}
                       onChange={e => setBankAccName(e.target.value)}
                       placeholder="e.g. Rahul Sharma or Store Pvt Ltd"
-                      className="w-full h-10 px-3 rounded-xl border border-slate-300 text-slate-900 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      className="w-full h-11 px-3.5 rounded-xl border border-slate-200 bg-slate-50/70 text-slate-900 text-xs font-semibold focus:bg-white focus:border-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-xs"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                       Account Number
                     </label>
                     <input
@@ -702,12 +720,12 @@ export default function MerchantOnboardingWizard({
                       value={bankAccNum}
                       onChange={e => setBankAccNum(e.target.value.replace(/\D/g, ''))}
                       placeholder="Enter bank account number"
-                      className="w-full h-10 px-3 rounded-xl border border-slate-300 text-slate-900 font-mono text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      className="w-full h-11 px-3.5 rounded-xl border border-slate-200 bg-slate-50/70 text-slate-900 font-mono text-xs font-semibold focus:bg-white focus:border-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-xs"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                       Confirm Account Number
                     </label>
                     <input
@@ -715,13 +733,13 @@ export default function MerchantOnboardingWizard({
                       value={bankAccNumConfirm}
                       onChange={e => setBankAccNumConfirm(e.target.value.replace(/\D/g, ''))}
                       placeholder="Re-enter bank account number"
-                      className="w-full h-10 px-3 rounded-xl border border-slate-300 text-slate-900 font-mono text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      className="w-full h-11 px-3.5 rounded-xl border border-slate-200 bg-slate-50/70 text-slate-900 font-mono text-xs font-semibold focus:bg-white focus:border-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-xs"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                     IFSC Code
                   </label>
                   <input
@@ -730,7 +748,7 @@ export default function MerchantOnboardingWizard({
                     value={bankIfsc}
                     onChange={e => setBankIfsc(e.target.value.toUpperCase().trim())}
                     placeholder="e.g. HDFC0001234"
-                    className="w-full h-10 px-3 rounded-xl border border-slate-300 text-slate-900 font-mono text-xs uppercase focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full h-11 px-3.5 rounded-xl border border-slate-200 bg-slate-50/70 text-slate-900 font-mono text-xs uppercase font-semibold focus:bg-white focus:border-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 shadow-xs"
                   />
                 </div>
 
@@ -739,17 +757,17 @@ export default function MerchantOnboardingWizard({
                   <button
                     type="button"
                     onClick={() => setCurrentStep(2)}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 font-semibold text-xs transition-colors"
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-slate-600 hover:text-slate-900 font-bold text-xs transition-colors cursor-pointer"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     <span>Back</span>
                   </button>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2.5">
                     <button
                       type="button"
                       onClick={handleSkipBank}
-                      className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs transition-colors"
+                      className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs transition-colors cursor-pointer"
                     >
                       Skip & Add Later
                     </button>
@@ -757,7 +775,7 @@ export default function MerchantOnboardingWizard({
                     <button
                       type="submit"
                       disabled={bankSaving}
-                      className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+                      className="inline-flex items-center gap-2 px-7 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/20 transition-all cursor-pointer"
                     >
                       <span>{bankSaving ? 'Saving…' : 'Save & Continue'}</span>
                       <ArrowRight className="w-4 h-4" />
@@ -773,59 +791,59 @@ export default function MerchantOnboardingWizard({
           ══════════════════════════════════════════════════════════ */}
           {currentStep === 4 && (
             <div className="space-y-5 animate-in fade-in duration-200 text-center py-2">
-              <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center ring-8 ring-emerald-50">
+              <div className="w-16 h-16 rounded-3xl bg-emerald-50 text-emerald-600 mx-auto flex items-center justify-center border-2 border-emerald-100 shadow-sm">
                 <CheckCircle2 className="w-9 h-9" />
               </div>
 
               <div className="space-y-1">
-                <h4 className="text-xl font-extrabold text-slate-900">
-                  Your Account Is Ready!
+                <h4 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+                  Your Account Is Live!
                 </h4>
-                <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
-                  Your payment gateway is now fully configured on MyMobPay&apos;s zero-hardware automated verification rails.
+                <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed font-medium">
+                  Your gateway is fully configured for automated cloud verification with direct T+0 settlements.
                 </p>
               </div>
 
               {/* Status Summary Card */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-left space-y-2.5 text-xs">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-200">
-                  <span className="text-slate-500 font-medium">Receiving UPI ID</span>
+              <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 text-left space-y-3 text-xs shadow-xs">
+                <div className="flex items-center justify-between pb-2.5 border-b border-slate-200/80">
+                  <span className="text-slate-500 font-semibold">Receiving UPI ID</span>
                   <span className="font-mono font-bold text-slate-900 flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-500" />
                     {upiId || profile?.upi_id || 'Configured'}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between pb-2 border-b border-slate-200">
-                  <span className="text-slate-500 font-medium">Auto-Verification Engine</span>
+                <div className="flex items-center justify-between pb-2.5 border-b border-slate-200/80">
+                  <span className="text-slate-500 font-semibold">Cloud Verification Forwarding</span>
                   <span className="font-mono font-bold text-slate-900 flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-500" />
                     {forwardingEmail}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between pb-2 border-b border-slate-200">
-                  <span className="text-slate-500 font-medium">Net Banking Settlement</span>
+                <div className="flex items-center justify-between pb-2.5 border-b border-slate-200/80">
+                  <span className="text-slate-500 font-semibold">Net Banking Settlement</span>
                   <span className="font-bold text-slate-700">
                     {profile?.bank_account_number || bankAccNum ? 'Configured ✓' : 'Optional (Add anytime)'}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between pt-1">
-                  <span className="text-slate-500 font-medium">Active API Key</span>
-                  <span className="font-mono text-[11px] text-slate-700 font-semibold bg-white px-2 py-0.5 rounded border border-slate-200">
+                <div className="flex items-center justify-between pt-0.5">
+                  <span className="text-slate-500 font-semibold">Active API Key</span>
+                  <span className="font-mono text-[11px] text-slate-800 font-bold bg-white px-2.5 py-1 rounded-lg border border-slate-200">
                     {profile?.api_key || 'active'}
                   </span>
                 </div>
               </div>
 
               {/* Live Test Payment Link Box */}
-              <div className="p-3.5 rounded-xl bg-blue-50/70 border border-blue-200 text-left flex items-center justify-between gap-3">
+              <div className="p-4 rounded-2xl bg-blue-50/80 border border-blue-200 text-left flex items-center justify-between gap-3 shadow-xs">
                 <div className="space-y-0.5">
-                  <p className="text-xs font-bold text-blue-900">
-                    Test your payment page now:
+                  <p className="text-xs font-bold text-blue-950 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-blue-600" /> Test your payment page right now:
                   </p>
-                  <p className="text-[11px] text-blue-700">
+                  <p className="text-[11.5px] text-blue-800/80 font-medium">
                     Open a live ₹1.00 checkout session to see direct UPI settlement in action.
                   </p>
                 </div>
@@ -833,7 +851,7 @@ export default function MerchantOnboardingWizard({
                   href={`/pay?key=${profile?.api_key || ''}&amount=1.00&project=${encodeURIComponent(profile?.business_name || 'MyMobPay Merchant')}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shrink-0 flex items-center gap-1 shadow-sm transition-all"
+                  className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shrink-0 flex items-center gap-1.5 shadow-sm shadow-blue-500/20 transition-all cursor-pointer"
                 >
                   <span>Test ₹1</span>
                   <ExternalLink className="w-3.5 h-3.5" />
@@ -846,7 +864,7 @@ export default function MerchantOnboardingWizard({
                   type="button"
                   disabled={completing}
                   onClick={handleFinishWizard}
-                  className="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm shadow-lg shadow-slate-900/20 transition-all cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 active:scale-[0.99] text-white font-bold text-sm shadow-lg shadow-slate-900/15 transition-all cursor-pointer flex items-center justify-center gap-2"
                 >
                   <span>{completing ? 'Completing setup…' : 'Enter Merchant Dashboard'}</span>
                   <ChevronRight className="w-4 h-4" />
