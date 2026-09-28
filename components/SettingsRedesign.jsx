@@ -38,6 +38,7 @@ import {
   Building
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { openTaxInvoiceWindow } from '@/lib/invoiceGenerator';
 
 const IFSC_PREFIX_MAP = {
   'State Bank of India (SBI)': 'SBIN0',
@@ -1911,7 +1912,7 @@ export default function SettingsRedesign({
                   </div>
                   <button
                     type="button"
-                    onClick={() => alert('Downloading current month settlement advice summary...')}
+                    onClick={() => openTaxInvoiceWindow({ plan: 'Monthly Enterprise IMPS Settlement Advice & Reconciliation', amount: 499 }, profile)}
                     className="h-9 px-4 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 font-semibold text-xs transition-colors flex items-center gap-1.5 shadow-2xs shrink-0 cursor-pointer"
                   >
                     <FileText className="w-3.5 h-3.5 text-blue-600" />

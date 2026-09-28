@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { CONFIG } from '@/lib/config';
+import { openTaxInvoiceWindow } from '@/lib/invoiceGenerator';
 
 export default function SubscriptionRedesign({
   profile = {},
@@ -228,124 +229,9 @@ export default function SubscriptionRedesign({
     }
   };
 
-  // ── Handle Download GST Tax Invoice ──────────────────────────
+  // ── Handle Download GST Tax Invoice (Executive New Look & Logo) ─
   const handleDownloadInvoice = (inv) => {
-    const invNumber = inv?.ref ? `MMP-INV-${inv.ref}` : `MMP-INV-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
-    const invoiceDate = inv?.date ? new Date(inv.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-    const businessName = profile?.business_name || profile?.owner_name || 'MyMobPay Merchant';
-    const gstin = profile?.gstin || '27AADCB2230M1Z2';
-    const planName = inv?.plan || subDetails?.planTitle || 'Pro Merchant License';
-    const amount = inv?.amount || subDetails?.planAmount || 499;
-    const cgst = (amount * 0.09).toFixed(2);
-    const sgst = (amount * 0.09).toFixed(2);
-    const total = (amount * 1.18).toFixed(2);
-
-    const invoiceHtml = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Tax Invoice - ${invNumber}</title>
-        <style>
-          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px; color: #0f172a; max-width: 800px; margin: 0 auto; line-height: 1.5; }
-          .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #e2e8f0; padding-bottom: 24px; margin-bottom: 24px; }
-          .logo { font-size: 24px; font-weight: 900; color: #0c2340; }
-          .logo span { color: #2563eb; }
-          .badge { display: inline-block; padding: 4px 12px; background: #ecfdf5; color: #065f46; font-size: 11px; font-weight: 700; border-radius: 9999px; border: 1px solid #a7f3d0; text-transform: uppercase; margin-top: 6px; }
-          .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; font-size: 13px; }
-          .grid h4 { margin: 0 0 8px 0; color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
-          table { width: 100%; border-collapse: collapse; margin-bottom: 32px; font-size: 13px; }
-          th { text-align: left; padding: 12px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; color: #475569; font-weight: 600; }
-          td { padding: 12px; border-bottom: 1px solid #f1f5f9; }
-          .total-row td { font-weight: 700; border-top: 2px solid #e2e8f0; font-size: 15px; color: #0c2340; }
-          .footer { text-align: center; color: #94a3b8; font-size: 11px; border-top: 1px solid #e2e8f0; padding-top: 20px; }
-          @media print { .no-print { display: none; } body { padding: 0; } }
-        </style>
-      </head>
-      <body>
-        <div class="no-print" style="margin-bottom: 20px; text-align: right;">
-          <button onclick="window.print()" style="padding: 10px 20px; background: #2563eb; color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Print / Save as PDF</button>
-        </div>
-        <div class="header">
-          <div>
-            <div class="logo">mymob<span>pay</span></div>
-            <div style="font-size: 12px; color: #64748b; margin-top: 4px;">MyMobPay Technologies Private Limited</div>
-            <div style="font-size: 11px; color: #94a3b8;">CIN: U72900MH2023PTC402190 • GSTIN: 27AADCB2230M1Z2</div>
-            <div style="font-size: 11px; color: #94a3b8;">402 Tech Park, Bandra West, Mumbai 400050</div>
-          </div>
-          <div style="text-align: right;">
-            <div style="font-size: 20px; font-weight: 800; color: #0c2340;">TAX INVOICE</div>
-            <div style="font-size: 12px; font-family: monospace; color: #475569; margin-top: 4px;">${invNumber}</div>
-            <div class="badge">Paid • Direct Settlement</div>
-          </div>
-        </div>
-
-        <div class="grid">
-          <div>
-            <h4>Billed To (Merchant)</h4>
-            <div style="font-weight: 700; font-size: 14px;">${businessName}</div>
-            <div style="color: #64748b;">${profile?.email || 'merchant@mymobpay.tech'}</div>
-            <div style="color: #64748b;">GSTIN: ${gstin}</div>
-            <div style="color: #64748b;">MID: ${profile?.id ? profile.id.slice(0, 8).toUpperCase() : 'MMP884920'}</div>
-          </div>
-          <div style="text-align: right;">
-            <h4>Invoice Details</h4>
-            <div><strong>Invoice Date:</strong> ${invoiceDate}</div>
-            <div><strong>Due Date:</strong> Immediate (Prepaid)</div>
-            <div><strong>Settlement Rail:</strong> NPCI UPI / IMPS Auto-Clear</div>
-          </div>
-        </div>
-
-        <table>
-          <thead>
-            <tr>
-              <th>Description</th>
-              <th>HSN/SAC</th>
-              <th>Qty</th>
-              <th>Rate (₹)</th>
-              <th style="text-align: right;">Amount (₹)</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><strong>${planName}</strong><br><span style="font-size: 11px; color: #64748b;">UPI Direct-to-Bank Gateway Platform Fee (Monthly Access)</span></td>
-              <td>998313</td>
-              <td>1</td>
-              <td>₹${amount}</td>
-              <td style="text-align: right;">₹${amount}</td>
-            </tr>
-            <tr>
-              <td colspan="4" style="text-align: right; color: #64748b;">Central GST (CGST 9%):</td>
-              <td style="text-align: right;">₹${cgst}</td>
-            </tr>
-            <tr>
-              <td colspan="4" style="text-align: right; color: #64748b;">State GST (SGST 9%):</td>
-              <td style="text-align: right;">₹${sgst}</td>
-            </tr>
-            <tr class="total-row">
-              <td colspan="4" style="text-align: right;">Total Amount Paid:</td>
-              <td style="text-align: right;">₹${total}</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; margin-bottom: 24px; font-size: 12px; color: #475569;">
-          <strong>Zero Escrow Confirmation:</strong> This platform fee entitles the merchant to direct peer-to-peer settlement via NPCI clearing rails without aggregator holding periods.
-        </div>
-
-        <div class="footer">
-          This is a computer-generated tax invoice and requires no physical signature. Thank you for choosing MyMobPay.
-        </div>
-      </body>
-      </html>
-    `;
-
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(invoiceHtml);
-      printWindow.document.close();
-    } else {
-      triggerToast('Invoice ready! Please allow popups to view and print.');
-    }
+    openTaxInvoiceWindow(inv, profile, subDetails, triggerToast);
   };
 
   // ── Handle Payment & Plan Activation ──────────────────────────
