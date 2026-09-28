@@ -1,3 +1,7 @@
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
+
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { supabaseAdmin } from '@/lib/supabase';
@@ -217,10 +221,22 @@ export async function GET(request) {
       created_at: order.created_at,
       isPostPaymentExpired,
       merchant: merchant || null
-    }, { status: 200 });
+    }, { 
+      status: 200,
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
 
   } catch (err) {
     console.error('API get order error:', err);
-    return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: err.message || 'Internal server error' }, { 
+      status: 500,
+      headers: {
+        'Cache-Control': 'no-store, max-age=0'
+      }
+    });
   }
 }

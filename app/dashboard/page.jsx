@@ -43,7 +43,7 @@ import {
 
 
 
-  QrCode, Share2, Trash2, Plus, ExternalLink, Sparkles, Check
+  QrCode, Share2, Trash2, Plus, ExternalLink, Sparkles, Check, ArrowRight
 
 
 
@@ -58,6 +58,7 @@ import PaymentLinksRedesign from '@/components/PaymentLinksRedesign';
 import TransactionsRedesign from '@/components/TransactionsRedesign';
 import SubscriptionRedesign from '@/components/SubscriptionRedesign';
 import SettingsRedesign from '@/components/SettingsRedesign';
+import MerchantOnboardingWizard from '@/components/MerchantOnboardingWizard';
 
 
 
@@ -151,6 +152,7 @@ export default function DashboardPage() {
 
   // Track subscription activation transition to ensure payment confirmation screen is shown
   const [activationDismissed, setActivationDismissed] = useState(false);
+  const [showOnboardingWizard, setShowOnboardingWizard] = useState(false);
   const wasInactiveOnMount = useRef(null);
 
   useEffect(() => {
@@ -159,6 +161,18 @@ export default function DashboardPage() {
       wasInactiveOnMount.current = (profile.subscription_status !== 'active' || expired);
     }
   }, [profile]);
+
+  // Automatically prompt onboarding wizard for merchants with active sub but incomplete setup
+  useEffect(() => {
+    if (
+      profile &&
+      profile.subscription_status === 'active' &&
+      !profile?.setup_progress?.onboarding_completed &&
+      (!profile.upi_id || profile.upi_id === 'pending@upi' || !profile?.setup_progress?.email_forwarding)
+    ) {
+      setShowOnboardingWizard(true);
+    }
+  }, [profile?.id, profile?.subscription_status]);
 
   const [copied, setCopied] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
@@ -5582,7 +5596,10 @@ echo "Order Created: " . $data['orderId'];
         historyOrders={historyOrders}
         historyLoading={historyLoading}
         handleSignOut={handleSignOut}
-        onActivationComplete={() => setActivationDismissed(true)}
+        onActivationComplete={() => {
+          setActivationDismissed(true);
+          setShowOnboardingWizard(true);
+        }}
       />
     );
   };
@@ -10480,6 +10497,36 @@ echo "Order Created: " . $data['orderId'];
                ═══════════════════════════════════════════════════════════ */}
 
 
+
+            {/* ── Persistent Merchant Onboarding / Setup Incomplete Banner ── */}
+            {profile && (!profile?.setup_progress?.onboarding_completed || !profile?.upi_id || profile?.upi_id === 'pending@upi' || !profile?.setup_progress?.email_forwarding) && (
+              <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-600 flex items-center justify-center shrink-0">
+                    <Zap className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-900 flex items-center gap-2">
+                      Action Required: Setup Account to Receive Payments
+                      <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">
+                        Setup Incomplete
+                      </span>
+                    </h4>
+                    <p className="text-[11.5px] text-slate-600 mt-0.5">
+                      Configure your receiving UPI ID and connect bank email auto-verification to start collecting live payments.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowOnboardingWizard(true)}
+                  className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shrink-0 flex items-center gap-1.5 shadow-md shadow-slate-900/10 transition-all cursor-pointer"
+                >
+                  <span>Complete Setup Wizard</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
 
             {activeTab === 'setup-guide' && renderSetupGuidePanel()}
 
@@ -23194,6 +23241,14 @@ async function checkOrderStatus(orderId) {
       )}
 
 
+
+      {/* ── Merchant Setup Wizard Modal ── */}
+      <MerchantOnboardingWizard
+        isOpen={showOnboardingWizard}
+        onClose={() => setShowOnboardingWizard(false)}
+        profile={profile}
+        onProfileUpdated={(updated) => setProfile(prev => ({ ...prev, ...updated }))}
+      />
 
     </div>
 

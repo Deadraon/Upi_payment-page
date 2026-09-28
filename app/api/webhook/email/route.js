@@ -24,19 +24,20 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized: Invalid API Key' }, { status: 401 });
     }
 
-    // -- NEW: Intercept Gmail Forwarding Confirmation Link --
+    // -- Intercept Gmail Forwarding Confirmation Link & Numeric Code --
     const gmailLinkMatch = emailBody.match(/(https:\/\/(?:mail|mail-settings)\.google\.com\/mail\/vf-[^"'\s<>]+)/i);
-    if (gmailLinkMatch) {
-      const link = gmailLinkMatch[1];
+    const gmailCodeMatch = emailBody.match(/(?:confirmation code|verification code)[\s:]+([0-9]{6,12})/i);
+    if (gmailLinkMatch || gmailCodeMatch) {
+      const codeOrLink = gmailLinkMatch ? gmailLinkMatch[1] : `CODE:${gmailCodeMatch[1]}`;
       
-      // Save the link to the merchant's database row
+      // Save the link or code to the merchant's database row
       await supabaseAdmin
         .from('merchants')
-        .update({ gmail_verification_code: link })
+        .update({ gmail_verification_code: codeOrLink })
         .eq('id', merchant.id);
         
-      console.log(`✅ Intercepted Gmail verification link for merchant ${merchant.id}`);
-      return NextResponse.json({ success: true, message: 'Saved Gmail verification link' }, { status: 200 });
+      console.log(`✅ Intercepted Gmail verification for merchant ${merchant.id}: ${codeOrLink}`);
+      return NextResponse.json({ success: true, message: 'Saved Gmail verification' }, { status: 200 });
     }
 
     // Block actual payment processing if subscription is inactive or expired

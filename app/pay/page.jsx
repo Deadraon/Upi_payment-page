@@ -369,7 +369,10 @@ function PayPageContent() {
     if (!cleanParamOrderId) return;
 
     let isMounted = true;
-    fetch(`/api/orders?id=${encodeURIComponent(cleanParamOrderId)}`)
+    fetch(`/api/orders?id=${encodeURIComponent(cleanParamOrderId)}&_t=${Date.now()}`, {
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
+    })
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         if (!isMounted) return;
@@ -402,7 +405,7 @@ function PayPageContent() {
     return () => { isMounted = false; };
   }, [cleanParamOrderId]);
 
-  /* ── Real-time order verification polling (Minimum delay) ── */
+  /* ── Real-time order verification polling + Supabase Realtime (Instant push & zero cache) ── */
   useEffect(() => {
     const activeTarget = orderId || cleanParamOrderId;
     if (!activeTarget || confirmed) return;
@@ -411,7 +414,10 @@ function PayPageContent() {
 
     const checkOrderStatus = async () => {
       try {
-        const res = await fetch(`/api/orders?id=${encodeURIComponent(activeTarget)}`);
+        const res = await fetch(`/api/orders?id=${encodeURIComponent(activeTarget)}&_t=${Date.now()}`, {
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
+        });
         if (!res.ok) return;
         const data = await res.json();
         if (isMounted && data && (data.status === 'verified' || data.status === 'completed' || data.status === 'paid')) {
@@ -423,9 +429,42 @@ function PayPageContent() {
     // Fast polling: check every 1000ms for minimum verification latency
     const interval = setInterval(checkOrderStatus, 1000);
 
+    // Instant wake-up check when returning to mobile browser from UPI app or Gmail
+    const onVisibilityOrFocus = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        checkOrderStatus();
+      }
+    };
+
+    document.addEventListener('visibilitychange', onVisibilityOrFocus);
+    window.addEventListener('focus', onVisibilityOrFocus);
+
+    // Supabase Realtime channel subscription for instant WebSocket push notification
+    let channel = null;
+    try {
+      channel = supabase
+        .channel(`order-status-${activeTarget}`)
+        .on(
+          'postgres_changes',
+          { event: 'UPDATE', schema: 'public', table: 'orders', filter: `id=eq.${activeTarget}` },
+          (payload) => {
+            const newRow = payload?.new;
+            if (isMounted && newRow && (newRow.status === 'verified' || newRow.status === 'completed' || newRow.status === 'paid')) {
+              handleSuccess(newRow.id || activeTarget, newRow.callback_url);
+            }
+          }
+        )
+        .subscribe();
+    } catch {}
+
     return () => {
       isMounted = false;
       clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisibilityOrFocus);
+      window.removeEventListener('focus', onVisibilityOrFocus);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
   }, [orderId, cleanParamOrderId, confirmed]);
 
@@ -479,7 +518,7 @@ function PayPageContent() {
     } catch (err) {
       console.error('Status check error:', err);
       try {
-        const fallbackRes = await fetch(`/api/orders?id=${targetId}`);
+        const fallbackRes = await fetch(`/api/orders?id=${targetId}&_t=${Date.now()}`, { cache: 'no-store' });
         const fallbackData = await fallbackRes.json();
         if (fallbackData?.status === 'verified') {
           setCheckMsg('✓ Payment verified! Redirecting…');
@@ -518,7 +557,16 @@ function PayPageContent() {
       if (res.ok && data) {
         const id = data.order_id || data.orderId;
         const am = data.amount ?? data.orderAmount;
-        if (id) setOrderId(id);
+        if (id) {
+          setOrderId(id);
+          try {
+            if (typeof window !== 'undefined' && window.history?.replaceState) {
+              const u = new URL(window.location.href);
+              u.searchParams.set('order_id', id);
+              window.history.replaceState(null, '', u.toString());
+            }
+          } catch {}
+        }
         if (am != null) setOrderAmount(am);
         setOrderMode(data.mode || 'live');
         if (data.note) setOrderNote(data.note);
@@ -1080,8 +1128,8 @@ function PayPageContent() {
                     <span className="mob-verify-dot" />
                   </div>
                   <div className="mob-verify-text">
-                    <strong className="mob-verify-title">Payment verification may take up to 60 seconds.</strong>{' '}
-                    <span className="mob-verify-desc">Please wait and do not close or refresh this screen.</span>
+                    <strong className="mob-verify-title">Auto-verifying bank credit...</strong>{' '}
+                    <span className="mob-verify-desc">Bank notifications take 30–90 seconds. Please keep this screen open, or tap below to enter your 12-digit UTR if already debited.</span>
                   </div>
                 </div>
 
