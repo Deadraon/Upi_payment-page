@@ -17,8 +17,7 @@ import {
   Info,
   ExternalLink,
   Copy,
-  CreditCard,
-  ChevronDown
+  Inbox
 } from 'lucide-react';
 
 export default function DashboardOverviewRedesign({
@@ -129,11 +128,63 @@ export default function DashboardOverviewRedesign({
     });
   }, [orders]);
 
-  const refundedOrders = useMemo(() => {
+  const failedOrders = useMemo(() => {
     return (orders || []).filter((o) => {
       const s = (o.status || '').toLowerCase();
-      return s === 'refunded' || s === 'refund' || s === 'failed' || s === 'cancelled';
+      return (
+        s === 'failed' ||
+        s === 'cancelled' ||
+        s === 'refunded' ||
+        s === 'refund' ||
+        s === 'rejected' ||
+        s === 'declined'
+      );
     });
+  }, [orders]);
+
+  // Multi-Rail Breakdown: Universal UPI, Direct Bank (IMPS), Crypto (Web3)
+  const railMetrics = useMemo(() => {
+    let upi = 0;
+    let bank = 0;
+    let crypto = 0;
+
+    (orders || []).forEach((order) => {
+      const raw = `${order.upi_app || ''} ${order.method || ''} ${order.rail || ''} ${order.payment_method || ''}`.toLowerCase();
+      if (
+        raw.includes('crypto') ||
+        raw.includes('web3') ||
+        raw.includes('usdt') ||
+        raw.includes('btc') ||
+        raw.includes('eth') ||
+        raw.includes('tron') ||
+        raw.includes('sol') ||
+        raw.includes('polygon')
+      ) {
+        crypto++;
+      } else if (
+        raw.includes('bank') ||
+        raw.includes('imps') ||
+        raw.includes('neft') ||
+        raw.includes('rtgs') ||
+        raw.includes('netbanking')
+      ) {
+        bank++;
+      } else {
+        // Universal UPI direct gateway flow
+        upi++;
+      }
+    });
+
+    const total = (orders || []).length || 0;
+    return {
+      upi,
+      bank,
+      crypto,
+      total,
+      upiPct: total > 0 ? (upi / total) * 100 : 0,
+      bankPct: total > 0 ? (bank / total) * 100 : 0,
+      cryptoPct: total > 0 ? (crypto / total) * 100 : 0
+    };
   }, [orders]);
 
   // ─── 100% REAL LIVE CALCULATIONS (NO DUMMY VALUES) ───
@@ -148,7 +199,7 @@ export default function DashboardOverviewRedesign({
   const settledVolume = totalVolume; // Direct pass-through settles successful volume T+0
   const successCount = successfulOrders.length;
   const pendingCount = pendingOrders.length;
-  const refundedCount = refundedOrders.length;
+  const failedCount = failedOrders.length;
 
   const successRate = totalCount > 0
     ? ((successCount / totalCount) * 100).toFixed(1)
@@ -230,7 +281,9 @@ export default function DashboardOverviewRedesign({
     if (activeFilter === 'all') return mappedTransactions;
     if (activeFilter === 'success') return mappedTransactions.filter((t) => t.status === 'Success');
     if (activeFilter === 'pending') return mappedTransactions.filter((t) => t.status === 'Pending');
-    if (activeFilter === 'refunded') return mappedTransactions.filter((t) => t.status === 'Refunded' || t.status === 'Failed');
+    if (activeFilter === 'failed' || activeFilter === 'refunded') {
+      return mappedTransactions.filter((t) => t.status === 'Failed' || t.status === 'Refunded');
+    }
     return mappedTransactions;
   }, [mappedTransactions, activeFilter]);
 
@@ -307,13 +360,13 @@ export default function DashboardOverviewRedesign({
            ══════════════════════════════════════════════════════════════ */}
         <section className="col-span-12 xl:col-span-3 flex flex-col gap-4">
           
-          {/* Merchant Passport Card (100% Real Live Data) */}
-          <div className="bg-white rounded-xl border border-[#d2dae5] p-5 shadow-sm">
+          {/* Merchant Passport Card (100% Real Live Data - Dark Obsidian Theme matching Total Processed) */}
+          <div className="bg-[#0c2340] text-white rounded-xl border border-slate-800 p-5 shadow-sm relative overflow-hidden">
             <div className="flex gap-3.5 items-center mb-4">
               {/* Real Merchant Monogram/Logo */}
               <div
-                className="size-14 rounded-xl text-white flex items-center justify-center font-bold text-lg shadow-sm shrink-0 border border-slate-700/20"
-                style={{ backgroundColor: profile?.theme_color || '#0c2340' }}
+                className="size-14 rounded-xl text-white flex items-center justify-center font-bold text-lg shadow-sm shrink-0 border border-white/20"
+                style={{ backgroundColor: profile?.theme_color || '#1a3a60' }}
               >
                 {profile?.logo_url ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
@@ -329,41 +382,41 @@ export default function DashboardOverviewRedesign({
 
               <div className="flex flex-col min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-1">
-                  <h3 className="text-[#0f141a] text-base font-bold leading-tight truncate">
+                  <h3 className="text-white text-base font-bold leading-tight truncate">
                     {merchantBusinessName}
                   </h3>
                   <span
                     className={`px-2 py-0.5 rounded-full text-[11px] font-semibold shrink-0 border ${
                       profile?.is_test_mode
-                        ? 'bg-amber-50 text-amber-700 border-amber-200'
-                        : 'bg-emerald-50 text-[#07883b] border border-emerald-200'
+                        ? 'bg-amber-400/20 text-amber-300 border-amber-400/30'
+                        : 'bg-[#07883b]/25 text-[#4edea3] border border-[#07883b]/40'
                     }`}
                   >
                     {profile?.is_test_mode ? 'Test' : 'Live'}
                   </span>
                 </div>
-                <p className="text-[#547092] text-xs font-normal truncate mt-0.5">
+                <p className="text-[#b3c7ec] text-xs font-normal truncate mt-0.5">
                   {merchantDomain}
                 </p>
-                <p className="text-[#547092] text-xs font-mono font-medium truncate">
+                <p className="text-[#778bad] text-xs font-mono font-medium truncate">
                   MID: {merchantMID}
                 </p>
               </div>
             </div>
 
-            <div className="pt-3 border-t border-[#e8edf2] space-y-2 text-xs">
+            <div className="pt-3 border-t border-white/10 space-y-2 text-xs">
               <div className="flex justify-between items-center">
-                <span className="text-[#547092]">Settlement Type</span>
-                <span className="font-medium text-[#0f141a]">Direct Pass-Through</span>
+                <span className="text-[#b3c7ec]">Settlement Type</span>
+                <span className="font-medium text-white">Direct Pass-Through</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-[#547092]">Destination</span>
+                <span className="text-[#b3c7ec]">Destination</span>
                 {hasBankAccount ? (
                   <button
                     type="button"
                     onClick={navigateToBankSettings}
                     title="Manage settlement bank accounts in Settings"
-                    className="font-mono font-medium text-[#0f141a] hover:text-[#0045de] transition-colors cursor-pointer text-left"
+                    className="font-mono font-medium text-white hover:text-[#4edea3] transition-colors cursor-pointer text-left truncate max-w-[170px]"
                   >
                     {activeBankAccount.bank_name} •••• {activeBankAccount.bank_account_number ? activeBankAccount.bank_account_number.slice(-4) : '••••'}
                   </button>
@@ -371,29 +424,29 @@ export default function DashboardOverviewRedesign({
                   <button
                     type="button"
                     onClick={navigateToBankSettings}
-                    className="text-amber-600 hover:text-amber-800 font-semibold inline-flex items-center gap-1 cursor-pointer transition-colors"
+                    className="text-amber-400 hover:text-amber-300 font-semibold inline-flex items-center gap-1 cursor-pointer transition-colors"
                   >
                     <AlertCircle className="w-3 h-3" /> Not Linked
                   </button>
                 )}
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-[#547092]">KYC / GSTIN</span>
+                <span className="text-[#b3c7ec]">KYC / GSTIN</span>
                 {profile?.gstin || profile?.is_verified || profile?.kyc_verified ? (
-                  <span className="inline-flex items-center gap-1 font-medium text-[#07883b]">
+                  <span className="inline-flex items-center gap-1 font-medium text-[#4edea3]">
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     Verified
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 font-medium text-amber-600">
+                  <span className="inline-flex items-center gap-1 font-medium text-amber-400">
                     <AlertCircle className="w-3.5 h-3.5" />
                     Pending Setup
                   </span>
                 )}
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-[#547092]">Operating Mode</span>
-                <span className="font-medium text-[#0c2340]">
+                <span className="text-[#b3c7ec]">Operating Mode</span>
+                <span className="font-medium text-white">
                   {profile?.is_test_mode ? 'Sandbox Rail' : 'Production Rail (T+0)'}
                 </span>
               </div>
@@ -424,28 +477,129 @@ export default function DashboardOverviewRedesign({
 
           {/* Compact Bento Pair: Real Transaction Count & Settled Volume */}
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-4">
-            {/* Real Transaction Count */}
+            {/* Real Transaction Count & Multi-Rail Breakdown (UPI, Bank, Crypto) */}
             <div className="bg-white rounded-xl border border-[#d2dae5] p-5 shadow-sm flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <p className="text-[#547092] text-xs font-medium uppercase tracking-wider">
+                <p className="text-[#547092] text-xs font-semibold uppercase tracking-wider">
                   Transaction Count
                 </p>
-                <span className="text-[#07883b] text-xs font-bold font-mono">
+                <span className="text-[#07883b] text-xs font-bold font-mono bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                   {successCount} Success
                 </span>
               </div>
               <div className="mt-3">
-                <p className="text-[#0f141a] text-2xl font-bold tracking-tight font-mono">
-                  {totalCount.toLocaleString('en-IN')}
-                </p>
-                <div className="w-full bg-[#e8edf2] h-1.5 rounded-full mt-3 overflow-hidden">
-                  <div
-                    className="bg-[#2c60ff] h-full rounded-full transition-all duration-500"
-                    style={{
-                      width: `${totalCount > 0 ? Math.min(100, Math.max(5, (successCount / totalCount) * 100)) : 0}%`
-                    }}
-                  />
+                <div className="flex items-baseline justify-between">
+                  <p className="text-[#0f141a] text-2xl font-bold tracking-tight font-mono">
+                    {totalCount.toLocaleString('en-IN')}
+                  </p>
+                  <span className="text-[11px] text-[#547092] font-medium">
+                    Total Transactions
+                  </span>
                 </div>
+
+                {/* Master Multi-Rail Segmented Progress Bar */}
+                <div className="w-full bg-[#e8edf2] h-2 rounded-full mt-3 overflow-hidden flex shadow-xs">
+                  {railMetrics.upiPct > 0 && (
+                    <div
+                      title={`UPI: ${railMetrics.upi} (${railMetrics.upiPct.toFixed(1)}%)`}
+                      className="bg-[#2563eb] h-full transition-all duration-500"
+                      style={{ width: `${railMetrics.upiPct}%` }}
+                    />
+                  )}
+                  {railMetrics.bankPct > 0 && (
+                    <div
+                      title={`Bank: ${railMetrics.bank} (${railMetrics.bankPct.toFixed(1)}%)`}
+                      className="bg-[#059669] h-full transition-all duration-500"
+                      style={{ width: `${railMetrics.bankPct}%` }}
+                    />
+                  )}
+                  {railMetrics.cryptoPct > 0 && (
+                    <div
+                      title={`Crypto: ${railMetrics.crypto} (${railMetrics.cryptoPct.toFixed(1)}%)`}
+                      className="bg-[#f59e0b] h-full transition-all duration-500"
+                      style={{ width: `${railMetrics.cryptoPct}%` }}
+                    />
+                  )}
+                  {totalCount === 0 && (
+                    <div className="w-full bg-slate-200 h-full" />
+                  )}
+                </div>
+
+                {/* Multi-Rail Counts with Distinct Color Lines */}
+                <div className="mt-4 pt-3 border-t border-[#e8edf2] space-y-2.5">
+                  {/* UPI Rail */}
+                  <div>
+                    <div className="flex items-center justify-between text-xs mb-1">
+                      <span className="flex items-center gap-1.5 font-medium text-[#0f141a]">
+                        <span className="size-2 rounded-full bg-[#2563eb]" />
+                        UPI
+                      </span>
+                      <div className="flex items-center gap-1.5 font-mono">
+                        <span className="font-bold text-[#0f141a]">
+                          {railMetrics.upi.toLocaleString('en-IN')}
+                        </span>
+                        <span className="text-[10px] text-[#547092]">
+                          ({railMetrics.upiPct.toFixed(0)}%)
+                        </span>
+                      </div>
+                    </div>
+                    <div className="w-full bg-[#e8edf2] h-1.5 rounded-full overflow-hidden">
+                      <div
+                        className="bg-[#2563eb] h-full rounded-full transition-all duration-500"
+                        style={{ width: `${railMetrics.upiPct}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Bank (IMPS / Direct) Rail */}
+                  <div>
+                    <div className="flex items-center justify-between text-xs mb-1">
+                      <span className="flex items-center gap-1.5 font-medium text-[#0f141a]">
+                        <span className="size-2 rounded-full bg-[#059669]" />
+                        Bank (IMPS)
+                      </span>
+                      <div className="flex items-center gap-1.5 font-mono">
+                        <span className="font-bold text-[#0f141a]">
+                          {railMetrics.bank.toLocaleString('en-IN')}
+                        </span>
+                        <span className="text-[10px] text-[#547092]">
+                          ({railMetrics.bankPct.toFixed(0)}%)
+                        </span>
+                      </div>
+                    </div>
+                    <div className="w-full bg-[#e8edf2] h-1.5 rounded-full overflow-hidden">
+                      <div
+                        className="bg-[#059669] h-full rounded-full transition-all duration-500"
+                        style={{ width: `${railMetrics.bankPct}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Crypto (Web3 / USDT) Rail */}
+                  <div>
+                    <div className="flex items-center justify-between text-xs mb-1">
+                      <span className="flex items-center gap-1.5 font-medium text-[#0f141a]">
+                        <span className="size-2 rounded-full bg-[#f59e0b]" />
+                        Crypto (Web3)
+                      </span>
+                      <div className="flex items-center gap-1.5 font-mono">
+                        <span className="font-bold text-[#0f141a]">
+                          {railMetrics.crypto.toLocaleString('en-IN')}
+                        </span>
+                        <span className="text-[10px] text-[#547092]">
+                          ({railMetrics.cryptoPct.toFixed(0)}%)
+                        </span>
+                      </div>
+                    </div>
+                    <div className="w-full bg-[#e8edf2] h-1.5 rounded-full overflow-hidden">
+                      <div
+                        className="bg-[#f59e0b] h-full rounded-full transition-all duration-500"
+                        style={{ width: `${railMetrics.cryptoPct}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </div>
 
@@ -509,56 +663,52 @@ export default function DashboardOverviewRedesign({
               <button
                 type="button"
                 onClick={() => setActiveFilter('all')}
-                className={`h-8 px-3 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
+                className={`h-8 px-3 rounded-lg text-xs flex items-center transition-all cursor-pointer ${
                   activeFilter === 'all'
                     ? 'bg-[#0c2340] text-white font-semibold shadow-sm'
                     : 'bg-[#e8edf2] text-[#0f141a] hover:bg-[#d2dae5] font-medium'
                 }`}
               >
                 <span>All Transactions</span>
-                <ChevronDown className="w-3.5 h-3.5 opacity-80" />
               </button>
 
               {/* Successful */}
               <button
                 type="button"
                 onClick={() => setActiveFilter('success')}
-                className={`h-8 px-3 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
+                className={`h-8 px-3 rounded-lg text-xs flex items-center transition-all cursor-pointer ${
                   activeFilter === 'success'
                     ? 'bg-[#0c2340] text-white font-semibold shadow-sm'
                     : 'bg-[#e8edf2] text-[#0f141a] hover:bg-[#d2dae5] font-medium'
                 }`}
               >
                 <span>Successful</span>
-                <ChevronDown className="w-3.5 h-3.5 opacity-80" />
               </button>
 
               {/* Pending */}
               <button
                 type="button"
                 onClick={() => setActiveFilter('pending')}
-                className={`h-8 px-3 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
+                className={`h-8 px-3 rounded-lg text-xs flex items-center transition-all cursor-pointer ${
                   activeFilter === 'pending'
                     ? 'bg-[#0c2340] text-white font-semibold shadow-sm'
                     : 'bg-[#e8edf2] text-[#0f141a] hover:bg-[#d2dae5] font-medium'
                 }`}
               >
                 <span>Pending</span>
-                <ChevronDown className="w-3.5 h-3.5 opacity-80" />
               </button>
 
-              {/* Refunded */}
+              {/* Failed */}
               <button
                 type="button"
-                onClick={() => setActiveFilter('refunded')}
-                className={`h-8 px-3 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
-                  activeFilter === 'refunded'
+                onClick={() => setActiveFilter('failed')}
+                className={`h-8 px-3 rounded-lg text-xs flex items-center transition-all cursor-pointer ${
+                  activeFilter === 'failed'
                     ? 'bg-[#0c2340] text-white font-semibold shadow-sm'
                     : 'bg-[#e8edf2] text-[#0f141a] hover:bg-[#d2dae5] font-medium'
                 }`}
               >
-                <span>Refunded</span>
-                <ChevronDown className="w-3.5 h-3.5 opacity-80" />
+                <span>Failed</span>
               </button>
             </div>
 
@@ -586,7 +736,7 @@ export default function DashboardOverviewRedesign({
             </div>
           </div>
 
-          {/* High Density Real-Time Settlement Ledger Table */}
+          {/* High Density Real-Time Settlement Ledger Table (Fits in single window) */}
           <div
             id="settlement-ledger-table"
             role="region"
@@ -594,7 +744,7 @@ export default function DashboardOverviewRedesign({
             className="bg-white rounded-xl border border-[#d2dae5] shadow-sm overflow-hidden"
           >
             {/* Table Header Strip */}
-            <div className="px-5 py-3.5 border-b border-[#e8edf2] flex items-center justify-between bg-gray-50/50">
+            <div className="px-4 py-3 border-b border-[#e8edf2] flex items-center justify-between bg-gray-50/50">
               <div className="flex items-center gap-2">
                 <span className="size-2 rounded-full bg-[#2c60ff]"></span>
                 <h4 className="text-xs font-bold uppercase tracking-wider text-[#0f141a]">
@@ -606,17 +756,25 @@ export default function DashboardOverviewRedesign({
               </span>
             </div>
 
-            {/* Table Content */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+            {/* Table Content (Guaranteed single screen fit via table-fixed & proportional widths) */}
+            <div className="overflow-x-auto w-full">
+              <table className="w-full table-fixed text-left border-collapse min-w-[520px]">
+                <colgroup>
+                  <col className="w-[21%]" />
+                  <col className="w-[18%]" />
+                  <col className="w-[21%]" />
+                  <col className="w-[13%]" />
+                  <col className="w-[13%]" />
+                  <col className="w-[14%]" />
+                </colgroup>
                 <thead>
-                  <tr className="bg-gray-50 border-b border-[#e8edf2] text-[11px] font-bold text-[#547092] uppercase tracking-wider">
-                    <th scope="col" className="py-3 px-4">Transaction ID</th>
-                    <th scope="col" className="py-3 px-3">Date &amp; Time</th>
-                    <th scope="col" className="py-3 px-3">Customer</th>
-                    <th scope="col" className="py-3 px-3">Payment Method</th>
-                    <th scope="col" className="py-3 px-3 text-right">Amount</th>
-                    <th scope="col" className="py-3 px-4 text-center">Status</th>
+                  <tr className="bg-gray-50 border-b border-[#e8edf2] text-[10px] sm:text-[11px] font-bold text-[#547092] uppercase tracking-wider">
+                    <th scope="col" className="py-2.5 px-2.5 sm:px-3">TXN ID</th>
+                    <th scope="col" className="py-2.5 px-2">Date &amp; Time</th>
+                    <th scope="col" className="py-2.5 px-2">Customer</th>
+                    <th scope="col" className="py-2.5 px-2 text-center">Method</th>
+                    <th scope="col" className="py-2.5 px-2 text-right">Amount</th>
+                    <th scope="col" className="py-2.5 px-2.5 text-center">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#e8edf2] text-xs">
@@ -628,36 +786,53 @@ export default function DashboardOverviewRedesign({
                         onClick={() => setActiveTab?.('transactions')}
                         title={`Click to view full transaction details for ${txn.id}`}
                       >
-                        <td className="py-3 px-4 font-mono font-medium text-[#0f141a]">
-                          {txn.id}
+                        <td className="py-2.5 px-2.5 sm:px-3">
+                          <span
+                            className="font-mono text-[11px] font-medium text-[#0f141a] truncate block"
+                            title={txn.id}
+                          >
+                            {txn.id}
+                          </span>
                         </td>
-                        <td className="py-3 px-3 text-[#547092] whitespace-nowrap">
-                          {txn.date}
+                        <td className="py-2.5 px-2">
+                          <span
+                            className="text-[11px] text-[#547092] whitespace-nowrap block truncate"
+                            title={txn.date}
+                          >
+                            {txn.date}
+                          </span>
                         </td>
-                        <td className="py-3 px-3 font-medium text-[#0f141a] max-w-[150px] truncate" title={txn.customer}>
-                          {txn.customer}
+                        <td className="py-2.5 px-2">
+                          <span
+                            className="font-medium text-[#0f141a] text-[11px] truncate block"
+                            title={txn.customer}
+                          >
+                            {txn.customer}
+                          </span>
                         </td>
-                        <td className="py-3 px-3">
-                          <span className="inline-flex items-center justify-center px-2 py-0.5 rounded bg-[#e8edf2] text-[#0f141a] text-[11px] font-semibold font-mono">
+                        <td className="py-2.5 px-2 text-center">
+                          <span className="inline-flex items-center justify-center px-1.5 py-0.5 rounded bg-[#e8edf2] text-[#0f141a] text-[10px] font-semibold font-mono truncate max-w-full">
                             {txn.method}
                           </span>
                         </td>
-                        <td className="py-3 px-3 text-right font-bold text-[#0f141a] font-mono">
-                          ₹ {txn.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        <td className="py-2.5 px-2 text-right">
+                          <span className="text-[11px] sm:text-xs font-bold text-[#0f141a] font-mono whitespace-nowrap block">
+                            ₹ {txn.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
                         </td>
-                        <td className="py-3 px-4 text-center">
+                        <td className="py-2.5 px-2.5 text-center whitespace-nowrap">
                           {txn.status === 'Success' && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-[#07883b] border border-emerald-200">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-[#07883b] border border-emerald-200">
                               Success
                             </span>
                           )}
                           {txn.status === 'Pending' && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
                               Pending
                             </span>
                           )}
                           {(txn.status === 'Refunded' || txn.status === 'Failed') && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-50 text-red-700 border border-red-200">
                               {txn.status}
                             </span>
                           )}
@@ -668,7 +843,7 @@ export default function DashboardOverviewRedesign({
                     <tr>
                       <td colSpan={6} className="py-10 text-center text-[#547092]">
                         <div className="flex flex-col items-center justify-center gap-2">
-                          <CreditCard className="w-8 h-8 text-slate-300" />
+                          <Inbox className="w-8 h-8 text-slate-300" />
                           <p className="text-xs font-semibold text-slate-700">
                             No transactions found for the selected filter
                           </p>
@@ -736,8 +911,8 @@ export default function DashboardOverviewRedesign({
                 <span className="text-xs font-bold text-[#07883b] font-mono">48ms</span>
               </div>
               <div className="flex items-center justify-between p-2.5 rounded-lg bg-gray-50 border border-[#e8edf2]">
-                <span className="text-xs text-[#547092]">Card Rails (Visa/MC)</span>
-                <span className="text-xs font-bold text-[#0c2340] font-mono">99.98%</span>
+                <span className="text-xs text-[#547092]">IMPS Instant Rail</span>
+                <span className="text-xs font-bold text-[#07883b] font-mono">99.98%</span>
               </div>
               <div className="flex items-center justify-between p-2.5 rounded-lg bg-gray-50 border border-[#e8edf2]">
                 <span className="text-xs text-[#547092]">Webhook Engine</span>
