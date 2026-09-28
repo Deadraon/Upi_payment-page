@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   CheckCircle2,
   X,
@@ -17,10 +17,6 @@ import {
   Info,
   ExternalLink,
   Copy,
-  Search,
-  SlidersHorizontal,
-  RotateCcw,
-  Calendar,
   CreditCard,
   ChevronDown
 } from 'lucide-react';
@@ -49,20 +45,8 @@ export default function DashboardOverviewRedesign({
   const [showRoutingRules, setShowRoutingRules] = useState(false);
   const [rulesCopied, setRulesCopied] = useState(false);
 
-  // ─── FILTER & SEARCH STATES ───
-  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'success' | 'pending' | 'refunded'
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showFilterPopover, setShowFilterPopover] = useState(false);
-  const [methodFilter, setMethodFilter] = useState('all'); // 'all' | 'upi' | 'card' | 'generic' | 'netbanking'
-  const [timeframeFilter, setTimeframeFilter] = useState('all'); // 'all' | 'today' | '7d' | '30d'
-  const [minAmount, setMinAmount] = useState('');
-  const [maxAmount, setMaxAmount] = useState('');
-  const [sortBy, setSortBy] = useState('newest'); // 'newest' | 'oldest' | 'highest' | 'lowest'
-  const [exportNotice, setExportNotice] = useState(null);
-
-  // Popover reference for click-outside
-  const filterPopoverRef = useRef(null);
-  const filterBtnRef = useRef(null);
+  // ─── FILTER STATE ───
+  const [activeFilter, setActiveFilter] = useState('all'); // 'all' | 'success' | 'pending' | 'refunded'
 
   // Live IST Clock
   const [currentTime, setCurrentTime] = useState('');
@@ -83,32 +67,6 @@ export default function DashboardOverviewRedesign({
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
   }, []);
-
-  // Handle click outside of filter popover
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (
-        showFilterPopover &&
-        filterPopoverRef.current &&
-        !filterPopoverRef.current.contains(e.target) &&
-        filterBtnRef.current &&
-        !filterBtnRef.current.contains(e.target)
-      ) {
-        setShowFilterPopover(false);
-      }
-    };
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && showFilterPopover) {
-        setShowFilterPopover(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [showFilterPopover]);
 
   // Read active bank account from Settings (localStorage) or profile
   const activeBankAccount = useMemo(() => {
@@ -267,101 +225,18 @@ export default function DashboardOverviewRedesign({
     });
   }, [orders]);
 
-  // ─── FILTER & SEARCH PIPELINE ───
+  // ─── FILTER PIPELINE ───
   const filteredTransactions = useMemo(() => {
-    let result = [...mappedTransactions];
-
-    // 1. Status Filter (Tab Chips)
-    if (statusFilter === 'success') {
-      result = result.filter((t) => t.status === 'Success');
-    } else if (statusFilter === 'pending') {
-      result = result.filter((t) => t.status === 'Pending');
-    } else if (statusFilter === 'refunded') {
-      result = result.filter((t) => t.status === 'Refunded' || t.status === 'Failed');
-    }
-
-    // 2. Search Query (Txn ID, customer, method, UTR)
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      result = result.filter(
-        (t) =>
-          t.id.toLowerCase().includes(q) ||
-          t.customer.toLowerCase().includes(q) ||
-          t.method.toLowerCase().includes(q) ||
-          t.utr.toLowerCase().includes(q) ||
-          t.amount.toString().includes(q)
-      );
-    }
-
-    // 3. Payment Method Filter
-    if (methodFilter !== 'all') {
-      result = result.filter((t) => t.method.toLowerCase().includes(methodFilter.toLowerCase()));
-    }
-
-    // 4. Timeframe Filter
-    if (timeframeFilter !== 'all') {
-      const now = Date.now();
-      if (timeframeFilter === 'today') {
-        const startOfToday = new Date().setHours(0, 0, 0, 0);
-        result = result.filter((t) => t.timestamp >= startOfToday);
-      } else if (timeframeFilter === '7d') {
-        const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
-        result = result.filter((t) => t.timestamp >= sevenDaysAgo);
-      } else if (timeframeFilter === '30d') {
-        const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
-        result = result.filter((t) => t.timestamp >= thirtyDaysAgo);
-      }
-    }
-
-    // 5. Amount Range Filter
-    if (minAmount && !isNaN(parseFloat(minAmount))) {
-      result = result.filter((t) => t.amount >= parseFloat(minAmount));
-    }
-    if (maxAmount && !isNaN(parseFloat(maxAmount))) {
-      result = result.filter((t) => t.amount <= parseFloat(maxAmount));
-    }
-
-    // 6. Sorting
-    result.sort((a, b) => {
-      if (sortBy === 'newest') return b.timestamp - a.timestamp;
-      if (sortBy === 'oldest') return a.timestamp - b.timestamp;
-      if (sortBy === 'highest') return b.amount - a.amount;
-      if (sortBy === 'lowest') return a.amount - b.amount;
-      return 0;
-    });
-
-    return result;
-  }, [mappedTransactions, statusFilter, searchQuery, methodFilter, timeframeFilter, minAmount, maxAmount, sortBy]);
-
-  // Check how many advanced filters are active
-  const activeAdvancedFilterCount = useMemo(() => {
-    let count = 0;
-    if (methodFilter !== 'all') count++;
-    if (timeframeFilter !== 'all') count++;
-    if (minAmount) count++;
-    if (maxAmount) count++;
-    if (sortBy !== 'newest') count++;
-    return count;
-  }, [methodFilter, timeframeFilter, minAmount, maxAmount, sortBy]);
-
-  const resetAllFilters = () => {
-    setStatusFilter('all');
-    setSearchQuery('');
-    setMethodFilter('all');
-    setTimeframeFilter('all');
-    setMinAmount('');
-    setMaxAmount('');
-    setSortBy('newest');
-    setShowFilterPopover(false);
-  };
+    if (activeFilter === 'all') return mappedTransactions;
+    if (activeFilter === 'success') return mappedTransactions.filter((t) => t.status === 'Success');
+    if (activeFilter === 'pending') return mappedTransactions.filter((t) => t.status === 'Pending');
+    if (activeFilter === 'refunded') return mappedTransactions.filter((t) => t.status === 'Refunded' || t.status === 'Failed');
+    return mappedTransactions;
+  }, [mappedTransactions, activeFilter]);
 
   // ─── EXPORT TO CSV ───
   const handleExportCSV = () => {
-    if (filteredTransactions.length === 0) {
-      setExportNotice('No transactions to export in current view.');
-      setTimeout(() => setExportNotice(null), 3000);
-      return;
-    }
+    if (filteredTransactions.length === 0) return;
 
     const headers = ['Transaction ID', 'Date & Time', 'Customer', 'Payment Method', 'Amount (INR)', 'Status', 'UTR'];
     const rows = filteredTransactions.map((t) => [
@@ -378,14 +253,13 @@ export default function DashboardOverviewRedesign({
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `settlement_ledger_${statusFilter}_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute('download', `settlement_ledger_${activeFilter}_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-
-    setExportNotice(`Exported ${filteredTransactions.length} transactions!`);
-    setTimeout(() => setExportNotice(null), 3000);
   };
+
+
 
   const copyRoutingDetails = () => {
     const details = `MyMobPay Direct Pass-Through Settlement Rail\nRail Mode: Instant T+0 IMPS/UPI Pass-Through\nIntermediary Escrow: 0.00% (Zero Hold)\nPrimary Clearing Node: Mumbai AWS-South\nDaily Settlement Cap: ${dailyCapDisplay}\nDestination: ${
@@ -627,321 +501,90 @@ export default function DashboardOverviewRedesign({
            ══════════════════════════════════════════════════════════════ */}
         <section className="col-span-12 xl:col-span-6 flex flex-col gap-4">
           
-          {/* Fully Accessible Filter Bar */}
-          <div className="bg-white border border-[#d2dae5] rounded-xl p-2.5 sm:p-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 shadow-sm relative">
-            
-            {/* Filter Chips (Accessible Tabs) */}
-            <div
-              role="tablist"
-              aria-label="Filter transactions by status"
-              className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none"
-            >
+          {/* Filter Chips & Operational Bar */}
+          <div className="bg-white border border-[#d2dae5] rounded-xl p-3 flex flex-wrap items-center justify-between gap-2 shadow-sm">
+            <div className="flex flex-wrap items-center gap-2">
+              
               {/* All Transactions */}
               <button
                 type="button"
-                role="tab"
-                id="tab-all"
-                aria-selected={statusFilter === 'all'}
-                aria-controls="settlement-ledger-table"
-                onClick={() => setStatusFilter('all')}
-                className={`h-8 px-3 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
-                  statusFilter === 'all'
-                    ? 'bg-[#0c2340] text-white shadow-xs'
-                    : 'bg-[#e8edf2] text-[#0f141a] hover:bg-[#d2dae5]'
+                onClick={() => setActiveFilter('all')}
+                className={`h-8 px-3 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
+                  activeFilter === 'all'
+                    ? 'bg-[#0c2340] text-white font-semibold shadow-sm'
+                    : 'bg-[#e8edf2] text-[#0f141a] hover:bg-[#d2dae5] font-medium'
                 }`}
               >
                 <span>All Transactions</span>
-                <span className="font-mono text-[10px] opacity-75">({totalCount})</span>
+                <ChevronDown className="w-3.5 h-3.5 opacity-80" />
               </button>
 
               {/* Successful */}
               <button
                 type="button"
-                role="tab"
-                id="tab-success"
-                aria-selected={statusFilter === 'success'}
-                aria-controls="settlement-ledger-table"
-                onClick={() => setStatusFilter('success')}
-                className={`h-8 px-3 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
-                  statusFilter === 'success'
-                    ? 'bg-[#0c2340] text-white shadow-xs'
-                    : 'bg-[#e8edf2] text-[#0f141a] hover:bg-[#d2dae5]'
+                onClick={() => setActiveFilter('success')}
+                className={`h-8 px-3 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
+                  activeFilter === 'success'
+                    ? 'bg-[#0c2340] text-white font-semibold shadow-sm'
+                    : 'bg-[#e8edf2] text-[#0f141a] hover:bg-[#d2dae5] font-medium'
                 }`}
               >
                 <span>Successful</span>
-                <span className="font-mono text-[10px] opacity-75">({successCount})</span>
+                <ChevronDown className="w-3.5 h-3.5 opacity-80" />
               </button>
 
               {/* Pending */}
               <button
                 type="button"
-                role="tab"
-                id="tab-pending"
-                aria-selected={statusFilter === 'pending'}
-                aria-controls="settlement-ledger-table"
-                onClick={() => setStatusFilter('pending')}
-                className={`h-8 px-3 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
-                  statusFilter === 'pending'
-                    ? 'bg-[#0c2340] text-white shadow-xs'
-                    : 'bg-[#e8edf2] text-[#0f141a] hover:bg-[#d2dae5]'
+                onClick={() => setActiveFilter('pending')}
+                className={`h-8 px-3 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
+                  activeFilter === 'pending'
+                    ? 'bg-[#0c2340] text-white font-semibold shadow-sm'
+                    : 'bg-[#e8edf2] text-[#0f141a] hover:bg-[#d2dae5] font-medium'
                 }`}
               >
                 <span>Pending</span>
-                <span className="font-mono text-[10px] opacity-75">({pendingCount})</span>
+                <ChevronDown className="w-3.5 h-3.5 opacity-80" />
               </button>
 
               {/* Refunded */}
               <button
                 type="button"
-                role="tab"
-                id="tab-refunded"
-                aria-selected={statusFilter === 'refunded'}
-                aria-controls="settlement-ledger-table"
-                onClick={() => setStatusFilter('refunded')}
-                className={`h-8 px-3 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
-                  statusFilter === 'refunded'
-                    ? 'bg-[#0c2340] text-white shadow-xs'
-                    : 'bg-[#e8edf2] text-[#0f141a] hover:bg-[#d2dae5]'
+                onClick={() => setActiveFilter('refunded')}
+                className={`h-8 px-3 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
+                  activeFilter === 'refunded'
+                    ? 'bg-[#0c2340] text-white font-semibold shadow-sm'
+                    : 'bg-[#e8edf2] text-[#0f141a] hover:bg-[#d2dae5] font-medium'
                 }`}
               >
                 <span>Refunded</span>
-                <span className="font-mono text-[10px] opacity-75">({refundedCount})</span>
+                <ChevronDown className="w-3.5 h-3.5 opacity-80" />
               </button>
             </div>
 
-            {/* Search & Tool Actions */}
-            <div className="flex items-center gap-2 self-end sm:self-auto w-full sm:w-auto justify-end">
-              
-              {/* Quick Search Input */}
-              <div className="relative flex-1 sm:w-44 lg:w-52">
-                <Search className="w-3.5 h-3.5 text-[#547092] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <input
-                  type="text"
-                  placeholder="Search ledger..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full text-xs bg-gray-50 border border-[#e8edf2] rounded-lg pl-8 pr-7 py-1.5 text-[#0f141a] placeholder:text-[#547092] focus:outline-none focus:border-[#0c2340] transition-colors"
-                  aria-label="Search transactions"
-                />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                    aria-label="Clear search"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
-
-              {/* Advanced Filter Popover Trigger */}
-              <div className="relative">
-                <button
-                  ref={filterBtnRef}
-                  type="button"
-                  id="advanced-filter-btn"
-                  aria-haspopup="dialog"
-                  aria-expanded={showFilterPopover}
-                  title="Advanced ledger filters"
-                  onClick={() => setShowFilterPopover((prev) => !prev)}
-                  className={`size-8 rounded-lg border flex items-center justify-center transition-all cursor-pointer relative ${
-                    showFilterPopover || activeAdvancedFilterCount > 0
-                      ? 'bg-[#0c2340] text-white border-[#0c2340]'
-                      : 'border-[#e8edf2] text-[#547092] hover:text-[#0f141a] hover:bg-gray-50'
-                  }`}
-                  aria-label="Open advanced filters"
-                >
-                  <Filter className="w-4 h-4" />
-                  {activeAdvancedFilterCount > 0 && (
-                    <span className="absolute -top-1 -right-1 size-3.5 bg-emerald-500 text-white rounded-full text-[9px] font-bold flex items-center justify-center ring-2 ring-white">
-                      {activeAdvancedFilterCount}
-                    </span>
-                  )}
-                </button>
-
-                {/* Advanced Filter Menu Dropdown Popover */}
-                {showFilterPopover && (
-                  <div
-                    ref={filterPopoverRef}
-                    role="dialog"
-                    aria-label="Filter Options"
-                    className="absolute right-0 top-10 w-72 bg-white border border-[#d2dae5] rounded-xl shadow-xl p-4 z-40 space-y-3.5 animate-in fade-in zoom-in-95 duration-100 text-xs"
-                  >
-                    <div className="flex items-center justify-between pb-2 border-b border-[#e8edf2]">
-                      <span className="font-bold text-[#0f141a] flex items-center gap-1.5">
-                        <SlidersHorizontal className="w-3.5 h-3.5" /> Filter Ledger
-                      </span>
-                      <button
-                        type="button"
-                        onClick={resetAllFilters}
-                        className="text-[11px] text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1 cursor-pointer"
-                      >
-                        <RotateCcw className="w-3 h-3" /> Reset
-                      </button>
-                    </div>
-
-                    {/* Method Filter */}
-                    <div>
-                      <label className="block text-[11px] font-semibold text-[#547092] mb-1">
-                        Payment Method
-                      </label>
-                      <select
-                        value={methodFilter}
-                        onChange={(e) => setMethodFilter(e.target.value)}
-                        className="w-full px-2.5 py-1.5 rounded-lg border border-[#e8edf2] bg-gray-50 text-[#0f141a] text-xs focus:outline-none focus:border-[#0c2340]"
-                      >
-                        <option value="all">All Methods</option>
-                        <option value="upi">UPI</option>
-                        <option value="generic">Generic Direct</option>
-                        <option value="card">Credit / Debit Card</option>
-                        <option value="netbanking">Net Banking</option>
-                      </select>
-                    </div>
-
-                    {/* Timeframe Filter */}
-                    <div>
-                      <label className="block text-[11px] font-semibold text-[#547092] mb-1">
-                        Date Range
-                      </label>
-                      <select
-                        value={timeframeFilter}
-                        onChange={(e) => setTimeframeFilter(e.target.value)}
-                        className="w-full px-2.5 py-1.5 rounded-lg border border-[#e8edf2] bg-gray-50 text-[#0f141a] text-xs focus:outline-none focus:border-[#0c2340]"
-                      >
-                        <option value="all">All Time</option>
-                        <option value="today">Today Only</option>
-                        <option value="7d">Last 7 Days</option>
-                        <option value="30d">Last 30 Days</option>
-                      </select>
-                    </div>
-
-                    {/* Min & Max Amount */}
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="block text-[11px] font-semibold text-[#547092] mb-1">
-                          Min Amount (₹)
-                        </label>
-                        <input
-                          type="number"
-                          placeholder="0"
-                          value={minAmount}
-                          onChange={(e) => setMinAmount(e.target.value)}
-                          className="w-full px-2.5 py-1.5 rounded-lg border border-[#e8edf2] bg-gray-50 text-[#0f141a] text-xs font-mono focus:outline-none focus:border-[#0c2340]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[11px] font-semibold text-[#547092] mb-1">
-                          Max Amount (₹)
-                        </label>
-                        <input
-                          type="number"
-                          placeholder="10000"
-                          value={maxAmount}
-                          onChange={(e) => setMaxAmount(e.target.value)}
-                          className="w-full px-2.5 py-1.5 rounded-lg border border-[#e8edf2] bg-gray-50 text-[#0f141a] text-xs font-mono focus:outline-none focus:border-[#0c2340]"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Sort Order */}
-                    <div>
-                      <label className="block text-[11px] font-semibold text-[#547092] mb-1">
-                        Sort By
-                      </label>
-                      <select
-                        value={sortBy}
-                        onChange={(e) => setSortBy(e.target.value)}
-                        className="w-full px-2.5 py-1.5 rounded-lg border border-[#e8edf2] bg-gray-50 text-[#0f141a] text-xs focus:outline-none focus:border-[#0c2340]"
-                      >
-                        <option value="newest">Newest First</option>
-                        <option value="oldest">Oldest First</option>
-                        <option value="highest">Highest Amount</option>
-                        <option value="lowest">Lowest Amount</option>
-                      </select>
-                    </div>
-
-                    <div className="pt-2 border-t border-[#e8edf2] flex items-center justify-end">
-                      <button
-                        type="button"
-                        onClick={() => setShowFilterPopover(false)}
-                        className="w-full py-1.5 rounded-lg bg-[#0c2340] text-white text-xs font-bold hover:bg-[#1a3a60] transition-colors"
-                      >
-                        Apply Filters
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Export CSV Button */}
+            <div className="flex items-center gap-2">
               <button
                 type="button"
-                title="Export filtered transactions as CSV"
-                aria-label="Export filtered transactions as CSV"
+                title="Filter ledger"
+                onClick={() => setActiveFilter((f) => (f === 'all' ? 'success' : 'all'))}
+                className={`size-8 rounded-lg border flex items-center justify-center transition-colors cursor-pointer ${
+                  activeFilter !== 'all'
+                    ? 'border-[#0c2340] bg-[#0c2340] text-white'
+                    : 'border-[#e8edf2] text-[#547092] hover:text-[#0f141a] hover:bg-gray-50'
+                }`}
+              >
+                <Filter className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                title="Export ledger as CSV"
                 onClick={handleExportCSV}
                 className="size-8 rounded-lg border border-[#e8edf2] flex items-center justify-center text-[#547092] hover:text-[#0f141a] hover:bg-gray-50 transition-colors cursor-pointer"
               >
                 <Download className="w-4 h-4" />
               </button>
-
             </div>
-
           </div>
-
-          {/* Export Toast Notification */}
-          {exportNotice && (
-            <div className="p-2.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-800 text-xs font-medium flex items-center justify-between animate-in fade-in">
-              <span className="flex items-center gap-1.5">
-                <Check className="w-4 h-4 text-blue-600" /> {exportNotice}
-              </span>
-              <button
-                type="button"
-                onClick={() => setExportNotice(null)}
-                className="text-blue-500 hover:text-blue-700"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          )}
-
-          {/* Active Filter Chips Summary (if filters active) */}
-          {(searchQuery || activeAdvancedFilterCount > 0 || statusFilter !== 'all') && (
-            <div className="flex flex-wrap items-center gap-1.5 text-xs">
-              <span className="text-[#547092] text-[11px] font-medium">Active:</span>
-              {statusFilter !== 'all' && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-800 text-[11px] font-semibold">
-                  Status: {statusFilter}
-                  <X className="w-3 h-3 cursor-pointer hover:text-red-600" onClick={() => setStatusFilter('all')} />
-                </span>
-              )}
-              {searchQuery && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-800 text-[11px] font-semibold">
-                  &ldquo;{searchQuery}&rdquo;
-                  <X className="w-3 h-3 cursor-pointer hover:text-red-600" onClick={() => setSearchQuery('')} />
-                </span>
-              )}
-              {methodFilter !== 'all' && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-800 text-[11px] font-semibold">
-                  Method: {methodFilter}
-                  <X className="w-3 h-3 cursor-pointer hover:text-red-600" onClick={() => setMethodFilter('all')} />
-                </span>
-              )}
-              {timeframeFilter !== 'all' && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-800 text-[11px] font-semibold">
-                  Range: {timeframeFilter}
-                  <X className="w-3 h-3 cursor-pointer hover:text-red-600" onClick={() => setTimeframeFilter('all')} />
-                </span>
-              )}
-              <button
-                type="button"
-                onClick={resetAllFilters}
-                className="text-xs text-blue-600 hover:text-blue-800 font-semibold underline ml-1 cursor-pointer"
-              >
-                Clear all
-              </button>
-            </div>
-          )}
 
           {/* High Density Real-Time Settlement Ledger Table */}
           <div
@@ -1027,20 +670,20 @@ export default function DashboardOverviewRedesign({
                         <div className="flex flex-col items-center justify-center gap-2">
                           <CreditCard className="w-8 h-8 text-slate-300" />
                           <p className="text-xs font-semibold text-slate-700">
-                            No transactions found
+                            No transactions found for the selected filter
                           </p>
                           <p className="text-[11px] text-slate-400">
-                            {searchQuery || activeAdvancedFilterCount > 0 || statusFilter !== 'all'
-                              ? 'Try adjusting your search or active filter settings.'
+                            {activeFilter !== 'all'
+                              ? 'Switch to "All Transactions" to view all records.'
                               : 'Incoming customer payments will automatically record here in real-time.'}
                           </p>
-                          {(searchQuery || activeAdvancedFilterCount > 0 || statusFilter !== 'all') && (
+                          {activeFilter !== 'all' && (
                             <button
                               type="button"
-                              onClick={resetAllFilters}
-                              className="mt-1 px-3 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors"
+                              onClick={() => setActiveFilter('all')}
+                              className="mt-1 px-3 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
                             >
-                              Reset All Filters
+                              Show All Transactions
                             </button>
                           )}
                         </div>
