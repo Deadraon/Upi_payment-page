@@ -10566,6 +10566,8 @@ echo "Order Created: " . $data['orderId'];
                 analyticsTimeframe={analyticsTimeframe}
                 setAnalyticsTimeframe={setAnalyticsTimeframe}
                 setActiveTab={setActiveTab}
+                user={user}
+                setSettingsCategory={setSettingsCategory}
               />
             )}
 

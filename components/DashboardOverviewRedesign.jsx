@@ -3,11 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import {
   CheckCircle2,
-  Building2,
   X,
-  Save,
-  Eye,
-  EyeOff,
   AlertCircle,
   Plus,
   Filter,
@@ -31,25 +27,23 @@ import {
 
 export default function DashboardOverviewRedesign({
   profile,
+  user,
   stats = {},
   orders = [],
   analyticsTimeframe = 7,
   setAnalyticsTimeframe,
-  setActiveTab
+  setActiveTab,
+  setSettingsCategory
 }) {
-  // ─── BANK ACCOUNT MODAL STATE ───
-  const [showAddBank, setShowAddBank] = useState(false);
-  const [bankForm, setBankForm] = useState({
-    bank_name: '',
-    bank_account_number: '',
-    bank_account_number_confirm: '',
-    bank_ifsc: '',
-    bank_account_name: ''
-  });
-  const [bankSaving, setBankSaving] = useState(false);
-  const [bankError, setBankError] = useState(null);
-  const [bankSuccess, setBankSuccess] = useState(false);
-  const [showAccNum, setShowAccNum] = useState(false);
+  // Navigate directly to dedicated Bank screen in Settings
+  const navigateToBankSettings = () => {
+    if (typeof setSettingsCategory === 'function') {
+      setSettingsCategory('banking');
+    }
+    if (typeof setActiveTab === 'function') {
+      setActiveTab('settings');
+    }
+  };
 
   // ─── ROUTING RULES MODAL STATE ───
   const [showRoutingRules, setShowRoutingRules] = useState(false);
@@ -116,21 +110,51 @@ export default function DashboardOverviewRedesign({
     };
   }, [showFilterPopover]);
 
-  // Check if bank account is linked
-  const hasBankAccount = !!(profile?.bank_account_number && profile?.bank_name);
-
-  // Pre-fill bank form if profile has values
-  useEffect(() => {
-    if (profile?.bank_name || profile?.bank_account_number) {
-      setBankForm({
-        bank_name: profile.bank_name || '',
-        bank_account_number: profile.bank_account_number || '',
-        bank_account_number_confirm: profile.bank_account_number || '',
-        bank_ifsc: profile.bank_ifsc || '',
-        bank_account_name: profile.bank_account_name || ''
-      });
+  // Read active bank account from Settings (localStorage) or profile
+  const activeBankAccount = useMemo(() => {
+    if (typeof window !== 'undefined' && user?.id) {
+      const storageKey = `mymobpay_bank_accounts_${user.id}`;
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const primary = parsed.find((a) => a.is_primary) || parsed[0];
+            if (primary && (primary.bank_account_number || primary.bank_name)) {
+              return primary;
+            }
+          }
+        } catch {
+          // fallback
+        }
+      }
     }
-  }, [profile]);
+    if (profile?.bank_account_number && profile?.bank_name) {
+      return {
+        bank_name: profile.bank_name,
+        bank_account_number: profile.bank_account_number,
+        bank_account_name: profile.bank_account_name || profile.business_name || '',
+        bank_ifsc: profile.bank_ifsc || ''
+      };
+    }
+    return null;
+  }, [user?.id, profile]);
+
+  const hasBankAccount = !!activeBankAccount;
+
+  // Real live daily settlement cap or pass-through status (no dummy figures)
+  const dailyCapDisplay = useMemo(() => {
+    if (profile?.daily_limit) {
+      return `₹ ${Number(profile.daily_limit).toLocaleString('en-IN')}`;
+    }
+    if (profile?.daily_cap) {
+      return `₹ ${Number(profile.daily_cap).toLocaleString('en-IN')}`;
+    }
+    if (hasBankAccount) {
+      return 'Unlimited (Direct T+0)';
+    }
+    return 'Awaiting Bank Link';
+  }, [profile?.daily_limit, profile?.daily_cap, hasBankAccount]);
 
   // ─── REAL & LIVE ORDER GROUPING ───
   const successfulOrders = useMemo(() => {
@@ -363,65 +387,11 @@ export default function DashboardOverviewRedesign({
     setTimeout(() => setExportNotice(null), 3000);
   };
 
-  // ─── SAVE BANK DETAILS TO SUPABASE MERCHANTS TABLE ───
-  const handleBankSave = async () => {
-    setBankError(null);
-    if (!bankForm.bank_name.trim()) return setBankError('Bank name is required.');
-    if (!bankForm.bank_account_name.trim()) return setBankError('Account holder name is required.');
-    if (!bankForm.bank_account_number.trim()) return setBankError('Account number is required.');
-    if (bankForm.bank_account_number !== bankForm.bank_account_number_confirm) {
-      return setBankError('Account numbers do not match.');
-    }
-    if (!bankForm.bank_ifsc.trim()) return setBankError('IFSC code is required.');
-    if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(bankForm.bank_ifsc.trim().toUpperCase())) {
-      return setBankError('Invalid IFSC code (e.g. HDFC0001234).');
-    }
-
-    setBankSaving(true);
-    try {
-      const { supabase } = await import('@/lib/supabase');
-      const targetId = profile?.id;
-      if (!targetId) throw new Error('Merchant ID missing. Please refresh and try again.');
-
-      const { error } = await supabase
-        .from('merchants')
-        .update({
-          bank_name: bankForm.bank_name.trim(),
-          bank_account_number: bankForm.bank_account_number.trim(),
-          bank_ifsc: bankForm.bank_ifsc.trim().toUpperCase(),
-          bank_account_name: bankForm.bank_account_name.trim()
-        })
-        .eq('id', targetId);
-
-      if (error) throw error;
-      setBankSuccess(true);
-      setTimeout(() => {
-        closeAddBank();
-        window.location.reload();
-      }, 1200);
-    } catch (err) {
-      setBankError(err.message || 'Failed to save bank details.');
-    } finally {
-      setBankSaving(false);
-    }
-  };
-
-  const openAddBank = () => {
-    setBankError(null);
-    setBankSuccess(false);
-    setShowAddBank(true);
-  };
-
-  const closeAddBank = () => {
-    setShowAddBank(false);
-    setBankError(null);
-  };
-
   const copyRoutingDetails = () => {
-    const details = `MyMobPay Direct Pass-Through Settlement Rail\nRail Mode: Instant T+0 IMPS/UPI Pass-Through\nIntermediary Escrow: 0.00% (Zero Hold)\nPrimary Clearing Node: Mumbai AWS-South\nDaily Settlement Cap: ₹25,00,000.00\nDestination: ${
+    const details = `MyMobPay Direct Pass-Through Settlement Rail\nRail Mode: Instant T+0 IMPS/UPI Pass-Through\nIntermediary Escrow: 0.00% (Zero Hold)\nPrimary Clearing Node: Mumbai AWS-South\nDaily Settlement Cap: ${dailyCapDisplay}\nDestination: ${
       hasBankAccount
-        ? `${profile.bank_name} (${profile.bank_account_number})`
-        : 'No account linked yet'
+        ? `${activeBankAccount.bank_name} (${activeBankAccount.bank_account_number})`
+        : 'No account linked yet (Configure in Settings > Banking)'
     }`;
     navigator.clipboard.writeText(details);
     setRulesCopied(true);
@@ -447,7 +417,7 @@ export default function DashboardOverviewRedesign({
           </div>
           <button
             type="button"
-            onClick={openAddBank}
+            onClick={navigateToBankSettings}
             className="shrink-0 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-colors shadow-sm cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" /> Link Bank Account
@@ -515,13 +485,18 @@ export default function DashboardOverviewRedesign({
               <div className="flex justify-between items-center">
                 <span className="text-[#547092]">Destination</span>
                 {hasBankAccount ? (
-                  <span className="font-mono font-medium text-[#0f141a]">
-                    {profile.bank_name} •••• {profile.bank_account_number.slice(-4)}
-                  </span>
+                  <button
+                    type="button"
+                    onClick={navigateToBankSettings}
+                    title="Manage settlement bank accounts in Settings"
+                    className="font-mono font-medium text-[#0f141a] hover:text-[#0045de] transition-colors cursor-pointer text-left"
+                  >
+                    {activeBankAccount.bank_name} •••• {activeBankAccount.bank_account_number ? activeBankAccount.bank_account_number.slice(-4) : '••••'}
+                  </button>
                 ) : (
                   <button
                     type="button"
-                    onClick={openAddBank}
+                    onClick={navigateToBankSettings}
                     className="text-amber-600 hover:text-amber-800 font-semibold inline-flex items-center gap-1 cursor-pointer transition-colors"
                   >
                     <AlertCircle className="w-3 h-3" /> Not Linked
@@ -1148,11 +1123,11 @@ export default function DashboardOverviewRedesign({
               </div>
               <button
                 type="button"
-                onClick={openAddBank}
-                title={hasBankAccount ? "Update settlement pool account" : "Link bank account"}
+                onClick={navigateToBankSettings}
+                title={hasBankAccount ? "Manage bank accounts in Settings" : "Link bank account in Settings"}
                 className="text-[11px] font-semibold text-blue-600 hover:text-blue-800 transition-colors cursor-pointer"
               >
-                {hasBankAccount ? 'Edit' : 'Add'}
+                {hasBankAccount ? 'Manage' : 'Add'}
               </button>
             </div>
 
@@ -1160,13 +1135,18 @@ export default function DashboardOverviewRedesign({
               <div className="flex justify-between items-center">
                 <span>Primary Pool</span>
                 {hasBankAccount ? (
-                  <span className="font-medium text-[#0f141a] font-mono">
-                    {profile.bank_name} *******{profile.bank_account_number.slice(-3)}
-                  </span>
+                  <button
+                    type="button"
+                    onClick={navigateToBankSettings}
+                    title="Configure primary settlement account in Settings"
+                    className="font-medium text-[#0f141a] font-mono hover:text-[#0045de] transition-colors cursor-pointer text-right truncate max-w-[200px]"
+                  >
+                    {activeBankAccount.bank_name} *******{activeBankAccount.bank_account_number ? activeBankAccount.bank_account_number.slice(-3) : '•••'}
+                  </button>
                 ) : (
                   <button
                     type="button"
-                    onClick={openAddBank}
+                    onClick={navigateToBankSettings}
                     className="text-amber-600 font-semibold text-xs hover:underline flex items-center gap-1 cursor-pointer"
                   >
                     <Plus className="w-3 h-3" /> Link Bank Account
@@ -1175,7 +1155,7 @@ export default function DashboardOverviewRedesign({
               </div>
               <div className="flex justify-between items-center">
                 <span>Daily Cap</span>
-                <span className="font-medium text-[#0f141a] font-mono">₹ 25,00,000.00</span>
+                <span className="font-medium text-[#0f141a] font-mono">{dailyCapDisplay}</span>
               </div>
             </div>
           </div>
@@ -1224,154 +1204,7 @@ export default function DashboardOverviewRedesign({
       </div>
 
 
-      {/* ─── ADD / EDIT BANK ACCOUNT MODAL ─── */}
-      {showAddBank && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
-        >
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-gray-50/50">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                  <Building2 className="w-5 h-5" />
-                </div>
-                <div>
-                  <h2 className="text-sm font-bold text-slate-900">Direct Settlement Account</h2>
-                  <p className="text-xs text-slate-500">Configure instant T+0 payout destination</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={closeAddBank}
-                className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
 
-            {/* Modal Body */}
-            <div className="px-6 py-5 space-y-4">
-              {bankSuccess && (
-                <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-700 text-xs font-semibold">
-                  <Check className="w-4 h-4" /> Bank account saved successfully!
-                </div>
-              )}
-              {bankError && (
-                <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-xs">
-                  <AlertCircle className="w-4 h-4 shrink-0" /> {bankError}
-                </div>
-              )}
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Bank Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. HDFC Bank, ICICI Bank, SBI"
-                  value={bankForm.bank_name}
-                  onChange={(e) => setBankForm((f) => ({ ...f, bank_name: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0c2340]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Account Holder Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  placeholder="As per bank passbook / statement"
-                  value={bankForm.bank_account_name}
-                  onChange={(e) => setBankForm((f) => ({ ...f, bank_account_name: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0c2340]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Account Number <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type={showAccNum ? 'text' : 'password'}
-                    placeholder="Enter account number"
-                    value={bankForm.bank_account_number}
-                    onChange={(e) => setBankForm((f) => ({ ...f, bank_account_number: e.target.value }))}
-                    className="w-full px-3 py-2 pr-10 rounded-lg border border-slate-200 text-xs font-mono text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0c2340]"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowAccNum((v) => !v)}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 cursor-pointer"
-                  >
-                    {showAccNum ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Confirm Account Number <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="password"
-                  placeholder="Re-enter account number"
-                  value={bankForm.bank_account_number_confirm}
-                  onChange={(e) => setBankForm((f) => ({ ...f, bank_account_number_confirm: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs font-mono text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0c2340]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  IFSC Code <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. HDFC0001234"
-                  value={bankForm.bank_ifsc}
-                  onChange={(e) => setBankForm((f) => ({ ...f, bank_ifsc: e.target.value.toUpperCase() }))}
-                  maxLength={11}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs font-mono text-slate-900 placeholder:text-slate-400 uppercase focus:outline-none focus:ring-2 focus:ring-[#0c2340]"
-                />
-              </div>
-
-              <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-100 rounded-lg">
-                <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-                <p className="text-xs text-blue-800 leading-relaxed">
-                  Settlements credit instantly into this account with 0% escrow retention via IMPS rail.
-                </p>
-              </div>
-            </div>
-
-            {/* Modal Footer */}
-            <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2.5">
-              <button
-                type="button"
-                onClick={closeAddBank}
-                className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-200 transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleBankSave}
-                disabled={bankSaving || bankSuccess}
-                className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-[#0c2340] hover:bg-[#1a3a60] text-white text-xs font-bold shadow-sm transition-all disabled:opacity-60 cursor-pointer"
-              >
-                {bankSaving ? (
-                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <Save className="w-3.5 h-3.5" />
-                )}
-                {bankSaving ? 'Saving...' : 'Save Settlement Account'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
 
       {/* ─── BANK ROUTING RULES POPUP MODAL ─── */}
@@ -1428,8 +1261,10 @@ export default function DashboardOverviewRedesign({
                 </div>
                 <div className="p-3 rounded-xl bg-gray-50 border border-slate-200">
                   <span className="text-[#547092] font-semibold uppercase text-[10px]">Daily Velocity Cap</span>
-                  <p className="font-bold text-[#0f141a] mt-0.5">₹ 25,00,000.00 / day</p>
-                  <p className="text-[#547092] text-[11px] mt-1">Upgradable via Support</p>
+                  <p className="font-bold text-[#0f141a] mt-0.5">{dailyCapDisplay}</p>
+                  <p className="text-[#547092] text-[11px] mt-1">
+                    {hasBankAccount ? '0% Escrow Direct Settlement' : 'Link bank account to activate'}
+                  </p>
                 </div>
               </div>
 
@@ -1446,8 +1281,22 @@ export default function DashboardOverviewRedesign({
                 </div>
                 <p className="font-bold text-slate-800 text-xs">
                   {hasBankAccount
-                    ? `${profile.bank_name} • ${profile.bank_account_name || 'Primary'} • Account: ••••${profile.bank_account_number?.slice(-4)} (${profile.bank_ifsc})`
-                    : 'No settlement bank account linked yet. Click "+ Link Bank Account" above to activate.'}
+                    ? `${activeBankAccount.bank_name} • ${activeBankAccount.bank_account_name || 'Primary'} • Account: ••••${activeBankAccount.bank_account_number?.slice(-4)} (${activeBankAccount.bank_ifsc || 'IMPS Rail'})`
+                    : (
+                      <span>
+                        No settlement bank account linked yet.{' '}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowRoutingRules(false);
+                            navigateToBankSettings();
+                          }}
+                          className="text-blue-600 underline font-semibold cursor-pointer"
+                        >
+                          Add in Settings &rarr;
+                        </button>
+                      </span>
+                    )}
                 </p>
               </div>
             </div>
