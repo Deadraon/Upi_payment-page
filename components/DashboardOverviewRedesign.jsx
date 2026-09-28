@@ -6,7 +6,6 @@ import {
   X,
   AlertCircle,
   Plus,
-  Filter,
   Download,
   ArrowRight,
   ShieldCheck,
@@ -713,18 +712,6 @@ export default function DashboardOverviewRedesign({
             </div>
 
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                title="Filter ledger"
-                onClick={() => setActiveFilter((f) => (f === 'all' ? 'success' : 'all'))}
-                className={`size-8 rounded-lg border flex items-center justify-center transition-colors cursor-pointer ${
-                  activeFilter !== 'all'
-                    ? 'border-[#0c2340] bg-[#0c2340] text-white'
-                    : 'border-[#e8edf2] text-[#547092] hover:text-[#0f141a] hover:bg-gray-50'
-                }`}
-              >
-                <Filter className="w-4 h-4" />
-              </button>
               <button
                 type="button"
                 title="Export ledger as CSV"
