@@ -25,17 +25,23 @@ export async function GET(request) {
 
     // Process status based on expiry
     const processed = (merchants || []).map(m => {
+      let status = m.subscription_status || 'inactive';
       let isExpired = false;
       let daysLeft = 0;
       if (m.subscription_expires_at) {
         const diff = new Date(m.subscription_expires_at).getTime() - Date.now();
         daysLeft = Math.ceil(diff / (1000 * 60 * 60 * 24));
-        if (daysLeft <= 0 && m.subscription_status === 'active') {
+        if (daysLeft <= 0 && (status === 'active' || status === 'trial')) {
           isExpired = true;
+          status = 'expired';
         }
+      } else if (!m.subscription_expires_at && m.id !== 'dd45279e-7a2c-413c-9e24-24d88011b680' && status === 'active') {
+        // Merchant has no expiry and no activation recorded (registered via signup form without paying plan)
+        status = 'inactive';
       }
       return {
         ...m,
+        subscription_status: status,
         is_expired: isExpired,
         days_left: daysLeft
       };
@@ -46,7 +52,8 @@ export async function GET(request) {
     return NextResponse.json({
       success: true,
       merchants: processed,
-      gift_codes: giftCodes
+      gift_codes: giftCodes,
+      giftCodes: giftCodes
     });
   } catch (err) {
     console.error('GET /api/admin/subscriptions error:', err);
@@ -90,24 +97,45 @@ export async function POST(request) {
 
     // 3. Create or update gift code
     if (action === 'create_gift_code') {
-      const { code, discount_type, discount_value, plan_duration_days, plan_type, max_uses, expires_at, description } = body;
+      const { 
+        code, 
+        discount_type, 
+        discountType,
+        discount_value, 
+        discountValue,
+        plan_duration_days, 
+        planDays,
+        plan_type, 
+        planType,
+        max_uses, 
+        maxUses,
+        expires_at, 
+        description 
+      } = body;
+
       if (!code) {
         return NextResponse.json({ error: 'Code name is required' }, { status: 400 });
       }
 
       const saved = await saveGiftCode({
         code,
-        discount_type: discount_type || 'free',
-        discount_value: parseFloat(discount_value || 0),
-        plan_duration_days: parseInt(plan_duration_days || 30),
-        plan_type: plan_type || 'gift_subscription',
-        max_uses: max_uses ? parseInt(max_uses) : null,
+        discount_type: discount_type || discountType || 'free',
+        discount_value: parseFloat(discount_value ?? discountValue ?? 0),
+        plan_duration_days: parseInt(plan_duration_days ?? planDays ?? 30),
+        plan_type: plan_type || planType || 'gift_subscription',
+        max_uses: (max_uses ?? maxUses) ? parseInt(max_uses ?? maxUses) : null,
         expires_at: expires_at || null,
         description: description || 'Gift Code'
       });
 
       const allCodes = await getGiftCodes();
-      return NextResponse.json({ success: true, code: saved, gift_codes: allCodes, message: `Gift code ${saved.code} created successfully!` });
+      return NextResponse.json({ 
+        success: true, 
+        code: saved, 
+        gift_codes: allCodes, 
+        giftCodes: allCodes,
+        message: `Gift code ${saved.code} created successfully!` 
+      });
     }
 
     // 4. Delete/Disable gift code
@@ -116,7 +144,12 @@ export async function POST(request) {
       if (!code) return NextResponse.json({ error: 'Code is required' }, { status: 400 });
       await deleteGiftCode(code);
       const allCodes = await getGiftCodes();
-      return NextResponse.json({ success: true, gift_codes: allCodes, message: `Gift code ${code} removed!` });
+      return NextResponse.json({ 
+        success: true, 
+        gift_codes: allCodes, 
+        giftCodes: allCodes,
+        message: `Gift code ${code} removed!` 
+      });
     }
 
     return NextResponse.json({ error: 'Invalid action parameter' }, { status: 400 });

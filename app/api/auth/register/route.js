@@ -65,7 +65,7 @@ export async function POST(req) {
           business_name: businessName.trim(),
           upi_id: upiId.trim(),
           phone_number: cleanPhone || undefined,
-          subscription_status: 'active',
+          subscription_status: 'inactive',
           sandbox_mode: true,
           theme_color: '#3B82F6',
         }, { onConflict: 'id' });

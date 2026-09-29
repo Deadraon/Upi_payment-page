@@ -86,12 +86,34 @@ const MyMobPayLogo = ({ className = 'w-48 h-auto', textColor = 'var(--text-prima
 export default function AdminPage() {
   // Auth states
   const [password, setPassword] = useState('');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('admin_google_logged_in') === 'true' || !!sessionStorage.getItem('admin_pwd');
+    }
+    return false;
+  });
   const [authError, setAuthError] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
 
-  // Active Tab: overview, transactions, merchants, config
-  const [activeTab, setActiveTab] = useState('overview');
+  // Active Tab: overview, transactions, merchants, subscriptions, config
+  const [activeTab, setActiveTabState] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash.replace(/^#/, '');
+      const validTabs = ['overview', 'transactions', 'merchants', 'subscriptions', 'config'];
+      if (validTabs.includes(hash)) return hash;
+      const saved = sessionStorage.getItem('admin_active_tab');
+      if (validTabs.includes(saved)) return saved;
+    }
+    return 'overview';
+  });
+
+  const setActiveTab = useCallback((tab) => {
+    setActiveTabState(tab);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('admin_active_tab', tab);
+      window.history.replaceState(null, '', `${window.location.pathname}#${tab}`);
+    }
+  }, []);
 
   // Login UI states
   const [loginMode, setLoginMode] = useState('google'); // 'google' | 'password'
@@ -195,9 +217,9 @@ export default function AdminPage() {
   }, [password]);
 
   // Fetch Platform settings configurations
-  const fetchSettings = useCallback(async () => {
+  const fetchSettings = useCallback(async (isSilent = false) => {
     if (!isLoggedIn) return;
-    setSettingsLoading(true);
+    if (!isSilent) setSettingsLoading(true);
     setSettingsError('');
     try {
       const headers = await getAuthHeaders();
@@ -219,22 +241,26 @@ export default function AdminPage() {
   }, [isLoggedIn, getAuthHeaders]);
 
   // Fetch Subscription Records & Gift Codes
-  const fetchSubscriptions = useCallback(async () => {
+  const fetchSubscriptions = useCallback(async (isSilent = false) => {
     if (!isLoggedIn) return;
-    setSubsLoading(true);
+    if (!isSilent && subscriptionsList.length === 0) {
+      setSubsLoading(true);
+    }
     try {
       const headers = await getAuthHeaders();
       const res = await fetch('/api/admin/subscriptions', { headers });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to fetch subscriptions');
-      setSubscriptionsList(data.merchants || []);
-      setGiftCodesList(data.giftCodes || []);
+      const incMerchants = data.merchants || [];
+      setSubscriptionsList(incMerchants.length > 0 ? incMerchants : (merchants.length > 0 ? merchants : []));
+      setGiftCodesList(data.giftCodes || data.gift_codes || []);
     } catch (err) {
       console.error('fetchSubscriptions error:', err);
+      setSubscriptionsList(prev => prev.length > 0 ? prev : (merchants.length > 0 ? merchants : []));
     } finally {
       setSubsLoading(false);
     }
-  }, [isLoggedIn, getAuthHeaders]);
+  }, [isLoggedIn, getAuthHeaders, subscriptionsList.length, merchants]);
 
   // Create Gift Code
   const handleCreateGiftCode = async (e) => {
@@ -263,7 +289,7 @@ export default function AdminPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to create gift code');
-      setGiftCodesList(data.giftCodes || []);
+      setGiftCodesList(data.giftCodes || data.gift_codes || []);
       setNewGiftCode({ code: '', discountType: 'free', discountValue: 0, planDays: 30, maxUses: 10, description: '' });
       showToast('Gift code created successfully!', 'success');
     } catch (err) {
@@ -290,7 +316,7 @@ export default function AdminPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to delete code');
-      setGiftCodesList(data.giftCodes || []);
+      setGiftCodesList(data.giftCodes || data.gift_codes || []);
     } catch (err) {
       showToast(err.message || 'Error deleting gift code', 'error');
     }
@@ -329,9 +355,16 @@ export default function AdminPage() {
     }
   };
 
+  const verifyingRef = React.useRef(false);
+  const lastVerifiedTokenRef = React.useRef(null);
+
   // Verify a Supabase Google session against backend admin authorization
   const verifyGoogleSession = useCallback(async (session) => {
     if (!session?.access_token) return;
+    if (verifyingRef.current || lastVerifiedTokenRef.current === session.access_token) return;
+    verifyingRef.current = true;
+    lastVerifiedTokenRef.current = session.access_token;
+
     setAuthLoading(true);
     setAuthError('');
     try {
@@ -349,9 +382,10 @@ export default function AdminPage() {
         setGoogleUser(session.user);
         setIsLoggedIn(true);
         setAuthError('');
-        // Clean URL hash fragment if present from OAuth redirect
-        if (typeof window !== 'undefined' && window.location.hash) {
-          window.history.replaceState(null, '', window.location.pathname + window.location.search);
+        // Clean URL hash fragment if present from OAuth redirect while keeping tab
+        if (typeof window !== 'undefined' && window.location.hash && window.location.hash.includes('access_token')) {
+          const tab = sessionStorage.getItem('admin_active_tab') || 'overview';
+          window.history.replaceState(null, '', `${window.location.pathname}#${tab}`);
         }
       } else {
         const errorMsg = data.error || 'Google account is not authorized as an administrator.';
@@ -359,20 +393,22 @@ export default function AdminPage() {
         sessionStorage.removeItem('admin_google_logged_in');
         setGoogleUser(null);
         setIsLoggedIn(false);
+        lastVerifiedTokenRef.current = null;
         await supabase.auth.signOut();
       }
     } catch (e) {
       console.error('Google verification error on mount:', e);
       setAuthError('Connection error during Google administrator verification.');
+      lastVerifiedTokenRef.current = null;
     } finally {
+      verifyingRef.current = false;
       setAuthLoading(false);
     }
   }, []);
 
   // Sync auth state from Google OAuth session on mount and on auth change
   useEffect(() => {
-
-    // 2. Check for error parameters in URL (e.g. user cancelled Google OAuth)
+    // Check for error parameters in URL (e.g. user cancelled Google OAuth)
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
       const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
@@ -382,14 +418,7 @@ export default function AdminPage() {
       }
     }
 
-    // 3. Check if we have an active Google OAuth session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session && session.user) {
-        verifyGoogleSession(session);
-      }
-    });
-
-    // 4. Subscribe to auth state changes for seamless OAuth redirect handling
+    // Subscribe to auth state changes for seamless OAuth redirect handling
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session && session.user) {
         verifyGoogleSession(session);
@@ -420,27 +449,36 @@ export default function AdminPage() {
   }, [isMobileMenuOpen]);
 
   // Fetch all registered merchants (bypassing RLS via our secure API)
-  const fetchMerchants = useCallback(async () => {
+  const fetchMerchants = useCallback(async (isSilent = false) => {
     if (!isLoggedIn) return;
-    setMerchantsLoading(true);
+    if (!isSilent && merchants.length === 0) {
+      setMerchantsLoading(true);
+    }
     try {
       const headers = await getAuthHeaders();
       const res = await fetch('/api/admin/merchants', { headers });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to fetch merchants');
-      setMerchants(data.merchants || []);
+      const list = data.merchants || [];
+      setMerchants(list);
+      // Seed subscriptionsList if empty
+      setSubscriptionsList(prev => prev.length === 0 ? list : prev);
     } catch (err) {
       console.error('Error fetching merchants:', err);
-      setError('Could not fetch merchant records from server.');
+      if (merchants.length === 0) {
+        setError('Could not fetch merchant records from server.');
+      }
     } finally {
       setMerchantsLoading(false);
     }
-  }, [isLoggedIn, getAuthHeaders]);
+  }, [isLoggedIn, getAuthHeaders, merchants.length]);
 
   // Fetch all orders
-  const fetchOrders = useCallback(async () => {
+  const fetchOrders = useCallback(async (isSilent = false) => {
     if (!isLoggedIn) return;
-    setLoading(true);
+    if (!isSilent && orders.length === 0) {
+      setLoading(true);
+    }
     try {
       const { data, error: dbError } = await supabase
         .from('orders')
@@ -452,28 +490,30 @@ export default function AdminPage() {
       setError('');
     } catch (err) {
       console.error('Error fetching orders:', err);
-      setError('Could not fetch transaction logs from database.');
+      if (orders.length === 0) {
+        setError('Could not fetch transaction logs from database.');
+      }
     } finally {
       setLoading(false);
     }
-  }, [isLoggedIn]);
+  }, [isLoggedIn, orders.length]);
 
   // Unified Refresh
-  const handleRefreshAll = useCallback(() => {
-    fetchOrders();
-    fetchMerchants();
-    fetchSettings();
-    fetchSubscriptions();
+  const handleRefreshAll = useCallback((isSilent = false) => {
+    fetchOrders(isSilent);
+    fetchMerchants(isSilent);
+    fetchSettings(isSilent);
+    fetchSubscriptions(isSilent);
   }, [fetchOrders, fetchMerchants, fetchSettings, fetchSubscriptions]);
 
-  // Trigger fetch on login
+  // Trigger fetch on login and silent background refresh
   useEffect(() => {
     if (isLoggedIn) {
-      handleRefreshAll();
+      handleRefreshAll(false);
       
-      // Auto-refresh every 20 seconds
+      // Auto-refresh silently every 20 seconds without wiping UI or displaying loaders
       const interval = setInterval(() => {
-        handleRefreshAll();
+        handleRefreshAll(true);
       }, 20000);
       
       return () => clearInterval(interval);
@@ -852,6 +892,11 @@ export default function AdminPage() {
     });
   }, [merchants, merchantSearchQuery]);
 
+  // Unified Subscriptions list: use subscriptionsList if loaded, fallback to merchants
+  const activeSubscriptions = useMemo(() => {
+    return subscriptionsList.length > 0 ? subscriptionsList : merchants;
+  }, [subscriptionsList, merchants]);
+
   const brandColor = '#3B82F6'; // Unified Website Blue Brand Color
 
   if (!isLoggedIn) {
@@ -1139,12 +1184,12 @@ export default function AdminPage() {
 
           <div className="flex items-center gap-2 pt-1">
             <button
-              onClick={handleRefreshAll}
-              disabled={loading || merchantsLoading}
+              onClick={() => handleRefreshAll(false)}
+              disabled={loading || merchantsLoading || subsLoading}
               className="flex-1 py-2 px-3 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer"
               title="Refresh Platform Data"
             >
-              <RefreshCw className={`w-3.5 h-3.5 text-blue-600 ${loading || merchantsLoading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-3.5 h-3.5 text-blue-600 ${loading || merchantsLoading || subsLoading ? 'animate-spin' : ''}`} />
               <span>Sync</span>
             </button>
             <button
@@ -1172,11 +1217,11 @@ export default function AdminPage() {
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={handleRefreshAll}
-            disabled={loading || merchantsLoading}
+            onClick={() => handleRefreshAll(false)}
+            disabled={loading || merchantsLoading || subsLoading}
             className="p-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 hover:text-slate-900 shadow-sm"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading || merchantsLoading ? 'animate-spin text-blue-600' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${loading || merchantsLoading || subsLoading ? 'animate-spin text-blue-600' : ''}`} />
           </button>
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -1279,11 +1324,11 @@ export default function AdminPage() {
             </div>
 
             <button
-              onClick={handleRefreshAll}
-              disabled={loading || merchantsLoading}
+              onClick={() => handleRefreshAll(false)}
+              disabled={loading || merchantsLoading || subsLoading}
               className="px-3.5 py-1.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 transition-all text-xs font-bold shadow-sm flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
-              <RefreshCw className={`w-3.5 h-3.5 text-blue-600 ${loading || merchantsLoading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-3.5 h-3.5 text-blue-600 ${loading || merchantsLoading || subsLoading ? 'animate-spin' : ''}`} />
               <span>Sync</span>
             </button>
           </div>
@@ -1452,7 +1497,7 @@ export default function AdminPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200 bg-white">
-                      {merchantsLoading ? (
+                      {merchantsLoading && merchantLeaderboard.length === 0 ? (
                         <tr>
                           <td colSpan="4" className="px-5 py-6 text-center text-xs text-slate-500">
                             Loading leaderboards...
@@ -1922,7 +1967,7 @@ export default function AdminPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 bg-white">
-                  {merchantsLoading ? (
+                  {merchantsLoading && filteredMerchants.length === 0 ? (
                     <tr>
                       <td colSpan="7" className="px-6 py-12 text-center text-xs text-slate-500">
                         <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-blue-500" />
@@ -2059,7 +2104,7 @@ export default function AdminPage() {
                   <div>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active Subscriptions</p>
                     <h3 className="text-2xl font-black text-slate-900 mt-2">
-                      {subscriptionsList.filter(m => m.subscription_status === 'active').length}
+                      {activeSubscriptions.filter(m => m.subscription_status === 'active').length}
                     </h3>
                   </div>
                   <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100">
@@ -2074,7 +2119,7 @@ export default function AdminPage() {
                   <div>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active 3-Day Trials</p>
                     <h3 className="text-2xl font-black text-slate-900 mt-2">
-                      {subscriptionsList.filter(m => m.subscription_status === 'trial').length}
+                      {activeSubscriptions.filter(m => m.subscription_status === 'trial').length}
                     </h3>
                   </div>
                   <div className="p-2.5 rounded-xl bg-blue-50 text-blue-600 border border-blue-100">
@@ -2089,7 +2134,7 @@ export default function AdminPage() {
                   <div>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Expired / Inactive</p>
                     <h3 className="text-2xl font-black text-slate-900 mt-2">
-                      {subscriptionsList.filter(m => m.subscription_status === 'expired' || m.subscription_status === 'inactive').length}
+                      {activeSubscriptions.filter(m => m.subscription_status === 'expired' || m.subscription_status === 'inactive').length}
                     </h3>
                   </div>
                   <div className="p-2.5 rounded-xl bg-amber-50 text-amber-600 border border-amber-100">
@@ -2237,7 +2282,12 @@ export default function AdminPage() {
                       </tr>
                     ) : (
                       giftCodesList.map((gc) => {
-                        const isFree = gc.discountType === 'free';
+                        const isFree = (gc.discount_type || gc.discountType || 'free') === 'free';
+                        const planDays = gc.plan_duration_days || gc.planDays || 30;
+                        const discountVal = gc.discount_value ?? gc.discountValue ?? 0;
+                        const used = gc.times_used ?? gc.timesUsed ?? gc.usedCount ?? 0;
+                        const max = gc.max_uses ?? gc.maxUses ?? '∞';
+                        const createdDate = gc.created_at || gc.createdAt;
                         return (
                           <tr key={gc.code} className="hover:bg-slate-50/50 transition-colors">
                             <td className="px-5 py-3.5 whitespace-nowrap">
@@ -2262,20 +2312,20 @@ export default function AdminPage() {
                               {isFree ? (
                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
                                   <Sparkles className="w-3 h-3 text-emerald-600" />
-                                  100% Free ({gc.planDays || 30} Days)
+                                  100% Free ({planDays} Days)
                                 </span>
                               ) : (
                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-50 text-blue-700 border border-blue-200">
                                   <Percent className="w-3 h-3 text-blue-600" />
-                                  ₹{gc.discountValue} Flat Discount
+                                  ₹{discountVal} Flat Discount
                                 </span>
                               )}
                             </td>
                             <td className="px-5 py-3.5 whitespace-nowrap text-xs font-mono font-bold text-slate-600">
-                              {gc.usedCount || 0} / {gc.maxUses || 1} used
+                              {used} / {max} used
                             </td>
                             <td className="px-5 py-3.5 whitespace-nowrap text-xs text-slate-400">
-                              {gc.createdAt ? new Date(gc.createdAt).toLocaleDateString('en-IN') : 'N/A'}
+                              {createdDate ? new Date(createdDate).toLocaleDateString('en-IN') : 'N/A'}
                             </td>
                             <td className="px-5 py-3.5 whitespace-nowrap text-right">
                               <button
@@ -2348,14 +2398,14 @@ export default function AdminPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 bg-white">
-                    {subsLoading ? (
+                    {subsLoading && activeSubscriptions.length === 0 ? (
                       <tr>
                         <td colSpan="6" className="px-5 py-8 text-center text-xs text-slate-400 font-semibold">
                           <RefreshCw className="w-5 h-5 animate-spin mx-auto text-blue-600 mb-2" />
                           Loading subscription records...
                         </td>
                       </tr>
-                    ) : subscriptionsList.filter(m => {
+                    ) : activeSubscriptions.filter(m => {
                       if (subsStatusFilter !== 'all' && m.subscription_status !== subsStatusFilter) return false;
                       if (subsSearchQuery) {
                         const q = subsSearchQuery.toLowerCase();
@@ -2372,7 +2422,7 @@ export default function AdminPage() {
                         </td>
                       </tr>
                     ) : (
-                      subscriptionsList
+                      activeSubscriptions
                         .filter(m => {
                           if (subsStatusFilter !== 'all' && m.subscription_status !== subsStatusFilter) return false;
                           if (subsSearchQuery) {
